@@ -120,9 +120,11 @@
 //#define TF5100C
 
 #ifndef TF5100C
-    #define _PROGRAM_NAME_ "Timer Extend V8.9"
+    #define _PROGRAM_NAME_ "Timer Extend V8.9_" __DATE__ "_" __TIME__ ""
+	#define _TAP_PROGRAM_NAME_ "Timer Extend V8.9_" __DATE__ "_" __TIME__ ".tap"
 #else
-    #define _PROGRAM_NAME_ "Timer Extend V8.9_5100C"
+    #define _PROGRAM_NAME_ "Timer Extend V8.9_5100C_" __DATE__ "_" __TIME__""
+	#define _TAP_PROGRAM_NAME_ "Timer Extend V8.9_5100C_" __DATE__ "_" __TIME__".tap"
 #endif
 
 #define BACKUP_FILE "timer_backup.dat"
