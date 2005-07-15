@@ -1,0 +1,20 @@
+Please add your descriptions of release tags when you create them.
+
+Make sure that you provide some high level release notes for each tag.
+
+The format is simple the tag line must start the string "TAG:", then
+the rest of that line is the path to the tag (relative to the tag
+level of the repository), then all subsequent lines until the next
+tag keyword (or end of file) form the release notes for that tag.
+
+TAG:libs/mylib-1.0
+First public release of mylib.
+
+TAG:libs/mylib-1.1
+* Fixes a bug where the call to is_cpu_on_fire() would always
+  return false, even though one or more of the CPUs could infact
+  be in flames.
+
+* Breaks source level compatibility with put_out_fire() by
+  requiring fire suppresant type as an argument.
+
