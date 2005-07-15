@@ -1,0 +1,42 @@
+# $Id: Makefile 5 2005-07-14 12:55:22Z peteru $
+#
+# Copyright (c) 2004-2005 Peter Urbanec. All Rights Reserved.
+#
+#  This file is part of the TAPs for Topfield PVRs project.
+#      http://developer.berlios.de/projects/tap/
+#
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  The software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with puppy; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+#
+# The next line can be either included here, like shown, or it can be ommitted
+# and the TAP_HOME environment variable can be set in the shell.
+TAP_HOME=/usr/local/tap
+
+# The next line pulls in the rule sets for building TAPs.
+include $(TAP_HOME)/include/Makefile.tap
+
+
+# The first target is the default target.
+all: FreeSpaceBar.tap
+
+# A target for removing generated files.
+clean:
+	-rm -f *.tap *.o *.elf
+
+# This rule causes the recompilation if any prerequisities changed
+FreeSpaceBar.c: TSRCommander.inc 
+	touch $@
+
