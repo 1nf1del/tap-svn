@@ -20,13 +20,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-#
-# The next line can be either included here, like shown, or it can be ommitted
-# and the TAP_HOME environment variable can be set in the shell.
-TAP_HOME=/usr/local/tap
-
 # The next line pulls in the rule sets for building TAPs.
-include $(TAP_HOME)/include/Makefile.tap
+include ../../tools/build/tap.mk
 
 
 # The first target is the default target.
