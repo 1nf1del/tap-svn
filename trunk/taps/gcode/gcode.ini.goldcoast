@@ -1,0 +1,13 @@
+;options for gcode (gold coast version)
+;
+
+[Channels]
+1=TEN Digital
+2=ABC TV Queensland
+3=SBS DIGITAL 1
+5=SC10 Gold Coast
+6=PRIME Gold Coast
+7=7 DIGITAL
+8=NBN Digital
+9=Nine Digital Gold Coast
+10=TEN Digital

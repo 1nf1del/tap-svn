@@ -1,0 +1,40 @@
+18/10/2004 v1.6
+	- fixed bug where incorrect index in timer details menu was used
+	- fixed bug where left key on duration changing didn't work
+
+22/9/2004 v1.51:
+	- reset global timer details on each gcode entry
+	- use 1.1 utils (faster file i/o)
+
+21/9/2004 v1.5:
+
+	- allow use of number keys to add g-codes
+	- allow editing of timer details prior to adding the timer
+	- TAP exit menu
+	- default exit key changed to Exit
+	- use a default filename for recorded file so timer_extend works
+	- re-organise some functions into reusable tools
+
+9/9/2004  v1.4:
+
+	- externalise the channel names so it works outside of Sydney!
+
+8/9/2004  v1.2:
+
+	- fixed 4 digit year problem - all codes should now decode correctly
+
+7/9/2004  v1.1:
+
+	- fixed bug where it didn't start correctly without a keymap.ini
+
+	bugs: uses 4 digit year in calculating gcodes - some codes are not correctly decoded
+
+
+6/9/2004  V1.0:
+
+	- released to the toppy community
+
+	bugs:	
+	- ?Uses QuickEPG id so won't work with that TAP
+	- check whether it works with other TAPs
+	- check whether it works on autostart
