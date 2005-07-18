@@ -1,0 +1,8 @@
+;options for gcode (tasmania version)
+;
+
+[Channels]
+6=WIN TELEVISION
+2=ABC TV Hobart
+11=SCT Hobart
+10=TDT - SD

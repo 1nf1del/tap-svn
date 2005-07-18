@@ -1,0 +1,8 @@
+;options for gcode
+;
+
+[Channels]
+2=ABC TV Sydney
+7=7 Digital
+9=NINE DIGITAL
+10=TEN Digital
