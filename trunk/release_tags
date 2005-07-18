@@ -18,3 +18,34 @@ TAG:libs/mylib-1.1
 * Breaks source level compatibility with put_out_fire() by
   requiring fire suppresant type as an argument.
 
+TAG:libs/libutils-1.2
+First release of libutils through berlios. libutils is a library of functions 
+for TAP programmers. It contains
+* a basic implementation of the System V file functions, fopen/fclose/fgets/fputs
+  (borrowed extensively from K&R)
+* a basic implementation of Win32 INI GetPrivateProfileString/WritePrivateProfileString
+* a key mapper utility that externalises a TAPs Remote Control key assignment. 
+  This would allow a end user to modify the key assignments for the TAP to 
+  his/her liking.
+* various utility functions such as vsprintf, atoi, and strtok implementations
+  otherwise not available on the Topfield
+
+TAG:taps/gcode-1.6
+First release of gcode through berlios.
+* The gcode tap allows you to create timer entries by using GCodes found in 
+  printed TV guides. The GCode algorithm is the same as Europe's Showview so 
+  this tap should work Showview as well.
+* Limitation: This TAP only supports GCodes of 1-6 characters in length (by far
+  the most common). The algorithm for decoding longer codes has not been made 
+  public yet...
+
+TAG:taps/macro-1.0
+First release of macro through berlios.
+* macro is a TAP that executes one or more keys for each macro key defined. 
+  Invocation of a macro can be through a single RC key, or a combination of a 
+  “function” key together with a RC key (e.g. similar to Alt TAB on a PC). 
+* the use of the function key can be varied to be always on, i.e. No function 
+  key is required, or use key once, i.e. press the function key once to enable 
+  the macros and from then on simply press the RC key to invoke the macro, or 
+  use key every time, i.e. you must press the function key with the RC key to 
+  invoke the macro 
