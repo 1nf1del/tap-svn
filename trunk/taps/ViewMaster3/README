@@ -1,0 +1,37 @@
+Some notes on my ViewMaster3 TAP.
+
+It's the only TAP I run regularly and does pretty well everything I want to do while using the Toppy. It started out as a modified version of the old PIPswitch (thanks to tonymy01 and the apparent original author, Wurstepeter). I called my version of this "ViewMaster".
+
+I then added a timer interface (and it became ViewMaster2), because I never liked the standard one (in particular I hate having to specify duration rather than end time). I am not really interested in downloading EPG info from the web and setting up timers that way. I would rather enter them manually myself. The timer interface basically shows a list of current timers (up to 18 at a time) and has a set of fields (type, date, start time, end time, channel (LCN), tuner, file name) at the bottom where I can enter new timers or modify existing ones.
+
+Later, I added a file manager (and this time it became ViewMaster3). I mainly use the file manager to launch playback of recorded shows, stop recordings and delete them. This was mainly done because the standard interface only shows 10 files at a time and doesn't show much information about each one until you select it. Mine shows 20 at a time and lets you see more information about each file at a glance, without having to select it. Launching playback from this list also allows me to have better control of other things, such as knowing what file is currently playing (it dates from before the API supported the TAP_Hdd_GetPlayInfo function), stopping and deleting it, resuming playback of a stopped file from the current position, and automatically starting playback of the next file in the list. The file manager can also rename and copy files (although the latter is quite slow and not really useful for typical .rec files). It can also display the content of files in hex and ASCII.
+
+Both the timer and file manager support entering file names via an idea which I got from Pace and Amstrad STUs, in which each numeric key can be pressed multiple times in succession to represent a different alphabetic, numeric or special character (e.g. each press of the "1" key generates A, B, C, D in succession). This was done because I find the standard on-screen keyboard a real pain to use. I reckon I can enter names much quicker this way.
+
+I have also added many other features, but I will leave these for anyone who cares to explore the code to discover.
+
+The TAP is very much geared to my own use, and I am not interested in supporting it for other people, so I am only releasing the source code, so that it is effectively restricted to programmers. I am a retired "old-school" programmer (i.e. before C, using mainly FORTRAN, COBOL and some assembler, on mainframes) and I just like to keep dabbling in programming when the mood takes me. Because of the way the code has grown (and because my knowledge of C is limited to a couple of on-line tutorials and reference to other TAPs) it is very messy and poorly documented (and I have to really think hard to remember how some things work when I come back to modify them after a break).
+
+A word of warning: I don't use time shift and prefer to record everything that interests me completely before playing back the file. Hence I very rarely play a file which is still recording. I mention this because it is probably relevant to any bugs which may be lurking in the code and have not yet been discovered by me.
+
+The code is contained in 2 files:
+
+ViewMaster3.c contains the declarations, sub-routines/functions (or whatever they are called in C) and the main.
+ViewMaster3EventHandler.c, as one would expect, contains all of the event handler code.
+
+As written, it is best not run with other TAPs (unless you deactivate it via the Exit key menu), as it uses just about every key on the remote and will probably cause conflicts. Also, you probably won't like my choice of color schemes in menus, etc. or my choice of keys for the various functions. The menus are also designed to use as much as the screen as practicable (so you can see as much information as possible at once) so only allow for about 24 pixels overscan top and bottom, and about 30 left and right.
+
+The file manager is toggled via the tv/radio key, and the timer list via the teletext key.
+
+It runs on a TF5000PVRt (original 80GB version) with Australian May 10, 2005 firmware and compiles with version 1.22 of the API.
+
+Anyway, feel free to use the code for whatever you like and modify it to your heart's content, if you can understand it. It is, of course, completely at your own risk.
+
+If you have any questions I will try to answer them. I would prefer using the Topfield Australia forum (since other people may be interested) but if I miss one in there, I can be contacted via email at malcolm.taylor@internode.on.net.
+
+I generally only go online 3 times a week, so please allow at least 3 days for a response by either method (it may be longer if it is complicated or I am running short of time and decide to peruse offline before responding in my next session).
+
+
+Malcolm Taylor
+(mvtaylor on Topfield Australia forum)
+August 2005
