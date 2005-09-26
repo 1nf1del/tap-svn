@@ -1,8 +1,8 @@
-Topfield TAP toolchain creator 1.0
-==================================
+Author:: Copyright (c) <a href=mailto:steveb@workware.net.au>Steve Bennett</a>
+Revision:: 1.1 (Mon Sep 26 17:09:21 EST 2005)
 
-Wed Sep 21 15:29:39 EST 2005
-Copyright (c) Steve Bennett <steveb@workware.net.au>
+Topfield TAP toolchain creator 1.1
+==================================
 
 Introduction
 ------------
@@ -18,7 +18,12 @@ me know)
 Download
 --------
 
-From http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.0.tar.gz
+From http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.1.tar.gz
+
+This project is now hosted at Berlios
+(http://developer.berlios.de/projects/tap/) with this
+package and a number of binary toolchains available at
+http://developer.berlios.de/project/showfiles.php?group_id=4128
 
 Quick Start
 -----------
@@ -93,3 +98,20 @@ Other References
 ----------------
 This post explains about the QNX PIC calling convention 
 http://gcc.gnu.org/ml/gcc/2002-07/msg01154.html
+
+Notes for Specific Hosts
+------------------------
+
+  FreeBSD 4.11
+  ------------
+  - Need to use gnu make (gmake)
+  - Need to install and use gnu sed
+  - Need to install and use gnu patch
+
+  OS X 10.4
+  ---------
+  - I added a couple of minor patches from cazlar to build under OS X
+
+  Windows/cygwin
+  --------------
+  - I now use 'sh configure ...' in the Makefile

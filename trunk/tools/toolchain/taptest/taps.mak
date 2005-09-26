@@ -16,7 +16,7 @@ CPUFLAGS = -mlong-calls -msoft-float -mqnxpic -fno-delayed-branch
 
 CFLAGS += -O2
 
-TAPLD=/usr/local/topfield-gcc/mips/lib/tap.ld
+TAPLD=$(GCCDIR)/mips/lib/tap.ld
 
 LINK = $(CC) -nostartfiles -T $(TAPLD)
 LIBC_LIBS = -lc -lm

@@ -11,7 +11,7 @@ TARGET=mips
 PREFIX=/usr/local/topfield-gcc
 SDKDIR=$(PREFIX)/topfield-sdk
 
-DIST=topfield-toolchain-1.0
+DIST=topfield-toolchain-1.1
 PATCH=patch -g 0
 
 # Add the target bin directory to the path so that
@@ -43,16 +43,17 @@ binutils-2.15/.unpacked: pkg/binutils-2.15.tar.bz2 patches/jeff-baker-binutils-q
 	@echo "Unpacking and patching binutils-2.15"
 	rm -rf binutils-2.15
 	tar xfj pkg/binutils-2.15.tar.bz2
-	cat <patches/binutils-2.15-20040817.patch  | $(PATCH) -p1 -d binutils-2.15
-	cat <patches/jeff-baker-binutils-qnx.patch | $(PATCH) -p0 -d binutils-2.15
+	$(PATCH) <patches/binutils-2.15-20040817.patch -p1 -d binutils-2.15
+	$(PATCH) <patches/jeff-baker-binutils-qnx.patch -p0 -d binutils-2.15
 	touch $@
 
-binutils-2.10.1/.unpacked: pkg/binutils-2.10.1.tar.gz patches/qnx-binutils-2.10.1.patch patches/steveb-binutils-topfield-qnx-1.patch
+binutils-2.10.1/.unpacked: pkg/binutils-2.10.1.tar.gz patches/qnx-binutils-2.10.1.patch patches/steveb-binutils-topfield-qnx-1.patch patches/cazlar-osx-binutils-1.patch
 	@echo "Unpacking and patching binutils-2.10.1"
 	rm -rf binutils-2.10.1
 	tar xfz pkg/binutils-2.10.1.tar.gz
-	cat <patches/qnx-binutils-2.10.1.patch | $(PATCH) -p1 -d binutils-2.10.1
-	cat <patches/steveb-binutils-topfield-qnx-1.patch | $(PATCH) -p1 -d binutils-2.10.1
+	$(PATCH) <patches/qnx-binutils-2.10.1.patch -p1 -d binutils-2.10.1
+	$(PATCH) <patches/steveb-binutils-topfield-qnx-1.patch -p1 -d binutils-2.10.1
+	$(PATCH) <patches/cazlar-osx-binutils-1.patch -p1 -d binutils-2.10.1
 	touch $@
 
 newlib-1.13.0/.unpacked: pkg/newlib-1.13.0.tar.gz
@@ -61,13 +62,17 @@ newlib-1.13.0/.unpacked: pkg/newlib-1.13.0.tar.gz
 	tar xfz pkg/newlib-1.13.0.tar.gz
 	touch $@
 
-gcc-2.95.2/.unpacked: pkg/gcc-2.95.2.tar.gz patches/qnx-gcc-2.95.2.patch patches/steveb-gcc-topfield-qnx-1.patch
+gcc-2.95.2/.unpacked: pkg/gcc-2.95.2.tar.gz patches/qnx-gcc-2.95.2.patch patches/steveb-gcc-topfield-qnx-1.patch patches/cazlar-osx-gcc-1.patch
 	@echo "Unpacking and patching gcc 2.95.2"
 	rm -rf gcc-2.95.2
 	tar xfz pkg/gcc-2.95.2.tar.gz
-	cat <patches/qnx-gcc-2.95.2.patch | $(PATCH) -p1 -d gcc-2.95.2
-	cat <patches/steveb-gcc-topfield-qnx-1.patch | $(PATCH) -p1 -d gcc-2.95.2
+	$(PATCH) <patches/qnx-gcc-2.95.2.patch -p1 -d gcc-2.95.2
+	$(PATCH) <patches/steveb-gcc-topfield-qnx-1.patch -p1 -d gcc-2.95.2
+	$(PATCH) <patches/cazlar-osx-gcc-1.patch -p1 -d gcc-2.95.2
 	touch $@
+
+# Manually unpack everything
+unpack: binutils-2.15/.unpacked binutils-2.10.1/.unpacked newlib-1.13.0/.unpacked gcc-2.95.2/.unpacked
 
 #################################################
 # Configure and build the various packages
@@ -78,7 +83,7 @@ build-binutils/.built: binutils-2.10.1/.unpacked
 	( \
 		mkdir build-binutils; \
 		cd build-binutils; \
-		../binutils-2.10.1/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) && \
+		sh ../binutils-2.10.1/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) && \
 		make && make install; \
 	)
 	touch $@
@@ -89,7 +94,7 @@ build-ld/.built: tap.ld binutils-2.15/.unpacked build-binutils/.built
 	( \
 		mkdir build-ld; \
 		cd build-ld; \
-		../binutils-2.15/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) && \
+		sh ../binutils-2.15/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) && \
 		make all-ld && make install-ld && cp ../tap.ld $(PREFIX)/$(TARGET)/lib; \
 	)
 	touch $@
@@ -100,7 +105,7 @@ build-bootstrapgcc/.built: gcc-2.95.2/.unpacked build-binutils/.built build-ld/.
 	( \
 		mkdir build-bootstrapgcc; \
 		cd build-bootstrapgcc; \
-		../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
+		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
 			--without-headers --with-newlib --with-gnu-as --with-gnu-ld \
 			--with-local-prefix=$(PREFIX)/local \
 			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
@@ -114,7 +119,7 @@ build-gcc/.built: gcc-2.95.2/.unpacked build-newlib/.built
 	( \
 		mkdir build-gcc; \
 		cd build-gcc; \
-		../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
+		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
 			--with-newlib --with-gnu-as --with-gnu-ld \
 			--with-local-prefix=$(PREFIX)/local \
 			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
@@ -129,7 +134,7 @@ build-newlib/.built: newlib-1.13.0/.unpacked build-bootstrapgcc/.built
 		mkdir build-newlib; \
 		cd build-newlib; \
 		TARGET_CFLAGS="$(TARGET_CFLAGS) -DMALLOC_PROVIDED -DNO_EXEC"; \
-		../newlib-1.13.0/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) --with-pic && \
+		sh ../newlib-1.13.0/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) --with-pic && \
 		make && make install; \
 	)
 	touch $@
@@ -145,13 +150,8 @@ $(SDKDIR)/include/tap.h: pkg/TAP\ API_ver1.22_Samples_Utilities_2005June03.zip
 	touch $@
 
 #################################################
-# Unpack and build the test taps
+# Build the test taps
 #
-taptest/.unpacked: taptest.tar.gz
-	@echo "Unpacking sample taps -- taptest"
-	tar xfz taptest.tar.gz
-	touch $@
-
 taptest/.built: taptest/.unpacked $(SDKDIR)/include/tap.h
 	@echo "Building taptest"
 	$(MAKE) -C taptest
@@ -182,15 +182,17 @@ pkg/TAP\ API_ver1.22_Samples_Utilities_2005June03.zip:
 #################################################
 # Distribution maintenance
 #
-dist:
+dist: README.html
 	@rm -rf $(DIST)
 	@mkdir -p $(DIST)/patches $(DIST)/pkg $(DIST)/taptest
-	@cp README README.html Makefile fetch tap.ld taptest.tar.gz $(DIST)
+	@cp README README.html Makefile fetch tap.ld $(DIST)
 	@cp patches/* $(DIST)/patches
 	@cp taptest/*.[ch] taptest/Makefile taptest/*.mak taptest/README $(DIST)/taptest
 	@tar cfz $(DIST).tar.gz $(DIST)
 	@rm -rf $(DIST)
 	@echo "Created $(DIST).tar.gz"
+	@tar cfz taptest.tar.gz taptest/[^.]*
+	@echo "Created taptest.tar.gz"
 	
 clean:
 	rm -rf build-*
@@ -200,3 +202,5 @@ clean:
 distclean: clean
 	rm -rf binutils-2.15 binutils-2.10.1 gcc-2.95.2 newlib-1.13.0 $(DIST)
 
+README.html: README
+	text2html -n 4 README >$@ || ( rm $@; exit 1)

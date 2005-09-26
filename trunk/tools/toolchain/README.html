@@ -1,17 +1,16 @@
 <html>
 <head>
 <title></title>
-<meta name="author" content="Steve Bennett">
+<meta name="author" content="Copyright (c) <a href=mailto:steveb@workware.net.au>Steve Bennett</a>">
 <meta name="description" content="">
-<meta name="revision" content="">
+<meta name="revision" content="1.1 (Mon Sep 26 17:09:21 EST 2005)">
 <meta name="generator" content="text2html v1.2 by Steve Bennett <msteveb@ozemail.com.au>">
-<meta name="generated-on" content="Thu Sep 22 10:58:24 2005">
+<meta name="generated-on" content="Mon Sep 26 17:09:56 2005">
 </head>
 <body>
-<font face=Arial ><a name=""><h1>Topfield TAP toolchain creator 1.0</h1></a></font>
-Wed Sep 21 15:29:39 EST 2005
-<br>
-Copyright (c) Steve Bennett &lt;<a href=mailto:steveb@workware.com.au>steveb@workware.net.au</a>&gt;
+Author: Copyright (c) <a href=mailto:steveb@workware.net.au>Steve Bennett</a><br>
+Revision: 1.1 (Mon Sep 26 17:09:21 EST 2005)<br>
+<font face=Arial ><a name=""><h1>Topfield TAP toolchain creator 1.1</h1></a></font>
 <font face=Arial ><a name=""><h2>Introduction</h2></a></font>
 While Topfield kindly provide a TAP development toolchain for cygwin under Windows, this is not the ideal environment for many developers.
 <p>
@@ -19,7 +18,9 @@ To remedy this situation, I have created this package which creates a toolchain 
 <p>
 (If you do successfully build a toolchain on a non-Linux platform, please let me know)
 <font face=Arial ><a name=""><h2>Download</h2></a></font>
-From <a href="http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.0.tar.gz">http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.0.tar.gz</a>
+From <a href="http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.1.tar.gz">http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.1.tar.gz</a>
+<p>
+This project is now hosted at Berlios (<a href="http://developer.berlios.de/projects/tap">http://developer.berlios.de/projects/tap</a>/) with this package and a number of binary toolchains available at <a href="http://developer.berlios.de/project/showfiles.php?group_id=4128">http://developer.berlios.de/project/showfiles.php?group_id=4128</a>
 <font face=Arial ><a name=""><h2>Quick Start</h2></a></font>
 To build your own toolchain, simply create the directory /usr/local/topfield-gcc which is writable by you and then run <b>make</b>
 <p>
@@ -57,5 +58,23 @@ I had to create another small patch to gcc to allow it to accept TARGET_CFLAGS f
 Finally, I wanted to make it easy for others to build their own toolchains for other platforms, so I created a Makefile will would completely codify the instructions for building the toolchain, including fetching and installing the Topfield TAP SDK and building some sample TAP applications.
 <font face=Arial ><a name=""><h2>Other References</h2></a></font>
 This post explains about the QNX PIC calling convention  <a href="http://gcc.gnu.org/ml/gcc/2002-07/msg01154.html">http://gcc.gnu.org/ml/gcc/2002-07/msg01154.html</a>
+<font face=Arial ><a name=""><h2>Notes for Specific Hosts</h2></a></font>
+<font face=Arial ><a name=""><h3>FreeBSD 4.11</h3></a></font>
+<ul>
+    <li>Need to use gnu make (gmake)
+    <li>Need to install and use gnu sed
+    <li>Need to install and use gnu patch
+  </ul>
+</ol>
+<font face=Arial ><a name=""><h3>OS X 10.4</h3></a></font>
+<ul>
+    <li>I added a couple of minor patches from cazlar to build under OS X
+  </ul>
+</ol>
+<font face=Arial ><a name=""><h3>Windows/cygwin</h3></a></font>
+<ul>
+    <li>I now use 'sh configure ...' in the Makefile
+  </ul>
+</ol>
 </body>
 </html>
