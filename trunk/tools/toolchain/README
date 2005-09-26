@@ -19,22 +19,40 @@ Download
 --------
 
 From http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.1.tar.gz
+or from the Berlios website (see below)
 
 This project is now hosted at Berlios
-(http://developer.berlios.de/projects/tap/) with this
-package and a number of binary toolchains available at
-http://developer.berlios.de/project/showfiles.php?group_id=4128
+http://developer.berlios.de/projects/tap/ with both this
+package and a number of binary toolchains now available at
+http://developer.berlios.de/project/showfiles.php?group_id=4128 including
+Linux/x86, Mac OS X/powerpc and Windows-cygwin/x86
 
 Quick Start
 -----------
-To build your own toolchain, simply create the directory /usr/local/topfield-gcc
-which is writable by you and then run *make*
 
-All required packages will be downloaded, unpacked, patched, configured, built
-and installed.
+  Build Your Own
+  --------------
 
-Additionally some test TAP applications will be built using the new toolchain
-in *taptest*
+  To build your own toolchain, simply create the directory
+  /usr/local/topfield-gcc which is writable by you and then run *make*
+
+  All required packages will be downloaded, unpacked, patched, configured,
+  built and installed.
+
+  Additionally some test TAP applications will be built using the new
+  toolchain in *taptest*
+
+  Use a Binary Toolchain
+  ----------------------
+
+  If you are downloading one of the prebuilt binary toolchains, unpack it
+  from the root directory. It will go into /usr/local/topfield-gcc directory.
+
+  Download and unpack taptest.tar.gz wherever you like, and run *make* in
+  the taptest directory.
+
+  Examine taps.mak and the Makefile for the appropriate compiler arguments
+  to built taps.
 
 Advanced Instructions
 ---------------------
