@@ -49,3 +49,11 @@ First release of macro through berlios.
   the macros and from then on simply press the RC key to invoke the macro, or 
   use key every time, i.e. you must press the function key with the RC key to 
   invoke the macro 
+
+TAG:tools/toolchain-1.0a
+First public release of Topfield TAP toolchain creator. Contributed by Steve
+Bennett.
+
+TAG:tools/toolchain-1.1
+* Various updates for OS X, FreedBSD and cygwin
+
