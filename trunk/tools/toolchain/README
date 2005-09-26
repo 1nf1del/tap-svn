@@ -1,0 +1,95 @@
+Topfield TAP toolchain creator 1.0
+==================================
+
+Wed Sep 21 15:29:39 EST 2005
+Copyright (c) Steve Bennett <steveb@workware.net.au>
+
+Introduction
+------------
+While Topfield kindly provide a TAP development toolchain for cygwin under Windows,
+this is not the ideal environment for many developers.
+
+To remedy this situation, I have created this package which creates
+a toolchain for Linux, or probably almost any Unix variant including OS X.
+
+(If you do successfully build a toolchain on a non-Linux platform, please let
+me know)
+
+Download
+--------
+
+From http://members.ozemail.com.au/~msteveb/topfield/toolchain/topfield-toolchain-1.0.tar.gz
+
+Quick Start
+-----------
+To build your own toolchain, simply create the directory /usr/local/topfield-gcc
+which is writable by you and then run *make*
+
+All required packages will be downloaded, unpacked, patched, configured, built
+and installed.
+
+Additionally some test TAP applications will be built using the new toolchain
+in *taptest*
+
+Advanced Instructions
+---------------------
+
+If you already have some or all of the required packages, or you don't want
+them auto-downloaded, copy them into the *pkg* directory.
+
+It should be possible to install the tools into a different location by
+changing PREFIX at the top of the Makefile.
+
+The latest 1.22 Topfield SDK is installed in /usr/local/topfield-gcc/topfield-sdk
+as a convenience. This is not required by the toolchain but is used to verify
+that the test taps will build.
+
+How I did it
+------------
+
+I started with Eric Fry's excellent instructions at http://www.isp.net.au/~eric/topfield/
+
+Unfortunately, the instructions were not quite complete and the resulting toolchain
+only worked for the simplest applications. It also required use of the Topfield-supplied
+libc and libm which was not ideal.
+
+After some investigation I came across the QNX public CVS access at http://cvs.qnx.com/
+This CVS tree is very much out of date, but the binutils and gcc compiler produced
+almost exactly the same results as the Topfield cygwin-based tools. Carefully examining
+the differences between the outputs produced by the Topfield tools and the QNX tools
+showed that:
+1. -fno-delayed-branch is required for the assembler to product working code
+2. In some cases the assembler incorrectly uses s7 as the offset register rather than gp
+3. The linker, ld, was non-functional
+
+As luck would have it, the linker created by Eric Fry's binutils version *did* work.
+I picked up the latest version of the binutils patch from this post by Jeff Baker at QNX
+http://sourceware.org/ml/binutils/2004-09/msg00149.html
+(Unfortunately this patch has never made it into the latest binutils release and did
+not patch cleanly over binutils-2.16.1. Thus I checked out of the binutils cvs to the
+date 20040817 and created a patch between binutils-2.15 and this version.)
+
+This new linker produced a rel.dyn section which was not produced by the Topfield linker,
+so I modified tap.ld to discard this section.
+
+Further examination allowed me to deduce under which situations the gp rather than
+the s7 register should be used by the assembler and I created a small patch to address this.
+
+At this point, I had a working set of binutils including assembler and linker and also
+a working gcc. Now the goal was to ensure that the libc.a, libm.a and libgcc.a where
+functional. This means that they needed to be built with the options:
+-mlong-calls -mqnxpic -fno-delayed-branch -msoft-float
+
+I had to create another small patch to gcc to allow it to accept
+TARGET_CFLAGS from the environment (newlib already did this).
+This produced a working set of libraries.
+
+Finally, I wanted to make it easy for others to build their own toolchains
+for other platforms, so I created a Makefile will would completely codify the
+instructions for building the toolchain, including fetching and installing the
+Topfield TAP SDK and building some sample TAP applications.
+
+Other References
+----------------
+This post explains about the QNX PIC calling convention 
+http://gcc.gnu.org/ml/gcc/2002-07/msg01154.html

@@ -1,0 +1,49 @@
+#!/bin/sh
+# Thu Sep 22 10:42:51 EST 2005
+# Steve Bennett <steveb@workware.net.au>
+#
+# Usage: fetch filename url
+#
+# If the <filename> doesn't exist, fetches it from <url>
+# if the user wants.
+# Returns 0 if the file exists or was downloaded successfully.
+
+if [ -f "$1" ]; then
+	# Already have this file
+	exit 0
+fi
+
+name=`basename "$1"`
+echo
+if [ -f .autofetch ]; then
+	# In auto fetch mode
+	echo "Fetching $name"
+	X=Y
+else
+	echo -n "Shall I fetch $name now? (Y)es/(N)o/(A)ll [Y] "
+	read X
+	[ -z "$X" ] && X=Y
+fi
+echo
+
+case "$X" in
+y*|Y*) 
+	mkdir -p `dirname "$1"`
+	wget -O "$1" "$2"
+	RC=$?
+	;;
+a*|A*) 
+	mkdir -p `dirname "$1"`
+	echo Y >.autofetch
+	wget -O "$1" "$2"
+	RC=$?
+	;;
+*) RC=1;;
+esac
+
+# Turn off autofetch and remove any possibly leftover file if something fails
+if [ $RC -ne 0 ]; then
+	rm -f .autofetch
+	rm -f "$1"
+fi
+exit $RC

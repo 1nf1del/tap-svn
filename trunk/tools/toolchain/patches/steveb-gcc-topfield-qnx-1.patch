@@ -1,0 +1,22 @@
+# Wed Sep 21 09:56:48 EST 2005
+# Steve Bennett <steveb@workware.net.au>
+#
+# This patch should be applied on top of the standard qnx
+# patches to gcc-2.95.2
+# It allows TARGET_CFLAGS flags to be specified when compiling libgcc.a
+Index: gcc/Makefile.in
+===================================================================
+RCS file: /cvs/tools/gcc/Makefile.in,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 Makefile.in
+--- gcc/Makefile.in	28 Feb 2001 18:54:50 -0000	1.1.1.1
++++ gcc/Makefile.in	20 Sep 2005 22:49:59 -0000
+@@ -490,7 +490,7 @@
+ 	'NM=$(NM)' \
+ 	'RANLIB=$(RANLIB)' \
+ 	'WINDRES=$$(WINDRES_FOR_TARGET)' \
+-	"GCC_FOR_TARGET=$(GCC_FOR_TARGET)" \
++	"GCC_FOR_TARGET=$(GCC_FOR_TARGET) $(TARGET_CFLAGS)" \
+ 	"`echo 'LANGUAGES=$(LANGUAGES)' | sed -e s/.*=$$/XFOO=/`" \
+ 	"`echo 'STMP_FIXPROTO=$(STMP_FIXPROTO)' | sed -e s/.*=$$/XFOO=/`" \
+ 	"`echo 'LIMITS_H_TEST=$(LIMITS_H_TEST)' | sed -e s/.*=$$/XFOO=/`" \

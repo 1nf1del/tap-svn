@@ -1,0 +1,6 @@
+Wed Sep 21 15:29:39 EST 2005
+Steve Bennett <steveb@workware.net.au>
+
+This directory contains some very simple TAP test applications
+useful for verifying that the Topfield TAP toolchain is installed
+and working correctly.

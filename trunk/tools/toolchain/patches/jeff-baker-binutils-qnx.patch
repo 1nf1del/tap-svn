@@ -1,0 +1,1701 @@
+(/)
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* ltconfig (nto-qnx*): Add support for QNX OS suffix.
+
+(/bfd)
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* config.bfd (mips*eb-*-nto*): New target.
+	(mips*-*-nto*): New target.	
+	* libbfd.h: Add new reloc: R_MIPS_QNX_COPY.
+	* elf32-mips.c: Likewise.
+	* bfd-in2.h: Likewise.
+	* reloc.c: Likewise.
+	* elflink.c (_bfd_elf_add_dynamic_entry): Add code to
+	warn if adding a DT_TEXTREL to a shared object and
+	--warn-shared-textrel was specified
+
+(/include)
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* bfdlink.h (bfd_link_info): Add boolean
+	warn_shared_textrel.
+
+(/include/elf)
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* mips.h: Add new reloc: R_MIPS_QNX_COPY
+
+(/gas)
+2004-08-26  Jeff Baker  <jbaker@qnx.com>
+	* configure (mips*-*-nto*): New target.
+	* configure.in: Likewise.
+	* config/tc-mips.c (QNX_GP_REG): Define.
+	(mips_pic_p): Define.
+	(load_address): Added code to handle QNX_PIC pic level.
+	(macro): Likewise.
+	(mips_validate_fix): Likewise.
+	(mips_fix_adjustable): Likewise.
+	(s_cpsetup): Likewise.
+	(s_cplocal): Likewise.
+	(s_cprestore): Likewise.
+	(s_cpreturn): Likewise.
+	(s_cpadd): Likewise.
+	(s_gpvalue): Likewise.
+	(s_gpword): Likewise.
+	(s_gpdword): Likewise.
+	(md_estimate_size_before_relax): Likewise.
+	(md_longopts): Define qnx_pic command line argument.
+	(md_parse_option): Handle qnx_pic command line argument. 
+	(s_qnxpiccalls): New function.
+	(s_noqnxpiccalls): New function.
+	* config/tc-mips.h (mips_pic_level): Add QNX_PIC pic
+	level.
+
+(/ld)
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* Makefile.am: Add targets for QNX MIPS emulation files.
+	* Makefile.in: Likewise.
+	* configure.tgt(mips*-*-nto*): New target.
+	(mips*eb*-*-nto*): New target. 
+	* emulparams/elf32bmipnto.sh: New file. QNX MIPS
+	emulation.
+	* emulparams/elf32lmipnto.sh: New file. QNX MIPS
+	emulation
+	* lexsup.c: Handle --warn-shared-textrel option.
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* libbfd.h: Add new reloc: R_MIPS_QNX_COPY.
+	* elf32-mips.c: Likewise.
+	* bfd-in2.h: Likewise.
+	* reloc.c: Likewise.
+
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* mips.h: Add new reloc: R_MIPS_QNX_COPY.
+
+Index: bfd/libbfd.h
+===================================================================
+RCS file: /cvs/src/src/bfd/libbfd.h,v
+retrieving revision 1.123
+diff -w -u -1 -0 -p -r1.123 libbfd.h
+--- bfd/libbfd.h	28 Aug 2004 03:05:18 -0000	1.123
++++ bfd/libbfd.h	13 Sep 2004 18:27:28 -0000
+@@ -912,21 +912,21 @@ static const char *const bfd_reloc_code_
+   "BFD_RELOC_MIPS_SHIFT6",
+   "BFD_RELOC_MIPS_INSERT_A",
+   "BFD_RELOC_MIPS_INSERT_B",
+   "BFD_RELOC_MIPS_DELETE",
+   "BFD_RELOC_MIPS_HIGHEST",
+   "BFD_RELOC_MIPS_HIGHER",
+   "BFD_RELOC_MIPS_SCN_DISP",
+   "BFD_RELOC_MIPS_REL16",
+   "BFD_RELOC_MIPS_RELGOT",
+   "BFD_RELOC_MIPS_JALR",
+-
++  "BFD_RELOC_MIPS_QNX_COPY",
+   "BFD_RELOC_FRV_LABEL16",
+   "BFD_RELOC_FRV_LABEL24",
+   "BFD_RELOC_FRV_LO16",
+   "BFD_RELOC_FRV_HI16",
+   "BFD_RELOC_FRV_GPREL12",
+   "BFD_RELOC_FRV_GPRELU12",
+   "BFD_RELOC_FRV_GPREL32",
+   "BFD_RELOC_FRV_GPRELHI",
+   "BFD_RELOC_FRV_GPRELLO",
+   "BFD_RELOC_FRV_GOT12",
+Index: bfd/elf32-mips.c
+===================================================================
+RCS file: /cvs/src/src/bfd/elf32-mips.c,v
+retrieving revision 1.178
+diff -w -u -1 -0 -p -r1.178 elf32-mips.c
+--- bfd/elf32-mips.c	29 Jun 2004 13:46:30 -0000	1.178
++++ bfd/elf32-mips.c	13 Sep 2004 18:27:36 -0000
+@@ -592,20 +592,41 @@ static reloc_howto_type elf_mips16_gprel
+ 	 FALSE,			/* pc_relative */
+ 	 0,			/* bitpos */
+ 	 complain_overflow_signed, /* complain_on_overflow */
+ 	 mips16_gprel_reloc,	/* special_function */
+ 	 "R_MIPS16_GPREL",	/* name */
+ 	 TRUE,			/* partial_inplace */
+ 	 0x07ff001f,		/* src_mask */
+ 	 0x07ff001f,	        /* dst_mask */
+ 	 FALSE);		/* pcrel_offset */
+ 
++/* Do a QNX pic copy relocation. This is used only with dynamic linking.
++   This works in the same way as copy relocs on other platforms: the data
++   object must exist both in the object and in the shared lib. The dynamic
++   linker copies the data from the shared object to the executable at runtime.
++   This is needed because the exec. does not access the data through the GOT.
++   */
++static reloc_howto_type elf_mips_qnx_copy_howto =
++  HOWTO (R_MIPS_QNX_COPY,       /* type */
++         0,                     /* rightshift */
++         2,                     /* size (0 = byte, 1 = short, 2 = long) */
++         32,                    /* bitsize */
++         FALSE,                 /* pc_relative */
++         0,                     /* bitpos */
++         complain_overflow_bitfield, /* complain_on_overflow */
++         bfd_elf_generic_reloc, /* special_function */
++         "R_MIPS_QNX_COPY",     /* name */
++         FALSE,                 /* partial_inplace */
++         0,                     /* src_mask */
++         0,                     /* dst_mask */
++         FALSE);                /* pcrel_offset */
++
+ /* 16 bit offset for pc-relative branches.  */
+ static reloc_howto_type elf_mips_gnu_rel16_s2 =
+   HOWTO (R_MIPS_GNU_REL16_S2,	/* type */
+ 	 2,			/* rightshift */
+ 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+ 	 16,			/* bitsize */
+ 	 TRUE,			/* pc_relative */
+ 	 0,			/* bitpos */
+ 	 complain_overflow_signed, /* complain_on_overflow */
+ 	 _bfd_mips_elf_generic_reloc, /* special_function */
+@@ -1039,21 +1060,22 @@ static const struct elf_reloc_map mips_r
+   { BFD_RELOC_16_PCREL, R_MIPS_PC16 },
+   { BFD_RELOC_MIPS_CALL16, R_MIPS_CALL16 },
+   { BFD_RELOC_GPREL32, R_MIPS_GPREL32 },
+   { BFD_RELOC_MIPS_GOT_HI16, R_MIPS_GOT_HI16 },
+   { BFD_RELOC_MIPS_GOT_LO16, R_MIPS_GOT_LO16 },
+   { BFD_RELOC_MIPS_CALL_HI16, R_MIPS_CALL_HI16 },
+   { BFD_RELOC_MIPS_CALL_LO16, R_MIPS_CALL_LO16 },
+   { BFD_RELOC_MIPS_SUB, R_MIPS_SUB },
+   { BFD_RELOC_MIPS_GOT_PAGE, R_MIPS_GOT_PAGE },
+   { BFD_RELOC_MIPS_GOT_OFST, R_MIPS_GOT_OFST },
+-  { BFD_RELOC_MIPS_GOT_DISP, R_MIPS_GOT_DISP }
++  { BFD_RELOC_MIPS_GOT_DISP, R_MIPS_GOT_DISP },
++  { BFD_RELOC_MIPS_QNX_COPY, R_MIPS_QNX_COPY }
+ };
+ 
+ /* Given a BFD reloc type, return a howto structure.  */
+ 
+ static reloc_howto_type *
+ bfd_elf32_bfd_reloc_type_lookup (bfd *abfd, bfd_reloc_code_real_type code)
+ {
+   unsigned int i;
+   reloc_howto_type *howto_table = elf_mips_howto_table_rel;
+
+Index: bfd/bfd-in2.h
+===================================================================
+RCS file: /cvs/src/src/bfd/bfd-in2.h,v
+retrieving revision 1.298
+diff -w -u -1 -0 -p -r1.298 bfd-in2.h
+--- bfd/bfd-in2.h	28 Aug 2004 03:05:18 -0000	1.298
++++ bfd/bfd-in2.h	13 Sep 2004 18:27:44 -0000
+@@ -2361,20 +2361,21 @@ to compensate for the borrow when the lo
+   BFD_RELOC_MIPS_SHIFT6,
+   BFD_RELOC_MIPS_INSERT_A,
+   BFD_RELOC_MIPS_INSERT_B,
+   BFD_RELOC_MIPS_DELETE,
+   BFD_RELOC_MIPS_HIGHEST,
+   BFD_RELOC_MIPS_HIGHER,
+   BFD_RELOC_MIPS_SCN_DISP,
+   BFD_RELOC_MIPS_REL16,
+   BFD_RELOC_MIPS_RELGOT,
+   BFD_RELOC_MIPS_JALR,
++  BFD_RELOC_MIPS_QNX_COPY,
+ 
+ 
+ /* Fujitsu Frv Relocations.  */
+   BFD_RELOC_FRV_LABEL16,
+   BFD_RELOC_FRV_LABEL24,
+   BFD_RELOC_FRV_LO16,
+   BFD_RELOC_FRV_HI16,
+   BFD_RELOC_FRV_GPREL12,
+   BFD_RELOC_FRV_GPRELU12,
+   BFD_RELOC_FRV_GPREL32,
+Index: bfd/reloc.c
+===================================================================
+RCS file: /cvs/src/src/bfd/reloc.c,v
+retrieving revision 1.111
+diff -w -u -1 -0 -p -r1.111 reloc.c
+--- bfd/reloc.c	25 Aug 2004 12:54:14 -0000	1.111
++++ bfd/reloc.c	13 Sep 2004 18:27:51 -0000
+@@ -2105,20 +2105,22 @@ ENUMX
+ ENUMX
+   BFD_RELOC_MIPS_HIGHER
+ ENUMX
+   BFD_RELOC_MIPS_SCN_DISP
+ ENUMX
+   BFD_RELOC_MIPS_REL16
+ ENUMX
+   BFD_RELOC_MIPS_RELGOT
+ ENUMX
+   BFD_RELOC_MIPS_JALR
++ENUMX
++  BFD_RELOC_MIPS_QNX_COPY
+ ENUMDOC
+   MIPS ELF relocations.
+ COMMENT
+ 
+ ENUM
+   BFD_RELOC_FRV_LABEL16
+ ENUMX
+   BFD_RELOC_FRV_LABEL24
+ ENUMX
+   BFD_RELOC_FRV_LO16
+Index: include/elf/mips.h
+===================================================================
+RCS file: /cvs/src/src/include/elf/mips.h,v
+retrieving revision 1.23
+diff -w -u -1 -0 -p -r1.23 mips.h
+--- include/elf/mips.h	14 Jun 2004 18:25:10 -0000	1.23
++++ include/elf/mips.h	13 Sep 2004 18:28:08 -0000
+@@ -69,20 +69,22 @@ START_RELOC_NUMBERS (elf_mips_reloc_type
+   RELOC_NUMBER (R_MIPS_SCN_DISP, 32)
+   RELOC_NUMBER (R_MIPS_REL16, 33)
+   RELOC_NUMBER (R_MIPS_ADD_IMMEDIATE, 34)
+   RELOC_NUMBER (R_MIPS_PJUMP, 35)
+   RELOC_NUMBER (R_MIPS_RELGOT, 36)
+   RELOC_NUMBER (R_MIPS_JALR, 37)
+   RELOC_NUMBER (R_MIPS_max, 38)
+   /* These relocs are used for the mips16.  */
+   RELOC_NUMBER (R_MIPS16_26, 100)
+   RELOC_NUMBER (R_MIPS16_GPREL, 101)
++  /* And this is used with QNX pic for data copy relocs */
++  RELOC_NUMBER (R_MIPS_QNX_COPY, 126)
+   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
+      mips-linux for exception-handling data.  It is no longer used, but
+      should continue to be supported by the linker for backward
+      compatibility.  (GCC stopped using it in May, 2004.)  */
+   RELOC_NUMBER (R_MIPS_PC32, 248)
+   /* FIXME: this relocation is used internally by gas.  */
+   RELOC_NUMBER (R_MIPS_GNU_REL16_S2, 250)
+   /* These are GNU extensions to enable C++ vtable garbage collection.  */
+   RELOC_NUMBER (R_MIPS_GNU_VTINHERIT, 253)
+   RELOC_NUMBER (R_MIPS_GNU_VTENTRY, 254)
+2004-08-26  Jeff Baker  <jbaker@qnx.com>
+	* config/tc-mips.c (QNX_GP_REG): Define.
+	(mips_pic_p): Define.
+	(load_address): Added code to handle QNX_PIC pic level.
+	(macro): Likewise.
+	(mips_validate_fix): Likewise.
+	(mips_fix_adjustable): Likewise.
+	(s_cpsetup): Likewise.
+	(s_cplocal): Likewise.
+	(s_cprestore): Likewise.
+	(s_cpreturn): Likewise.
+	(s_cpadd): Likewise.
+	(s_gpvalue): Likewise.
+	(s_gpword): Likewise.
+	(s_gpdword): Likewise.
+	(md_estimate_size_before_relax): Likewise.
+	(md_longopts): Define qnx_pic command line argument.
+	(md_parse_option): Handle qnx_pic command line argument. 
+	(s_qnxpiccalls): New function.
+	(s_noqnxpiccalls): New function.
+	* config/tc-mips.h (mips_pic_level): Add QNX_PIC pic
+	level
+
+Index: gas/config/tc-mips.c
+===================================================================
+RCS file: /cvs/src/src/gas/config/tc-mips.c,v
+retrieving revision 1.270
+diff -w -u -1 -0 -p -r1.270 tc-mips.c
+--- gas/config/tc-mips.c	18 Aug 2004 15:58:11 -0000	1.270
++++ gas/config/tc-mips.c	13 Sep 2004 18:37:52 -0000
+@@ -84,20 +84,21 @@ int mips_flag_pdr = TRUE;
+ #endif
+ 
+ #include "ecoff.h"
+ 
+ #if defined (OBJ_ELF) || defined (OBJ_MAYBE_ELF)
+ static char *mips_regmask_frag;
+ #endif
+ 
+ #define ZERO 0
+ #define AT  1
++#define QNX_GP_REG 23
+ #define TREG 24
+ #define PIC_CALL_REG 25
+ #define KT0 26
+ #define KT1 27
+ #define GP  28
+ #define SP  29
+ #define FP  30
+ #define RA  31
+ 
+ #define ILLEGAL_REG (32)
+@@ -376,20 +377,22 @@ static int mips_32bitmode = 0;
+    from coprocessor registers after they are loaded from memory, and
+    thus does not require nops to be inserted.  This applies to
+    instructions marked INSN_COPROC_MEMORY_DELAY.  These nops are only
+    requires at MIPS ISA level I.  */
+ #define cop_mem_interlocks (mips_opts.isa != ISA_MIPS1)
+ 
+ /* Is this a mfhi or mflo instruction?  */
+ #define MF_HILO_INSN(PINFO) \
+           ((PINFO & INSN_READ_HI) || (PINFO & INSN_READ_LO))
+ 
++#define mips_pic_p (mips_pic == SVR4_PIC || mips_pic == QNX_PIC)
++
+ /* MIPS PIC level.  */
+ 
+ enum mips_pic_level mips_pic;
+ 
+ /* 1 if we should generate 32 bit offsets from the $gp register in
+    SVR4_PIC mode.  Currently has no meaning in other modes.  */
+ static int mips_big_got = 0;
+ 
+ /* 1 if trap instructions should used for overflow rather than break
+    instructions.  */
+@@ -877,20 +880,22 @@ static size_t my_getSmallExpression
+ static void my_getExpression (expressionS *, char *);
+ static void s_align (int);
+ static void s_change_sec (int);
+ static void s_change_section (int);
+ static void s_cons (int);
+ static void s_float_cons (int);
+ static void s_mips_globl (int);
+ static void s_option (int);
+ static void s_mipsset (int);
+ static void s_abicalls (int);
++static void s_qnxpiccalls PARAMS ((int));
++static void s_noqnxpiccalls PARAMS ((int));
+ static void s_cpload (int);
+ static void s_cpsetup (int);
+ static void s_cplocal (int);
+ static void s_cprestore (int);
+ static void s_cpreturn (int);
+ static void s_gpvalue (int);
+ static void s_gpword (int);
+ static void s_gpdword (int);
+ static void s_cpadd (int);
+ static void s_insn (int);
+@@ -943,20 +948,22 @@ static const struct mips_cpu_info *mips_
+ 
+ static const pseudo_typeS mips_pseudo_table[] =
+ {
+   /* MIPS specific pseudo-ops.  */
+   {"option", s_option, 0},
+   {"set", s_mipsset, 0},
+   {"rdata", s_change_sec, 'r'},
+   {"sdata", s_change_sec, 's'},
+   {"livereg", s_ignore, 0},
+   {"abicalls", s_abicalls, 0},
++  {"qnxpiccalls", s_qnxpiccalls, 0},
++  {"noqnxpiccalls", s_noqnxpiccalls, 0},
+   {"cpload", s_cpload, 0},
+   {"cpsetup", s_cpsetup, 0},
+   {"cplocal", s_cplocal, 0},
+   {"cprestore", s_cprestore, 0},
+   {"cpreturn", s_cpreturn, 0},
+   {"gpvalue", s_gpvalue, 0},
+   {"gpword", s_gpword, 0},
+   {"gpdword", s_gpdword, 0},
+   {"cpadd", s_cpadd, 0},
+   {"insn", s_insn, 0},
+@@ -3877,21 +3884,21 @@ load_address (int reg, expressionS *ep, 
+ 			   mips_gp_register, BFD_RELOC_GPREL16);
+ 	      relax_switch ();
+ 	    }
+ 	  macro_build_lui (ep, reg);
+ 	  macro_build (ep, ADDRESS_ADDI_INSN, "t,r,j",
+ 		       reg, reg, BFD_RELOC_LO16);
+ 	  if (mips_relax.sequence)
+ 	    relax_end ();
+ 	}
+     }
+-  else if (mips_pic == SVR4_PIC && ! mips_big_got)
++  else if ((mips_pic_p) && ! mips_big_got)
+     {
+       expressionS ex;
+ 
+       /* If this is a reference to an external symbol, we want
+ 	   lw		$reg,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+ 	 Otherwise we want
+ 	   lw		$reg,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+ 	   nop
+ 	   addiu	$reg,$reg,<sym>		(BFD_RELOC_LO16)
+ 	 If there is a constant, it must be added in after.
+@@ -3938,21 +3945,21 @@ load_address (int reg, expressionS *ep, 
+ 	  if (ex.X_add_number != 0)
+ 	    {
+ 	      if (ex.X_add_number < -0x8000 || ex.X_add_number >= 0x8000)
+ 		as_bad (_("PIC code offset overflow (max 16 signed bits)"));
+ 	      ex.X_op = O_constant;
+ 	      macro_build (&ex, ADDRESS_ADDI_INSN, "t,r,j",
+ 			   reg, reg, BFD_RELOC_LO16);
+ 	    }
+ 	}
+     }
+-  else if (mips_pic == SVR4_PIC)
++  else if (mips_pic_p)
+     {
+       expressionS ex;
+ 
+       /* This is the large GOT case.  If this is a reference to an
+ 	 external symbol, we want
+ 	   lui		$reg,<sym>		(BFD_RELOC_MIPS_GOT_HI16)
+ 	   addu		$reg,$reg,$gp
+ 	   lw		$reg,<sym>($reg)	(BFD_RELOC_MIPS_GOT_LO16)
+ 
+ 	 Otherwise, for a reference to a local symbol in old ABI, we want
+@@ -4969,21 +4976,21 @@ macro (struct mips_cl_insn *ip)
+ 			       tempreg, mips_gp_register, BFD_RELOC_GPREL16);
+ 		  relax_switch ();
+ 		}
+ 	      macro_build_lui (&offset_expr, tempreg);
+ 	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,j",
+ 			   tempreg, tempreg, BFD_RELOC_LO16);
+ 	      if (mips_relax.sequence)
+ 		relax_end ();
+ 	    }
+ 	}
+-      else if (mips_pic == SVR4_PIC && ! mips_big_got && ! HAVE_NEWABI)
++      else if ((mips_pic_p) && ! mips_big_got && ! HAVE_NEWABI)
+ 	{
+ 	  int lw_reloc_type = (int) BFD_RELOC_MIPS_GOT16;
+ 
+ 	  /* If this is a reference to an external symbol, and there
+ 	     is no constant, we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+ 	     or for lca or if tempreg is PIC_CALL_REG
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_CALL16)
+ 	     For a local symbol, we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+@@ -5165,21 +5172,21 @@ macro (struct mips_cl_insn *ip)
+ 	      macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", tempreg,
+ 			   BFD_RELOC_MIPS_GOT_DISP, mips_gp_register);
+ 	      relax_end ();
+ 	    }
+ 	  else
+ 	    {
+ 	      macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", tempreg,
+ 			   BFD_RELOC_MIPS_GOT_DISP, mips_gp_register);
+ 	    }
+ 	}
+-      else if (mips_pic == SVR4_PIC && ! HAVE_NEWABI)
++      else if ((mips_pic_p) && ! HAVE_NEWABI)
+ 	{
+ 	  int gpdelay;
+ 	  int lui_reloc_type = (int) BFD_RELOC_MIPS_GOT_HI16;
+ 	  int lw_reloc_type = (int) BFD_RELOC_MIPS_GOT_LO16;
+ 	  int local_reloc_type = (int) BFD_RELOC_MIPS_GOT16;
+ 
+ 	  /* This is the large GOT case.  If this is a reference to an
+ 	     external symbol, and there is no constant, we want
+ 	       lui	$tempreg,<sym>		(BFD_RELOC_MIPS_GOT_HI16)
+ 	       addu	$tempreg,$tempreg,$gp
+@@ -5467,61 +5474,64 @@ macro (struct mips_cl_insn *ip)
+ 
+       /* The jal instructions must be handled as macros because when
+ 	 generating PIC code they expand to multi-instruction
+ 	 sequences.  Normally they are simple instructions.  */
+     case M_JAL_1:
+       dreg = RA;
+       /* Fall through.  */
+     case M_JAL_2:
+       if (mips_pic == NO_PIC)
+ 	macro_build (NULL, "jalr", "d,s", dreg, sreg);
+-      else if (mips_pic == SVR4_PIC)
++      else if (mips_pic_p)
+ 	{
+-	  if (sreg != PIC_CALL_REG)
++	  if ((sreg != PIC_CALL_REG) && (mips_pic != QNX_PIC))
+ 	    as_warn (_("MIPS PIC call to register other than $25"));
+ 
+ 	  macro_build (NULL, "jalr", "d,s", dreg, sreg);
+ 	  if (! HAVE_NEWABI)
+ 	    {
+-	      if (mips_cprestore_offset < 0)
++	      if (mips_cprestore_offset < 0){
++		      if (mips_pic != QNX_PIC)
+ 		as_warn (_("No .cprestore pseudo-op used in PIC code"));
++	      }
+ 	      else
+ 		{
+ 		  if (! mips_frame_reg_valid)
+ 		    {
+ 		      as_warn (_("No .frame pseudo-op used in PIC code"));
+ 		      /* Quiet this warning.  */
+ 		      mips_frame_reg_valid = 1;
+ 		    }
+ 		  if (! mips_cprestore_valid)
+ 		    {
++			    if (mips_pic != QNX_PIC)
+ 		      as_warn (_("No .cprestore pseudo-op used in PIC code"));
+ 		      /* Quiet this warning.  */
+ 		      mips_cprestore_valid = 1;
+ 		    }
+ 		  expr1.X_add_number = mips_cprestore_offset;
+   		  macro_build_ldst_constoffset (&expr1, ADDRESS_LOAD_INSN,
+ 						mips_gp_register,
+ 						mips_frame_reg,
+ 						HAVE_64BIT_ADDRESSES);
+ 		}
+ 	    }
+ 	}
+       else
+ 	abort ();
+ 
+       return;
+ 
+     case M_JAL_A:
+       if (mips_pic == NO_PIC)
+ 	macro_build (&offset_expr, "jal", "a");
+-      else if (mips_pic == SVR4_PIC)
++      else if (mips_pic_p)
+ 	{
+ 	  /* If this is a reference to an external symbol, and we are
+ 	     using a small GOT, we want
+ 	       lw	$25,<sym>($gp)		(BFD_RELOC_MIPS_CALL16)
+ 	       nop
+ 	       jalr	$ra,$25
+ 	       nop
+ 	       lw	$gp,cprestore($sp)
+ 	     The cprestore value is set using the .cprestore
+ 	     pseudo-op.  If we are using a big GOT, we want
+@@ -5610,22 +5620,24 @@ macro (struct mips_cl_insn *ip)
+ 		}
+ 	      macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)",
+ 			   PIC_CALL_REG, BFD_RELOC_MIPS_GOT16,
+ 			   mips_gp_register);
+ 	      load_delay_nop ();
+ 	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,j",
+ 			   PIC_CALL_REG, PIC_CALL_REG, BFD_RELOC_LO16);
+ 	      relax_end ();
+ 	      macro_build_jalr (&offset_expr);
+ 
+-	      if (mips_cprestore_offset < 0)
++	      if (mips_cprestore_offset < 0) {
++		      if (mips_pic != QNX_PIC)
+ 		as_warn (_("No .cprestore pseudo-op used in PIC code"));
++		}
+ 	      else
+ 		{
+ 		  if (! mips_frame_reg_valid)
+ 		    {
+ 		      as_warn (_("No .frame pseudo-op used in PIC code"));
+ 		      /* Quiet this warning.  */
+ 		      mips_frame_reg_valid = 1;
+ 		    }
+ 		  if (! mips_cprestore_valid)
+ 		    {
+@@ -6010,21 +6022,21 @@ macro (struct mips_cl_insn *ip)
+ 		}
+ 	      macro_build_lui (&offset_expr, tempreg);
+ 	      macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
+ 			   tempreg, tempreg, breg);
+ 	      macro_build (&offset_expr, s, fmt, treg,
+ 			   BFD_RELOC_LO16, tempreg);
+ 	      if (mips_relax.sequence)
+ 		relax_end ();
+ 	    }
+ 	}
+-      else if (mips_pic == SVR4_PIC && ! mips_big_got)
++      else if ((mips_pic_p) && ! mips_big_got)
+ 	{
+ 	  int lw_reloc_type = (int) BFD_RELOC_MIPS_GOT16;
+ 
+ 	  /* If this is a reference to an external symbol, we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+ 	       nop
+ 	       <op>	$treg,0($tempreg)
+ 	     Otherwise we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+ 	       nop
+@@ -6068,21 +6080,21 @@ macro (struct mips_cl_insn *ip)
+ 	  relax_start (offset_expr.X_add_symbol);
+ 	  relax_switch ();
+ 	  macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,j", tempreg,
+ 		       tempreg, BFD_RELOC_LO16);
+ 	  relax_end ();
+ 	  if (breg != 0)
+ 	    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
+ 			 tempreg, tempreg, breg);
+ 	  macro_build (&expr1, s, fmt, treg, BFD_RELOC_LO16, tempreg);
+ 	}
+-      else if (mips_pic == SVR4_PIC && ! HAVE_NEWABI)
++      else if ((mips_pic_p) && ! HAVE_NEWABI)
+ 	{
+ 	  int gpdelay;
+ 
+ 	  /* If this is a reference to an external symbol, we want
+ 	       lui	$tempreg,<sym>		(BFD_RELOC_MIPS_GOT_HI16)
+ 	       addu	$tempreg,$tempreg,$gp
+ 	       lw	$tempreg,<sym>($tempreg) (BFD_RELOC_MIPS_GOT_LO16)
+ 	       <op>	$treg,0($tempreg)
+ 	     Otherwise we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+@@ -6238,21 +6250,21 @@ macro (struct mips_cl_insn *ip)
+ 	    }
+ 	  return;
+ 	}
+ 
+       /* We know that sym is in the .rdata section.  First we get the
+ 	 upper 16 bits of the address.  */
+       if (mips_pic == NO_PIC)
+ 	{
+ 	  macro_build_lui (&offset_expr, AT);
+ 	}
+-      else if (mips_pic == SVR4_PIC)
++      else if (mips_pic_p)
+ 	{
+ 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", AT,
+ 		       BFD_RELOC_MIPS_GOT16, mips_gp_register);
+ 	}
+       else
+ 	abort ();
+ 
+       /* Now we load the register(s).  */
+       if (HAVE_64BIT_GPRS)
+ 	macro_build (&offset_expr, "ld", "t,o(b)", treg, BFD_RELOC_LO16, AT);
+@@ -6310,21 +6322,21 @@ macro (struct mips_cl_insn *ip)
+ 			   BFD_RELOC_MIPS_LITERAL, mips_gp_register);
+ 	      return;
+ 	    }
+ 	  breg = mips_gp_register;
+ 	  r = BFD_RELOC_MIPS_LITERAL;
+ 	  goto dob;
+ 	}
+       else
+ 	{
+ 	  assert (strcmp (s, RDATA_SECTION_NAME) == 0);
+-	  if (mips_pic == SVR4_PIC)
++	  if (mips_pic_p)
+ 	    macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", AT,
+ 			 BFD_RELOC_MIPS_GOT16, mips_gp_register);
+ 	  else
+ 	    {
+ 	      /* FIXME: This won't work for a 64 bit address.  */
+ 	      macro_build_lui (&offset_expr, AT);
+ 	    }
+ 
+ 	  if (mips_opts.isa != ISA_MIPS1)
+ 	    {
+@@ -6524,21 +6536,21 @@ macro (struct mips_cl_insn *ip)
+ 	  macro_build (&offset_expr, s, fmt, coproc ? treg + 1 : treg,
+ 		       BFD_RELOC_LO16, AT);
+ 	  /* FIXME: How do we handle overflow here?  */
+ 	  offset_expr.X_add_number += 4;
+ 	  /* Itbl support may require additional care here.  */
+ 	  macro_build (&offset_expr, s, fmt, coproc ? treg : treg + 1,
+ 		       BFD_RELOC_LO16, AT);
+ 	  if (mips_relax.sequence)
+ 	    relax_end ();
+ 	}
+-      else if (mips_pic == SVR4_PIC && ! mips_big_got)
++      else if ((mips_pic_p) && ! mips_big_got)
+ 	{
+ 	  /* If this is a reference to an external symbol, we want
+ 	       lw	$at,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+ 	       nop
+ 	       <op>	$treg,0($at)
+ 	       <op>	$treg+1,4($at)
+ 	     Otherwise we want
+ 	       lw	$at,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+ 	       nop
+ 	       <op>	$treg,<sym>($at)	(BFD_RELOC_LO16)
+@@ -6571,21 +6583,21 @@ macro (struct mips_cl_insn *ip)
+ 	  relax_switch ();
+ 	  macro_build (&offset_expr, s, fmt, coproc ? treg + 1 : treg,
+ 		       BFD_RELOC_LO16, AT);
+ 	  offset_expr.X_add_number += 4;
+ 	  macro_build (&offset_expr, s, fmt, coproc ? treg : treg + 1,
+ 		       BFD_RELOC_LO16, AT);
+ 	  relax_end ();
+ 
+ 	  mips_optimize = hold_mips_optimize;
+ 	}
+-      else if (mips_pic == SVR4_PIC)
++      else if (mips_pic_p)
+ 	{
+ 	  int gpdelay;
+ 
+ 	  /* If this is a reference to an external symbol, we want
+ 	       lui	$at,<sym>		(BFD_RELOC_MIPS_GOT_HI16)
+ 	       addu	$at,$at,$gp
+ 	       lw	$at,<sym>($at)		(BFD_RELOC_MIPS_GOT_LO16)
+ 	       nop
+ 	       <op>	$treg,0($at)
+ 	       <op>	$treg+1,4($at)
+@@ -10120,20 +10132,25 @@ struct option md_longopts[] =
+ #define OPTION_64          (OPTION_ELF_BASE + 6)
+   {"64",          no_argument, NULL, OPTION_64},
+ #define OPTION_MDEBUG      (OPTION_ELF_BASE + 7)
+   {"mdebug", no_argument, NULL, OPTION_MDEBUG},
+ #define OPTION_NO_MDEBUG   (OPTION_ELF_BASE + 8)
+   {"no-mdebug", no_argument, NULL, OPTION_NO_MDEBUG},
+ #define OPTION_PDR	   (OPTION_ELF_BASE + 9)
+   {"mpdr", no_argument, NULL, OPTION_PDR},
+ #define OPTION_NO_PDR	   (OPTION_ELF_BASE + 10)
+   {"mno-pdr", no_argument, NULL, OPTION_NO_PDR},
++#define OPTION_QNX_PIC	   (OPTION_ELF_BASE + 11)
++  {"qnx_pic", no_argument, NULL, OPTION_QNX_PIC},
++  {"mqnx-pic", no_argument, NULL, OPTION_QNX_PIC},
++#define OPTION_NO_QNX_PIC	   (OPTION_ELF_BASE + 12)
++  {"mno-qnx-pic", no_argument, NULL, OPTION_NO_QNX_PIC},
+ #endif /* OBJ_ELF */
+ 
+   {NULL, no_argument, NULL, 0}
+ };
+ size_t md_longopts_size = sizeof (md_longopts);
+ 
+ /* Set STRING_PTR (either &mips_arch_string or &mips_tune_string) to
+    NEW_VALUE.  Warn if another value was already specified.  Note:
+    we have to defer parsing the -march and -mtune arguments in order
+    to handle 'from-abi' correctly, since the ABI might be specified
+@@ -10461,20 +10478,42 @@ md_parse_option (int c, char *arg)
+       mips_flag_mdebug = FALSE;
+       break;
+ 
+     case OPTION_PDR:
+       mips_flag_pdr = TRUE;
+       break;
+ 
+     case OPTION_NO_PDR:
+       mips_flag_pdr = FALSE;
+       break;
++
++    case OPTION_QNX_PIC:
++      if (OUTPUT_FLAVOR != bfd_target_elf_flavour)
++        {
++          as_bad ("QNX PIC is supported only for ELF format");
++          return 0;
++        }
++      mips_pic = QNX_PIC;
++      mips_gp_register = QNX_GP_REG;
++      if (g_switch_seen && g_switch_value != 0)
++        {
++          as_bad ("-G may not be used with QNX PIC code");
++          return 0;
++        }
++      g_switch_value = 0;
++      break;
++
++     case OPTION_NO_QNX_PIC:
++      mips_pic = NO_PIC;
++      mips_gp_register = GP;
++      break;
++      
+ #endif /* OBJ_ELF */
+ 
+     default:
+       return 0;
+     }
+ 
+   return 1;
+ }
+ 
+ /* Set up globals to generate code for the ISA or processor
+@@ -10865,21 +10904,21 @@ mips_validate_fix (struct fix *fixP, ase
+       else if (S_GET_SEGMENT (fixP->fx_addsy) != seg)
+ 	{
+ 	  as_bad_where (fixP->fx_file, fixP->fx_line,
+ 			_("Cannot branch to symbol in another section."));
+ 	  fixP->fx_done = 1;
+ 	}
+       else if (S_IS_EXTERNAL (fixP->fx_addsy))
+ 	{
+ 	  symbolS *sym = fixP->fx_addsy;
+ 
+-	  if (mips_pic == SVR4_PIC)
++	  if (mips_pic_p)
+ 	    as_warn_where (fixP->fx_file, fixP->fx_line,
+ 			   _("Pretending global symbol used as branch target is local."));
+ 
+ 	  fixP->fx_addsy = symbol_create (S_GET_NAME (sym),
+ 					  S_GET_SEGMENT (sym),
+ 					  S_GET_VALUE (sym),
+ 					  symbol_get_frag (sym));
+ 	  copy_symbol_attributes (fixP->fx_addsy, sym);
+ 	  S_CLEAR_EXTERNAL (fixP->fx_addsy);
+ 	  assert (symbol_resolved_p (sym));
+@@ -11759,62 +11798,150 @@ s_abicalls (int ignore ATTRIBUTE_UNUSED)
+   mips_abicalls = TRUE;
+ 
+   if (g_switch_seen && g_switch_value != 0)
+     as_warn (_("-G may not be used with SVR4 PIC code"));
+   g_switch_value = 0;
+ 
+   bfd_set_gp_size (stdoutput, 0);
+   demand_empty_rest_of_line ();
+ }
+ 
++/* This handles the .qnxpiccalls pseudo-op.i */
++
++static void
++s_qnxpiccalls (ignore)
++     int ignore ATTRIBUTE_UNUSED;
++{
++  mips_pic = QNX_PIC;
++  mips_gp_register = QNX_GP_REG;
++  if (g_switch_seen && g_switch_value != 0)
++      as_warn ("-G may not be used with QNX PIC code");
++  g_switch_value = 0;
++  bfd_set_gp_size (stdoutput, 0);
++  demand_empty_rest_of_line ();
++}
++
++/* Allows us to turn off PIC code gen, in case that is needed */
++
++static void
++s_noqnxpiccalls (ignore)
++     int ignore ATTRIBUTE_UNUSED;
++{
++  mips_pic = NO_PIC;
++  mips_gp_register = GP;
++  demand_empty_rest_of_line ();
++}
++
++
+ /* Handle the .cpload pseudo-op.  This is used when generating SVR4
+    PIC code.  It sets the $gp register for the function based on the
+    function address, which is in the register named in the argument.
+    This uses a relocation against _gp_disp, which is handled specially
+    by the linker.  The result is:
+ 	lui	$gp,%hi(_gp_disp)
+ 	addiu	$gp,$gp,%lo(_gp_disp)
+ 	addu	$gp,$gp,.cpload argument
+-   The .cpload argument is normally $25 == $t9.  */
++   The .cpload argument is normally $25 == $t9. 
++
++   In the case of QNX pic code, we always compute the full address
++   of the GOT, therefore we do:
++        bltzal 0, 0f
++    0:  lui     $23, %hi(_gp_disp)
++        addiu   $23, $23, %lo(_gp_disp)
++        addu    $23, $23, $31
++*/
+ 
+ static void
+ s_cpload (int ignore ATTRIBUTE_UNUSED)
+ {
+   expressionS ex;
+ 
+   /* If we are not generating SVR4 PIC code, or if this is NewABI code,
+      .cpload is ignored.  */
+   if (mips_pic != SVR4_PIC || HAVE_NEWABI)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   /* .cpload should be in a .set noreorder section.  */
+-  if (mips_opts.noreorder == 0)
++  if ((mips_opts.noreorder == 0) && (mips_pic != QNX_PIC))
+     as_warn (_(".cpload not in noreorder section"));
+ 
+   ex.X_op = O_symbol;
+   ex.X_add_symbol = symbol_find_or_make ("_gp_disp");
+   ex.X_op_symbol = NULL;
+   ex.X_add_number = 0;
+ 
+   /* In ELF, this symbol is implicitly an STT_OBJECT symbol.  */
+   symbol_get_bfdsym (ex.X_add_symbol)->flags |= BSF_OBJECT;
+ 
++  if (mips_pic == QNX_PIC) {
++        expressionS ep;
++        /* In our case, we do a bltzal first to get the current PC, and
++         * then add the offset to the got... Thus, we always do "cpload $31"
++         */
++        ep.X_op = O_constant;
++        ep.X_add_number = 4;
++        tc_get_register(0); 
++
++        /* See if we can swap the bltzal with the previous insn and save
++         * the nop...
++         * For simplicity, we only check that the insn is a move or sw,
++         * which are really the only two we should encounter.
++         * If it is anything else, we don't swap for now.
++         */
++        if(0 && (mips_optimize > 1)
++                && prev_insn_valid
++                && (mips_opts.isa > 1)
++                && !(mips_opts.noreorder)
++                && (((prev_insn.insn_opcode & 0xfc1f07ff) == 0x00000021)
++                  || ((prev_insn.insn_opcode & 0xfc000000) == 0xac000000)))
++          {
++                  char *prev_f;
++                  char temp[4];
++
++                  prev_f = prev_insn_frag->fr_literal + prev_insn_where;
++                  memcpy (temp, prev_f, 4);
++                  *(unsigned long *)(prev_f) = 0x04100001;
++                  macro_build (&ep, "bltzal", "s,p", 0);
++
++                  prev_f = prev_insn_frag->fr_literal + prev_insn_where;
++                  memcpy (prev_f, temp, 4);
++                  mips_opts.noreorder ++;
++          }
++        else
++          {     /* We need a NOP... */
++                mips_opts.noreorder ++;
++                macro_build (&ep, "bltzal", "s,p", 0);
++                macro_build (NULL, "nop", "");
++          }
++	macro_start ();
++        macro_build_lui (&ex, QNX_GP_REG);
++        macro_build (&ex, "addiu", "t,r,j", QNX_GP_REG, QNX_GP_REG,
++                       (int) BFD_RELOC_LO16);
++        mips_opts.noreorder --;
++
++        macro_build ((expressionS *) NULL, "addu", "d,v,t",
++                       QNX_GP_REG, QNX_GP_REG, RA);
++	macro_end ();
++  } else
++  {
++
+   macro_start ();
+   macro_build_lui (&ex, mips_gp_register);
+   macro_build (&ex, "addiu", "t,r,j", mips_gp_register,
+ 	       mips_gp_register, BFD_RELOC_LO16);
+   macro_build (NULL, "addu", "d,v,t", mips_gp_register,
+ 	       mips_gp_register, tc_get_register (0));
+   macro_end ();
++}
+ 
+   demand_empty_rest_of_line ();
+ }
+ 
+ /* Handle the .cpsetup pseudo-op defined for NewABI PIC code.  The syntax is:
+      .cpsetup $reg1, offset|$reg2, label
+ 
+    If offset is given, this results in:
+      sd		$gp, offset($sp)
+      lui	$gp, %hi(%neg(%gp_rel(label)))
+@@ -11830,21 +11957,21 @@ s_cpload (int ignore ATTRIBUTE_UNUSED)
+ static void
+ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
+ {
+   expressionS ex_off;
+   expressionS ex_sym;
+   int reg1;
+   char *f;
+ 
+   /* If we are not generating SVR4 PIC code, .cpsetup is ignored.
+      We also need NewABI support.  */
+-  if (mips_pic != SVR4_PIC || ! HAVE_NEWABI)
++  if ((mips_pic != SVR4_PIC && mips_pic != QNX_PIC)|| ! HAVE_NEWABI)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   reg1 = tc_get_register (0);
+   SKIP_WHITESPACE ();
+   if (*input_line_pointer != ',')
+     {
+       as_bad (_("missing argument separator ',' for .cpsetup"));
+@@ -11912,21 +12039,21 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
+   macro_end ();
+ 
+   demand_empty_rest_of_line ();
+ }
+ 
+ static void
+ s_cplocal (int ignore ATTRIBUTE_UNUSED)
+ {
+   /* If we are not generating SVR4 PIC code, or if this is not NewABI code,
+    .cplocal is ignored.  */
+-  if (mips_pic != SVR4_PIC || ! HAVE_NEWABI)
++  if ((mips_pic != SVR4_PIC && mips_pic != QNX_PIC) || ! HAVE_NEWABI)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   mips_gp_register = tc_get_register (0);
+   demand_empty_rest_of_line ();
+ }
+ 
+ /* Handle the .cprestore pseudo-op.  This stores $gp into a given
+@@ -11969,21 +12096,21 @@ s_cprestore (int ignore ATTRIBUTE_UNUSED
+    If a register $reg2 was given there, it results in:
+      daddu	$gp, $reg2, $0
+  */
+ static void
+ s_cpreturn (int ignore ATTRIBUTE_UNUSED)
+ {
+   expressionS ex;
+ 
+   /* If we are not generating SVR4 PIC code, .cpreturn is ignored.
+      We also need NewABI support.  */
+-  if (mips_pic != SVR4_PIC || ! HAVE_NEWABI)
++  if ((mips_pic != SVR4_PIC && mips_pic != QNX_PIC) || ! HAVE_NEWABI)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   macro_start ();
+   if (mips_cpreturn_register == -1)
+     {
+       ex.X_op = O_constant;
+       ex.X_add_symbol = NULL;
+@@ -12001,21 +12128,21 @@ s_cpreturn (int ignore ATTRIBUTE_UNUSED)
+ }
+ 
+ /* Handle the .gpvalue pseudo-op.  This is used when generating NewABI PIC
+    code.  It sets the offset to use in gp_rel relocations.  */
+ 
+ static void
+ s_gpvalue (int ignore ATTRIBUTE_UNUSED)
+ {
+   /* If we are not generating SVR4 PIC code, .gpvalue is ignored.
+      We also need NewABI support.  */
+-  if (mips_pic != SVR4_PIC || ! HAVE_NEWABI)
++  if ((mips_pic != SVR4_PIC && mips_pic != QNX_PIC) || ! HAVE_NEWABI)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   mips_gprel_offset = get_absolute_expression ();
+ 
+   demand_empty_rest_of_line ();
+ }
+ 
+@@ -12023,21 +12150,21 @@ s_gpvalue (int ignore ATTRIBUTE_UNUSED)
+    code.  It generates a 32 bit GP relative reloc.  */
+ 
+ static void
+ s_gpword (int ignore ATTRIBUTE_UNUSED)
+ {
+   symbolS *label;
+   expressionS ex;
+   char *p;
+ 
+   /* When not generating PIC code, this is treated as .word.  */
+-  if (mips_pic != SVR4_PIC)
++  if (mips_pic != SVR4_PIC && mips_pic != QNX_PIC)
+     {
+       s_cons (2);
+       return;
+     }
+ 
+   label = insn_labels != NULL ? insn_labels->label : NULL;
+   mips_emit_delays (TRUE);
+   if (auto_align)
+     mips_align (2, 0, label);
+   mips_clear_insn_labels ();
+@@ -12059,21 +12186,21 @@ s_gpword (int ignore ATTRIBUTE_UNUSED)
+ }
+ 
+ static void
+ s_gpdword (int ignore ATTRIBUTE_UNUSED)
+ {
+   symbolS *label;
+   expressionS ex;
+   char *p;
+ 
+   /* When not generating PIC code, this is treated as .dword.  */
+-  if (mips_pic != SVR4_PIC)
++  if (mips_pic != SVR4_PIC && mips_pic != QNX_PIC)
+     {
+       s_cons (3);
+       return;
+     }
+ 
+   label = insn_labels != NULL ? insn_labels->label : NULL;
+   mips_emit_delays (TRUE);
+   if (auto_align)
+     mips_align (3, 0, label);
+   mips_clear_insn_labels ();
+@@ -12103,21 +12230,21 @@ s_gpdword (int ignore ATTRIBUTE_UNUSED)
+ 
+ /* Handle the .cpadd pseudo-op.  This is used when dealing with switch
+    tables in SVR4 PIC code.  */
+ 
+ static void
+ s_cpadd (int ignore ATTRIBUTE_UNUSED)
+ {
+   int reg;
+ 
+   /* This is ignored when not generating SVR4 PIC code.  */
+-  if (mips_pic != SVR4_PIC)
++  if (mips_pic != SVR4_PIC && mips_pic != QNX_PIC)
+     {
+       s_ignore (0);
+       return;
+     }
+ 
+   /* Add $gp to the register named as an argument.  */
+   macro_start ();
+   reg = tc_get_register (0);
+   macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", reg, reg, mips_gp_register);
+   macro_end ();
+@@ -12698,34 +12825,33 @@ relaxed_branch_length (fragS *fragp, ase
+    encoded in the subtype information.  For the mips16, we have to
+    decide whether we are using an extended opcode or not.  */
+ 
+ int
+ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
+ {
+   int change;
+ 
+   if (RELAX_BRANCH_P (fragp->fr_subtype))
+     {
+-
+       fragp->fr_var = relaxed_branch_length (fragp, segtype, FALSE);
+ 
+       return fragp->fr_var;
+     }
+ 
+   if (RELAX_MIPS16_P (fragp->fr_subtype))
+     /* We don't want to modify the EXTENDED bit here; it might get us
+        into infinite loops.  We change it only in mips_relax_frag().  */
+     return (RELAX_MIPS16_EXTENDED (fragp->fr_subtype) ? 4 : 2);
+ 
+   if (mips_pic == NO_PIC)
+     change = nopic_need_relax (fragp->fr_symbol, 0);
+-  else if (mips_pic == SVR4_PIC)
++  else if (mips_pic_p)
+     change = pic_need_relax (fragp->fr_symbol, segtype);
+   else
+     abort ();
+ 
+   if (change)
+     {
+       fragp->fr_subtype |= RELAX_USE_SECOND;
+       return -RELAX_FIRST (fragp->fr_subtype);
+     }
+   else
+@@ -12743,20 +12869,29 @@ mips_fix_adjustable (fixS *fixp)
+   if (fixp->fx_r_type == BFD_RELOC_MIPS16_JMP)
+     return 0;
+ 
+   if (fixp->fx_r_type == BFD_RELOC_VTABLE_INHERIT
+       || fixp->fx_r_type == BFD_RELOC_VTABLE_ENTRY)
+     return 0;
+ 
+   if (fixp->fx_addsy == NULL)
+     return 1;
+ 
++  if ((mips_pic == QNX_PIC) &&
++      (fixp->fx_r_type == BFD_RELOC_MIPS_GOT16 
++      || fixp->fx_r_type == BFD_RELOC_32))
++    {
++      symbolS * sym = fixp->fx_addsy;
++      if (S_IS_EXTERN(sym) || S_IS_WEAK(sym)) return 0;
++    }
++    
++  
+   /* If symbol SYM is in a mergeable section, relocations of the form
+      SYM + 0 can usually be made section-relative.  The mergeable data
+      is then identified by the section offset rather than by the symbol.
+ 
+      However, if we're generating REL LO16 relocations, the offset is split
+      between the LO16 and parterning high part relocation.  The linker will
+      need to recalculate the complete offset in order to correctly identify
+      the merge data.
+ 
+      The linker has traditionally not looked for the parterning high part
+Index: gas/config/tc-mips.h
+===================================================================
+RCS file: /cvs/src/src/gas/config/tc-mips.h,v
+retrieving revision 1.35
+diff -w -u -1 -0 -p -r1.35 tc-mips.h
+--- gas/config/tc-mips.h	29 Apr 2004 05:14:22 -0000	1.35
++++ gas/config/tc-mips.h	13 Sep 2004 18:38:03 -0000
+@@ -68,20 +68,23 @@ extern const char *mips_target_format (v
+ 
+ /* MIPS PIC level.  */
+ 
+ enum mips_pic_level
+ {
+   /* Do not generate PIC code.  */
+   NO_PIC,
+ 
+   /* Generate PIC code as in the SVR4 MIPS ABI.  */
+   SVR4_PIC,
++
++  /* Generate QNX PIC code.  */
++  QNX_PIC,
+ };
+ 
+ extern enum mips_pic_level mips_pic;
+ 
+ struct mips_cl_insn
+ {
+   unsigned long insn_opcode;
+   const struct mips_opcode *insn_mo;
+   /* The next two fields are used when generating mips16 code.  */
+   bfd_boolean use_extend;
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* ltconfig (nto-qnx*): Add support for QNX OS suffix.
+
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* config.bfd (mips*eb-*-nto*): New target.
+	(mips*-*-nto*): New target.
+
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* configure (mips*-*-nto*): New target.
+	* configure.in: Likewise.
+
+2004-09-13  Jeff Baker <jbaker@qnx.com>
+	* Makefile.am: Add targets for QNX MIPS emulation files.
+	* Makefile.in: Likewise.
+	* configure.tgt(mips*-*-nto*): New target.
+	(mips*eb*-*-nto*): New target. 
+	* emulparams/elf32bmipnto.sh: New file. QNX MIPS
+	emulation.
+	* emulparams/elf32lmipnto.sh: New file. QNX MIPS
+	emulation
+
+Index: ltconfig
+===================================================================
+RCS file: /cvs/src/src/ltconfig,v
+retrieving revision 1.21
+diff -w -u -1 -0 -p -r1.21 ltconfig
+--- ltconfig	21 Jul 2004 19:21:41 -0000	1.21
++++ ltconfig	13 Sep 2004 18:32:11 -0000
+@@ -1389,20 +1389,31 @@ dgux*)
+ 
+ sysv4*MP*)
+   if test -d /usr/nec ;then
+     version_type=linux
+     library_names_spec='$libname.so.$versuffix $libname.so.$major $libname.so'
+     soname_spec='$libname.so.$major'
+     shlibpath_var=LD_LIBRARY_PATH
+   fi
+   ;;
+ 
++nto-qnx*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
++  soname_spec='${libname}${release}.so$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  shlibpath_overrides_runpath=yes
++  deplibs_check_method='pass_all'
++  ;;
++  
+ *)
+   dynamic_linker=no
+   ;;
+ esac
+ echo "$ac_t$dynamic_linker" 1>&6
+ test "$dynamic_linker" = no && can_build_shared=no
+ 
+ # Check for command to grab the raw symbol name followed by C symbol from nm.
+ echo $ac_n "checking command to parse $NM output... $ac_c" 1>&6
+ 
+Index: bfd/config.bfd
+===================================================================
+RCS file: /cvs/src/src/bfd/config.bfd,v
+retrieving revision 1.170
+diff -w -u -1 -0 -p -r1.170 config.bfd
+--- bfd/config.bfd	3 Sep 2004 17:15:31 -0000	1.170
++++ bfd/config.bfd	13 Sep 2004 18:32:22 -0000
+@@ -833,20 +833,30 @@ case "${targ}" in
+     targ_selvecs=ecoff_little_vec
+     ;;
+   mips*el-*-elf* | mips*el-*-rtems* | mips*el-*-vxworks* | mips*-*-chorus*)
+     targ_defvec=bfd_elf32_littlemips_vec
+     targ_selvecs="bfd_elf32_bigmips_vec bfd_elf64_bigmips_vec bfd_elf64_littlemips_vec"
+     ;;
+   mips*-*-elf* | mips*-*-rtems* | mips*-*-vxworks | mips*-*-windiss)
+     targ_defvec=bfd_elf32_bigmips_vec
+     targ_selvecs="bfd_elf32_littlemips_vec bfd_elf64_bigmips_vec bfd_elf64_littlemips_vec"
+     ;;
++  mips*eb-*-nto*)
++    targ_defvec=bfd_elf32_bigmips_vec
++    targ_selvecs="bfd_elf32_littlemips_vec"
++    targ_cflags=-D__QNXTARGET__
++    ;;
++  mips*-*-nto*)
++    targ_defvec=bfd_elf32_littlemips_vec
++    targ_selvecs="bfd_elf32_bigmips_vec"
++    targ_cflags=-D__QNXTARGET__
++    ;;
+   mips*-*-none)
+     targ_defvec=bfd_elf32_bigmips_vec
+     targ_selvecs="bfd_elf32_littlemips_vec bfd_elf64_bigmips_vec bfd_elf64_littlemips_vec"
+     ;;
+   mips*el-*-openbsd*)
+     targ_defvec=bfd_elf32_littlemips_vec
+     targ_selvecs="bfd_elf32_bigmips_vec bfd_elf64_bigmips_vec bfd_elf64_littlemips_vec ecoff_little_vec ecoff_big_vec"
+     ;;
+   mips*-*-openbsd*)
+     targ_defvec=bfd_elf32_bigmips_vec
+Index: gas/configure
+===================================================================
+RCS file: /cvs/src/src/gas/configure,v
+retrieving revision 1.177
+diff -w -u -1 -0 -p -r1.177 configure
+--- gas/configure	3 Sep 2004 17:15:37 -0000	1.177
++++ gas/configure	13 Sep 2004 18:32:31 -0000
+@@ -4437,20 +4437,21 @@ echo "$as_me: error: Unknown vendor for 
+       mips-*-ecoff*)			fmt=ecoff ;;
+       mips-*-pe*)			fmt=coff endian=little em=pe ;;
+       mips-*-irix6*)			fmt=elf em=irix ;;
+       mips-*-irix5*)			fmt=elf em=irix ;;
+       mips-*-irix*)			fmt=ecoff em=irix ;;
+       mips-*-lnews*)			fmt=ecoff em=lnews ;;
+       mips-*-riscos*)			fmt=ecoff ;;
+       mips*-*-linux*)			fmt=elf em=tmips ;;
+       mips-*-sysv4*MP* | mips-*-gnu*)	fmt=elf em=tmips ;;
+       mips-*-sysv*)			fmt=ecoff ;;
++      mips*-*-nto*)			fmt=elf ;;
+       mips-*-elf* | mips-*-rtems*)	fmt=elf ;;
+       mips-*-netbsd*)			fmt=elf ;;
+       mips-*-openbsd*)			fmt=elf ;;
+ 
+       mmix-*-*)				fmt=elf ;;
+       mn10200-*-*)			fmt=elf ;;
+       # cpu_type for am33_2.0 is set to mn10300
+       mn10300-*-linux*)			fmt=elf bfd_gas=yes em=linux ;;
+       mn10300-*-*)			fmt=elf ;;
+ 
+Index: gas/configure.in
+===================================================================
+RCS file: /cvs/src/src/gas/configure.in,v
+retrieving revision 1.161
+diff -w -u -1 -0 -p -r1.161 configure.in
+--- gas/configure.in	3 Sep 2004 17:15:40 -0000	1.161
++++ gas/configure.in	13 Sep 2004 18:32:35 -0000
+@@ -389,20 +389,21 @@ changequote([,])dnl
+       mips-*-ecoff*)			fmt=ecoff ;;
+       mips-*-pe*)			fmt=coff endian=little em=pe ;;
+       mips-*-irix6*)			fmt=elf em=irix ;;
+       mips-*-irix5*)			fmt=elf em=irix ;;
+       mips-*-irix*)			fmt=ecoff em=irix ;;
+       mips-*-lnews*)			fmt=ecoff em=lnews ;;
+       mips-*-riscos*)			fmt=ecoff ;;
+       mips*-*-linux*)			fmt=elf em=tmips ;;
+       mips-*-sysv4*MP* | mips-*-gnu*)	fmt=elf em=tmips ;;
+       mips-*-sysv*)			fmt=ecoff ;;
++      mips*-*-nto*)			fmt=elf ;;
+       mips-*-elf* | mips-*-rtems*)	fmt=elf ;;
+       mips-*-netbsd*)			fmt=elf ;;
+       mips-*-openbsd*)			fmt=elf ;;
+ 
+       mmix-*-*)				fmt=elf ;;
+       mn10200-*-*)			fmt=elf ;;
+       # cpu_type for am33_2.0 is set to mn10300
+       mn10300-*-linux*)			fmt=elf bfd_gas=yes em=linux ;;
+       mn10300-*-*)			fmt=elf ;;
+ 
+Index: ld/Makefile.am
+===================================================================
+RCS file: /cvs/src/src/ld/Makefile.am,v
+retrieving revision 1.158
+diff -w -u -1 -0 -p -r1.158 Makefile.am
+--- ld/Makefile.am	3 Sep 2004 17:15:43 -0000	1.158
++++ ld/Makefile.am	13 Sep 2004 18:32:47 -0000
+@@ -146,35 +146,37 @@ ALL_EMULATIONS = \
+ 	edelta68.o \
+ 	eelf32_dlx.o \
+ 	eebmon29k.o \
+ 	eelf32_i960.o \
+ 	eelf32_i860.o \
+ 	eelf32_sparc.o \
+ 	eelf32b4300.o \
+ 	eelf32cr16c.o \
+ 	eelf32bmip.o \
+ 	eelf32bmipn32.o \
++	eelf32bmipsnto.o \
+ 	eelf32btsmip.o \
+ 	eelf32crx.o \
+ 	eelf32btsmipn32.o \
+ 	eelf32ltsmip.o \
+ 	eelf32ltsmipn32.o \
+ 	eelf32ebmip.o \
+ 	eelf32elmip.o \
+ 	eelf32fr30.o \
+ 	eelf32frv.o \
+ 	eelf32i370.o \
+ 	eelf32ip2k.o \
+ 	eelf32iq2000.o \
+ 	eelf32iq10.o \
+ 	eelf32l4300.o \
+ 	eelf32lmip.o \
++	eelf32lmipnto.o \
+ 	eelf32lppc.o \
+ 	eelf32lppcnto.o \
+ 	eelf32lppcsim.o \
+ 	eelf32mcore.o \
+ 	eelf32mipswindiss.o \
+ 	eelf32openrisc.o \
+ 	eelf32ppc.o \
+ 	eelf32ppc_fbsd.o \
+ 	eelf32ppclinux.o \
+ 	eelf32ppcnto.o \
+@@ -647,20 +649,26 @@ eelf32b4300.c: $(srcdir)/emulparams/elf3
+   $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32b4300 "$(tdir_elf32b4300)"
+ eelf32cr16c.c: $(srcdir)/emulparams/elf32cr16c.sh \
+   $(srcdir)/emultempl/elf32.em \
+   $(srcdir)/scripttempl/elf32cr16c.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32cr16c "$(tdir_elf32cr16c)"
+ eelf32bmip.c: $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32bmip "$(tdir_elf32bmip)"
++eelf32bmipnto.c: $(srcdir)/emulparams/elf32bmipnto.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf32bmipnto "$(tdir_elf32bmipnto)"
++eelf32lmipnto.c: $(srcdir)/emulparams/elf32lmipnto.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf32lmipnto "$(tdir_elf32lmipnto)"
+ eelf32bsmip.c: $(srcdir)/emulparams/elf32bsmip.sh \
+   $(srcdir)/emulparams/elf32bmip.sh $(srcdir)/emultempl/irix.em \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32bsmip "$(tdir_elf32bsmip)"
+ eelf32btsmip.c: $(srcdir)/emulparams/elf32btsmip.sh \
+   $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32btsmip "$(tdir_elf32btsmip)"
+ eelf32crx.c: $(srcdir)/emulparams/elf32crx.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/crxelf.em \
+Index: ld/Makefile.in
+===================================================================
+RCS file: /cvs/src/src/ld/Makefile.in,v
+retrieving revision 1.170
+diff -w -u -1 -0 -p -r1.170 Makefile.in
+--- ld/Makefile.in	3 Sep 2004 17:15:43 -0000	1.170
++++ ld/Makefile.in	13 Sep 2004 18:32:53 -0000
+@@ -260,35 +260,37 @@ ALL_EMULATIONS = \
+ 	edelta68.o \
+ 	eelf32_dlx.o \
+ 	eebmon29k.o \
+ 	eelf32_i960.o \
+ 	eelf32_i860.o \
+ 	eelf32_sparc.o \
+ 	eelf32b4300.o \
+ 	eelf32cr16c.o \
+ 	eelf32bmip.o \
+ 	eelf32bmipn32.o \
++	eelf32bmipnto.o \
+ 	eelf32btsmip.o \
+ 	eelf32crx.o \
+ 	eelf32btsmipn32.o \
+ 	eelf32ltsmip.o \
+ 	eelf32ltsmipn32.o \
+ 	eelf32ebmip.o \
+ 	eelf32elmip.o \
+ 	eelf32fr30.o \
+ 	eelf32frv.o \
+ 	eelf32i370.o \
+ 	eelf32ip2k.o \
+ 	eelf32iq2000.o \
+ 	eelf32iq10.o \
+ 	eelf32l4300.o \
+ 	eelf32lmip.o \
++	eelf32lmipnto.o \
+ 	eelf32lppc.o \
+ 	eelf32lppcnto.o \
+ 	eelf32lppcsim.o \
+ 	eelf32mcore.o \
+ 	eelf32mipswindiss.o \
+ 	eelf32openrisc.o \
+ 	eelf32ppc.o \
+ 	eelf32ppc_fbsd.o \
+ 	eelf32ppclinux.o \
+ 	eelf32ppcnto.o \
+@@ -1373,20 +1375,26 @@ eelf32b4300.c: $(srcdir)/emulparams/elf3
+   $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32b4300 "$(tdir_elf32b4300)"
+ eelf32cr16c.c: $(srcdir)/emulparams/elf32cr16c.sh \
+   $(srcdir)/emultempl/elf32.em \
+   $(srcdir)/scripttempl/elf32cr16c.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32cr16c "$(tdir_elf32cr16c)"
+ eelf32bmip.c: $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32bmip "$(tdir_elf32bmip)"
++eelf32bmipnto.c: $(srcdir)/emulparams/elf32bmipnto.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf32bmipnto "$(tdir_elf32bmipnto)"
++eelf32lmipnto.c: $(srcdir)/emulparams/elf32lmipnto.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} elf32lmipnto "$(tdir_elf32lmipnto)"
+ eelf32bsmip.c: $(srcdir)/emulparams/elf32bsmip.sh \
+   $(srcdir)/emulparams/elf32bmip.sh $(srcdir)/emultempl/irix.em \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32bsmip "$(tdir_elf32bsmip)"
+ eelf32btsmip.c: $(srcdir)/emulparams/elf32btsmip.sh \
+   $(srcdir)/emulparams/elf32bmip.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} elf32btsmip "$(tdir_elf32btsmip)"
+ eelf32crx.c: $(srcdir)/emulparams/elf32crx.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/crxelf.em \
+Index: ld/configure.tgt
+===================================================================
+RCS file: /cvs/src/src/ld/configure.tgt,v
+retrieving revision 1.155
+diff -w -u -1 -0 -p -r1.155 configure.tgt
+--- ld/configure.tgt	3 Sep 2004 17:15:44 -0000	1.155
++++ ld/configure.tgt	13 Sep 2004 18:33:03 -0000
+@@ -422,20 +422,26 @@ mips*-*-netbsd*)	targ_emul=elf32bmip
+ 			;;
+ mips*-*-bsd*)		targ_emul=mipsbig ;;
+ mips*vr4300el-*-elf*)	targ_emul=elf32l4300 ;;
+ mips*vr4300-*-elf*)	targ_emul=elf32b4300 ;;
+ mips*vr4100el-*-elf*)	targ_emul=elf32l4300 ;;
+ mips*vr4100-*-elf*)	targ_emul=elf32b4300 ;;
+ mips*vr5000el-*-elf*)	targ_emul=elf32l4300 ;;
+ mips*vr5000-*-elf*)	targ_emul=elf32b4300 ;;
+ mips*el-*-elf*)		targ_emul=elf32elmip ;;
+ mips*-*-elf*)		targ_emul=elf32ebmip ;;
++mips*-*-nto*)		targ_emul=elf32lmipnto
++			targ_extra_emuls="elf32bmipnto"
++			;;
++mips*eb*-*-nto*)	targ_emul=elf32bmipnto
++			targ_extra_emuls="elf32lmipnto"
++			;;
+ mips*el-*-rtems*)	targ_emul=elf32elmip ;;
+ mips*-*-rtems*)		targ_emul=elf32ebmip ;;
+ mips*el-*-vxworks*)	targ_emul=elf32elmip ;;
+ mips*-*-vxworks*)	targ_emul=elf32ebmip
+ 		        targ_extra_emuls="elf32elmip" ;;
+ mips*-*-windiss)	targ_emul=elf32mipswindiss ;;
+ mips64*el-*-linux-gnu*)	targ_emul=elf32ltsmipn32
+ 			targ_extra_emuls="elf32btsmipn32 elf32ltsmip elf32btsmip elf64ltsmip elf64btsmip"
+ 			;;
+ mips64*-*-linux-gnu*)	targ_emul=elf32btsmipn32
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* elflink.c (_bfd_elf_add_dynamic_entry): Add code to
+	warn if adding a DT_TEXTREL to a shared object and
+	--warn-shared-textrel was specified.
+
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* bfdlink.h (bfd_link_info): Add boolean
+	warn_shared_textrel.
+
+2004-09-13  Jeff Baker  <jbaker@qnx.com>
+	* lexsup.c: Handle --warn-shared-textrel option.
+
+Index: bfd/elflink.c
+===================================================================
+RCS file: /cvs/src/src/bfd/elflink.c,v
+retrieving revision 1.101
+diff -w -u -1 -0 -p -r1.101 elflink.c
+--- bfd/elflink.c	7 Sep 2004 13:40:37 -0000	1.101
++++ bfd/elflink.c	13 Sep 2004 18:24:51 -0000
+@@ -2644,20 +2644,25 @@ _bfd_elf_add_dynamic_entry (struct bfd_l
+   const struct elf_backend_data *bed;
+   asection *s;
+   bfd_size_type newsize;
+   bfd_byte *newcontents;
+   Elf_Internal_Dyn dyn;
+ 
+   hash_table = elf_hash_table (info);
+   if (! is_elf_hash_table (hash_table))
+     return FALSE;
+ 
++  if (info->warn_shared_textrel && info->shared && tag == DT_TEXTREL) {
++    (*_bfd_error_handler)
++      (_("warning: creating a DT_TEXTREL in a shared object."));
++  }
++  
+   bed = get_elf_backend_data (hash_table->dynobj);
+   s = bfd_get_section_by_name (hash_table->dynobj, ".dynamic");
+   BFD_ASSERT (s != NULL);
+ 
+   newsize = s->size + bed->s->sizeof_dyn;
+   newcontents = bfd_realloc (s->contents, newsize);
+   if (newcontents == NULL)
+     return FALSE;
+ 
+   dyn.d_tag = tag;
+Index: include/bfdlink.h
+===================================================================
+RCS file: /cvs/src/src/include/bfdlink.h,v
+retrieving revision 1.45
+diff -w -u -1 -0 -p -r1.45 bfdlink.h
+--- include/bfdlink.h	13 Aug 2004 03:16:01 -0000	1.45
++++ include/bfdlink.h	13 Sep 2004 18:25:04 -0000
+@@ -390,20 +390,23 @@ struct bfd_link_info
+   unsigned int spare_dynamic_tags;
+ 
+   /* May be used to set DT_FLAGS for ELF. */
+   bfd_vma flags;
+ 
+   /* May be used to set DT_FLAGS_1 for ELF. */
+   bfd_vma flags_1;
+ 
+   /* Start and end of RELRO region.  */
+   bfd_vma relro_start, relro_end;
++
++  /* Warn if adding a DT_TEXTREL to a shared object.  */
++  bfd_boolean warn_shared_textrel;
+ };
+ 
+ /* This structures holds a set of callback functions.  These are
+    called by the BFD linker routines.  The first argument to each
+    callback function is the bfd_link_info structure being used.  Each
+    function returns a boolean value.  If the function returns FALSE,
+    then the BFD function which called it will return with a failure
+    indication.  */
+ 
+ struct bfd_link_callbacks
+Index: ld/lexsup.c
+===================================================================
+RCS file: /cvs/src/src/ld/lexsup.c,v
+retrieving revision 1.76
+diff -w -u -1 -0 -p -r1.76 lexsup.c
+--- ld/lexsup.c	19 Jul 2004 16:40:52 -0000	1.76
++++ ld/lexsup.c	13 Sep 2004 18:25:13 -0000
+@@ -139,21 +139,22 @@ enum option_values
+   OPTION_NOSTDLIB,
+   OPTION_NO_OMAGIC,
+   OPTION_STRIP_DISCARDED,
+   OPTION_NO_STRIP_DISCARDED,
+   OPTION_ACCEPT_UNKNOWN_INPUT_ARCH,
+   OPTION_NO_ACCEPT_UNKNOWN_INPUT_ARCH,
+   OPTION_PIE,
+   OPTION_UNRESOLVED_SYMBOLS,
+   OPTION_WARN_UNRESOLVED_SYMBOLS,
+   OPTION_ERROR_UNRESOLVED_SYMBOLS,
+-  OPTION_REDUCE_MEMORY_OVERHEADS
++  OPTION_REDUCE_MEMORY_OVERHEADS,
++  OPTION_WARN_SHARED_TEXTREL
+ };
+ 
+ /* The long options.  This structure is used for both the option
+    parsing and the help text.  */
+ 
+ struct ld_option
+ {
+   /* The long option information.  */
+   struct option opt;
+   /* The short option with the same meaning ('\0' if none).  */
+@@ -489,20 +490,23 @@ static const struct ld_option ld_options
+ 		   "\t\t\t\tfollowing dynamic libs"), TWO_DASHES },
+   { {"no-add-needed", no_argument, NULL, OPTION_NO_ADD_NEEDED},
+     '\0', NULL, N_("Do not set DT_NEEDED tags for DT_NEEDED entries\n"
+ 		   "\t\t\t\tin following dynamic libs"), TWO_DASHES },
+   { {"as-needed", no_argument, NULL, OPTION_AS_NEEDED},
+     '\0', NULL, N_("Only set DT_NEEDED for following dynamic libs if used"),
+     TWO_DASHES },
+   { {"no-as-needed", no_argument, NULL, OPTION_NO_AS_NEEDED},
+     '\0', NULL, N_("Always set DT_NEEDED for following dynamic libs"),
+     TWO_DASHES },
++  { {"warn-shared-textrel", no_argument, NULL, OPTION_WARN_SHARED_TEXTREL},
++      '\0', NULL, N_("Warn if shared object has DT_TEXTREL"),
++      TWO_DASHES },
+   { {"wrap", required_argument, NULL, OPTION_WRAP},
+     '\0', N_("SYMBOL"), N_("Use wrapper functions for SYMBOL"), TWO_DASHES },
+ };
+ 
+ #define OPTION_COUNT ARRAY_SIZE (ld_options)
+ 
+ void
+ parse_args (unsigned argc, char **argv)
+ {
+   unsigned i;
+@@ -1209,20 +1213,23 @@ parse_args (unsigned argc, char **argv)
+ 	  break;
+ 	case OPTION_NO_ADD_NEEDED:
+ 	  add_needed = FALSE;
+ 	  break;
+ 	case OPTION_AS_NEEDED:
+ 	  as_needed = TRUE;
+ 	  break;
+ 	case OPTION_NO_AS_NEEDED:
+ 	  as_needed = FALSE;
+ 	  break;
++	case OPTION_WARN_SHARED_TEXTREL:
++	  link_info.warn_shared_textrel = TRUE;
++	  break;
+ 	case OPTION_WRAP:
+ 	  add_wrap (optarg);
+ 	  break;
+ 	case OPTION_DISCARD_NONE:
+ 	  link_info.discard = discard_none;
+ 	  break;
+ 	case 'X':
+ 	  link_info.discard = discard_l;
+ 	  break;
+ 	case 'x':
