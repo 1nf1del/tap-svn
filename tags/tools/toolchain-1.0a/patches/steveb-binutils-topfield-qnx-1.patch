@@ -1,0 +1,64 @@
+# Wed Sep 21 09:46:20 EST 2005
+# Steve Bennett <steveb@workware.net.au>
+#
+# This patch should be applied on top of the standard qnx
+# patches to binutils-2.10.1
+# It fixes gas to create references relative to gp rather than s7
+# for certain situations when compiling with -mqnxpic such that
+# it produces identical code to the Topfield-supplied gcc toolchain
+Index: binutils/gas/config/tc-mips.c
+===================================================================
+RCS file: /cvs/tools/binutils/gas/config/tc-mips.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 tc-mips.c
+--- binutils/gas/config/tc-mips.c	22 May 2001 22:06:40 -0000	1.1.1.1
++++ binutils/gas/config/tc-mips.c	20 Sep 2005 22:39:22 -0000
+@@ -4795,7 +4795,9 @@
+ 	  macro_build ((char *) NULL, &icnt, (expressionS *) NULL,
+ 		       "jalr", "s", PIC_CALL_REG);
+ 	  if (mips_cprestore_offset < 0)
+-	    if (mips_pic != QNX_PIC) as_warn ("No .cprestore pseudo-op used in PIC code");
++	    {
++	      if (mips_pic != QNX_PIC) as_warn ("No .cprestore pseudo-op used in PIC code");
++		}
+ 	  else
+ 	    {
+ 	      if (mips_opts.noreorder)
+@@ -5087,6 +5089,8 @@
+ 	}
+       else if ((mips_pic == SVR4_PIC || mips_pic == QNX_PIC) && ! mips_big_got)
+ 	{
++		int gpreg = GOT_REG;
++	
+ 	  /* If this is a reference to an external symbol, we want
+ 	       lw	$tempreg,<sym>($gp)	(BFD_RELOC_MIPS_GOT16)
+ 	       nop
+@@ -5109,11 +5113,27 @@
+ 	      || expr1.X_add_number >= 0x8000)
+ 	    as_bad (_("PIC code offset overflow (max 16 signed bits)"));
+ 	  frag_grow (20);
++	  if (mips_pic == QNX_PIC) {
++		/* External function relocations should be against s7 but other should be against gp */
++		if (!S_IS_DEFINED(offset_expr.X_add_symbol)) {
++			gpreg = GP;
++		}
++		else if (S_IS_EXTERN(offset_expr.X_add_symbol)) {
++			gpreg = GP;
++		}
++		else if (S_IS_DEFINED(offset_expr.X_add_symbol) && S_IS_LOCAL(offset_expr.X_add_symbol)) {
++			gpreg = GP;
++		}
++		else if (!S_IS_FUNCTION(offset_expr.X_add_symbol)) {
++			gpreg = GP;
++		}
++	  }
+ 	  macro_build ((char *) NULL, &icnt, &offset_expr,
+ 		       ((bfd_arch_bits_per_address (stdoutput) == 32
+ 			 || ! ISA_HAS_64BIT_REGS (mips_opts.isa))
+ 		        ? "lw" : "ld"),
+-		       "t,o(b)", tempreg, (int) BFD_RELOC_MIPS_GOT16, GOT_REG);
++		       "t,o(b)", tempreg, (int) BFD_RELOC_MIPS_GOT16,
++			  gpreg);
+ 	  if (NOP_NEEDED) 
+ 		  macro_build ((char *) NULL, &icnt, (expressionS *) NULL, "nop", "");
+ 	  p = frag_var (rs_machine_dependent, 4, 0, 
