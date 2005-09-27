@@ -152,7 +152,7 @@ $(SDKDIR)/include/tap.h: pkg/TAP\ API_ver1.22_Samples_Utilities_2005June03.zip
 #################################################
 # Build the test taps
 #
-taptest/.built: taptest/.unpacked $(SDKDIR)/include/tap.h
+taptest/.built: $(SDKDIR)/include/tap.h
 	@echo "Building taptest"
 	$(MAKE) -C taptest
 	touch $@
