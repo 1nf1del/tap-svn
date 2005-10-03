@@ -27,7 +27,7 @@ CFLAGS+=-I ../../libs/libutils
 LDFLAGS:=-L../../libs/libutils -lutils $(LDFLAGS)
 
 # The first target is the default target.
-all: macro.tap ../../libs/libutils/libutils.a
+all: ../../libs/libutils/libutils.a macro.tap
 
 ../../libs/libutils/libutils.a: ../../libs/libutils/Makefile
 	$(MAKE) -C ../../libs/libutils
