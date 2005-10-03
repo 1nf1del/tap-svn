@@ -20,7 +20,7 @@
 
 #include "tap.h"
 #include "macro.h"
-#include "keyhandler.h"
+#include "keyHandler.h"
 //#include "Utils.h"
 #include "keymap.h"
 
