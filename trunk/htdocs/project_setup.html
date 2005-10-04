@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+  <meta content="text/html; charset=us-ascii" http-equiv=
+  "content-type">
+  <meta content="Peter Urbanec" name="author">
+  <meta content="TAP developer project - Project setup" name=
+  "description">
+  <meta content="$Id$" name="id">
+
+  <title>TAP Project - Project setup</title>
+  <link href="tap.css" type="text/css" rel="stylesheet" media=
+  "all">
+</head>
+
+<body alink="#3333FF" link="#3333FF" vlink="#330099">
+  <h1>TAP Project - Project setup</h1>Once your Cygwin or other
+  UNIX like environment is set up for TAP Project development, it
+  is time to setup your TAP Project workspace. This document is a
+  step-by-step guide for this initial project setup.<br>
+
+  <ol>
+    <li>Optional, but highly recommended: If you have not already
+    done so, subscribe to the project mailing lists:<br>
+
+      <div style="margin-left: 40px;">
+        <a href=
+        "https://lists.berlios.de/mailman/listinfo/tap-announce">TAP-announce</a>
+        for project related announcements. This is a moderated, low
+        traffic list.<br>
+        <a href=
+        "https://lists.berlios.de/mailman/listinfo/tap-devel">TAP-devel</a>
+        for developer talk. Subscribers can post to this list to
+        collaborate.<br>
+      </div><br>
+    </li>
+
+    <li>Get a shell prompt. Cygwin users can do so by
+    double-clicking on the "TAP shell" icon they created as part of
+    their Cygwin setup. You should see something like this:<br>
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <span style="text-decoration: blink;">_</span>
+</pre>This is your shell prompt. It indicates your user name, the
+computer name and the current directory (<span class=
+"code">~</span> means your home directory), the <span class="code">
+      $</span> sign means that the shell is ready to accept input
+      and <span class="code" style=
+      "text-decoration: blink;">_</span> is the cursor.<br>
+      <br>
+    </li>
+
+    <li>Once you have your shell prompt, create a working directory
+    for your projects:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <span style="font-weight: bold;">mkdir -p projects/tap</span>
+</pre><br>
+    </li>
+
+    <li>Enter the projects directory:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <span style="font-weight: bold;">cd projects/tap</span>
+</pre><br>
+    </li>
+
+    <li>Get a copy of the most up to date TAP project source code:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~/projects/tap</span>
+$ <span style=
+"font-weight: bold;">svn checkout http://svn.berlios.de/svnroot/repos/tap/trunk</span>
+...
+</pre>This may take a little while to download, please be
+patient.<br>
+      <br>
+    </li>
+
+    <li>Enter the tap directory:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap</span>
+$ <span style="font-weight: bold;">cd trunk/taps</span>
+</pre><br>
+    </li>
+
+    <li>You can now view the list of the files in the TAP part of
+    the repository. Each TAP has it's own directory and there is a
+    Makefile that will build all TAPs that use the provided build
+    system.
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps</span>
+$ <span style="font-weight: bold;">ls</span>
+DumpAPI ViewMaster3 gcode skeleton usbmon
+Makefile freespacebar macro timer_extend
+</pre><br>
+    </li>
+
+    <li>To start your own TAP project:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps</span>
+$ <span style="font-weight: bold;">mkdir my_own_tap</span>
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps</span>
+$ <span style="font-weight: bold;">cp skeleton/* my_own_tap</span>
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps</span>
+$ <span style="font-weight: bold;">cd my_own_tap</span>
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps/my_own_tap</span>
+$ <span style="font-weight: bold;">mv my.c my_own_tap.c</span>
+</pre>Then edit Makefile and update the name of the TAP. The
+comments in the Makefile explain a few other things you may wish to
+do.<br>
+      <br>
+    </li>
+
+    <li>Compile your TAP:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps/my_own_tap</span>
+$ <span style="font-weight: bold;">make</span>
+</pre><br>
+    </li>
+
+    <li>(optional) Remove (clean out) all compiled files, including
+    the TAP:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps/my_own_tap</span>
+$ <span style="font-weight: bold;">make clean</span>
+</pre>You will only want to do this rarely, for example when making
+a source code release and you want to remove the generated
+files.<br>
+      <br>
+    </li>
+
+    <li>You can update to the latest version of the project source
+    code in any directory by issuing the Subversion update command:
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk/taps/my_own_tap</span>
+$ <span style="font-weight: bold;">cd ../.. </span>
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~/projects/tap/trunk</span>
+$ <span style="font-weight: bold;">svn update</span>
+...
+</pre><br>
+    </li>
+
+    <li>(Optional) You can install a GUI Subversion client if you
+    don't feel comfortable with the command line version. However,
+    it is still recommended that you use the command line version
+    for this initial project setup.<br></li>
+  </ol><br>
+</body>
+</html>

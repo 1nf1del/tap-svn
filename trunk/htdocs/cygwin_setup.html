@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+  <meta content="text/html; charset=us-ascii" http-equiv=
+  "content-type">
+  <meta content="Peter Urbanec" name="author">
+  <meta content="TAP developer project - Cygwin setup" name=
+  "description">
+  <meta content="$Id$" name="id">
+
+  <title>TAP Project - Cygwin setup</title>
+  <link href="tap.css" type="text/css" rel="stylesheet" media=
+  "all">
+</head>
+
+<body alink="#3333FF" link="#3333FF" vlink="#330099">
+  <h1>TAP Project - Cygwin setup</h1>Here are step-by-step
+  instructions for setting up the Cygwin environment for TAP
+  Project development. This is only required if you are using a
+  Windows platform for development. Users of Linux, Mac OS X or
+  other UNIX like operating systems will not need to do this.<br>
+
+  <ol>
+    <li>Optional, but highly recommended: Subscribe to the project
+    mailing lists:<br>
+
+      <div style="margin-left: 40px;">
+        <a href=
+        "https://lists.berlios.de/mailman/listinfo/tap-announce">TAP-announce</a>
+        for project related announcements. This is a moderated, low
+        traffic list.<br>
+        <a href=
+        "https://lists.berlios.de/mailman/listinfo/tap-devel">TAP-devel</a>
+        for developer talk. Subscribers can post to this list to
+        collaborate.
+      </div>
+    </li>
+
+    <li>Cygwin, including documentation is available from
+      <a href="http://www.cygwin.com/">http://www.cygwin.com/</a>.
+      You can either visit the Cygwin page and install using the
+      link found there, or just use the link provided here.<br>
+      <br>
+      Your Cygwin installation can be maintained using the same
+      setup program that is used to install Cygwin. This setup
+      program can be used to update, install and uninstall the
+      various Cygwin components.<br>
+
+      <table style="text-align: left;" border="0" cellpadding="8"
+      cellspacing="4">
+        <tbody>
+          <tr>
+            <td>
+              First we make a local copy of the Cygwin setup
+              program.
+
+              <ol style="list-style-type: lower-alpha;">
+                <li>Right click on the install Cygwin now
+                icon&nbsp;and choose to save the file to your local
+                disk.</li>
+
+                <li>Name the file CygwinSetup.exe</li>
+              </ol>
+            </td>
+
+            <td>
+              <table style="background-color: rgb(238, 238, 238);"
+              border="1" cellpadding="0" cellspacing="0">
+                <tbody>
+                  <tr>
+                    <td style=
+                    "text-align: center; background-color: rgb(238, 238, 238);">
+                    <a href=
+                    "http://www.cygwin.com/setup.exe"><img src=
+                    "http://www.cygwin.com/cygwin-icon.gif" alt=""
+                    border="0" height="28" width="28"><br>
+                    <font size="-2">Install<br>
+                    Cygwin<br>
+                    <b>now</b></font></a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+
+    <li>Double-click CygwinSetup.exe to start the installer.</li>
+
+    <li>Navigate through the preliminary questions by using the
+    NEXT button until you get to the screen where you select which
+    packages are installed, skipped, upgraded or uninstalled.</li>
+
+    <li>Click on the VIEW button to get a full view of all
+    packages.</li>
+
+    <li>Ensure that at least the following packages are selected
+    (having additional packages selected is OK):
+
+      <ul>
+        <li>ash</li>
+
+        <li>bash</li>
+
+        <li>binutils</li>
+
+        <li>bzip2</li>
+
+        <li>coreutils</li>
+
+        <li>ctags</li>
+
+        <li>cvs</li>
+
+        <li>cvsutils</li>
+
+        <li>cygutils</li>
+
+        <li>cygwin</li>
+
+        <li>cygwin-doc</li>
+
+        <li>diffutils</li>
+
+        <li>file</li>
+
+        <li>findutils</li>
+
+        <li>gawk</li>
+
+        <li>grep</li>
+
+        <li>groff</li>
+
+        <li>gzip</li>
+
+        <li>indent</li>
+
+        <li>less</li>
+
+        <li>make</li>
+
+        <li>man</li>
+
+        <li>openssh</li>
+
+        <li>openssl</li>
+
+        <li>patch</li>
+
+        <li>patchutils</li>
+
+        <li>perl</li>
+
+        <li>rxvt</li>
+
+        <li>sed</li>
+
+        <li>subversion</li>
+
+        <li>tar</li>
+
+        <li>texinfo</li>
+
+        <li>unzip</li>
+
+        <li>vim</li>
+
+        <li>wget</li>
+
+        <li>zlib</li>
+      </ul>
+    </li>
+
+    <li>Proceed with the Cygwin installation.</li>
+
+    <li>Create a shortcut to <span class=
+    "code">F:\cygwin\bin\rxvt.exe</span> on your desktop and call
+    it "TAP shell" or something similar. Set the Target of the
+    shortcut to this:<br>
+      <pre class="code">
+F:\cygwin\bin\rxvt.exe -fn "Lucida Console-10" -sl 512 -tn xterm -e /usr/bin/bash --login -i
+</pre>If your system uses a different letter for the system drive,
+such as <span class="code">C:</span>, or you installed Cygwin in a
+different location, you will need to change the path as
+appropriate. You can set the Target of a shortcut via right-click /
+Properties... / Shortcut tab<br>
+    </li>
+
+    <li>Double-click on this new shortcut to get a Cygwin shell
+    prompt in a window that is resizable and supports a decent
+    scrollback buffer. You can also use your left mouse button to
+    highlight text and middle mouse button to paste highlighted
+    text.<br>
+      <br>
+      You should see something like this:<br>
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer </span><span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <span style="text-decoration: blink;">_</span>
+</pre>This is your shell prompt. It indicates your user name, the
+computer name and the current directory (<span class=
+"code">~</span> means your home directory), the <span class="code">
+      $</span> sign means that the shell is ready to accept input
+      and <span class="code" style=
+      "text-decoration: blink;">_</span> is the cursor.<br>
+    </li>
+  </ol>
+</body>
+</html>
