@@ -1,0 +1,46 @@
+<html>
+<head>
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=Windows-1252">
+</head>
+<body>
+<pre>
+<table width=100% bgcolor=#CFCFE5><tr> <td> <font face=arial size=+3>
+Build Log
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+<h3>------- Build started: Project: VirtualRemoteTAP, Configuration: Release|Win32 -------
+</h3>
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Command Lines
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Creating temporary file "C:\DOCUME~1\simon\LOCALS~1\Temp\BAT000001.bat" with contents
+[
+@echo off
+nmake all
+if errorlevel 1 goto VCReportError
+goto VCEnd
+:VCReportError
+echo Project : error PRJ0019: A tool returned an error code from "Performing Makefile project actions"
+exit 1
+:VCEnd
+]
+Creating command line "C:\DOCUME~1\simon\LOCALS~1\Temp\BAT000001.bat"
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Output Window
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>Performing Makefile project actions
+Microsoft (R) Program Maintenance Utility Version 7.10.3077
+Copyright (C) Microsoft Corporation.  All rights reserved.
+ mips-gcc.exe -O2 -c -mtap -mlong-calls -msoft-float -D_TAP -DDEBUG -Ic:\cygwin\usr\local\tap\include -I c:\cygwin\usr\include -I c:\cygwin\usr\local\include -I ..\common VirtualRemote.c
+ mips-ld --cref -o VirtualRemote.elf -T D:\source\topfield\api\TAP.LD VirtualRemote.o -L D:\source\topfield\api -l c -l tap -l gcc -l m -Map VirtualRemote.map
+ mips-objcopy -O binary VirtualRemote.elf VirtualRemote.tap
+ tfcopy VirtualRemote.tap "#:\ProgramFiles\"
+Try to detect Topfield device...
+Topfield device found. Ready to copy file.
+Status: Turbo Mode = [OFF], Altair Mode = [OFF], Buffer Size = [2097152 Byte]
+Copy file: VirtualRemote.tap (11204 Bytes)
+Copy done: 297 msec (297 msec)
+1 files copied.
+</pre></table><table width=100% bgcolor=#DFDFE5><tr><td><font face=arial size=+2>
+Results
+</font></table><table width=* cellspacing=0 cellpadding=0><tr><td width=0 bgcolor=#EDEDF5>&nbsp;</td><td width=0 bgcolor=#FFFFFF>&nbsp;</td><td width=*><pre>
+Build log was saved at "file://d:\Source\Topfield\Source\trunk\taps\VirtualRemote\Tap\Release\BuildLog.htm"
+VirtualRemoteTAP - 0 error(s), 0 warning(s)</pre></table><table   width=100% height=20 bgcolor=#CFCFE5><tr><td><font face=arial size=+2>
+</font></table></body></html>
