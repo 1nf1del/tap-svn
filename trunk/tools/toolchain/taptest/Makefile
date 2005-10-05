@@ -3,8 +3,8 @@ include taps.mak
 CFLAGS += -DOS=\"$(OS)\" -Wall -I.
 LDFLAGS += -Wl,-Map,$*.map
 
-all: menulibc.tap libctest.tap tapcall.tap simple.tap testosd.tap testmenu.tap \
-	stdlibtest.tap stringtest.tap mathtest.tap
+all: menulibc.tap libctest.tap tapcall.tap simple.tap testosd.tap testmenu.tap
+#	stdlibtest.tap stringtest.tap mathtest.tap
 
 simple.elf: simple.o
 	$(LINK) $(LDFLAGS) -o $@ simple.o $(LDLIBS) 
