@@ -5,16 +5,8 @@ Do all init stuff here. The calling tap should call this first to init the libra
 
 */
 
-#include <string.h>		//strcpy etc
-
-#ifndef _WIN32
-#include "tap.h"
+#include <tap.h>
 #define printf TAP_Print
-#else
-extern int sprintf(char *, const char *, ...);
-extern int printf(const char *, ...);
-#endif
-
 #include "Utils.h"
 
 
@@ -92,3 +84,4 @@ char* GetLastErrorString()
 {
 	return &errorString[0];
 }
+

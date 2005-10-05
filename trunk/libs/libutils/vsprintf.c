@@ -13,9 +13,9 @@
  * Added floating point support, D. Jeff Dionne, 1995, 1997
  */
 
-#include <stdio.h>
 #include <stdarg.h>
-//#include <string.h>
+#include <tap.h>
+
 //#include <ctype.h>
 
 /* we use this so that we can do without the ctype library */
@@ -347,6 +347,8 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 	return str-buf;
 }
 
+/* This is already defined by tap.h as a macro to TAP_SPrint */
+#if 0
 int sprintf(char * buf, const char *fmt, ...)
 {
 	va_list args;
@@ -357,4 +359,5 @@ int sprintf(char * buf, const char *fmt, ...)
 	va_end(args);
 	return i;
 }
+#endif
 

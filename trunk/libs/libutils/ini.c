@@ -1,20 +1,7 @@
-#include <stdlib.h>
-#ifdef _WIN32
-//#include <stdio.h>
-extern int sprintf(char *buffer, const char *format, ... );
-extern int printf(const char *format, ... );
-
-#else
-#undef malloc		/* undo from stdlib cause its in tap.h */
-#undef free
-
-#endif
-
+#include <tap.h>
+#include <string.h>
 #include "ini.h"
 #include "file.h"
-
-#include <io.h>
-#include <string.h>
 
 static	char	temp[MAX_STR_LEN];
 
@@ -118,18 +105,7 @@ int WritePrivateProfileString (char* AppName, char* KeyName, char* String, char*
 	//tmpfstr=(char*) malloc(MAX_STR_LEN);
 	*tmpfstr = '\0';
 
-#ifdef _WIN32
-	tmpstr = getenv("temp");
-	
-	if (tmpstr==NULL){
-#endif
 		getDir(tmpfstr, FileName);
-#ifdef _WIN32
-	} else {
-		strcat (tmpfstr, tmpstr);
-		strcat(tmpfstr, "\\");
-	}
-#endif
 
 	strcat(tmpfstr, "~");
 	tmpfstr = tmpfstr + strlen(tmpfstr);  //point to end of string
@@ -150,28 +126,20 @@ int WritePrivateProfileString (char* AppName, char* KeyName, char* String, char*
 	{
 		if (buffer[0] == '['){
 			ExtractSection(buffer, tmpstr);
-			if (strcmpi(tmpstr, AppName)==0)
+			if (strcasecmp(tmpstr, AppName)==0)
 			{
 				secflag=1;
 			}else{
 				if ((secflag==1) && (keyflag==0))
 				{
-#ifdef _TAP
 					fprintf4(tmpfile, "%s=%s\r\n", KeyName, String);
-#else
-					fprintf4(tmpfile, "%s=%s\n", KeyName, String);
-#endif
 					flag=1;
 				}
 				secflag=0;
 				keyflag=0;
 			}
 			if (fileflag==1){
-#ifdef _TAP
 				fputs("\r\n", tmpfile);
-#else
-				fputs("\n", tmpfile);
-#endif
 			} else {
 				fileflag=1;
 			}
@@ -183,14 +151,10 @@ int WritePrivateProfileString (char* AppName, char* KeyName, char* String, char*
 			strtok(tmpstr, "=");
 			if (tmpstr!=NULL)
 			{
-				if ((strcmpi(trim(tmpstr), KeyName)==0) && (secflag==1))
+				if ((strcasecmp(trim(tmpstr), KeyName)==0) && (secflag==1))
 				{
-#ifdef _TAP
 	//TAP_Print("Adding key: '%s', Val: '%s'\r\n", KeyName, String);
 					fprintf4(tmpfile, "%s=%s\r\n", trim(KeyName), String);
-#else
-					fprintf4(tmpfile, "%s=%s\n", trim(KeyName), String);
-#endif
 					flag=1;
 					keyflag = 1;
 				} else {
@@ -208,21 +172,13 @@ int WritePrivateProfileString (char* AppName, char* KeyName, char* String, char*
 	
 	//TAP_Print("Adding section to temp...\r\n");
 	if ((flag == 0) && (secflag!=1)){
-#ifdef _TAP
 	//TAP_Print("Adding app: '%s'\r\n", AppName);
 		fprintf3(tmpfile, "\r\n[%s]\r\n", AppName);
-#else
-		fprintf3(tmpfile, "\n[%s]\n", AppName);
-#endif
 	}
 	if (((secflag==1) && (keyflag==0)) || (flag==0)){
-#ifdef _TAP
 	//TAP_Print("Adding key: '%s'\r\n", KeyName);
 	//TAP_Print("Adding val: '%s'\r\n", String);
 		fprintf4(tmpfile, "%s=%s\r\n", KeyName, String);
-#else
-		fprintf4(tmpfile, "%s=%s\n", KeyName, String);
-#endif
 	}
 	fclose(tmpfile);
 	fclose(input);
@@ -378,7 +334,7 @@ char	msg[MAX_MESSAGE_SIZE];
 			sprintf(msg, "GetPrivateProfileString: Comparing: /%s/", stmp);
 			logMessage( _INFO, msg );
 
-			if (strcmpi(stmp, fullsection)==0)
+			if (strcasecmp(stmp, fullsection)==0)
 			{
 				logMessage( _INFO, "GetPrivateProfileString: stmp matches fullsection" );
 
@@ -388,11 +344,7 @@ char	msg[MAX_MESSAGE_SIZE];
 						break;
 					if ( temp[0] ==  ';')
 						continue;
-#ifdef _WIN32
-					temp[strlen(temp) - 1] = '\0';	//\n
-#else
 					temp[strlen(temp) - 2] = '\0';   //\r\n
-#endif
 					if ( strlen(temp) == 0 )
 						continue;
 					strtok(temp, "=");
@@ -430,15 +382,11 @@ char	msg[MAX_MESSAGE_SIZE];
 		//maybe get rid of newline? stmp[strlen(stmp) - 1] = '\0';
 		//stmp[strlen(stmp) - 1] = '\0
 
-		if ( strcmpi(stmp, fullsection)==0)
+		if ( strcasecmp(stmp, fullsection)==0)
 		{
 			while ( fgets(temp, sizeof(temp), input) != NULL )
 			{
-#ifdef _WIN32
-				temp[strlen(temp) - 1] = '\0';	//\n
-#else
 				temp[strlen(temp) - 2] = '\0';   //\r\n
-#endif
 				if ( strlen(temp) == 0 )
 					continue;
 				if ( temp[0] == '[' )
@@ -450,7 +398,7 @@ char	msg[MAX_MESSAGE_SIZE];
 					break;
 				}
 				*outptr = '\0';
-				if ( !strcmpi(trim(temp), key) )
+				if ( !strcasecmp(trim(temp), key) )
 				{
 					strcpy(buffer, ++outptr);
 					length = (int)strlen(buffer);
@@ -532,3 +480,4 @@ void initIni(int fl)
 {
 	initFile(fl);
 }
+

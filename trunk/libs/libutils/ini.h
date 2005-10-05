@@ -188,3 +188,4 @@ GetLastError.
 
 */
 #endif  // _UTILS_INI
+

@@ -20,19 +20,9 @@
 **
 */
 
-#include <stdlib.h>
-
-#ifdef _WIN32
-#include <stdio.h>
-#else
-#undef malloc		/* undo from stdlib cause its in tap.h */
-#undef free
-//#undef printf
 #include "tap.h"
 #define printf TAP_Print
-#endif
 
-#include <string.h>
 #include "ini.h"
 #include "keymap.h"
 #include "Utils.h"    /* for logMessage  */
@@ -200,7 +190,7 @@ int getKeyVal(char* keyName)
 	int i;
 	for (i=0; i<noOfKeys; i++)
 	{
-		if (strcmpi(keyName, KEYNAMES[i])==0)
+		if (strcasecmp(keyName, KEYNAMES[i])==0)
 			return KEYVALUES[i];
 	}
 	return 0;  //key not found - hopefully user notices and does something about it!
@@ -245,7 +235,7 @@ int getNextLogicalKeyVal(char* keyName, int handle)
 		sprintf(msg, "getNLKeyVal: comparing with name /%s/", le->_keydata._logKeyName);
 		logMessage( _INFO, msg );
 
-		if (strcmpi(keyName, le->_keydata._logKeyName)==0) {
+		if (strcasecmp(keyName, le->_keydata._logKeyName)==0) {
 			sprintf(msg, "getNLKeyVal: matched. next: %d, len: %d, keyval: /%d/", le->_keydata._next, le->_keydata._len, le->_keydata._keyList->_keyVal);
 			logMessage( _INFO, msg );
 
@@ -285,7 +275,7 @@ int getLogicalKeyVal(char* keyName, int handle)
 		sprintf(msg, "getLKeyVal: comparing with name /%s/", le->_keydata._logKeyName);
 		logMessage( _INFO, msg );
 
-		if (strcmpi(keyName, le->_keydata._logKeyName)==0) {
+		if (strcasecmp(keyName, le->_keydata._logKeyName)==0) {
 			sprintf(msg, "getLKeyVal: matched. keyval: /%d/", le->_keydata._keyList->_keyVal);
 			logMessage( _INFO, msg );
 
@@ -322,13 +312,12 @@ void dumpKeyVals()
 
 void initKeyMap(int fl)
 {
-#ifndef _WIN32
 	int i;
 	//init keys structure due to bug in gnu compiler as documented in TAP API doc
 	for( i=0; i < noOfKeys; i++ )
 		KEYNAMES[i] = (char *)((dword)(KEYNAMES[i]) + _tap_startAddr);
 
-#endif
 	/* Make sure any package we use is initialised */
 	initIni(fl);
 }
+

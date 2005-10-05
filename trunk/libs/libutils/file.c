@@ -1,19 +1,11 @@
-#include <stdlib.h>
-
-#ifdef _TAP
-#undef malloc		/* undo from stdlib cause its in tap.h */
-#undef free
-#define printf TAP_Print
-#endif
-
-#include "file.h"
-#include <fcntl.h>
-#include <io.h>
 #include <string.h>
+#include <tap.h>
+#include "file.h"
+
+#define printf TAP_Print
 
 static void dumpBuffer(); /* for debugging */
 
-//#ifndef _WIN32
 UFILE _iob[OPEN_MAX];
 
 /*
@@ -26,11 +18,7 @@ Opens an empty file for writing. If the given file exists, its contents are dest
 */
 UFILE* fopen(char* name, char* mode)
 {
-#ifdef _WIN32
-	int fd;
-#else
 	TYPE_File *fd;
-#endif
 	UFILE *fp;
 
 	//printf("Opening file %s for %c\n", name, *mode);
@@ -46,19 +34,6 @@ UFILE* fopen(char* name, char* mode)
 		return NULL;
 	}
 
-#ifdef _WIN32
-	if (*mode == 'w')
-		fd = creat(name, 0666);
-	else if (*mode == 'a') {
-		if ((fd = open(name, O_WRONLY, 0)) == -1)
-			fd = creat(name, 0666);
-		lseek(fd, 0L, 2L);
-	} else
-		fd = open(name, O_RDONLY, 0);
-	if (fd == -1) {
-		return NULL;
-	}
-#else
 	if (*mode == 'w')
 		TAP_Hdd_Create(name, ATTR_NORMAL);   //TAP_Hdd_Delete(name);
 	else if (*mode == 'a')
@@ -71,17 +46,14 @@ UFILE* fopen(char* name, char* mode)
 	}
 	if (*mode == 'a')
 		TAP_Hdd_Fseek(fd, 0L, 2L);
-#endif
 	fp->fd = fd;
 	fp->cnt = 0;
 	fp->size = 0;
 	fp->base = NULL;
 	fp->flag = (*mode == 'r') ? _READ : _WRITE;
-#ifdef _TAP
 	fp->size = TAP_Hdd_Flen(fd);
 	//TAP_Print("file size: %d\r\n", fp->size);
 	//fp->flag |= _UNBUF;	//
-#endif
 	//dumpBuffer();
 	return fp;
 }
@@ -114,11 +86,7 @@ fclose returns 0 if the stream is successfully closed. return EOF to indicate an
 */
 int fclose(UFILE *f)
 {
-#ifdef _WIN32
-	int fd;
-#else
     TYPE_File *fd;
-#endif
     
     if (f == NULL)
         return -1;
@@ -130,16 +98,11 @@ int fclose(UFILE *f)
         free(f->base);
     f->base = NULL;
     f->flag = 0;
-#ifdef _WIN32
-    f->fd = -1;
-	return close(fd);
-#else
 	//printf("file size: %d\n", (int)f->size);
 	f->fd->size = f->size;
 	TAP_Hdd_Fclose(fd);
     f->fd = NULL;
     return 0;
-#endif
 }
 
 
@@ -195,7 +158,6 @@ int _fillbuf(UFILE *fp)
 	}
 	fp->ptr = fp->base;
 
-#ifdef _TAP
 	fpos = TAP_Hdd_Ftell(fp->fd);
 
 	//TAP_Print("fillbuf: about to read bytes at offset %d\r\n", fpos );
@@ -220,9 +182,6 @@ int _fillbuf(UFILE *fp)
 	else
 		fp->cnt = 0;
 	
-#else
-	fp->cnt = read( fp->fd, fp->ptr, bufsize );
-#endif
 
 	if (--fp->cnt < 0) {
 		if (fp->cnt == -1)
@@ -232,11 +191,7 @@ int _fillbuf(UFILE *fp)
 		fp->cnt = 0;
 		return EOF;
 	}
-#ifdef _TAP
 	return *fp->ptr++;  //change in case EOF is found
-#else
-	return (unsigned char) *fp->ptr++;
-#endif
 }
 
 /* _flushbuf - flush a buffer
@@ -275,21 +230,15 @@ int _flushbuf(int c, UFILE *f)
         /* buffered write */
         if (c != EOF)
             *f->ptr++ = uc;
-#ifdef _TAP
 		// write eof marker
 		else
 			*f->ptr++ = EOF;
-#endif
         bufsize = (int)(f->ptr - f->base);
         num_written = write(f->fd, f->base, bufsize);
         f->ptr = f->base;
         f->cnt = BUFSIZ - 1;
     }
-#ifndef _TAP
-    if (num_written == bufsize)
-#else
 	if (num_written == 1)
-#endif
 	{
 		f->size += bufsize;
         return c;
@@ -340,13 +289,11 @@ int _flushbuf(int c, UFILE *f)
 
 */
 
-#ifndef _WIN32
 int remove(char *name)
 {
 	TAP_Hdd_Delete(name);
 	return 0;
 }
-#endif
 
 void initFile(int fl)
 {
@@ -354,7 +301,6 @@ void initFile(int fl)
 
 	initUtils(fl);	//need the error stuff from Utils
 
-//#ifndef _WIN32
 	//int i;
 	//init file structure - do we need this?
 	//for( i=0; i < OPEN_MAX; i++ )
@@ -363,7 +309,6 @@ void initFile(int fl)
 	//	_iob[i].base = (char *)((dword)(_iob[i].base) + _tap_startAddr);
 	//	_iob[i].fd = (TYPE_File *)((dword)(_iob[i].fd) + _tap_startAddr);
 	//}
-//#endif
 
 	for (fp = _iob; fp < _iob + OPEN_MAX; fp++) {
 		//fp->base = NULL;  seems to screw stdout??
@@ -380,7 +325,6 @@ static void dumpBuffer()
 	UFILE *fp;
 	char line[100];
 
-//#ifdef _WIN32
 	for (fp = _iob; fp < _iob + OPEN_MAX; fp++, i++) {
 		if ((fp->flag & (_READ | _WRITE)) == 0) {
 			printf ("Slot %i not in use\n", i);
@@ -392,10 +336,8 @@ static void dumpBuffer()
 		strcat(line, "\n");
 		printf(line);
 	}
-//#endif
 }
 
-//#else	/* _WIN32  */
 /*
 #include <stdarg.h>
 extern int vsprintf(char *, const char *, va_list);
@@ -413,3 +355,4 @@ int fprintf(UFILE *fp, char *format, ...)
 	return cnt;
 }
 */
+

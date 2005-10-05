@@ -19,31 +19,19 @@
 //			that work and that of a VCRplus C implementation.
 //---------------------------------------------------------------------------------
 
-#include <stdlib.h>
 #include <string.h>
 //#include <stdio.h>
 #include <math.h>
 
 //------------------------------ TAP stuff --------------------------------------
 //
-#ifdef _TAP
 
 //TAP stuff here
-#include "tap.h"
+#include <tap.h>
 //#include "tools.h"
 
-#undef printf
-#define printf(a) ShowMessage(a, 300);
 #define main(a,b) TAP_Main()
 
-#else
-
-//Windows stuff here
-
-extern int sprintf(char *, const char *, ...);
-extern int printf(const char *, ...);
-
-#endif
 
 //------------------------------ local stuff --------------------------------------
 //
@@ -1805,7 +1793,7 @@ void lookup(int i, int *outtime, int *outdur)
 	{
 		char err[50];
 		sprintf(err, "PANIC, Illegal table index %d\r\n", i );
-		printf(err);
+		ShowMessage(err, 300);
 	}
 
 	*outtime = (anStart[i]) ;

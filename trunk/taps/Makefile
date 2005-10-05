@@ -24,6 +24,9 @@
 TAPS+=usbmon
 TAPS+=timer_extend
 TAPS+=freespacebar
+TAPS+=ViewMaster3
+TAPS+=gcode
+TAPS+=macro
 
 # $(call make-dirs, dirs, target, opts)
 define make-dirs

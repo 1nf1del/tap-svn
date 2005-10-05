@@ -3,7 +3,8 @@ include taps.mak
 CFLAGS += -DOS=\"$(OS)\" -Wall -I.
 LDFLAGS += -Wl,-Map,$*.map
 
-all: menulibc.tap libctest.tap tapcall.tap simple.tap testosd.tap testmenu.tap
+all: menulibc.tap libctest.tap tapcall.tap simple.tap testosd.tap testmenu.tap \
+	stdlibtest.tap stringtest.tap mathtest.tap
 
 simple.elf: simple.o
 	$(LINK) $(LDFLAGS) -o $@ simple.o $(LDLIBS) 
@@ -22,3 +23,14 @@ testosd.elf: testosd.o osdlib.o
 
 testmenu.elf: testmenu.o
 	$(LINK) $(LDFLAGS) -o $@ testmenu.o $(LDLIBS) 
+
+stdlibtest.elf: stdlibtest.o
+	$(LINK) $(LDFLAGS) -o $@ stdlibtest.o $(LDLIBS) 
+
+stringtest.elf: stringtest.o
+	$(LINK) $(LDFLAGS) -o $@ stringtest.o $(LDLIBS) 
+
+mathtest.elf: mathtest.o
+	$(LINK) $(LDFLAGS) -o $@ mathtest.o $(LDLIBS) 
+
+
