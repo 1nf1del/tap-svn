@@ -9,7 +9,8 @@
   <meta content="Peter Urbanec" name="author">
   <meta content="TAP developer project - Documentation" name=
   "description">
-  <meta content="$Id$" name="id">
+  <meta content="$Id$"
+  name="id">
 
   <title>TAP Project - Documentation</title>
   <link href="tap.css" type="text/css" rel="stylesheet" media=
@@ -23,9 +24,12 @@
   designed to cover particular topics. Some modules provide step by
   step instructions, others cover things in more generic terms.</p>
 
-  <ol>
-    <li>Optional, but highly recommended: If you have not already
-    done so, subscribe to the project mailing lists:<br>
+  <dl>
+    <dt>Mailing lists</dt>
+
+    <dd>
+      <p>Optional, but highly recommended: If you have not already
+      done so, subscribe to the project mailing lists:</p>
 
       <div style="margin-left: 40px;">
         <a href=
@@ -37,26 +41,64 @@
         for developer talk. Subscribers can post to this list to
         collaborate.<br>
       </div><br>
-    </li>
+    </dd>
 
-    <li>
-      <a href="cygwin_setup.html">Cygwin setup.</a><br>
+    <dt>Text editor</dt>
 
+    <dd>
+      <p>You will need a decent text editor suitable for
+      programming. Your editor needs to support UNIX line endings.
+      Windows Notepad will not do.</p>
+
+      <p>There are several very powerful text editors, such as vim
+      and emacs, available on most UNIX systems and in Cygwin.
+      Windows and Mac users may find these editors a bit hard to
+      use initially, however there are plenty of alternative
+      editors available. Windows users may wish to take a look at
+      <a href="http://www.pnotepad.org/">Programmers Notepad 2</a>,
+      Mac users can check out <a href=
+      "http://smultron.sourceforge.net/">Smultron</a>.</p>
+    </dd>
+
+    <dt>Cygwin</dt>
+
+    <dd>
       <p>Only relevant to those using Windows computers. Explains
       how to install and configure Cygwin - the UNIX compatibility
       environment.</p>
-    </li>
 
-    <li>
-      <a href="project_setup.html">Initial TAP project environment
-      setup.</a><br>
+      <p><a href="cygwin_setup.html">Cygwin setup.</a></p>
+    </dd>
 
+    <dt>Compiler (toolchain) installation</dt>
+
+    <dd>
+      <p>In order to compiler TAPs, you need to install the
+      compiler, linker, header files and other utilitites. This is
+      also known as the toolchain.</p>
+
+      <p>The toolchain can be downloaded from the <a href=
+      "http://developer.berlios.de/project/showfiles.php?group_id=4128">
+      download section</a> of the project. There are binaries
+      available for several platforms. These are intended to be
+      installed in <span class=
+      "code">/usr/local/topfield-gcc</span></p>
+
+      <p><a href="cygwin_compiler_install.html">Step by step
+      instructions for Windows users</a>.</p>
+    </dd>
+
+    <dt>TAP project environmet setup</dt>
+
+    <dd>
       <p>This is relevant to everyone. Explains how to create the
       required directories and retrieve all the current source
       code. Also explains how to create your own project and use
       the Makefile based build infrastructure to have your TAPs
-      compiled automatically.</p>
-    </li>
-  </ol>
+      compiled automatically.</p><a href=
+      "project_setup.html">Initial TAP project environment
+      setup.</a><br>
+    </dd>
+  </dl>
 </body>
 </html>

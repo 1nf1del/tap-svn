@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+  <meta content="text/html; charset=us-ascii" http-equiv=
+  "content-type">
+  <meta content="Peter Urbanec" name="author">
+  <meta content=
+  "TAP developer project - Cygwin TAP compiler install" name=
+  "description">
+  <meta content="$Id$" name="id">
+
+  <title>TAP Project - Cygwin TAP compiler install</title>
+  <link href="tap.css" type="text/css" rel="stylesheet" media=
+  "all">
+</head>
+
+<body alink="#3333FF" link="#3333FF" vlink="#330099">
+  <h1>TAP Project - Cygwin TAP compiler install</h1>Here are
+  step-by-step instructions for installing the TAP compiler in a
+  Windows Cygwin environment.
+
+  <ol>
+    <li>Double-click your TAP shell icon to start the Cygwin shell
+    and get a shell prompt.</li>
+
+    <li>Download the compiler binaries.
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <b>wget http://download.berlios.de/tap/tap_toolchain-1.1_cygwin-x86.tar.gz</b>
+--03:26:33--  http://download.berlios.de/tap/tap_toolchain-1.1_cygwin-x86.tar.gz
+           =&gt; `tap_toolchain-1.1_cygwin-x86.tar.gz'
+Resolving download.berlios.de... 195.37.77.141
+Connecting to download.berlios.de|195.37.77.141|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 17,955,493 (17M) [application/x-gzip]
+
+100%[====================================&gt;] 17,955,493    31.80K/s    ETA 00:00
+
+03:37:34 (26.65 KB/s) - `tap_toolchain-1.1_cygwin-x86.tar.gz' saved [17955493/17955493]
+</pre>
+    </li>
+
+    <li>Uncompress and install the binaries into the correct
+    location.
+      <pre class="code">
+<span style=
+"color: rgb(51, 204, 0);">username@computer</span> <span style=
+"color: rgb(240, 183, 14);">~</span>
+$ <b>tar -zxf tap_toolchain-1.1_cygwin-x86.tar.gz -C /</b>
+</pre>
+    </li>
+  </ol>
+</body>
+</html>
