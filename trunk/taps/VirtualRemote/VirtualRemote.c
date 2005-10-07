@@ -1,8 +1,25 @@
-// TAP to simulate keypresses on the Toppy. Based on DeadBeef's DebugCmds TAP.
-// Currently only properly supports the TF5800 5.12.04 firmware
+/*
+Copyright (C) 2005 Simon Capewell
+
+This file is part of the TAPs for Topfield PVRs project.
+	http://tap.berlios.de/
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #include <tap.h>
-#include <string.h>
 
 TAP_ID( 0x810a0012 );
 TAP_PROGRAM_NAME("Virtual Remote");
@@ -12,13 +29,17 @@ TAP_ETCINFO(__DATE__);
 
 #include "TSRCommander.inc"
 
+extern int _appl_version;
+
 #define RX_BUF_SIZE 4096
 
-static dword originalEventProc;
 static bool echo = TRUE;
 static char rxBuffer[RX_BUF_SIZE];
 static int writeIndex = 0;
 static int readIndex = 0;
+
+dword kbHitCall;
+dword* replacedAddress[2];
 
 typedef void (*CmdParser)(char* cmdLine);
 CmdParser cmdParser = NULL;
@@ -89,7 +110,10 @@ dword* InitCodeWrapper( dword fwFuncAddr )
 // This function cleans up and closes the TAP
 void CleanUp()
 {
-	*((dword*)0x800fffe8) = originalEventProc;
+	if ( replacedAddress[0] )
+		*replacedAddress[0] = kbHitCall;
+	if ( replacedAddress[1] )
+		*replacedAddress[1] = kbHitCall;
 
 	// free the code wrapper buffer
 	free( cmdParser );
@@ -173,19 +197,19 @@ void ProcessInput()
 			{
 				echo = FALSE;
 			}
-			else if ( strcmpi(line, "virtkey newf1") == 0 )
+			else if ( strcmpi(line, "key newf1") == 0 )
 			{
 				TAP_GenerateEvent( EVT_KEY, RKEY_NewF1, 0 );
 			}
-			else if ( stricmp(line, "virtkey <<") == 0 )
+			else if ( stricmp(line, "key <<") == 0 )
 			{
 				TAP_GenerateEvent( EVT_KEY, RKEY_Prev, 0 );
 			}
-			else if ( stricmp(line, "virtkey >>") == 0 )
+			else if ( stricmp(line, "key >>") == 0 )
 			{
 				TAP_GenerateEvent( EVT_KEY, RKEY_Next, 0 );
 			}
-			else if ( stricmp(line, "virtkey sat") == 0 )
+			else if ( stricmp(line, "key sat") == 0 )
 			{
 				TAP_GenerateEvent( EVT_KEY, RKEY_Sat, 0 );
 			}
@@ -193,7 +217,7 @@ void ProcessInput()
 				cmdParser( line );
 
 			// display new prompt
-			if ( echo)
+			if ( echo )
 				TAP_Print("\n=> ");
 
 			// reset line
@@ -306,20 +330,54 @@ dword cmdParserSignature[] = {
 };
 
 
-dword FindCmdParser( dword start, dword end )
+dword systemEventProcSignature[] = 
+{
+	0x27bdff90,
+	0xafbf0058,
+	0xafb3005c,
+	0xafb40060,
+	0xafb50064,
+	0xafb60068,
+	0x0c06ffff,
+	0xafbe006c,
+	0x0c0015dc,
+	0x00000000,
+	0x3c058025,
+	0x24a5ffff,
+	0x3c044005,
+	0x0c06ffff,
+	0x34840100,
+	0x0c06ffff,
+	0x00000000,
+	0x0c06ffff,
+	0x00000000,
+	0x04410004,
+	0x00000000,
+	0x3c048025,
+	0x0c02ffff,
+	0x2484ffff,
+	0x0c06ffff,
+	0x00000000,
+	0xaf828514,
+	0x0c07ffff,
+	0xa3809d01
+};
+
+
+dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end )
 {
 	byte* p;
 	for ( p = (byte*)start; p < (byte*)end; ++p )
 	{
 		dword address = (dword)p;
-		byte* sig = (byte*)cmdParserSignature;
+		byte* sig = (byte*)signature;
 		int i;
-		for ( i = 0; i < sizeof(cmdParserSignature) && p < (byte*)end && (*sig==*p || *sig==0xff); ++i )
+		for ( i = 0; i < signatureSize && p < (byte*)end && (*sig==*p || *sig==0xff); ++i )
 		{
 			++sig;
 			++p;
 		}
-		if ( i >= sizeof(cmdParserSignature) )
+		if ( i >= signatureSize )
 			return address;
 	}
 
@@ -327,14 +385,81 @@ dword FindCmdParser( dword start, dword end )
 }
 
 
+// Find and replace a single instruction within an address range or function
+dword* ReplaceInstruction( dword* start, dword length, dword oldOpCode, dword newOpCode )
+{
+	int i;
+	for ( i = 0; i < length && *start != JR_CMD; ++i )
+	{
+		if ( *start == oldOpCode )
+		{
+			*start = newOpCode;
+			return start;
+		}
+		++start;
+	}
+	return NULL;
+}
+
+
+// Get the dword representing a call to the internal kbhit function
+dword GetKbHitCall()
+{
+	int i;
+	dword* addr;
+
+	// Search for the first call in TAP_KbHit. This should be the internal kbhit function
+	addr = (dword*)TAP_KbHit;
+	for ( i = 0; i < 40 && *addr != JR_CMD; ++i )
+	{
+		if ( (*addr & JAL_MASK) == JAL_CMD )
+			return *addr;
+		++addr;
+	}
+
+	TAP_Print( "Could not locate internal KbHit function %04X\n", _appl_version );
+	return 0;
+}
+
+
+// Steal serial input from the firmware by removing calls to kbhit within TAP_SystemProc and
+// SystemEventProc
+bool StealSerialInput()
+{
+	dword* addr;
+
+	dword kbHitCall = GetKbHitCall();
+	if ( !kbHitCall )
+		return FALSE;
+
+	// Patch TAP_SystemProc
+	replacedAddress[0] = ReplaceInstruction( (dword*)TAP_SystemProc, 40, kbHitCall, 0x0001025 );
+
+	addr = (dword*)FindFirmwareFunction( 
+		systemEventProcSignature, sizeof(systemEventProcSignature), 0x800ff000, 0x80110000 );
+	if ( addr == 0 )
+	{
+		TAP_Print( "Could not locate SystemEventProc function %04X\n", _appl_version );
+		return FALSE;
+	}
+
+	replacedAddress[1] = ReplaceInstruction( addr, 500, kbHitCall, 0x0001025 );
+
+	return TRUE;
+}
+
+
 //-----------------------------------------------------------------------------
 int TAP_Main(void)
 {
-	extern int _appl_version;
+	dword cmdParserAddr;
 
-	dword cmdParserAddr = FindCmdParser( 0x80108000, 0x80110000 );
+	if ( !StealSerialInput() )
+		return 0;
+
+	cmdParserAddr = FindFirmwareFunction( cmdParserSignature, sizeof(cmdParserSignature), 0x80108000, 0x80110000 );
 	if ( cmdParserAddr == 0 )
-		cmdParserAddr = FindCmdParser( 0x80230000, 0x80248000 );
+		cmdParserAddr = FindFirmwareFunction( cmdParserSignature, sizeof(cmdParserSignature), 0x80230000, 0x80248000 );
 	if ( cmdParserAddr == 0 )
 	{
 		TAP_Print( "Could not locate command interpretter %04X\n", _appl_version );
@@ -348,20 +473,11 @@ int TAP_Main(void)
 		return 0;
 	}
 
-	if ( _appl_version == 0x1204 )
-	{
-		// disable firmware checking for serial activity in the main event loop
-		// If any TAPs are calling TAP_SystemProc then this TAP will not run effectively
-		originalEventProc = *((dword*)0x800fffe8);
-		*((dword*)0x800fffe8) = 0x00001025;
-	}
-
 	// print start message
-	TAP_Print("\nRemote Keyboard TAP started\n\n");
+	TAP_Print("\nVirtual Remote TAP started\n\n");
 	TAP_Print("=> ");
 
 	TSRCommanderInit( 0, FALSE );
 
 	return 1;
 }
-
