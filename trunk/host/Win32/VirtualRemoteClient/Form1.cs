@@ -1,3 +1,28 @@
+#region license
+
+/*
+Copyright (C) 2005 Simon Capewell
+
+This file is part of the TAPs for Topfield PVRs project.
+	http://tap.berlios.de/
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#endregion
+
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -56,7 +81,14 @@ namespace VirtualRemote
 		private VirtualRemote.VideoControl videoDisplay;
 		private System.Windows.Forms.MenuItem menuView;
 		private System.Windows.Forms.MenuItem menuExit;
+		private System.Windows.Forms.MenuItem menuItem5;
+		private System.Windows.Forms.MenuItem menuDebugOutput;
 		private System.Windows.Forms.MenuItem menuItem1;
+		private System.Windows.Forms.MenuItem menuClearDebug;
+		private System.Windows.Forms.MenuItem menuVideo;
+		private System.Windows.Forms.MenuItem menuConnect;
+		private System.Windows.Forms.MenuItem menuDisconnect;
+		private System.Windows.Forms.MenuItem menuFile;
 		private System.Windows.Forms.MenuItem menuTune;
 
 		public Form1()
@@ -68,7 +100,13 @@ namespace VirtualRemote
 			m_comPort.DataBits = 8;
 			m_comPort.Parity = Parity.None;
 			m_comPort.StopBits = StopBits.Two;
-			m_comPort.Open();
+			try
+			{
+				m_comPort.Open();
+			}
+			catch
+			{
+			}
 
 			InitializeComponent();
 		}
@@ -88,41 +126,47 @@ namespace VirtualRemote
 			this.mainMenu1 = new System.Windows.Forms.MainMenu();
 			this.menuView = new System.Windows.Forms.MenuItem();
 			this.menuTune = new System.Windows.Forms.MenuItem();
-			this.menuItem1 = new System.Windows.Forms.MenuItem();
 			this.menuExit = new System.Windows.Forms.MenuItem();
 			this.debugOutput = new System.Windows.Forms.TextBox();
 			this.remotePicture = new DotNetOpenSource.Controls.ImageMap();
 			this.videoDisplay = new VirtualRemote.VideoControl();
+			this.menuFile = new System.Windows.Forms.MenuItem();
+			this.menuConnect = new System.Windows.Forms.MenuItem();
+			this.menuDisconnect = new System.Windows.Forms.MenuItem();
+			this.menuItem5 = new System.Windows.Forms.MenuItem();
+			this.menuDebugOutput = new System.Windows.Forms.MenuItem();
+			this.menuItem1 = new System.Windows.Forms.MenuItem();
+			this.menuClearDebug = new System.Windows.Forms.MenuItem();
+			this.menuVideo = new System.Windows.Forms.MenuItem();
 			this.SuspendLayout();
 			// 
 			// mainMenu1
 			// 
 			this.mainMenu1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+																					  this.menuFile,
 																					  this.menuView});
 			// 
 			// menuView
 			// 
-			this.menuView.Index = 0;
+			this.menuView.Index = 1;
 			this.menuView.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+																					 this.menuVideo,
 																					 this.menuTune,
 																					 this.menuItem1,
-																					 this.menuExit});
+																					 this.menuDebugOutput,
+																					 this.menuClearDebug});
 			this.menuView.Text = "&View";
+			this.menuView.Popup += new System.EventHandler(this.menuView_Popup);
 			// 
 			// menuTune
 			// 
-			this.menuTune.Index = 0;
-			this.menuTune.Text = "Video &Tuner";
+			this.menuTune.Index = 1;
+			this.menuTune.Text = "&Tune Video Card";
 			this.menuTune.Click += new System.EventHandler(this.menuTune_Click);
-			// 
-			// menuItem1
-			// 
-			this.menuItem1.Index = 1;
-			this.menuItem1.Text = "-";
 			// 
 			// menuExit
 			// 
-			this.menuExit.Index = 2;
+			this.menuExit.Index = 3;
 			this.menuExit.Text = "E&xit";
 			// 
 			// debugOutput
@@ -160,6 +204,58 @@ namespace VirtualRemote
 			this.videoDisplay.Size = new System.Drawing.Size(320, 240);
 			this.videoDisplay.TabIndex = 4;
 			// 
+			// menuFile
+			// 
+			this.menuFile.Index = 0;
+			this.menuFile.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+																					 this.menuConnect,
+																					 this.menuDisconnect,
+																					 this.menuItem5,
+																					 this.menuExit});
+			this.menuFile.Text = "&Connect";
+			this.menuFile.Popup += new System.EventHandler(this.menuFile_Popup);
+			// 
+			// menuConnect
+			// 
+			this.menuConnect.Index = 0;
+			this.menuConnect.Text = "&Connect";
+			this.menuConnect.Click += new System.EventHandler(this.menuConnect_Click);
+			// 
+			// menuDisconnect
+			// 
+			this.menuDisconnect.Index = 1;
+			this.menuDisconnect.Text = "&Disconnect";
+			this.menuDisconnect.Click += new System.EventHandler(this.menuDisconnect_Click);
+			// 
+			// menuItem5
+			// 
+			this.menuItem5.Index = 2;
+			this.menuItem5.Text = "-";
+			// 
+			// menuDebugOutput
+			// 
+			this.menuDebugOutput.Checked = true;
+			this.menuDebugOutput.Index = 3;
+			this.menuDebugOutput.Text = "Show &Debug Output";
+			this.menuDebugOutput.Click += new System.EventHandler(this.menuDebugOutput_Click);
+			// 
+			// menuItem1
+			// 
+			this.menuItem1.Index = 2;
+			this.menuItem1.Text = "-";
+			// 
+			// menuClearDebug
+			// 
+			this.menuClearDebug.Index = 4;
+			this.menuClearDebug.Text = "Clear Debug Output";
+			this.menuClearDebug.Click += new System.EventHandler(this.menuClearDebug_Click);
+			// 
+			// menuVideo
+			// 
+			this.menuVideo.Index = 0;
+			this.menuVideo.Text = "Show &Video";
+			this.menuVideo.Click += new System.EventHandler(this.menuVideo_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -180,31 +276,48 @@ namespace VirtualRemote
 		[STAThread]
 		static void Main() 
 		{
-			Application.Run(new Form1());
+			using(SpecialServices.SingleProgramInstance spi = new SpecialServices.SingleProgramInstance("virtualremote"))
+			{
+				if (spi.IsSingleInstance)
+				{
+					Application.Run(new Form1());
+				}
+				else
+				{
+					spi.RaiseOtherProcess();
+				}
+			}
 		}
 
 		#region Event Handlers
 
 		private void menuTune_Click(object sender, System.EventArgs e)
 		{
-			videoDisplay.ShowTunerSettings();
+			if ( menuVideo.Checked )
+				videoDisplay.ShowTunerSettings();
 		}
 
 		private void imageMap1_RegionClick(int index, string key)
 		{
-			// Button clicked, look up the key code to send
-			SendKey( keyNames[index] );
+			if ( CheckPortOpen() )
+			{
+				// Button clicked, look up the key code to send
+				SendKey( keyNames[index] );
+			}
 		}
 
 		private void Form1_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
 		{
-			// Key pressed, look for shortcuts
-			for ( int i = 0; i < shortcutKeys.Length; ++i )
+			if ( CheckPortOpen() )
 			{
-				if ( e.KeyCode == shortcutKeys[i] )
+				// Key pressed, look for shortcuts
+				for ( int i = 0; i < shortcutKeys.Length; ++i )
 				{
-					SendKey( keyNames[i] );
-					break;
+					if ( e.KeyCode == shortcutKeys[i] )
+					{
+						SendKey( keyNames[i] );
+						break;
+					}
 				}
 			}
 		}
@@ -212,14 +325,36 @@ namespace VirtualRemote
 		private void DataReceived(object sender, SerialReceivedEventArgs e)
 		{
 			// Serial port data received, output to text control
-			WriteMessage( m_comPort.ReadExisting(), false );
+			string s = m_comPort.ReadExisting();
+			if ( menuDebugOutput.Checked )
+				WriteMessage( s, false );
 		}
 
 		#endregion
 
+		private bool CheckPortOpen()
+		{
+			if ( !m_comPort.IsOpen )
+			{
+				if ( MessageBox.Show( "You are not connected. Connect now?", "Virtual Remote", MessageBoxButtons.YesNo ) == DialogResult.No )
+					return false;
+				try
+				{
+					m_comPort.Open();
+				}
+				catch
+				{
+					MessageBox.Show("Could not connect to COM1", "Virtual Remote");
+					return false;
+				}
+			}
+			return true;
+		}
+
+
 		private void SendKey( string keyName )
 		{
-			m_comPort.WriteLine( "echo on\r" );
+			m_comPort.WriteLine( "echo off\r" );
 			m_comPort.WriteLine( "key " + keyName + "\r" );
 		}
 
@@ -231,6 +366,56 @@ namespace VirtualRemote
 
 			if (linefeed)
 				debugOutput.Text += Environment.NewLine;
+		}
+
+		private void menuFile_Popup(object sender, System.EventArgs e)
+		{
+			menuConnect.Enabled = !m_comPort.IsOpen;
+			menuDisconnect.Enabled = m_comPort.IsOpen;
+		}
+
+		private void menuConnect_Click(object sender, System.EventArgs e)
+		{
+			try
+			{
+				m_comPort.Open();
+			}
+			catch
+			{
+				MessageBox.Show("Could not connect to COM1", "Virtual Remote");
+			}
+		}
+
+		private void menuDisconnect_Click(object sender, System.EventArgs e)
+		{
+			m_comPort.Close();
+		}
+
+		private void menuView_Popup(object sender, System.EventArgs e)
+		{
+			menuVideo.Checked = videoDisplay.CurrentState == VideoControl.PlayState.Running;
+			menuTune.Enabled = menuVideo.Checked;
+		}
+
+		private void menuVideo_Click(object sender, System.EventArgs e)
+		{
+			menuVideo.Checked = !menuVideo.Checked;
+			if (menuVideo.Checked)
+			{
+				videoDisplay.StartVideo();
+			}
+			else
+				videoDisplay.StopVideo();
+		}
+
+		private void menuDebugOutput_Click(object sender, System.EventArgs e)
+		{
+			menuDebugOutput.Checked = !menuDebugOutput.Checked;
+		}
+
+		private void menuClearDebug_Click(object sender, System.EventArgs e)
+		{
+			debugOutput.Text = "";
 		}
 
 		private void WriteMessage( string message )
