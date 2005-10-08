@@ -22,10 +22,10 @@
 			ConfigurationType="0">
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="nmake all"
-				ReBuildCommandLine="nmake /a all"
-				CleanCommandLine="nmake clean"
-				Output="Simple.tap"/>
+				BuildCommandLine="make all"
+				ReBuildCommandLine="make /a all"
+				CleanCommandLine="make clean"
+				Output="DumpAPI.tap"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -34,10 +34,10 @@
 			ConfigurationType="0">
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="nmake all"
-				ReBuildCommandLine="nmake /a all"
-				CleanCommandLine="nmake clean"
-				Output="Simple.tap"/>
+				BuildCommandLine="make"
+				ReBuildCommandLine="make /a"
+				CleanCommandLine="make clean"
+				Output="DumpAPI.tap"/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -64,32 +64,33 @@
 				RelativePath=".\makefile">
 			</File>
 			<File
-				RelativePath=".\tap.mak">
+				RelativePath="..\..\..\tools\build\tap.mk">
 			</File>
 		</Filter>
 		<Filter
 			Name="API"
-			Filter="">
+			Filter=""
+			SourceControlFiles="FALSE">
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\font.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\font.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\GIF.H">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\gif.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\hdd.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\hdd.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\key.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\key.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\tap.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\tap.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\type.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\type.h">
 			</File>
 			<File
-				RelativePath="C:\cygwin\usr\local\tap\include\win.h">
+				RelativePath="C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include\win.h">
 			</File>
 		</Filter>
 	</Files>
