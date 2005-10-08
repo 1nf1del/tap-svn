@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <string.h>
 #include <tap.h>
+#include "TSRCommander.h"
 
 TAP_ID( 0x810a0012 );
 TAP_PROGRAM_NAME("Virtual Remote");
@@ -28,7 +29,6 @@ TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Control your Toppy from your PC via the serial cable");
 TAP_ETCINFO(__DATE__);
 
-#include "TSRCommander.inc"
 
 extern int _appl_version;
 
@@ -109,7 +109,7 @@ dword* InitCodeWrapper( dword fwFuncAddr )
 
 //----------------------------------------------------------------------------
 // This function cleans up and closes the TAP
-void CleanUp()
+bool TSRCommanderExitTAP()
 {
 	if ( replacedAddress[0] )
 		*replacedAddress[0] = kbHitCall;
@@ -121,23 +121,13 @@ void CleanUp()
 
 	// print exit message
 	TAP_Print(" \nRemote Keyboard TAP closed\n ");
-}
-
-
-//----------------------------------------------------------------------------
-// No configuration to display
-void TSRCommanderConfigDialog()
-{
-}
-
-
-//----------------------------------------------------------------------------
-// Cleanup and exit
-bool TSRCommanderExitTAP()
-{
-	CleanUp();
 
 	return TRUE;
+}
+
+
+void TSRCommanderConfigDialog()
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -186,7 +176,7 @@ void ProcessInput()
 			// check for exit command
 			if ( stricmp(line, "exit") == 0 )
 			{
-				CleanUp();
+				TSRCommanderExitTAP();
 				TAP_Exit();
 				return;
 			}
@@ -280,8 +270,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		}
 
 		ProcessInput();
-
-		TSRCommanderWork();
 	}
 	else if ( event == EVT_UART)
 	{
@@ -451,7 +439,7 @@ bool StealSerialInput()
 
 
 //-----------------------------------------------------------------------------
-int TAP_Main(void)
+int TAP_Main()
 {
 	dword cmdParserAddr;
 
@@ -477,8 +465,6 @@ int TAP_Main(void)
 	// print start message
 	TAP_Print("\nVirtual Remote TAP started\n\n");
 	TAP_Print("=> ");
-
-	TSRCommanderInit( 0, FALSE );
 
 	return 1;
 }
