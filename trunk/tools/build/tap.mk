@@ -46,3 +46,5 @@ endef
 %.elf: %.o
 	$(link-elf)
 
+%.a: %.o
+	$(AR) -cr $@
