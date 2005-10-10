@@ -36,6 +36,10 @@ CXX=$(CROSS_PREFIX)g++ $(MANDATORY_CXX_FLAGS)
 LDFLAGS= -L$(TAP_HOME)/lib -ltap -lc -lm 
 CFLAGS= -O2
 
+ifdef DEBUG
+CFLAGS+=-DDEBUG
+endif
+
 %.tap: %.elf
 	$(OBJCOPY) -O binary $< $@
 
@@ -48,3 +52,4 @@ endef
 
 %.a: %.o
 	$(AR) -cr $@
+
