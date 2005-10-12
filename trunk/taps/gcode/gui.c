@@ -381,3 +381,4 @@ void ShowMessage(char *msg, int delay)
 	TAP_Osd_Delete(rgn); // Delete the region, and therefore clear anything we have printed within it
 
 }
+

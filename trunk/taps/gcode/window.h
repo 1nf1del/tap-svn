@@ -12,3 +12,4 @@ void SetMaxWindowLine(int w, int l);
 int GetCurrentWindowLine(int w);
 
 #endif
+

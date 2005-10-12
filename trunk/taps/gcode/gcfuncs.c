@@ -1998,3 +1998,4 @@ int decode(int gcode, int *day_ret, int *month_ret, int *year_ret, int *channel_
 
 	return 1;  //non zero is ok
 }
+
