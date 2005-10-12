@@ -76,3 +76,9 @@ fileTestSimple.elf:  fileTestSimple.o ../libutils.a
 testINI.elf:  testINI.o ../libutils.a
 list.elf:  list.o ../libutils.a
 
+fileTest.o: fileTest.c ../file.h ../Utils.h
+fileTestSimple.o: fileTestSimple.c 
+list.o: list.c ../keymap.h ../ini.h ../Utils.h tools.h
+testINI.o: testINI.c ../Utils.h ../ini.h
+tools.o: tools.c tools.h
+
