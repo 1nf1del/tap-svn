@@ -446,14 +446,3 @@ int TAP_Main (void)
 	return 1;							// we're starting in TSR-mode
 }
 
-
-
-
-
-
-
-
-
-
-
-
