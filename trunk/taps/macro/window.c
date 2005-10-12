@@ -231,3 +231,4 @@ void PutStringToWindow(int w, dword x, dword y, dword maxX, const char *str, dwo
 	TAP_Osd_PutStringAf1926( win->rgn, x, y, maxX, str, fcolor, bcolor );
 	//TAP_Osd_PutStringAf( win->rgn, x, y, maxX, str, fcolor, bcolor );
 }
+

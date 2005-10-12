@@ -15,3 +15,4 @@ void ExecuteMacro(bool initial);
 void freeFunctionKeys();
 
 #endif
+

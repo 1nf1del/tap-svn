@@ -108,3 +108,4 @@ void FreeMenuLines()
 		free((char *)menuLines[i-1]);
 	}
 }
+

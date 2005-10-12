@@ -442,3 +442,4 @@ void freeFunctionKeys()
 		free((KEYNODE *)_keyMacros[i]);
 
 }
+
