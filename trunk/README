@@ -29,14 +29,17 @@ Topfield TF5xxx PVR and the host is generally a PC with Cygwin.
 
 There are several different subprojects:
 
- * tools - Programs designed to execute on the host system. These
-           will generally be used to assist in the development of
-	   TAPs and can range from debuggers to data conversion
-	   utilities.
+ * tools - Developer programs designed to execute on the host
+           system. These will generally be used to assist in the
+	   development of TAPs and can range from debuggers to
+	   data conversion utilities.
  * libs  - Reusable code libraries that can be shared among many
            TAPs. Examples include configuration file parsing or
 	   OSD graphics routines.
  * taps  - The TAPs themselves.
+ * host  - End user programs designed to execute on a host system.
+           Items such as client applications for TAPs belong here.
+	   There are sub-directories for specific platforms.
 
 
 PROJECT RULES AND CODING STANDARDS
