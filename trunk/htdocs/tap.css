@@ -28,6 +28,20 @@ h1
 	background-color: #eeeeee;
 }
 
+.warning
+{
+	padding: 0.2em 0.5em;
+	background-color: #ff7;
+}
+
+.warning:before
+{
+	color: #e00;
+	font-weight: bold;
+	content: "WARNING: ";
+	font-size: 150%;
+}
+
 td
 {
 	vertical-align: top;
