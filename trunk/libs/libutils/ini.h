@@ -4,7 +4,6 @@
 /*max ini key value length */
 #define MAX_INI 256
 
-char *strtok(char *, const char *);
 int ExtractSection(char*, char*);
 char* trim (char s[]);
 
