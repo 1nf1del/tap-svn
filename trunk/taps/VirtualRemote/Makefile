@@ -1,6 +1,5 @@
-# $Id$
 #
-# Copyright (c) 2004-2005 Peter Urbanec. All Rights Reserved.
+#  Copyright (c) 2005 Simon Capewell. All Rights Reserved.
 #
 #  This file is part of the TAPs for Topfield PVRs project.
 #      http://tap.berlios.de/
@@ -20,11 +19,9 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# The next line pulls in the rule sets for building TAPs.
 include ../../tools/build/tap.mk
 
-# The first target is the default target.
-all: VirtualRemote.tap
+all: VirtualRemote.tap ../../libs/Firmware/libfirmware.a
 
 # Copy files to the Toppy using tfcopy
 copy: all
@@ -34,5 +31,7 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-CFLAGS+=-I../../libs/TSRCommander
+VirtualRemote.elf::	VirtualRemote.o ../../libs/Firmware/libfirmware.a
+VirtualRemote.o:	VirtualRemote.c
 
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/Firmware

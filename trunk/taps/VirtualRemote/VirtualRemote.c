@@ -1,27 +1,29 @@
 /*
-Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2005 Simon Capewell
 
-This file is part of the TAPs for Topfield PVRs project.
-	http://tap.berlios.de/
+	This file is part of the TAPs for Topfield PVRs project.
+		http://tap.berlios.de/
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+	This is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+	The software is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	You should have received a copy of the GNU General Public License
+	along with this software; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include <string.h>
 #include <tap.h>
-#include "TSRCommander.h"
+#include "Firmware.h"
+#include "OpCodes.h"
+
 
 TAP_ID( 0x810a0012 );
 TAP_PROGRAM_NAME("Virtual Remote");
@@ -29,8 +31,7 @@ TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Control your Toppy from your PC via the serial cable");
 TAP_ETCINFO(__DATE__);
 
-
-extern int _appl_version;
+#include "TSRCommander.h"
 
 #define RX_BUF_SIZE 4096
 
@@ -40,87 +41,22 @@ static int writeIndex = 0;
 static int readIndex = 0;
 
 dword kbHitCall;
-dword* replacedAddress[2];
 
 typedef void (*CmdParser)(char* cmdLine);
 CmdParser cmdParser = NULL;
-
-#define JAL_CMD 0x0c000000
-#define JR_CMD 0x03e00008
-#define JAL_MASK 0xff000000
-
-//-----------------------------------------------------------------------------
-// InitCodeWrapper() creates a code wrapper based on TAP_GetTime. The function
-// allocates a buffer and copies the code of TAP_GetTime into it except for
-// the actual call of the getTime() firmware function. The address of the 
-// getTime() is replaced with the provided address.
-// The wrapped function call supports up to 4 parameters and returns a
-// short value.
-// Parameters:
-//      fwFuncAddr - address of the FW function to be wrapped
-// InitCodeWrapper() returns a buffer with code wrapping the call to provided
-// firmware function address.
-// The buffer can be assigned to a function pointer which can be used to execute
-// the wrapped code.
-dword* InitCodeWrapper( dword fwFuncAddr )
-{
-	int i;
-	// TAP_GetTime provides a template for wrapper code. The only thing to be
-	// changed is the address of the wrapped function.
-	dword *pSrc = (dword*)TAP_GetTime;
-	dword *pBuffer;
-	int bufSize = 0;
-
-	// find the return statement
-	while ( pSrc[bufSize] != JR_CMD )
-	{
-		bufSize++;
-	}
-
-	// the buffer should include the return statement and the command following
-	// the return statement
-	bufSize += 2;
-
-	// allocate memory
-	pBuffer = malloc( sizeof(dword) * bufSize );
-
-	if ( pBuffer == NULL )
-	{
-		return NULL;
-	}
-
-	for ( i = 0; i < bufSize; i++, pSrc++ )
-	{
-		if ( (*pSrc & JAL_MASK) == JAL_CMD )
-		{
-			// this is the wrapped call to the actual FW implementation
-			// replace it with the call to the provided address
-			pBuffer[i] = JAL_CMD | ((fwFuncAddr & ~JAL_MASK) >> 2);
-		}
-		else
-		{
-			pBuffer[i] = *pSrc;
-		}
-	}
-
-	return pBuffer;
-}
 
 
 //----------------------------------------------------------------------------
 // This function cleans up and closes the TAP
 bool TSRCommanderExitTAP()
 {
-	if ( replacedAddress[0] )
-		*replacedAddress[0] = kbHitCall;
-	if ( replacedAddress[1] )
-		*replacedAddress[1] = kbHitCall;
+	UndoFirmwareHacks();
 
 	// free the code wrapper buffer
 	free( cmdParser );
 
 	// print exit message
-	TAP_Print(" \nRemote Keyboard TAP closed\n ");
+	TAP_Print(" \nVirtual Remote TAP closed\n ");
 
 	return TRUE;
 }
@@ -187,6 +123,14 @@ void ProcessInput()
 			else if ( stricmp(line, "echo off") == 0 )
 			{
 				echo = FALSE;
+			}
+			else if ( stricmp(line, "timeshift off") == 0)
+			{
+				TAP_SetSystemVar( SYSVAR_Timeshift, 0 );
+			}
+			else if ( stricmp(line, "timeshift on") == 0)
+			{
+				TAP_SetSystemVar( SYSVAR_Timeshift, 1 );
 			}
 			else if ( strcmpi(line, "key newf1") == 0 )
 			{
@@ -327,68 +271,11 @@ dword systemEventProcSignature[] =
 	0xafb40060,
 	0xafb50064,
 	0xafb60068,
-	0x0c06ffff,
+	0x0cffffff,
 	0xafbe006c,
-	0x0c0015dc,
-	0x00000000,
-	0x3c058025,
-	0x24a5ffff,
-	0x3c044005,
-	0x0c06ffff,
-	0x34840100,
-	0x0c06ffff,
-	0x00000000,
-	0x0c06ffff,
-	0x00000000,
-	0x04410004,
-	0x00000000,
-	0x3c048025,
-	0x0c02ffff,
-	0x2484ffff,
-	0x0c06ffff,
-	0x00000000,
-	0xaf828514,
-	0x0c07ffff,
-	0xa3809d01
+	0x0cffffff,
+	0x00000000
 };
-
-
-dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end )
-{
-	byte* p;
-	for ( p = (byte*)start; p < (byte*)end; ++p )
-	{
-		dword address = (dword)p;
-		byte* sig = (byte*)signature;
-		int i;
-		for ( i = 0; i < signatureSize && p < (byte*)end && (*sig==*p || *sig==0xff); ++i )
-		{
-			++sig;
-			++p;
-		}
-		if ( i >= signatureSize )
-			return address;
-	}
-
-	return 0;
-}
-
-
-// Find and replace a single instruction within an address range or function
-dword* ReplaceInstruction( dword* start, dword length, dword oldOpCode, dword newOpCode )
-{
-	int i;
-	for ( i = 0; i < length && *start != JR_CMD; ++i )
-	{
-		if ( *start == oldOpCode )
-		{
-			*start = newOpCode;
-			return start;
-		}
-		++start;
-	}
-	return NULL;
-}
 
 
 // Get the dword representing a call to the internal kbhit function
@@ -422,7 +309,7 @@ bool StealSerialInput()
 		return FALSE;
 
 	// Patch TAP_SystemProc
-	replacedAddress[0] = ReplaceInstruction( (dword*)TAP_SystemProc, 40, kbHitCall, 0x0001025 );
+	FindAndHackFirmware( (dword*)TAP_SystemProc, 40, kbHitCall, 0x0001025 );
 
 	addr = (dword*)FindFirmwareFunction( 
 		systemEventProcSignature, sizeof(systemEventProcSignature), 0x800ff000, 0x80110000 );
@@ -432,7 +319,7 @@ bool StealSerialInput()
 		return FALSE;
 	}
 
-	replacedAddress[1] = ReplaceInstruction( addr, 500, kbHitCall, 0x0001025 );
+	FindAndHackFirmware( addr, 500, kbHitCall, 0x0001025 );
 
 	return TRUE;
 }
@@ -455,7 +342,7 @@ int TAP_Main()
 		return 0;
 	}
 
-	cmdParser = (CmdParser)InitCodeWrapper(cmdParserAddr);
+	cmdParser = (CmdParser)CreateAPIWrapper(cmdParserAddr);
 	if ( cmdParser == NULL )
 	{
 		TAP_Print( "Wrapper initialization failed\n" );
