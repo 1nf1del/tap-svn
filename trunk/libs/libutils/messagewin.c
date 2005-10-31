@@ -3,7 +3,7 @@
 #include "messagewin.h"
 
 
-//---------------------------------------  ShowMessageWin --------------------------------
+//---------------------------------------  ShowMessage --------------------------------
 void ShowMessage( const char* message, dword delay )
 {
 	dword rgn;
@@ -34,6 +34,8 @@ void ShowMessage( const char* message, dword delay )
 	y = (578-height)/2;
 	TAP_Osd_FillBox( rgn, x-5,y-5, width+10,height+10, RGB(19,19,19) );		// draw background-box for border
 
+	strncpy( buffer, message, sizeof(buffer)-1 );
+	buffer[1023] = 0;
 	c = strtok( buffer, "\n" );
 	while ( c )
 	{
