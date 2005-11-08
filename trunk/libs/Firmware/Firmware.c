@@ -28,9 +28,24 @@ word* sysID = (word*)0xa3fffffa;
 // Return the Topfield model number
 Model GetModel()
 {
-	if ( *sysID == 456 )
-		return TF5800;
-
+	switch ( *sysID )
+	{
+	case 0x406:		return TF5000_5500;
+	case 0x416:		return TF5000_5500;
+	case 0x436:		return TF5000t;
+	case 0x446:		return TF5010_5510;
+	case 0x456:		return TF5000_BP_WP;
+	case 0x466:		return TF5800t;
+	case 0x486:		return TF5000t_BP_WP;
+	case 0x501:		return TF5010_SE;
+	case 0x1416:	return TF5000CI_ME;
+	case 0x1426:	return TF5000_MP;
+	case 0x1456:	return TF5000t_MP;
+	case 0x1501:	return TF5010_MP;
+	case 0x10446:	return TF5000CI_EUR;
+	case 0x12406:	return TF5200c;
+	case 0x13406:	return TF5100c;
+	}
 	return TFOther;
 }
 

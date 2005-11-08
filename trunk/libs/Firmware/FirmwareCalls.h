@@ -19,40 +19,12 @@
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef __FIRMWARE_H
-#define __FIRMWARE_H
+
+#ifndef __FIRMWARECALLS_H
+#define __FIRMWARECALLS_H
 
 
-extern dword _appl_version;
-extern word* sysID;
-
-typedef enum
-{
-	TFOther,
-	TF5000_5500,
-	TF5000t,
-	TF5010_5510,
-	TF5000_BP_WP,
-	TF5800t,
-	TF5000t_BP_WP,
-	TF5010_SE,
-	TF5000CI_ME,
-	TF5000_MP,
-	TF5000t_MP,
-	TF5010_MP,
-	TF5000CI_EUR,
-	TF5200c,
-	TF5100c
-} Model;
-
-Model GetModel();
-
-dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end );
-dword* CreateAPIWrapper( dword functionAddress );
-
-dword HackFirmware( dword* address, dword value );
-dword* FindAndHackFirmware( dword* start, dword length, dword oldOpCode, dword newOpCode );
-void UndoFirmwareHacks();
+bool TAP_Hdd_Move( char* filename, char* destination );
 
 
 #endif

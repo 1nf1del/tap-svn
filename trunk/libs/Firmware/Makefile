@@ -25,9 +25,11 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: libfirmware.a
 
-libfirmware.a: Firmware.o TAPExtensions.o
+libfirmware.a: Firmware.o TAPExtensions.o FirmwareCalls.o
 	$(AR) cr $@ $^
 
 # A target for removing generated files.
 clean:
 	-rm -f *.a *.o *.elf
+
+CFLAGS+=-I../libutils
