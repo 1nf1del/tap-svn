@@ -51,56 +51,32 @@ dword moveSignature[] =
 	0x00002825
 };
 
-typedef void (*MoveFunction)( char* filename, char* destination );
-MoveFunction moveFunction = NULL;
+dword moveAddress = 0;
 
 
-bool InitMoveFunction()
+bool TAP_Hdd_Move( char* filename, char* destination )
 {
-	if ( !moveFunction )
+	if ( !moveAddress )
 	{
-		dword address;
 		TAP_Print("Searching for firmware Move function...");
-		address = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x800f8000, 0x80108000 );
-		if ( !address )
-			address = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x80230000, 0x80238000 );
+		moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x800f8000, 0x80108000 );
+		if ( !moveAddress )
+			moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x80230000, 0x80238000 );
 
-		if ( !address )
+		if ( !moveAddress )
 		{
 			TAP_Print("not found\n");
 			//ShowMessage( "Sorry, this firmware does not allow TAPs to move files.", 200 );
 			return FALSE;
 		}
 
-		TAP_Print("found at %08X\n", address);
-		moveFunction = (MoveFunction)CreateAPIWrapper( address );
-		if ( !moveFunction )
-			return FALSE;
+		TAP_Print("found at %08X\n", moveAddress);
 	}
 
-	return TRUE;
-}
-
-
-void FreeMoveFunction()
-{
-	if ( moveFunction )
-	{
-		TAP_MemFree( moveFunction );
-		moveFunction = NULL;
-	}
-}
-
-
-bool TAP_Hdd_Move( char* filename, char* destination )
-{
 	if ( !filename || !destination )
 		return FALSE;
 
-	if ( !moveFunction )
-		return FALSE;
-
-	moveFunction( filename, destination );
+	CallFirmware( moveAddress, (dword)filename, (dword)destination, 0,0 );
 
 	return TRUE;
 }

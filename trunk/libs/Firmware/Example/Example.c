@@ -31,23 +31,27 @@ TAP_ETCINFO(__DATE__);
 #include "FirmwareCalls.h"
 
 
+
 //-----------------------------------------------------------------------------
 void TestMove()
 {
 	TAP_Print("Creating test file\n");
 	TAP_Hdd_ChangeDir( ".." );
 	TAP_Hdd_ChangeDir( ".." );
-	TAP_Hdd_ChangeDir( ".." );
+	TAP_Hdd_ChangeDir( "DataFiles" );
 	TAP_Hdd_Create( "test.txt", ATTR_NORMAL );
 
 	TAP_Print("Move file ");
-	TAP_Print("%d\n", TAP_Hdd_Move( "test.txt", "ProgramFiles" ) );
+	TAP_Print("%d\n", TAP_Hdd_Move( "/DataFiles/test.txt", "/DataFiles/Test" ) );
 	TAP_Print("Move to non existent directory ");
 	TAP_Print("%d\n", TAP_Hdd_Move( "test.txt", "Blah" ) );
 	TAP_Print("Move non existent file ");
-	TAP_Print("%d\n", TAP_Hdd_Move( "test.txt", "ProgramFiles" ) );
+	TAP_Print("%d\n", TAP_Hdd_Move( "test.txt", "Test" ) );
 	TAP_Print("Move non existent file ");
 	TAP_Print("%d\n", TAP_Hdd_Move( "blah.txt", "Blah" ) );
+
+	TAP_Hdd_ChangeDir( "Test" );
+	TAP_Print("exist=%d\n", TAP_Hdd_Exist("test.txt"));
 }
 
 
@@ -62,7 +66,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		if ( param1 == RKEY_Power )
 		{
 			TAP_Print("Exiting Example\n");
-			FreeMoveFunction();
 			TAP_Exit();
 			return 0;
 		}
@@ -79,9 +82,15 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 //-----------------------------------------------------------------------------
 int TAP_Main()
 {
-	InitMoveFunction();
+	//InitMoveFunction();
+
+	//TestMove();
+
+	StartTAPExtensions();
+
+	TAP_Print("%d\n", CallFirmware( 0,0,0,0, 0x80003a58, tapProcess, currentTAPIndex ));
 
 	TestMove();
 
-	return 1; 
+	return 0; 
 }

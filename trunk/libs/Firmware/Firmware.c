@@ -21,6 +21,7 @@
 
 #include <tap.h>
 #include "Firmware.h"
+#include "TAPExtensions.h"
 #include "OpCodes.h"
 
 word* sysID = (word*)0xa3fffffa;
@@ -30,21 +31,23 @@ Model GetModel()
 {
 	switch ( *sysID )
 	{
-	case 0x406:		return TF5000_5500;
-	case 0x416:		return TF5000_5500;
-	case 0x436:		return TF5000t;
-	case 0x446:		return TF5010_5510;
-	case 0x456:		return TF5000_BP_WP;
-	case 0x466:		return TF5800t;
-	case 0x486:		return TF5000t_BP_WP;
-	case 0x501:		return TF5010_SE;
-	case 0x1416:	return TF5000CI_ME;
-	case 0x1426:	return TF5000_MP;
-	case 0x1456:	return TF5000t_MP;
-	case 0x1501:	return TF5010_MP;
-	case 0x10446:	return TF5000CI_EUR;
-	case 0x12406:	return TF5200c;
-	case 0x13406:	return TF5100c;
+	case 406:	return TF5000_5500;
+	case 416:	return TF5000t;
+	case 436:	return TF5010_5510;
+	case 446:	return TF5000_BP_WP;
+	case 456:	return TF5800t;
+	case 466:	return TF5000t_BP_WP;
+	case 486:	return TF5010_SE;
+	case 501:	return TF5000CI_ME;
+	case 1416:	return TF5000_MP;
+	case 1426:	return TF5000t_MP;
+	case 1456:	return TF5010_MP;
+	case 1501:	return TF5000CI_EUR;
+	case 10416:	return PC5101c_5102c;
+	case 10426:	return PC5101t_5102t;
+	case 10446:	return TF5200c;
+	case 12406:	return TF5100c;
+	case 13406:	return TF5100;
 	}
 	return TFOther;
 }
@@ -72,7 +75,66 @@ dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start,
 }
 
 
-//-----------------------------------------------------------------------------
+// Internal function based on TAP_GetTime to call the firmware with the correct value in $gp
+static dword CallFirmwareInternal( dword a0, dword a1, dword a2, dword a3, dword address, TAPProcess* tapTable, dword* tapIndex )
+{
+	__asm__ __volatile__ (
+		"lw		$08,16($29)\n"
+		"lw		$09,20($29)\n"
+		"lw		$10,24($29)\n"
+		"addiu	$29,-48\n"
+		"sw		$30,44($29)\n"
+		"nop\n"
+		"sw		$31,32($29)\n"
+		"sw		$22,40($29)\n"
+		"move	$30,$10\n"
+		"sw		$21,36($29)\n"
+		"lw		$15,0($30)\n"
+		"nop\n"
+		"move	$21,$09\n"
+		"sll	$15,5\n"
+		"addu	$15,$21\n"
+		"lw		$22,0($15)\n"
+		"nop\n"
+		"nop\n"
+		"move	$02,$28\n"
+		"nop\n"
+		"move	$28,$22\n"
+		"nop\n"
+		"jalr	$08\n"
+		"nop\n"
+		"lw		$25,0($30)\n"
+		"addu	$22,$02,0\n"
+		"sll	$25,5\n"
+		"addu	$25,$21\n"
+		"lw		$30,4($25)\n"
+		"nop\n"
+		"nop\n"
+		"move	$02,$28\n"
+		"nop\n"
+		"nop\n"
+		"move	$28,$30\n"
+		"lw		$31,32($29)\n"
+		"move	$02,$22\n"
+		"lw		$21,36($29)\n"
+		"lw		$22,40($29)\n"
+		"lw		$30,44($29)\n"
+		"addiu	$29,48\n"
+	);
+}
+
+
+// Call a firmware function from a TAP
+dword CallFirmware( dword address, dword param1, dword param2, dword param3, dword param4 )
+{
+	if ( !tapProcess || !currentTAPIndex )
+		return 0;
+	if ( address < 0x80000000 || address > 0x80400000 )
+		return 0;
+	return CallFirmwareInternal( param1, param2, param3, param4, address, tapProcess, currentTAPIndex );
+}
+
+
 // Create a code wrapper based on TAP_GetTime. The function allocates a buffer and copies 
 // TAP_GetTime into it except for the actual call of the getTime() firmware function. 
 // The address of getTime() is replaced with the provided address.

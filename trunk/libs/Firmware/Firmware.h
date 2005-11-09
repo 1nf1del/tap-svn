@@ -42,12 +42,16 @@ typedef enum
 	TF5010_MP,
 	TF5000CI_EUR,
 	TF5200c,
-	TF5100c
+	TF5100c,
+	TF5100,
+	PC5101c_5102c,
+	PC5101t_5102t
 } Model;
 
 Model GetModel();
 
 dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end );
+dword CallFirmware( dword address, dword param1, dword param2, dword param3, dword param4 );
 dword* CreateAPIWrapper( dword functionAddress );
 
 dword HackFirmware( dword* address, dword value );
