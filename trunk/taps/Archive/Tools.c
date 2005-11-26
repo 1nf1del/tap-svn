@@ -470,3 +470,4 @@ void DeterminePIN(char *pin)
   TAP_sPrint (pin,"%4.4d", nPin);
 }
 */
+

@@ -1,10 +1,3 @@
-#ifdef WIN32
-#include "c:\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h"
-#undef RGB
-//#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
-#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
-#endif           
-                    
 /************************************************************
 				OZ Archive
 	Archive Recordings display, and management TAP
@@ -27,6 +20,13 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
+#ifdef WIN32
+#include "c:\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h"
+#undef RGB
+//#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
+#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
+#endif           
+                    
 
 #define DEBUG 0  // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen.
     
