@@ -16,17 +16,17 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 **************************************************************/
 
 /* Included in Common.c
-#include "graphics/Calendar.gd"
-#include "graphics/DateHighlight.gd"
-#include "graphics/DateOverStamp.gd"
+#include "graphics/Calendar.GD"
+#include "graphics/DateHighlight.GD"
+#include "graphics/DateOverStamp.GD"
 
 
-#include "graphics/BigKeyGreen.gd"
-#include "graphics/BigKeyBlue.gd"
+#include "graphics/BigKeyGreen.GD"
+#include "graphics/BigKeyBlue.GD"
 */
-#include "graphics/PopUp476x321.gd"
-#include "graphics/PopUp520x321.gd"
-#include "tic.c"
+#include "graphics/popup476x321.GD"
+#include "graphics/popup520x321.GD"
+#include "TIC.C"
 
 #define KB_STEP_X	60
 #define KB_STEP_Y	51

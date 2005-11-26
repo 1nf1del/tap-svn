@@ -33,7 +33,8 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define TAP_NAME "Archive"
 #define VERSION "0.05a"       
 
-#include "tap.h"
+#include <tap.h>
+#include "morekeys.h"
      
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
@@ -65,7 +66,7 @@ char* TAPIniDir;
 #include "Tools.c"
 #include "LoadArchiveInfo.c"
 #include "PlaybackDatFile.c"
-#include "logo.c"
+#include "logo.C"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
 #include "ArchiveDelete.c"
