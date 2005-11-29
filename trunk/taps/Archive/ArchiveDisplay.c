@@ -309,7 +309,8 @@ void DetermineStartingLine(int *line)
 //
 void DrawFreeSpaceBar()
 {
-    int freePercent, hoursRemaining, minutesRemaining;
+    int freePercent;
+    dword hoursRemaining, minutesRemaining;
     dword freeSpace, totalSpace;
     char str[40];
     
@@ -1368,7 +1369,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							UpdateSelectionNumber();
 							break;
 
-		case RKEY_VolUp :   
+		case RKEY_Forward:
+        case RKEY_VolUp :   
                             if ((printLine < NUMBER_OF_LINES) && (chosenLine < maxShown)) // If we're not already pointing to the last line on the page.
 		                    {
                                 printLine = NUMBER_OF_LINES;
@@ -1397,7 +1399,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							UpdateSelectionNumber();
 							break;
 
-		case RKEY_VolDown :	
+		case RKEY_Rewind:
+        case RKEY_VolDown :	
                             if (printLine > 1) // If we're not already pointing to the first line on the page.
 		                    {
                                 printLine = 1;

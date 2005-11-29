@@ -113,6 +113,7 @@ typedef struct
 	dword	unusedByte;
 	char	name[ TS_FILE_NAME_SIZE ];
 	char	sortName[ TS_FILE_NAME_SIZE ];
+	char*   directory;
     byte    skip;
     byte    crypt;
     byte	playLst;
@@ -638,8 +639,8 @@ void LoadArchiveInfo(void)
           appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name);
           appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr);
       
-          // If we've found a folder or TS file (that is not the timeshift temporary file, add it to our list.
-          if ( (((IsFileRec(file.name, file.attr)) || (file.attr == ATTR_FOLDER)) && (strcmp(file.name,"__temprec__.ts")!=0))) 
+          // If we've found a folder or TS file , add it to our list.
+          if ((IsFileRec(file.name, file.attr)) || (file.attr == ATTR_FOLDER)) 
           {
              numberOfFiles += 1;  // Increase count for number of folders/files.
 

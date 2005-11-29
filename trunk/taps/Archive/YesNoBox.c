@@ -148,8 +148,9 @@ dword YesNoKeyHandler(dword key)
 
 
 		case RKEY_Exit : 	
-                            CloseYesNoWindow();					// Close the edit window
-							returnFromYesNo = TRUE;					// will cause a redraw of file list
+                            YesNoResult = FALSE;       // Default exit key to be FALSE.
+                            CloseYesNoWindow();		   // Close the edit window
+							returnFromYesNo = TRUE;	   // will cause a redraw of file list
 							break;
 							
 		case RKEY_Mute :	return key;
