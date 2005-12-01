@@ -298,6 +298,7 @@ static int  sortOrder;
 static int  folderSortOrder = 0;
 static char sortTitle[20];
        char*   CurrentDir;
+static int CurrentDirNumber;       
 static char  infoCommandOption;
 static int recordingRateOption;
 static int GMToffsetOption;

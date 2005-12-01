@@ -77,14 +77,14 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-                       
+                        
                      
 static dword lastTick;
 static byte oldMin;
 static byte oldSec;
                                
                                                                          
-              
+                       
 //------------
 //
 void ActivationRoutine( void )
@@ -314,17 +314,17 @@ dword My_IdleHandler(void)
             GetRecordingInfo();                                                       // Get the latest information from the recordings.
             if (recordingOnScreenEntry1 > 0)                                          // Is it the 1st recording?
             {
-               LoadRecordingInfo( recordingOnScreenEntry1 );                          // Load the latest information into the list.
+               LoadRecordingInfo( 0, recordingOnScreenEntry1 );                          // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry1, recordingOnScreenLine1 ); // Update the playback line.
             } 
             if (recordingOnScreenEntry2 > 0)                                          // Is it the 2nd recording?
             {
-               LoadRecordingInfo( recordingOnScreenEntry2 );                          // Load the latest information into the list.
+               LoadRecordingInfo( 0, recordingOnScreenEntry2 );                          // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry2, recordingOnScreenLine2 ); // Update the playback line.
             } 
         }
 	}
-
+  
 	if ( infoWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( deleteWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( stopWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
@@ -335,10 +335,10 @@ dword My_IdleHandler(void)
         oldSec = sec;
         
         // If I've highlighted an active recording, then update it's recording information every second.    
-        if (myfiles[chosenLine].isRecording) // Update the recording information very second.
+        if (myfiles[0][chosenLine].isRecording) // Update the recording information very second.
         {
            GetRecordingInfo();               // Update the recording information.
-           LoadRecordingInfo( chosenLine );  // Update the myfiles array with the updated recording information.
+           LoadRecordingInfo( 0, chosenLine );  // Update the myfiles array with the updated recording information.
         }   
         UpdateSelectionNumber();             // Update diskspace and recording info every second.
     }      
@@ -390,7 +390,7 @@ bool TSRCommanderExitTAP (void)
          
 int TAP_Main (void)
 {
-    int i;
+    int i,d;
     
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
     
@@ -425,11 +425,11 @@ TAP_Print("After getcurrent\r\n");
 TAP_Print("After playdata\r\n");
     appendToLogfile("TAP_Main: Caching logos.");
 	CacheLogos();    
- 
+  
     appendToLogfile("TAP_Main: Starting initialisation routines.");
     appendToLogfile("TAP_Main: Initialising ArchiveWindow.");
 	initialiseArchiveWindow();
-
+    
     appendToLogfile("TAP_Main: Initialising ArchiveDelete.");
     initialiseArchiveDelete();
 
@@ -441,20 +441,28 @@ TAP_Print("After playdata\r\n");
 
     appendToLogfile("TAP_Main: Initialising ConfigRoutines.");
 	InitialiseConfigRoutines();
-	
-	numberOfFiles = 0;
+	  
+	numberOfFiles   = 0;
+	numberOfFolders = 0;
 	GotoDataFiles();
+	CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();
-	LoadArchiveInfo("/DataFiles");
+	LoadArchiveInfo("/DataFiles", 0, 0);
     GetPlaybackInfo();  // Get info about any active playback.
     LoadPlaybackStatusInfo();  
          
+    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
+    
 TAP_Print("NUMBER OF FILES %d folder attr=%d\r\n",numberOfFiles,ATTR_FOLDER);    
-	for ( i=1; i<= numberOfFiles; i++)
+    for ( d=0; d<= numberOfFolders; d++)
 	{
-    TAP_Print("fn%d %s=%s %d<<\r\n",i, myfiles[i].directory,myfiles[i].name,myfiles[i].attr);
+	
+    for ( i=1; i<= myfolders[d].numberOfFiles; i++)
+	{ 
+    TAP_Print("fn%d.%d %s< >%s %d<<\r\n",d,i, myfiles[d][i].directory,myfiles[d][i].name,myfiles[d][i].attr);
 //    TAP_Delay(40);
     }
+}
       
 	oldMin = 100;
 	oldSec = 100;

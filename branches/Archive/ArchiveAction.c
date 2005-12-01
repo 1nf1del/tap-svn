@@ -69,7 +69,7 @@ void DeleteProgressInfo(bool message)
     match = FALSE;
 
     // Check if the deleted file was set as the last playback file.  If so, remove the last playback information.
-    if ((!message) && (myfiles[chosenLine].startCluster == playedFiles[0].startCluster) && (strcmp(myfiles[chosenLine].name,playedFiles[0].name)==0))
+    if ((!message) && (myfiles[0][chosenLine].startCluster == playedFiles[0].startCluster) && (strcmp(myfiles[CurrentDirNumber][chosenLine].name,playedFiles[0].name)==0))
     {
         appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.");
         memset(&playedFiles[0],0,sizeof(playedFiles[0]));   // Clear out the lastplayback entry.
@@ -82,11 +82,11 @@ void DeleteProgressInfo(bool message)
     for (i=1; i <= numberOfPlayedFiles; i += 1)
     {
         // If the file has the same filename and the same disk startcluster we consider it a match.
-        if ((myfiles[chosenLine].startCluster == playedFiles[i].startCluster) && (strcmp(myfiles[chosenLine].name,playedFiles[i].name)==0))
+        if ((myfiles[CurrentDirNumber][chosenLine].startCluster == playedFiles[i].startCluster) && (strcmp(myfiles[CurrentDirNumber][chosenLine].name,playedFiles[i].name)==0))
         {
-              myfiles[chosenLine].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
-              myfiles[chosenLine].currentBlock = 0;
-              myfiles[chosenLine].totalBlock = 0;
+              myfiles[CurrentDirNumber][chosenLine].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
+              myfiles[CurrentDirNumber][chosenLine].currentBlock = 0;
+              myfiles[CurrentDirNumber][chosenLine].totalBlock = 0;
               appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i);
               DeletePlayedFileEntry(i);
               match = TRUE;
@@ -94,7 +94,7 @@ void DeleteProgressInfo(bool message)
         }              
     }   
 
-    TAP_SPrint(str,myfiles[chosenLine].name);
+    TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine].name);
     if (match)
     {
         SaveDatToFile();   // Write the updated data to disk.
@@ -143,23 +143,29 @@ void ChangeToParentDir()
      
      appendToLogfile("ChangeToParentDir: Started.");
 
-     ExtractLastField ( CurrentDir, subFolder);  // Extract the current qunquailified directory name from the fully qualified directory name.
+     ExtractLastField ( myfolders[CurrentDirNumber].name, subFolder);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
      CurrentDir = GetCurrentDir();               // Retrieve the new current directory name.
+TAP_Print("before cd=%d\r\n",CurrentDirNumber);
+     CurrentDirNumber = myfolders[CurrentDirNumber].parentDirNumber;
+TAP_Print("after cd=%d\r\n",CurrentDirNumber);
+     maxShown         = myfolders[CurrentDirNumber].numberOfFiles;
+     numberOfFiles    = myfolders[CurrentDirNumber].numberOfFiles;
 //     LoadArchiveInfo();                          // Load the file/folder info for the new directory.
 	 SortList(sortOrder);		                 // Sort the list.
 	 
      chosenLine = 1;                             // By default select the first line to highlight.
      // Scan through the FOLDERS in the current directory to see if we have a match to the folder that we came from.
-     for (i=1; i<numberOfFiles; i++)
+     for (i=1; i<=numberOfFiles; i++)
      {
-          if ((myfiles[i].attr == ATTR_FOLDER) && (strncmp(myfiles[i].name,subFolder, TS_FILE_NAME_SIZE)==0))
+TAP_Print("i=%d n=%s< sf=%s< \r\n", i, myfiles[CurrentDirNumber][i].name, subFolder);
+          if ((myfiles[CurrentDirNumber][i].attr == ATTR_FOLDER) && (strncmp(myfiles[CurrentDirNumber][i].name,subFolder, TS_FILE_NAME_SIZE)==0))
           {   // We've found a match, so allocate line number.
               chosenLine = i;
               break;
           }
      }
-     
+TAP_Print("i=%d\r\n",i);     
      DeterminePrintingLine(chosenLine);     // Determine where we will start printing this line.
      
 	 RefreshArchiveList( TRUE );
@@ -313,8 +319,8 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump)
         return result;
      }
   
-     if ((jump == 1) && (myfiles[chosenLine].hasPlayed))  // If we want to resume playback, and the file has been previously played.
-        JumpToLastPosition(myfiles[chosenLine].currentBlock, myfiles[chosenLine].totalBlock);
+     if ((jump == 1) && (myfiles[CurrentDirNumber][chosenLine].hasPlayed))  // If we want to resume playback, and the file has been previously played.
+        JumpToLastPosition(myfiles[CurrentDirNumber][chosenLine].currentBlock, myfiles[CurrentDirNumber][chosenLine].totalBlock);
      
      return 0;
 }     
@@ -324,16 +330,16 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump)
 //
 void RestartPlayback(int line, int jump)
 {
-    if (myfiles[line].isRecording) // If this is an active recording, then change to the channel first and jump back to start.
+    if (myfiles[CurrentDirNumber][line].isRecording) // If this is an active recording, then change to the channel first and jump back to start.
     {
-        TAP_Channel_Start(1, myfiles[line].svcType, myfiles[line].svcNum);
+        TAP_Channel_Start(1, myfiles[CurrentDirNumber][line].svcType, myfiles[CurrentDirNumber][line].svcNum);
         // GotoDataFiles();
         TAP_Hdd_ChangePlaybackPos( 0 );                      
 	    exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }
     else
     {
-        if (StartPlayback(myfiles[line].name, jump)==0) // If playback starts OK.
+        if (StartPlayback(myfiles[CurrentDirNumber][line].name, jump)==0) // If playback starts OK.
 	       exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }
 }
@@ -345,7 +351,7 @@ void RestartPlayback(int line, int jump)
 void ArchiveAction (int line)
 {
 
-    switch (myfiles[line].attr)
+    switch (myfiles[CurrentDirNumber][line].attr)
     {
            case 250:
            case 240:  // Parent directory.
@@ -353,11 +359,13 @@ void ArchiveAction (int line)
           	          break;
           	          
            case ATTR_FOLDER:  // Sub folder
-          	          TAP_Hdd_ChangeDir(myfiles[line].name);
+          	          TAP_Hdd_ChangeDir(myfiles[CurrentDirNumber][line].name);
                       CurrentDir = GetCurrentDir();           // Stores the current directory name.
+                      CurrentDirNumber = myfiles[CurrentDirNumber][line].directoryNumber;
 //                      LoadArchiveInfo();
 	                  SortList(sortOrder);		
-	                  maxShown = numberOfFiles;
+	                  maxShown      = myfolders[CurrentDirNumber].numberOfFiles;
+	                  numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
 	                  chosenLine = 1;
 	                  printLine = 1;
                       RefreshArchiveList(TRUE);

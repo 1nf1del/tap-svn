@@ -26,29 +26,29 @@ void StopFile(void)
     bool result;
     int intResult;
      
-    if (myfiles[chosenLine].isRecording)
+    if (myfiles[CurrentDirNumber][chosenLine].isRecording)
     {
        result=FALSE;
-       if (strncmp(recInfo[0].fileName, myfiles[chosenLine].name,TS_FILE_NAME_SIZE)==0) result=TAP_Hdd_StopRecord(0);  // Stop the recording in slot 1.
-       if (strncmp(recInfo[1].fileName, myfiles[chosenLine].name,TS_FILE_NAME_SIZE)==0) result=TAP_Hdd_StopRecord(1);  // Stop the recording in slot 1.
+       if (strncmp(recInfo[0].fileName, myfiles[CurrentDirNumber][chosenLine].name,TS_FILE_NAME_SIZE)==0) result=TAP_Hdd_StopRecord(0);  // Stop the recording in slot 1.
+       if (strncmp(recInfo[1].fileName, myfiles[CurrentDirNumber][chosenLine].name,TS_FILE_NAME_SIZE)==0) result=TAP_Hdd_StopRecord(1);  // Stop the recording in slot 1.
        if (result==TRUE)
           fileStopped = TRUE;
        else
        {
-          TAP_SPrint(str,myfiles[chosenLine].name);
+          TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine].name);
           ShowMessageWin( rgn, "Stop Recording Failed.", "Failed to stop recording file:", str, 400 );
           fileStopped = FALSE;
        }
     }
 
-    if (myfiles[chosenLine].isPlaying)
+    if (myfiles[CurrentDirNumber][chosenLine].isPlaying)
     {
        intResult = TAP_Hdd_StopTs();  // Stop the current playback.
        if (intResult == 0)
           fileStopped = TRUE;
        else
        {
-          TAP_SPrint(str,myfiles[chosenLine].name);
+          TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine].name);
           ShowMessageWin( rgn, "Stop Playback Failed.", "Failed to stop playing file:", str, 400 );
           fileStopped = FALSE;
        }
@@ -87,14 +87,14 @@ void ActivateStopWindow(char* filename)
     stopWindowShowing = TRUE;
     fileStopped = FALSE;
 
-    if (myfiles[chosenLine].isRecording)
+    if (myfiles[CurrentDirNumber][chosenLine].isRecording)
     {
        TAP_SPrint(title, "Recording Stop Confirmation");
        TAP_SPrint(str1, "Do you want to stop this recording?");
        TAP_SPrint(str2, "File: %s",filename);
     }
 
-    if (myfiles[chosenLine].isPlaying)
+    if (myfiles[CurrentDirNumber][chosenLine].isPlaying)
     {
        TAP_SPrint(title, "Playback Stop Confirmation");
        TAP_SPrint(str1, "Do you want to stop this playback?");

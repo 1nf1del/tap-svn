@@ -335,7 +335,7 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;	
 
 								case 1 :   // DELETE
-                                           if (myfiles[chosenLine].attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[chosenLine].name,myfiles[chosenLine].attr);
+                                           if (myfiles[CurrentDirNumber][chosenLine].attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine].name,myfiles[CurrentDirNumber][chosenLine].attr);
                                            break;
 
 								case 2 :   // RENAME
@@ -343,7 +343,7 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;
 
 								case 3 :   // RESET PROGRESS
-                                           if ((myfiles[chosenLine].attr == ATTR_FOLDER) || (myfiles[chosenLine].attr == PARENT_DIR_ATTR)) break;  // Ignore when looking at folders.
+                                           if ((myfiles[CurrentDirNumber][chosenLine].attr == ATTR_FOLDER) || (myfiles[CurrentDirNumber][chosenLine].attr == PARENT_DIR_ATTR)) break;  // Ignore when looking at folders.
                                            DeleteProgressInfo(TRUE);
                                            fileReset = TRUE;
                                            infoCommandOption = INFO_OK_OPTION;  // Move to the OK option.

@@ -24,14 +24,14 @@ void DeleteFileFolder(void)
 {
      char str[TS_FILE_NAME_SIZE];
      
-     if (myfiles[chosenLine].isPlaying)
+     if (myfiles[CurrentDirNumber][chosenLine].isPlaying)
         TAP_Hdd_StopTs();  // Stop the current playback to allow us to delete the file.
-     TAP_Hdd_Delete(myfiles[chosenLine].name);
+     TAP_Hdd_Delete(myfiles[CurrentDirNumber][chosenLine].name);
      
      // Check if the delete was successful.
-     if (TAP_Hdd_Exist(myfiles[chosenLine].name))  // Delete didn't work
+     if (TAP_Hdd_Exist(myfiles[CurrentDirNumber][chosenLine].name))  // Delete didn't work
      {
-         TAP_SPrint(str,myfiles[chosenLine].name);
+         TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine].name);
          ShowMessageWin( rgn, "File Deletion Failed.", "Failed to delete file:", str, 400 );
          fileDeleted = FALSE;
      }
@@ -70,7 +70,7 @@ void ActivateDeleteWindow(char* filename, dword attr)
 {
     char title[50], str1[200], str2[200], str3[200];
 
-	if (myfiles[chosenLine].isRecording)  // We cannot delete a recording file.
+	if (myfiles[CurrentDirNumber][chosenLine].isRecording)  // We cannot delete a recording file.
 	{
          ShowMessageWin( rgn, "File Delete Not Allowed.", "You cannot delete a file that is", "currently recording.", 400 );
          return;

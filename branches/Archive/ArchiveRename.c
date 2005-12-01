@@ -94,9 +94,9 @@ void ReturnFromRenameKeyboard( char *str, bool success)
                       // Need to update the playedFiles to update new filename.
                       
                       strcpy( currentFile.name, str );           // Update the display if we were successful.
-                      strcpy( myfiles[chosenLine].name, str );   // Update the array of files if we were successful.
-                      if (IsFileRec(myfiles[chosenLine].name, myfiles[chosenLine].attr)) FormatSortName(myfiles[chosenLine].sortName,str);
-                      else strcpy(myfiles[chosenLine].sortName,str);
+                      strcpy( myfiles[CurrentDirNumber][chosenLine].name, str );   // Update the array of files if we were successful.
+                      if (IsFileRec(myfiles[CurrentDirNumber][chosenLine].name, myfiles[CurrentDirNumber][chosenLine].attr)) FormatSortName(myfiles[CurrentDirNumber][chosenLine].sortName,str);
+                      else strcpy(myfiles[CurrentDirNumber][chosenLine].sortName,str);
     	              infoCommandOption = INFO_OK_OPTION;                     // Highlight the "OK" Info Window option
     	              fileRenamed = TRUE;
                    }

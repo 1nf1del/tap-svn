@@ -294,9 +294,9 @@ void DeletePlayData( void )
     // Got through all of our current files and remove any progress information.
     for (i=1; i <= numberOfFiles; i += 1)
     {
-        myfiles[i].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
-        myfiles[i].currentBlock = 0;
-        myfiles[i].totalBlock = 0;
+        myfiles[CurrentDirNumber][i].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
+        myfiles[CurrentDirNumber][i].currentBlock = 0;
+        myfiles[CurrentDirNumber][i].totalBlock = 0;
     }   
 
     ShowMessageWin( rgn, "All Progress Info Cleared.", "Removed playback information", "for all recorded files.", 400 );
