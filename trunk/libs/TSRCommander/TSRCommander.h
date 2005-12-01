@@ -19,8 +19,6 @@ bool TSRCommanderExitTAP();
 // Intentionally starting at 2 for backwards compatibilty with old TAP_Mains
 #define TAP_HASCONFIGMENU 2
 
-extern const char __tap_program_name__[];
-
 typedef struct
 {
 	char	landingzone[256];
@@ -128,7 +126,7 @@ int TAP_Main()
 }
 
 
-// Redefine normal TAP entry points becone TSR_*
+// Redefine normal TAP entry points become TSR_*
 #define TAP_EventHandler TSR_EventHandler
 #define TAP_Main TSR_Main
 

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <tap.h>
-#include "TSRCommander.h"
 
 TAP_ID( 0x81030504 );
 TAP_PROGRAM_NAME("Example");
@@ -28,6 +27,7 @@ TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Sample TSR Commander compatible TAP");
 TAP_ETCINFO(__DATE__);
 
+#include "TSRCommander.h"
 
 //----------------------------------------------------------------------------
 // This function cleans up and closes the TAP
