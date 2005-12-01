@@ -1,8 +1,8 @@
 /************************************************************
 				OZ Archive
 	Archive Recordings display, and management TAP
-              
-		    
+                      
+	    	    
 	This module is the main event handler
  
 Name	: OZ Archive.c
@@ -26,9 +26,9 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 #define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                    
+                     
 
-#define DEBUG 0  // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen.
+#define DEBUG 0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output
     
 #define TAP_NAME "Archive"
 #define VERSION "0.05a"       
@@ -66,7 +66,7 @@ char* TAPIniDir;
 #include "Tools.c"
 #include "LoadArchiveInfo.c"
 #include "PlaybackDatFile.c"
-#include "logo.C"
+#include "logo.c"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
 #include "ArchiveDelete.c"
@@ -77,13 +77,13 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
+                       
                      
-                   
 static dword lastTick;
 static byte oldMin;
 static byte oldSec;
                                
-                                                                   
+                                                                         
               
 //------------
 //
@@ -99,7 +99,7 @@ void ActivationRoutine( void )
     CurrentDir = GetCurrentDir();           // Stores the current directory name.
 
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.");
-    if ((!InDataFilesFolder()) && (!InDataFilesSubFolder()))
+    if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
     {
         appendToLogfile("ActivationRoutine: Not in Datafiles or subdir, so moving to DataFiles.");
         GotoDataFiles();
@@ -107,7 +107,7 @@ void ActivationRoutine( void )
     }    
 
     appendToLogfile("ActivationRoutine: Loading archive info.");
-    LoadArchiveInfo();
+//    LoadArchiveInfo();
 
 	sortOrder = sortOrderOption;        // Default to default sort order.
 	SortList(sortOrder);		
@@ -218,7 +218,7 @@ void CheckFlags( void )
         {
              if (infoWindowShowing) CloseArchiveInfoWindow();  // If we deleted the file from the info window, then close the info window.
              DeleteProgressInfo(FALSE);                        // Delete any associated playback progress info (no message window)
-             LoadArchiveInfo();                                // Reload the archive list 
+//             LoadArchiveInfo();                                // Reload the archive list 
              fileDeleted = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
         }
@@ -229,7 +229,7 @@ void CheckFlags( void )
 	    returnFromStop = FALSE;
 		if ( fileStopped )        // If the file/folder was stopped, reload the file/folder data and refresh the list.
         {
-             LoadArchiveInfo();                                // Reload the archive list 
+//             LoadArchiveInfo();                                // Reload the archive list 
              fileStopped = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
         }
@@ -387,9 +387,11 @@ bool TSRCommanderExitTAP (void)
 	return TRUE;
 }
 
-        
+         
 int TAP_Main (void)
 {
+    int i;
+    
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
     
     appendToLogfile("Archive TAP Started.");
@@ -411,6 +413,7 @@ int TAP_Main (void)
 
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
+TAP_Print("After getcurrent\r\n");
 
     appendToLogfile("TAP_Main: Loading configuration data.");
 	LoadConfiguration();
@@ -419,10 +422,10 @@ int TAP_Main (void)
     
     appendToLogfile("TAP_Main: Loading Play Data.");
 	LoadPlayData();  // Load up the playback status information from the dat file.
-
+TAP_Print("After playdata\r\n");
     appendToLogfile("TAP_Main: Caching logos.");
-	CacheLogos();
-
+	CacheLogos();    
+ 
     appendToLogfile("TAP_Main: Starting initialisation routines.");
     appendToLogfile("TAP_Main: Initialising ArchiveWindow.");
 	initialiseArchiveWindow();
@@ -438,7 +441,21 @@ int TAP_Main (void)
 
     appendToLogfile("TAP_Main: Initialising ConfigRoutines.");
 	InitialiseConfigRoutines();
-
+	
+	numberOfFiles = 0;
+	GotoDataFiles();
+    GetRecordingInfo();
+	LoadArchiveInfo("/DataFiles");
+    GetPlaybackInfo();  // Get info about any active playback.
+    LoadPlaybackStatusInfo();  
+         
+TAP_Print("NUMBER OF FILES %d folder attr=%d\r\n",numberOfFiles,ATTR_FOLDER);    
+	for ( i=1; i<= numberOfFiles; i++)
+	{
+    TAP_Print("fn%d %s=%s %d<<\r\n",i, myfiles[i].directory,myfiles[i].name,myfiles[i].attr);
+//    TAP_Delay(40);
+    }
+      
 	oldMin = 100;
 	oldSec = 100;
 	exitFlag = FALSE;

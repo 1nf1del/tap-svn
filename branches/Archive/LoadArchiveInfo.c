@@ -19,6 +19,8 @@ History	: v0.0 Kidhazy: 18-10-05	Inception Date
 
 #define PARENT_DIR_TEXT "Move up a directory"   // Define the text to be used for the parent directory.
 #define PARENT_DIR_ATTR 250                     // Attribute value to set for the Parent Directory.
+#define CURRENT_DIR_ATTR 240                    // Attribute value for the Current Directory.
+#define NORMAL_PARENT_DIR_ATTR 242              // Standard attribute value for the Parent Directory.
 
 #define BUFFER_SIZE 1500
 
@@ -31,7 +33,7 @@ unsigned short recDuration;
 #define SVC_NUM_OFFSET 10
 unsigned short svc_num;
 
-#define SVC_TYPE_OFFSET 12
+#define SVC_TYPE_OFFSET 13
 unsigned short svc_type;
 
 #define SERVICE_NAME_OFFSET 28 //TF5100 29
@@ -113,7 +115,7 @@ typedef struct
 	dword	unusedByte;
 	char	name[ TS_FILE_NAME_SIZE ];
 	char	sortName[ TS_FILE_NAME_SIZE ];
-	char*   directory;
+	char    directory[ TS_FILE_NAME_SIZE ];
     byte    skip;
     byte    crypt;
     byte	playLst;
@@ -596,40 +598,44 @@ _#
 
 
 
-void LoadArchiveInfo(void)
+void LoadArchiveInfo(char* directory)
 {
     int i, cnt;
     char str1[1024];
+    int numberOfDirFiles, numberOfDirFolders;
+    char subfolders[200][300];
+    char subdir[1024];
+TAP_Print("started for %s<\r\n",directory);    
     appendToLogfile("LoadArchiveInfo: Started.");
    
-    memset(&myfiles[0],0,sizeof (myfiles[0]));
-    memset(&myfiles[1],0,sizeof (myfiles[1]));
+    numberOfDirFiles = 0;
+    numberOfDirFolders = 0;
     
-    // Set attributes for parent directory as the first file when we're in a subdirectory.
-    if (!InDataFilesFolder())
+//    memset(&myfiles[1],0,sizeof (myfiles[1]));
+    
+    // Set attributes for parent directory as the first file when we're in a subdirectory - but not in /DataFiles.
+    if (!InDataFilesFolder( directory ))
     {
-        myfiles[1].attr = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
-        strcpy(myfiles[1].name,PARENT_DIR_TEXT);
-        strcpy(myfiles[1].sortName,PARENT_DIR_TEXT);
-        numberOfFiles = 1;
-        numberOfFolders = 1;
+        numberOfFiles++;  // Increase count for number of folders/files.
+        memset(&myfiles[numberOfFiles],0,sizeof (myfiles[numberOfFiles]));
+        myfiles[numberOfFiles].attr = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
+        strcpy(myfiles[numberOfFiles].name,PARENT_DIR_TEXT);
+        strcpy(myfiles[numberOfFiles].sortName,PARENT_DIR_TEXT);
+        strcpy(myfiles[numberOfFiles].directory,directory);
+        numberOfDirFiles++;
     }    
-    else
-    {
-        numberOfFiles = 0;
-        numberOfFolders = 0;
-    }    
+
 
     //  Clear out variables.    
     memset (&file, 0, sizeof (file));
     
     // Get the names of the recordings that may be running.
-    appendToLogfile("LoadArchiveInfo: Checking recordings.");
-    GetRecordingInfo();
+//    appendToLogfile("LoadArchiveInfo: Checking recordings.");
+//    GetRecordingInfo();
                    
     // Find all the Files and Folders in the current directory.
     cnt = TAP_Hdd_FindFirst(&file); 
-    appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",CurrentDir);
+    appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",directory);
     appendIntToLogfile("LoadArchiveInfo: Count=%d",cnt);
     appendIntToLogfile("LoadArchiveInfo: ATTR_FOLDER=%d",ATTR_FOLDER);
     appendIntToLogfile("LoadArchiveInfo: ATTR_TS=%d",ATTR_TS);
@@ -642,7 +648,8 @@ void LoadArchiveInfo(void)
           // If we've found a folder or TS file , add it to our list.
           if ((IsFileRec(file.name, file.attr)) || (file.attr == ATTR_FOLDER)) 
           {
-             numberOfFiles += 1;  // Increase count for number of folders/files.
+             numberOfFiles++;  // Increase count for number of folders/files.
+             numberOfDirFiles++;
 
              // Blank out existing variable space.
              memset(&myfiles[numberOfFiles],0,sizeof (myfiles[numberOfFiles]));
@@ -658,6 +665,7 @@ void LoadArchiveInfo(void)
              strcpy(myfiles[numberOfFiles].name,file.name);
              if (IsFileRec(file.name, file.attr)) FormatSortName(myfiles[numberOfFiles].sortName,file.name);
              else strcpy(myfiles[numberOfFiles].sortName,file.name);
+             strcpy(myfiles[numberOfFiles].directory, directory);
              myfiles[numberOfFiles].crypt        = file.crypt;
              myfiles[numberOfFiles].size         = file.size;
              myfiles[numberOfFiles].currentPos   = file.currentPos;
@@ -670,7 +678,8 @@ void LoadArchiveInfo(void)
                   
                     // If we're in the DataFiles directory, check if this file is one of the recording files.
                     appendToLogfile("LoadArchiveInfo: Checking if this is an active recording.");
-                    if (InDataFilesFolder() )
+//                    if (InDataFilesFolder() )
+                    if (strcmp(directory,"/DataFiles")==0)
                     {
                           // Check if this file is for a current running recording, if so we need to get the information from different locations.
                           appendStringToLogfile("LoadArchiveInfo: Calling LoadRecordingInfo for file #%s",file.name);
@@ -684,6 +693,12 @@ void LoadArchiveInfo(void)
                           appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
                           LoadHeaderInfo( file.name, numberOfFiles);
                     }   
+                    
+             }
+             if (file.attr == ATTR_FOLDER)   // It's a subfolder, so store it's name for checking later.
+             {
+                 strcpy(subfolders[numberOfDirFolders], file.name);
+                 numberOfDirFolders++;
              }
           }
              
@@ -691,16 +706,32 @@ void LoadArchiveInfo(void)
     }
 
     appendToLogfile("LoadArchiveInfo: Getting playback info.");
-    GetPlaybackInfo();  // Get info about any active playback.
+//    GetPlaybackInfo();  // Get info about any active playback.
    
+	for ( i=0; i< numberOfDirFolders; i++)
+	{
+          subdir[0]='\0';                   // Blank out existing subdir.
+          strcat(subdir, directory);        // Add in our starting directory.
+          strcat(subdir,"/");               // Add a slash.
+          strcat(subdir, subfolders[i]);     // Add the subfolder name.
+          TAP_Hdd_ChangeDir(subfolders[i]);  // Change to the sub directory.
+          LoadArchiveInfo(subdir);          // Recursive call to load archive information from new subdirectory.
+          GotoPath(directory);              // Go back to out starting directory, ready for anymore sub directories.
+    }
+
+    maxShown = numberOfFiles;
+    appendToLogfile("LoadArchiveInfo: Finished.");
+}
+
+
+
+void LoadPlaybackStatusInfo(void)
+{
+    int i;
+     
 	for ( i=1; i<= numberOfFiles; i++)
 	{
-          if (myfiles[i].attr == ATTR_FOLDER)  // If we're looking at a folder, count the number of files and subfolders in that folder.
-          {
-                appendToLogfile("LoadArchiveInfo: Counting subfolders.");
-                CountFolderFilesAndSubfolders(myfiles[i].name, &myfiles[i].numberOfFiles , &myfiles[i].numberOfFolders );
-          }
-          else
+          if (IsFileRec(myfiles[i].name, myfiles[i].attr))  // If we're looking at a recorded show, match up any existing playback status info.
           {
                 appendToLogfile("LoadArchiveInfo: Setting playback status.");
                 // Copy any playback status information from the playedFiles array to the matching myFiles entries.
@@ -710,7 +741,4 @@ void LoadArchiveInfo(void)
                 if (inPlaybackMode) LoadPlaybackInfo(i);
           }      
     }
-
-    maxShown = numberOfFiles;
-    appendToLogfile("LoadArchiveInfo: Finished.");
 }

@@ -146,7 +146,7 @@ void ChangeToParentDir()
      ExtractLastField ( CurrentDir, subFolder);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
      CurrentDir = GetCurrentDir();               // Retrieve the new current directory name.
-     LoadArchiveInfo();                          // Load the file/folder info for the new directory.
+//     LoadArchiveInfo();                          // Load the file/folder info for the new directory.
 	 SortList(sortOrder);		                 // Sort the list.
 	 
      chosenLine = 1;                             // By default select the first line to highlight.
@@ -327,7 +327,7 @@ void RestartPlayback(int line, int jump)
     if (myfiles[line].isRecording) // If this is an active recording, then change to the channel first and jump back to start.
     {
         TAP_Channel_Start(1, myfiles[line].svcType, myfiles[line].svcNum);
-        GotoDataFiles();
+        // GotoDataFiles();
         TAP_Hdd_ChangePlaybackPos( 0 );                      
 	    exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }
@@ -355,7 +355,7 @@ void ArchiveAction (int line)
            case ATTR_FOLDER:  // Sub folder
           	          TAP_Hdd_ChangeDir(myfiles[line].name);
                       CurrentDir = GetCurrentDir();           // Stores the current directory name.
-                      LoadArchiveInfo();
+//                      LoadArchiveInfo();
 	                  SortList(sortOrder);		
 	                  maxShown = numberOfFiles;
 	                  chosenLine = 1;

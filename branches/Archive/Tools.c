@@ -97,18 +97,18 @@ char *_currentDirPtr = NULL;
 
 //------------------------------ InDataFilesFolder --------------------------------------
 //
-bool	InDataFilesFolder()
+bool	InDataFilesFolder(char* currentDir)
 {
-    if (strcmp(CurrentDir,"/DataFiles")==0) return TRUE;
+    if (strncmp(currentDir,"/DataFiles",TS_FILE_NAME_SIZE)==0) return TRUE;
     else return FALSE;
 }
 
 
 //------------------------------ InDataFilesFolderSubDir --------------------------------------
 //
-bool	InDataFilesSubFolder()
+bool	InDataFilesSubFolder(char* currentDir)
 {
-    if (strncmp(CurrentDir,"/DataFiles/",11)==0) return TRUE;
+    if (strncmp(currentDir,"/DataFiles/",11)==0) return TRUE;
     else return FALSE;
 }
 

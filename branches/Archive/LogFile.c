@@ -191,6 +191,51 @@ void appendStringToLogfile(const char* fmt, const char* str)
 }
 
 #endif
+#if DEBUG == 3
+#define closeLogfile()
+#define openLogfile()
+
+//
+// Write a string to the logfile.
+//
+void appendToLogfile(const char* text)
+{
+    TAP_Print("%s\r\n",text);
+    TAP_Delay(0);
+}
+
+//
+// Write an integer to the logfile.
+//
+void appendIntToLogfile(const char* fmt, int i)
+{
+	char buffer[400];
+	sprintf(buffer, fmt, i);
+	appendToLogfile(buffer);		
+}
+
+//
+// Write a long integer to the logfile.
+//
+void appendLongToLogfile(const char* fmt, long l)
+{
+	char buffer[400];
+	sprintf(buffer, fmt, l);
+	appendToLogfile(buffer);		
+}
+
+//
+// Write a string to the logfile.
+//
+void appendStringToLogfile(const char* fmt, const char* str)
+{
+	char buffer[400];
+	sprintf(buffer, fmt, str);
+	appendToLogfile(buffer);		
+}
+
+#endif
+
 #if DEBUG == 0
 #define openLogfile()
 #define closeLogfile()

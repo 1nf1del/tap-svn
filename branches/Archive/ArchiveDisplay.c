@@ -319,8 +319,9 @@ void DrawFreeSpaceBar()
     
     freePercent = (freeSpace*100) / totalSpace;   // Calculate percent disk free.
     
-    hoursRemaining   = ((freeSpace-2000)/recordingRateOption);
-    minutesRemaining = ((freeSpace-2000)/(recordingRateOption/60)) - (hoursRemaining*60);
+    // Calculate remaining time, taking into consideration 1 hour of timeshift buffer (ie 1 x recordingRateOption)
+    hoursRemaining   = ((freeSpace-recordingRateOption)/recordingRateOption);
+    minutesRemaining = (((freeSpace-recordingRateOption)*100)/((recordingRateOption*100)/60)) - (hoursRemaining*60);  // Use '100' multiplier to help with integer maths.
     
     DisplayProgressBar(memRgn, freeSpace, totalSpace, DISK_INFO_X, DISK_INFO_Y, DISK_PROGRESS_BAR_WIDTH, 20, COLOR_Black, 1, 0);
 
@@ -375,6 +376,7 @@ void SortList(int sortOrder)
 		myfiles [i] = tempfile ;
 		swaps++;         
     }	
+
     
     strcpy(sortTitle,"[by name]");   // Default the sort title to by name.
     //	Always sort files in the array by name 
@@ -399,6 +401,12 @@ void SortList(int sortOrder)
 	} 
 	while ( swaps > 1 );
 
+
+	for ( i=1; i<= numberOfFiles; i++)
+	{
+    TAP_Print("name %d %s=%s %d<<\r\n",i, myfiles[i].directory,myfiles[i].name,myfiles[i].attr);
+//    TAP_Delay(40);
+    }
 
     if (sortOrder == SORT_DATE_OPTION)
     {	
@@ -468,6 +476,22 @@ void SortList(int sortOrder)
 		}
 	} 
 	while ( swaps > 1 );
+
+    //	Finally, always sort files in the array by directory 
+	do { 
+		for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
+		{
+			if ( strcmp(myfiles[i].directory,myfiles [i+1].directory)>0 ) SwapEntries();
+		}
+	} 
+	while ( swaps > 1 );
+
+	for ( i=1; i<= numberOfFiles; i++)
+	{
+    TAP_Print("dir %d %s=%s %d<<\r\n",i, myfiles[i].directory,myfiles[i].name,myfiles[i].attr);
+//    TAP_Delay(40);
+    }
+
 
 }
 
@@ -1114,6 +1138,10 @@ void DisplayArchiveLine(int line, int i)
 
 	if ( line == 0 ) return;											// bounds check
 
+#ifdef WIN32
+    TAP_Osd_FillBox( listRgn,INFO_AREA_X, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W, ((NUMBER_OF_LINES)*42), FILL_COLOUR );				// clear the screen
+#endif          
+
 	if ( chosenLine == line )											// highlight the current cursor line
 	   TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_highlightGd, TRUE );
 	else
@@ -1149,7 +1177,7 @@ void DrawArchiveList(void)
     recordingOnScreenLine1 = 0;
     recordingOnScreenEntry2 = 0;
     recordingOnScreenLine2 = 0;
-    
+
     listLine = start;
 	for ( pLine=1; pLine<=NUMBER_OF_LINES ; pLine++)
 	{
@@ -1483,7 +1511,7 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;
 
         case RKEY_Green:    CreateNewFolder();
-                            LoadArchiveInfo();
+//                            LoadArchiveInfo();
                             RefreshArchiveList(TRUE);
                             break;
 
