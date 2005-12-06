@@ -108,6 +108,9 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #define DISK_INFO_Y (INFO_AREA_Y+50)
 #define DISK_PROGRESS_BAR_WIDTH 200  // Width of the Progress Bar for the disk space.
 
+#define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
+
+
 // Define the numbers of the options on the  Archive Info window.
 #define INFO_OK_OPTION 0
 #define INFO_DELETE_OPTION 1
@@ -193,8 +196,9 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 
 #include "graphics/popup520x269.GD"
 
+#include "graphics/Archive_Help_Screen_OZ.GD"
 
-
+ 
 #include "graphics/folder_yellow.GD"
 #include "graphics/folder_yellow_parent.GD"
 #include "graphics/greentick25x26.GD"
@@ -260,6 +264,7 @@ void ChangeToParentDir(void);
 int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump);
 void WeekdayToAlpha (byte weekday, char *str);
 void RestartPlayback(int line, int jump);
+void DeleteProgressInfo(int dirNumbr, int index, bool message);
 
 //*****************
 //global variables
@@ -297,7 +302,7 @@ static int maxShown;
 static int  sortOrder;
 static int  folderSortOrder = 0;
 static char sortTitle[20];
-       char*   CurrentDir;
+static char CurrentDir[ MAX_FULL_DIR_NAME_LENGTH ];
 static int CurrentDirNumber;       
 static char  infoCommandOption;
 static int recordingRateOption;

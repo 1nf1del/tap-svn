@@ -330,7 +330,7 @@ void DrawFreeSpaceBar()
     TAP_SPrint(str,"%02d%% %dMB Remaining: %01dhr %01dmin  ", freePercent, freeSpace, hoursRemaining, minutesRemaining);
 	TAP_Osd_PutStringAf1419( memRgn, DISK_INFO_X+DISK_PROGRESS_BAR_WIDTH+5, DISK_INFO_Y, DISK_INFO_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
     
-}    
+}     
     
     
 
@@ -621,11 +621,11 @@ void CloseArchiveWindow( void )
 //
 void DrawBackground(void)
 {
-	char	str[80];
+	char	str[200];
 	
-	ExtractLastField ( CurrentDir, str );
-    
-	TAP_SPrint( str, "%s %s",str, sortTitle ); 
+	if (InDataFilesFolder(CurrentDir)) strcpy(str,"DataFiles");  // Don't print the "/" for the base directory.
+	else strcpy(str,myfolders[CurrentDirNumber].name);
+    TAP_SPrint( str, "%s %s",str, sortTitle ); 
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
 
 }
@@ -664,16 +664,18 @@ void DisplayFolderText(int line, int i)
                             TAP_Osd_PutGd( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET-8, &_folder_yellowGd, TRUE );
                        
                             // Number of subfolders in folder.
-                            if (myfiles[CurrentDirNumber][line].numberOfFolders > 0)
+                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders > 0)
                             {
-	                           TAP_SPrint(str, "%d folder%c",myfiles[CurrentDirNumber][line].numberOfFolders, myfiles[CurrentDirNumber][line].numberOfFolders >= 2 ? 's':' ');
+	                           TAP_SPrint(str, "%d folder%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders, myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders >= 2 ? 's':' ');
 	                           PrintCenter( listRgn, COLUMN3_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN3_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
                             }   
                             
                             // Number of recordings in folder.
-//	                        TAP_SPrint(str, "%d recording%c",myfiles[CurrentDirNumber][line].numberOfFiles, myfiles[CurrentDirNumber][line].numberOfFiles == 1 ? ' ':'s');
-	                        TAP_SPrint(str, "%d %s%c",myfiles[CurrentDirNumber][line].numberOfFiles, column4Option == 2 ? "rec":"recording", myfiles[CurrentDirNumber][line].numberOfFiles == 1 ? ' ':'s');
-	                        PrintCenter( listRgn, COLUMN4_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN4_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings > 0)
+                            {
+	                           TAP_SPrint(str, "%d %s%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings, column4Option == 2 ? "rec":"recording", myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings == 1 ? ' ':'s');
+	                           PrintCenter( listRgn, COLUMN4_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN4_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+                            }
                             break;
     }                                                        
 
@@ -995,7 +997,7 @@ void DisplayFileText(int line, int i)
          // Calculate how many minutes have been watched. (Round up to nearest minute)
          curDuration = (( max(0,myfiles[CurrentDirNumber][line].currentBlock) * myfiles[CurrentDirNumber][line].recDuration)  / max(1,myfiles[CurrentDirNumber][line].totalBlock) );
          curPercent  = (( max(0,myfiles[CurrentDirNumber][line].currentBlock) * 100)                        / max(1,myfiles[CurrentDirNumber][line].totalBlock) );
-         if (curPercent < 95) // If we haven't watched the entire show, display the progress bar.
+         if ((curPercent < 95) || (myfiles[CurrentDirNumber][line].isPlaying)) // If we haven't watched the entire show, or the show is playing, display the progress bar.
          {
             // Print the Filename at the top of the row.
             FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line].name, column2Option);
@@ -1279,7 +1281,7 @@ void UpdateSelectionNumber(void)
 	
 	TYPE_TapChInfo	currentChInfo;
 
-    appendToLogfile("UpdateSelectionNumber: Started.");
+//    appendToLogfile("UpdateSelectionNumber: Started.");
 
     TAP_Osd_FillBox( memRgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
 
@@ -1314,7 +1316,7 @@ void UpdateSelectionNumber(void)
     //
     TAP_Osd_Copy( memRgn, rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_AREA_X, INFO_AREA_Y, FALSE );
 
-    appendToLogfile("UpdateSelectionNumber: Finished.");
+//    appendToLogfile("UpdateSelectionNumber: Finished.");
 }
 
 
@@ -1508,7 +1510,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							
 		case RKEY_Info :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine].attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine].isRecording) )
                             { 
-                                 currentFile = myfiles[CurrentDirNumber][chosenLine];
+                                 currentFile   = myfiles[CurrentDirNumber][chosenLine];
+                                 currentFolder = myfolders[myfiles[CurrentDirNumber][chosenLine].directoryNumber];
                                  ActivateInfoWindow();
                             }     
 							break;
@@ -1519,6 +1522,11 @@ dword ArchiveWindowKeyHandler(dword key)
                             break;
 
         case RKEY_Red:    DisplayArchiveHelp();
+                            break;
+
+        case RKEY_Yellow:   TAP_Osd_PutGd( rgn, 50,50, &_archive_help_screen_ozGd, TRUE );
+
+                            TAP_Delay(600);
                             break;
                             							
 		case RKEY_Menu :	ActivateMenu();
@@ -1545,9 +1553,6 @@ void ActivateArchiveWindow( void )
 {
     appendToLogfile("ActivateArchiveWindow: Started.");
     CreateArchiveWindow();
-//	sortOrder = 0; // Default to date sort order.
-//	SortList(sortOrder);		
-	maxShown = numberOfFiles;
     appendToLogfile("ActivateArchiveWindow: Calling DrawArchiveList.");
 	DrawArchiveList();
     appendToLogfile("ActivateArchiveWindow: Calling UpdateSelectionNumber.");
@@ -1574,6 +1579,9 @@ void initialiseArchiveWindow( void )
 
 void RefreshArchiveWindow( void )
 {
+    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;          // Set the number of files for this directory.
+    maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
+
 	SortList(sortOrder);						   // sort the files in selected order
 	while ( chosenLine > maxShown )                // cater for delete of the last file - move up one, or clear hightlight if = 0
 	{
@@ -1597,6 +1605,10 @@ void RefreshArchiveWindow( void )
 void RefreshArchiveList( bool reposition )
 {
     appendToLogfile("RefreshArchiveList: Started.");
+
+    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;          // Set the number of files for this directory.
+    maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
+
 	SortList(sortOrder);						   // sort the files in selected order
 	while ( chosenLine > maxShown )                // cater for delete of the last file - move up one, or clear hightlight if = 0
 	{

@@ -29,7 +29,11 @@ void DeleteFileFolder(void)
      TAP_Hdd_Delete(myfiles[CurrentDirNumber][chosenLine].name);
      
      // Check if the delete was successful.
+#ifdef WIN32
+     if (FALSE)
+#else  
      if (TAP_Hdd_Exist(myfiles[CurrentDirNumber][chosenLine].name))  // Delete didn't work
+#endif
      {
          TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine].name);
          ShowMessageWin( rgn, "File Deletion Failed.", "Failed to delete file:", str, 400 );

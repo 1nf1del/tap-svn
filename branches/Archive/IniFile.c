@@ -29,7 +29,7 @@ static int dataBufferPtr_ini;
 void WriteIniFile( TYPE_File *writeFile )
 {
 //	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-    CurrentDir = GetCurrentDir();
+//    CurrentDir = GetCurrentDir();
     GotoPath( TAPIniDir );
 	if ( TAP_Hdd_Exist( OPTIONS_FILENAME ) ) TAP_Hdd_Delete( OPTIONS_FILENAME );	// Just delete any old copies
 

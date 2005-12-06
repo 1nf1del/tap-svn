@@ -30,16 +30,13 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 
 word* sysID = (word*)0xa3fffffa;
 
-
-//   ShowMessageWin 
+//   ShowMessageBox 
 //
 
-void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int delay )
+void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
 {
-
     word   width, msgY;
     int    msgScrWidth;
-    byte*  msgWindowCopy;
     
     msgScrWidth = MSG_SCREEN_W-10;
     msgY = MSG_SCREEN_Y+12;
@@ -51,8 +48,6 @@ void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int del
 
     if ( width > msgScrWidth ) width = msgScrWidth;
 
-    // Save the region where we are about to display the pop-up.
-    msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
 #ifdef WIN32  // If testing on WIN32 platform 
 TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, FILL_COLOUR );				// clear the screen
 #endif          
@@ -73,6 +68,21 @@ TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, 
 		MSG_TEXT_COLOUR, 0, 0, FNT_Size_1622,
 		FALSE, ALIGN_CENTER);											// show 3. message
 
+
+}
+
+
+//   ShowMessageWin 
+//
+
+void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int delay )
+{
+    byte*  msgWindowCopy;
+    
+    // Save the region where we are about to display the pop-up.
+    msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
+
+    ShowMessageBox(msgRgn, msg1, msg2, msg3 );
 
     TAP_Delay( delay );    
 
