@@ -71,11 +71,11 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="FreeImage\Dist"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;FREEIMAGE_LIB"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -84,7 +84,7 @@
 				OutputFile="$(OutDir)/MakeGraphics.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="FreeImage\Dist"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -149,9 +149,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
 				RelativePath=".\ar.h">
-			</File>
-			<File
-				RelativePath=".\FreeImage.h">
 			</File>
 			<File
 				RelativePath=".\tfdcompress.h">

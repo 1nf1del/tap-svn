@@ -1,3 +1,24 @@
+/*
+Copyright (C) 2005 Simon Capewell
+
+This file is part of the TAPs for Topfield PVRs project.
+	http://tap.berlios.de/
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <stdio.h>
 #include <memory.h>
 
@@ -80,7 +101,7 @@ int tfdcompress( void* input, size_t length, void* output )
 	while ( length > 0 )
 	{
 		blockDecLength = length > 32758 ? 32758 : (ushort)length;
-		// call ar002 encode, passing parameters in globals
+		// call ar encode, passing parameters in globals
 		bytesleft = blockDecLength;
 		outfile = blockCmpData;
 		infile = ip;
@@ -103,8 +124,6 @@ int tfdcompress( void* input, size_t length, void* output )
         tfdBlock.uncompressedSize = swap( blockDecLength );
 
         crc = 0;
-		// CRC not required for gd format
-		// Current calculations yield a CRC that doesn't match mkgd
         crc16( &crc, (uchar*)&tfdBlock.blockType, 4 );
         crc16( &crc, blockCmpData, blockCmpLength );
         tfdBlock.blockCRC16 = swap( crc );

@@ -1,3 +1,24 @@
+/*
+Copyright (C) 2005 Simon Capewell
+
+This file is part of the TAPs for Topfield PVRs project.
+	http://tap.berlios.de/
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -61,42 +82,6 @@ void StripFilenameExtension(char* path)
 		*c = 0;
 }
 
-// Case-sensitive pattern match
-int patMatch(const char* pattern, const char* string)
-{
-	switch (pattern[0])
-	{
-	case '\0':
-		return !string[0];
-
-	case '*':
-		return patMatch(pattern+1, string) || string[0] && patMatch(pattern, string+1);
-
-	case '?':
-		return string[0] && patMatch(pattern+1, string+1);
-
-
-	default:
-		return (pattern[0] == string[0]) && patMatch(pattern+1, string+1);
-	}
-}
-
-// Case-insensitive pattern match
-int patiMatch(const char* pattern, const char* string)
-{
-	switch (pattern[0])
-	{
-	case '\0':
-		return !string[0];
-	case '*':
-		return patiMatch(pattern+1, string) || string[0] && patiMatch(pattern, string+1);
-	case '?':
-		return string[0] && patiMatch(pattern+1, string+1);
-	default:
-		return (toupper(pattern[0]) == toupper(string[0])) && patiMatch(pattern+1, string+1);
-	}
-}
-
 
 void HexDump( BYTE* buffer, int bufferLength )
 {
@@ -156,10 +141,10 @@ int ProcessImage( char* filename )
 	height = FreeImage_GetHeight( dib );
 
 	// Convert RGB to ARGB555
-	bufferSize = width*height*2;
+	bufferSize = (width+1)*height*2;
 	buffer = (BYTE*)malloc( bufferSize );
 	p = (WORD*)buffer;
-	for ( y = 0; y < height; ++y )
+	for ( y = height-1; y >= 0; --y )
 	{
 		for ( x = 0; x < width; ++x )
 		{
@@ -169,7 +154,14 @@ int ProcessImage( char* filename )
 			rgb.rgbBlue = (rgb.rgbBlue+3) >> 3;
 			*p++ = swap(0x8000 + (((min(31,rgb.rgbRed) << 5) + min(31,rgb.rgbGreen)) << 5) + min(31,rgb.rgbBlue));
 		}
+		// odd widths are padded with a black pixel on the right side of the image
+		if ( width % 2 )
+			*p++ = swap(0x8000);
 	}
+
+	// make new image width even
+	width += width % 2;
+
 	FreeImage_Unload( dib );
 
 	if ( !outputHeader )
@@ -228,7 +220,8 @@ int ProcessImage( char* filename )
 	if ( !outputHeader )
 		fclose( outputFile );
 
-	free( buffer );
+	if ( buffer )
+		free( buffer );
 
 	return TRUE;
 }
@@ -244,7 +237,7 @@ int ProcessImage( char* filename )
 
 int Usage()
 {
-	printf("Make Graphics, a graphics to source converter for Topfield TAPs\n");
+	printf("Make Graphics 1.0, a graphics to source converter for Topfield TAPs\n");
 	printf("Usage: makegraphics <image filenames> [options]\n");
 	printf("\t<image filenames> may contain wildcards\n");
 	printf("\t-g\tGenerate compressed gd format files\n");
