@@ -1,7 +1,7 @@
 /************************************************************
 				OZ Archive
 	Archive Recordings display, and management TAP
-                         
+                               
 	     	    
 	This module is the main event handler
  
@@ -257,7 +257,14 @@ void CheckFlags( void )
 	    returnFromStop = FALSE;
 		if ( fileStopped )        // If the file/folder was stopped, reload the file/folder data and refresh the list.
         {
-//             LoadArchiveInfo();                                // Reload the archive list 
+             GetRecordingInfo();                                 // Get the information about the current active recordings.
+             LoadRecordingInfo(CurrentDirNumber, chosenLine);    // Assign any current recording info to the current line.
+             GetPlaybackInfo();                                  // Get the information about the current active playbacks.
+             LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
+//             if (inPlaybackMode) LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
+//             else
+//                 myfiles[CurrentDirNumber][chosenLine].isPlaying      = FALSE;
+
              fileStopped = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
         }
@@ -406,7 +413,7 @@ void TSRCommanderConfigDialog()
     DisplayConfigWindow();
 	return;
 }
-   
+
 bool TSRCommanderExitTAP (void)
 {	
 
@@ -477,6 +484,8 @@ int TAP_Main (void)
 	  
 	numberOfFiles   = 0;
 	numberOfFolders = 0;
+    CreateBlankFile();
+	
     // Blank out initial folder variable space.
     memset(&myfolders[0],0,sizeof (myfolders[0]));
   
@@ -497,17 +506,7 @@ int TAP_Main (void)
 
     numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
     maxShown      = numberOfFiles;
-    CreateBlankFile();
-//TAP_Print("NUMBER OF FILES %d folder attr=%d\r\n",numberOfFiles,ATTR_FOLDER);    
-    for ( d=0; d<= numberOfFolders; d++)
-	{
-	
-    for ( i=1; i<= myfolders[d].numberOfFiles; i++)
-	{ 
-//    TAP_Print("fn%d.%d %s< >%s %d<<\r\n",d,i, myfiles[d][i].directory,myfiles[d][i].name,myfiles[d][i].attr);
-//    TAP_Delay(40);
-    }
-} 
+
 	oldMin = 100;
 	oldSec = 100;
 	exitFlag = FALSE;

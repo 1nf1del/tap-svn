@@ -1,7 +1,7 @@
 /************************************************************
 				Part of the ukEPG project
 	This module handles the definition of all common items
-
+ 
 Name	: Common.c
 Author	: Darkmatter
 Version	: 0.0
@@ -13,7 +13,7 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 
 	Last change:  USE   2 Aug 105   11:30 pm
 ************************************************************/
-
+  
 //-----------------
 // Screen coordinates
 //
@@ -197,6 +197,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/popup520x269.GD"
 
 #include "graphics/Archive_Help_Screen_OZ.GD"
+#include "graphics/Archive_Help_Screen_UK.GD"
 
  
 #include "graphics/folder_yellow.GD"

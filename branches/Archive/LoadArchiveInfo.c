@@ -183,6 +183,29 @@ TYPE_File     file, blankFile;
 TYPE_RecInfo  recInfo[2];
 TYPE_Played_Files playedFiles[MAX_FILES];
 
+void CreateBlankFile(void)
+{
+     // Set the standard settings.
+/*     
+     blankFile.attr         = file.attr;
+     blankFile.mjd          = file.mjd;
+     blankFile.hour         = file.hour;
+     blankFile.min          = file.min;
+     blankFile.sec          = file.sec;
+     blankFile.localOffset  = file.localOffset;
+     blankFile.startCluster = file.startCluster;
+     blankFile.name,file.name);
+     blankFile.directory, directory);
+     blankFile.directoryNumber = dirNumber;
+     blankFile.crypt        = file.crypt;
+     blankFile.size         = file.size;
+     blankFile.currentPos   = file.currentPos;
+     blankFile.isRecording  = FALSE;   // Default the isRecording flag to FALSE.
+     blankFile.isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
+*/
+     memset(&blankFile,0,sizeof (blankFile));   // Make blankFile or zeroes.
+}
+
 
 void CountFolderFilesAndSubfolders(char *NewDir, int *files, int *subfolders)
 {
@@ -313,16 +336,17 @@ void SetPlaybackStatus(int dirNumber, int fileIndex)
 
 void GetPlaybackInfo( void )
 {
-   inPlaybackMode = FALSE;
-   
-
+   // Reset playback flag and current playback file information.  
+   inPlaybackMode      = FALSE;
+   CurrentPlaybackFile = &blankFile;
+  
    // Check for Playbackmode
    iOverRunCheck = ApiOverRunCheck;   // Set flag to catch any buffer overrun from API call.
    TAP_Hdd_GetPlayInfo (&CurrentPlaybackInfo);
 
    if ( iOverRunCheck != ApiOverRunCheck )  // TAP_Hdd_GetPlayInfo V1.22 has a buffer overrun issue, so check if it has overrun by more than 128 bytes.
    {
-      ShowMessageWin( rgn, "Archive:  Error retrieving Playback Info", "TAP_Hdd_GetPlayInfo buffer overrun", "in 'CheckPlaybackStatus'.", 400 );
+      ShowMessageWin( rgn, "Archive:  Error retrieving Playback Info", "TAP_Hdd_GetPlayInfo buffer overrun", "in 'GetPlaybackInfo'.", 400 );
       return;
    }
 
@@ -382,6 +406,8 @@ void LoadPlaybackInfo( int dir, int index )
          
          myfiles[dir][index].isPlaying      = TRUE;
    }     
+   else
+         myfiles[dir][index].isPlaying      = FALSE;
         
    appendToLogfile("LoadPlaybackInfo: Finished.");
 }
@@ -614,29 +640,6 @@ _#
      }
 }
 
-
-void CreateBlankFile(void)
-{
-     // Set the standard settings.
-/*     
-     blankFile.attr         = file.attr;
-     blankFile.mjd          = file.mjd;
-     blankFile.hour         = file.hour;
-     blankFile.min          = file.min;
-     blankFile.sec          = file.sec;
-     blankFile.localOffset  = file.localOffset;
-     blankFile.startCluster = file.startCluster;
-     blankFile.name,file.name);
-     blankFile.directory, directory);
-     blankFile.directoryNumber = dirNumber;
-     blankFile.crypt        = file.crypt;
-     blankFile.size         = file.size;
-     blankFile.currentPos   = file.currentPos;
-     blankFile.isRecording  = FALSE;   // Default the isRecording flag to FALSE.
-     blankFile.isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
-*/
-     memset(&blankFile,0,sizeof (blankFile));   // Make blankFile or zeroes.
-}
 
 void AddCommonInfo(char* directory, int dirNumber, int index, TYPE_File file )
 {

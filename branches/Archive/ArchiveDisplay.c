@@ -26,8 +26,8 @@ History	: v0.0 kidhazy:
 
 #define ARCHIVE_HELP_LINES1  7                          // Number of help lines in 1st column
 #define ARCHIVE_HELP_LINES2  7                          // Number of help lines in 2nd column
-#define ARCHIVE_HELP_HEIGHT 269
-#define ARCHIVE_HELP_WIDTH 520
+#define ARCHIVE_HELP_HEIGHT 490 //269
+#define ARCHIVE_HELP_WIDTH 476 //520
 #define ARCHIVE_HELP_BASE_X  ((MAX_SCREEN_X-ARCHIVE_HELP_WIDTH)/2)
 #define ARCHIVE_HELP_BASE_Y	((MAX_SCREEN_Y-ARCHIVE_HELP_HEIGHT)/2)
 #define ARCHIVE_HELP_TEXT_X1  (ARCHIVE_HELP_BASE_X + 10)
@@ -185,6 +185,11 @@ void DisplayArchiveHelp( void )
 #endif          
 
     // Display the pop-up window.
+    if ( unitModelType==TF5800t) // Display the UK style remote
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_screen_ukGd, TRUE );
+    else  
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_screen_ozGd, TRUE );
+/*    
     TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_popup520x269Gd, TRUE );
 
     TAP_SPrint(str, "Filelist Help");
@@ -212,7 +217,7 @@ void DisplayArchiveHelp( void )
     TAP_SPrint(str, "(Press EXIT or RED      to close this help window)");
 	PrintCenter( rgn, ARCHIVE_HELP_TEXT_X1, ARCHIVE_HELP_BASE_Y + ARCHIVE_HELP_HEIGHT - 35, ARCHIVE_HELP_BASE_X+ARCHIVE_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
     TAP_Osd_PutGd( rgn, ARCHIVE_HELP_TEXT_X1+207, ARCHIVE_HELP_BASE_Y + ARCHIVE_HELP_HEIGHT - 35+2, &_redoval38x19Gd, TRUE );
-
+*/
 }
 
 
@@ -324,8 +329,7 @@ void DrawFreeSpaceBar()
     // Calculate remaining time, taking into consideration 1 hour of timeshift buffer (ie 1 x recordingRateOption)
     hoursRemaining   = ((freeSpace-recordingRateOption)/recordingRateOption);
     minutesRemaining = (((freeSpace-recordingRateOption)*100)/((recordingRateOption*100)/60)) - (hoursRemaining*60);  // Use '100' multiplier to help with integer maths.
-    
-    DisplayProgressBar(memRgn, freeSpace, totalSpace, DISK_INFO_X, DISK_INFO_Y, DISK_PROGRESS_BAR_WIDTH, 20, COLOR_Black, 1, 0);
+    DisplayProgressBar(memRgn, totalSpace-freeSpace, totalSpace, DISK_INFO_X, DISK_INFO_Y, DISK_PROGRESS_BAR_WIDTH, 20, COLOR_Black, 1, 0);
 
     TAP_SPrint(str,"%02d%% %dMB Remaining: %01dhr %01dmin  ", freePercent, freeSpace, hoursRemaining, minutesRemaining);
 	TAP_Osd_PutStringAf1419( memRgn, DISK_INFO_X+DISK_PROGRESS_BAR_WIDTH+5, DISK_INFO_Y, DISK_INFO_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
@@ -1477,7 +1481,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							UpdateSelectionNumber();							
 							break;
 							
-		case RKEY_0 :       if (NUMBER_OF_LINES < 10) break;                            // If we're showing less than 10 lines, ignore 0.
+		case RKEY_0 :       break; // Problem with page jumping, so removed for v0.04
+                            if (NUMBER_OF_LINES < 10) break;                            // If we're showing less than 10 lines, ignore 0.
 							chosenLine = (10) + (page * NUMBER_OF_LINES);				// make "0" select the 10th (last) line
 							if ( chosenLine > maxShown ) chosenLine = maxShown;
 
@@ -1524,7 +1529,7 @@ dword ArchiveWindowKeyHandler(dword key)
         case RKEY_Red:    DisplayArchiveHelp();
                             break;
 
-        case RKEY_Yellow:   TAP_Osd_PutGd( rgn, 50,50, &_archive_help_screen_ozGd, TRUE );
+        case RKEY_Yellow:   TAP_Osd_PutGd( rgn, 150,50, &_archive_help_screen_ozGd, TRUE );
 
                             TAP_Delay(600);
                             break;
