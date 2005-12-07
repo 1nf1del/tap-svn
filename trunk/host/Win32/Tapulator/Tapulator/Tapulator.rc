@@ -1,0 +1,570 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\Tapulator.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR  16, 15
+BEGIN
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_APP_ABOUT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open",                       ID_FILE_OPEN32771
+        MENUITEM "E&xit",                       ID_APP_EXIT
+        MENUITEM SEPARATOR
+        MENUITEM "&Options",                    ID_FILE_OPTIONS
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About Tapulator...",         ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS 
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 159
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About Tapulator"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
+    LTEXT           "Tapulator Version 0.1",IDC_STATIC,40,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005 Robin Glover",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+    LTEXT           "Tapulator comes with ABSOLUTELY NO WARRANTY; for details see the LICENSE.txt file included with the distribution or view the license online at http://www.gnu.org/licenses/gpl.txt.",
+                    IDC_STATIC,7,41,221,27
+    LTEXT           "This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.",
+                    IDC_STATIC,7,72,221,36
+    LTEXT           "Please be aware that libtapulator.lib is licensed under the GNU General Pulic License. It is a license violation to link this library with code that is licensed in a manner incompatible with the GPL.",
+                    IDC_STATIC,7,107,221,25
+    LTEXT           "This specifically prohibits you from using this emulator to develop a TAP for which you do not make the source code freely available.",
+                    IDC_STATIC,7,135,221,17
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "Tapulator.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "Tapulator.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 152
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDR_MAINFRAME           "Tapulator"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "Tapulator"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_REMOTE              BITMAP                  "res\\remote8bit.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_REMOTE DIALOGEX 0, 0, 132, 406
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Remote"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_BPOWER,"Button",BS_OWNERDRAW | WS_TABSTOP,38,17,
+                    19,14
+    CONTROL         "0",IDC_BMUTE,"Button",BS_OWNERDRAW | WS_TABSTOP,76,18,
+                    19,14
+    CONTROL         "Button1",IDC_RADIO,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    30,39,19,14
+    CONTROL         "Button1",IDC_SOURCE,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    57,37,19,14
+    CONTROL         "Button1",IDC_OPT,"Button",BS_OWNERDRAW | WS_TABSTOP,85,
+                    40,19,14
+    CONTROL         "Button1",IDC_NUM1,"Button",BS_OWNERDRAW | WS_TABSTOP,31,
+                    57,19,14
+    CONTROL         "Button1",IDC_NUM2,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    54,19,14
+    CONTROL         "Button1",IDC_NUM3,"Button",BS_OWNERDRAW | WS_TABSTOP,84,
+                    57,19,14
+    CONTROL         "Button1",IDC_NUM4,"Button",BS_OWNERDRAW | WS_TABSTOP,31,
+                    72,19,14
+    CONTROL         "Button1",IDC_NUM5,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    69,19,14
+    CONTROL         "Button1",IDC_NUM6,"Button",BS_OWNERDRAW | WS_TABSTOP,84,
+                    72,19,14
+    CONTROL         "Button1",IDC_NUM7,"Button",BS_OWNERDRAW | WS_TABSTOP,31,
+                    86,19,14
+    CONTROL         "Button1",IDC_NUM8,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    83,19,14
+    CONTROL         "Button1",IDC_NUM9,"Button",BS_OWNERDRAW | WS_TABSTOP,84,
+                    86,19,14
+    CONTROL         "Button1",IDC_NUM0,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    98,19,14
+    CONTROL         "Button1",IDC_RECALL,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    31,102,19,14
+    CONTROL         "Button1",IDC_INFO,"Button",BS_OWNERDRAW | WS_TABSTOP,84,
+                    102,19,14
+    CONTROL         "Button1",IDC_UP,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    130,19,20
+    CONTROL         "Button1",IDC_DOWN,"Button",BS_OWNERDRAW | WS_TABSTOP,58,
+                    190,19,19
+    CONTROL         "Button1",IDC_RIGHT,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    90,160,19,18
+    CONTROL         "Button1",IDC_LEFT,"Button",BS_OWNERDRAW | WS_TABSTOP,26,
+                    160,19,18
+    CONTROL         "Button1",IDC_LIST,"Button",BS_OWNERDRAW | WS_TABSTOP,79,
+                    126,19,14
+    CONTROL         "Button1",IDC_GUIDE,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    35,126,19,14
+    CONTROL         "Button1",IDC_MENU,"Button",BS_OWNERDRAW | WS_TABSTOP,19,
+                    139,16,19
+    CONTROL         "Button1",IDC_EXIT,"Button",BS_OWNERDRAW | WS_TABSTOP,98,
+                    139,15,19
+    CONTROL         "Button1",IDC_VOLUP,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    18,180,17,18
+    CONTROL         "Button1",IDC_VOLDOWN,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    34,198,19,14
+    CONTROL         "Button1",IDC_PROGUP,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    98,181,15,18
+    CONTROL         "Button1",IDC_PROGDOWN,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,79,199,19,14
+    CONTROL         "Button1",IDC_PLAY,"Button",BS_OWNERDRAW | WS_TABSTOP,57,
+                    227,19,14
+    CONTROL         "Button1",IDC_REWIND,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    29,224,19,14
+    CONTROL         "Button1",IDC_FORWARD,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    84,225,19,14
+    CONTROL         "Button1",IDC_SLOW,"Button",BS_OWNERDRAW | WS_TABSTOP,28,
+                    240,19,14
+    CONTROL         "Button1",IDC_STOP,"Button",BS_OWNERDRAW | WS_TABSTOP,48,
+                    241,16,14
+    CONTROL         "Button1",IDC_RECORD,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    69,241,17,14
+    CONTROL         "Button1",IDC_PAUSE,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    88,240,17,14
+    CONTROL         "Button1",IDC_PIP,"Button",BS_OWNERDRAW | WS_TABSTOP,32,
+                    256,19,14
+    CONTROL         "Button1",IDC_ARCHIVE,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    57,258,19,14
+    CONTROL         "Button1",IDC_TEXT,"Button",BS_OWNERDRAW | WS_TABSTOP,82,
+                    256,19,14
+    CONTROL         "Button1",IDC_RED,"Button",BS_OWNERDRAW | WS_TABSTOP,35,
+                    272,14,14
+    CONTROL         "Button1",IDC_GREEN,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    51,272,14,14
+    CONTROL         "Button1",IDC_YELLOW,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    68,272,15,14
+    CONTROL         "Button1",IDC_BLUE,"Button",BS_OWNERDRAW | WS_TABSTOP,85,
+                    272,14,14
+    CONTROL         "Button1",IDC_PIPSWAP,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    48,288,15,14
+    CONTROL         "Button1",IDC_WHITE,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    68,288,16,14
+    CONTROL         "Button1",IDC_OKLIST,"Button",BS_OWNERDRAW | WS_TABSTOP,
+                    53,157,26,25
+    CONTROL         131,IDC_STATIC,"Static",SS_BITMAP,0,0,133,404
+END
+
+IDD_INFODIALOG DIALOGEX 0, 0, 451, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Information"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Log",IDC_STATIC,3,0,281,88
+    GROUPBOX        "Heap Memory",IDC_STATIC,289,0,159,88
+    LTEXT           "Bytes Used",IDC_STATIC,294,9,53,8
+    LTEXT           "Max Bytes Used",IDC_STATIC,294,25,54,8
+    LTEXT           "Allocations",IDC_STATIC,294,43,61,8
+    LTEXT           "Outstanding Allocs",IDC_STATIC,294,59,64,8
+    LTEXT           "Largest Alloc",IDC_STATIC,294,75,64,8
+    EDITTEXT        IDC_BYTES,368,6,76,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_MAXBYTES,368,23,76,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDIT1,3,8,281,79,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+    EDITTEXT        IDC_TOTALLOCS,368,39,76,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_ALLOCSOPEN,368,55,76,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_LARGEST,368,71,76,14,ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_DIALOG1 DIALOGEX 0, 0, 291, 209
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Tapulator Configuration Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,180,188,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,233,188,50,14
+    PUSHBUTTON      "Apply",IDC_BUTTON_APPLY,125,188,50,14
+    EDITTEXT        IDC_EDIT_FS,88,8,167,14,ES_AUTOHSCROLL
+    LTEXT           "Virtual FileSystem Path",IDC_STATIC,7,8,73,8
+    EDITTEXT        IDC_EDIT_EPG,88,62,167,14,ES_AUTOHSCROLL
+    LTEXT           "EPG Data File",IDC_STATIC,7,62,73,8
+    PUSHBUTTON      "...",IDC_BUTTON_BROWSE_FS,262,8,21,14
+    PUSHBUTTON      "...",IDC_BUTTON_BROWSE_EPG,262,62,21,14
+    GROUPBOX        "Logging Filter",IDC_STATIC,7,128,276,56
+    CONTROL         "Critical",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,142,73,10
+    CONTROL         "Error",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    13,156,32,10
+    CONTROL         "Warning",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,170,43,10
+    CONTROL         "Unimplemented",IDC_CHECK4,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,88,142,65,10
+    CONTROL         "Information",IDC_CHECK5,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,88,156,53,10
+    CONTROL         "Verbose",IDC_CHECK6,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,88,170,42,10
+    CONTROL         "User",IDC_CHECK7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    163,142,31,10
+    GROUPBOX        "Initial Current Folder for TAPs",IDC_STATIC,7,25,276,28
+    CONTROL         "/ProgramFiles",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,13,37,59,10
+    CONTROL         "/ProgramFiles/Auto Start",IDC_RADIO2,"Button",
+                    BS_AUTORADIOBUTTON,88,37,95,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_REMOTE, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 399
+        HORZGUIDE, 403
+    END
+
+    IDD_INFODIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 444
+        VERTGUIDE, 284
+        VERTGUIDE, 289
+        VERTGUIDE, 294
+        VERTGUIDE, 368
+        VERTGUIDE, 448
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 80
+        VERTGUIDE, 88
+        VERTGUIDE, 163
+        VERTGUIDE, 255
+        VERTGUIDE, 262
+        VERTGUIDE, 283
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 202
+        HORZGUIDE, 8
+        HORZGUIDE, 37
+        HORZGUIDE, 62
+        HORZGUIDE, 128
+        HORZGUIDE, 142
+        HORZGUIDE, 156
+        HORZGUIDE, 170
+        HORZGUIDE, 184
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\Tapulator.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\Tapulator.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
