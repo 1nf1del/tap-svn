@@ -1,6 +1,8 @@
 #pragma once
+#ifdef _WIN32
 #ifndef __cplusplus
 typedef int bool;
+#endif
 #endif
 
 #include <tap.h>
