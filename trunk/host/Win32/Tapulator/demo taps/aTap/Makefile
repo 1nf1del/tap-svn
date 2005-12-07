@@ -21,7 +21,7 @@
 
 include ../../../../../tools/build/tap.mk
 
-all: tap.tap 
+all: tap.tap
 
 # Copy files to the Toppy using tfcopy
 copy: all
@@ -31,6 +31,5 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-tap.elf::	tap.o  
-tap.o:		tap.c 
-
+tap.elf::	tap.o
+tap.o:		tap.c

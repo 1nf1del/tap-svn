@@ -9,7 +9,7 @@
 #define IDD_REMOTE                      130
 #define IDB_REMOTE                      131
 #define IDD_INFODIALOG                  132
-#define IDD_DIALOG1                     133
+#define IDD_OPTIONS                     133
 #define IDC_BPOWER                      1000
 #define IDC_BMUTE                       1001
 #define IDC_RADIO                       1002
@@ -51,6 +51,8 @@
 #define IDC_RIGHT                       1019
 #define IDC_RADIO2                      1019
 #define IDC_LEFT                        1020
+#define IDC_SLIDER1                     1020
+#define IDC_OSDTRANSPARENCY             1020
 #define IDC_LIST                        1021
 #define IDC_GUIDE                       1022
 #define IDC_MENU                        1023
@@ -77,7 +79,6 @@
 #define IDC_WHITE                       1044
 #define IDC_BPOWER2                     1045
 #define IDC_OKLIST                      1045
-#define ID_FILE_OPEN32771               32771
 #define ID_FILE_OPTIONS                 32772
 
 // Next default values for new objects
@@ -85,8 +86,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        134
-#define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_COMMAND_VALUE         32775
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

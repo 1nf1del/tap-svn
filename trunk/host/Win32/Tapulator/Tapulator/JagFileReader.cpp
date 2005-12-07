@@ -89,7 +89,7 @@ JagData* JagFileReader::FindChannelData(int svcType, int iChannelNum, char* pDat
 	TYPE_TapChInfo chInfo;
 	m_pChannelList->GetInfo(svcType, iChannelNum, &chInfo);
 
-	char* pChanName = pData + 0x1732;
+	char* pChanName = pData + 0x29a2;
 	for (int i=0; i< 100; i++)
 	{
 		if (strnicmp(pChanName, chInfo.chName, 24) == 0)

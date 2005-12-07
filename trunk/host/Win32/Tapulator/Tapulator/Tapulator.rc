@@ -61,7 +61,7 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&Open",                       ID_FILE_OPEN32771
+        MENUITEM "&Open\tCtrl+O",               ID_FILE_OPEN
         MENUITEM "E&xit",                       ID_APP_EXIT
         MENUITEM SEPARATOR
         MENUITEM "&Options",                    ID_FILE_OPTIONS
@@ -94,15 +94,16 @@ END
 IDR_MAINFRAME ACCELERATORS 
 BEGIN
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
-    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
-    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
-    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
-    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
-    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "^O",           ID_FILE_OPEN,           ASCII,  NOINVERT
 END
 
 
@@ -111,7 +112,7 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 235, 159
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 151
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "About Tapulator"
@@ -124,12 +125,10 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
     LTEXT           "Tapulator comes with ABSOLUTELY NO WARRANTY; for details see the LICENSE.txt file included with the distribution or view the license online at http://www.gnu.org/licenses/gpl.txt.",
                     IDC_STATIC,7,41,221,27
+    LTEXT           "As a special exception, you have permission to link this program dynamically to any DLL module consisting of compiled TAP code using the File-Open menu or the command line regardless of the license of the code within that DLL module.",
+                    IDC_STATIC,7,111,221,33
     LTEXT           "This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.",
                     IDC_STATIC,7,72,221,36
-    LTEXT           "Please be aware that libtapulator.lib is licensed under the GNU General Pulic License. It is a license violation to link this library with code that is licensed in a manner incompatible with the GPL.",
-                    IDC_STATIC,7,107,221,25
-    LTEXT           "This specifically prohibits you from using this emulator to develop a TAP for which you do not make the source code freely available.",
-                    IDC_STATIC,7,135,221,17
 END
 
 
@@ -185,7 +184,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
         TOPMARGIN, 7
-        BOTTOMMARGIN, 152
+        BOTTOMMARGIN, 144
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -297,13 +296,11 @@ IDB_REMOTE              BITMAP                  "res\\remote8bit.bmp"
 // Dialog
 //
 
-IDD_REMOTE DIALOGEX 0, 0, 132, 406
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
-CAPTION "Remote"
+IDD_REMOTE DIALOGEX 0, 0, 133, 411
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_BPOWER,"Button",BS_OWNERDRAW | WS_TABSTOP,38,17,
-                    19,14
+    PUSHBUTTON      "",IDC_BPOWER,38,17,19,14
     CONTROL         "0",IDC_BMUTE,"Button",BS_OWNERDRAW | WS_TABSTOP,76,18,
                     19,14
     CONTROL         "Button1",IDC_RADIO,"Button",BS_OWNERDRAW | WS_TABSTOP,
@@ -394,7 +391,7 @@ BEGIN
                     68,288,16,14
     CONTROL         "Button1",IDC_OKLIST,"Button",BS_OWNERDRAW | WS_TABSTOP,
                     53,157,26,25
-    CONTROL         131,IDC_STATIC,"Static",SS_BITMAP,0,0,133,404
+    CONTROL         131,IDC_STATIC,"Static",SS_BITMAP,0,0,131,411
 END
 
 IDD_INFODIALOG DIALOGEX 0, 0, 451, 90
@@ -418,21 +415,26 @@ BEGIN
     EDITTEXT        IDC_LARGEST,368,71,76,14,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_DIALOG1 DIALOGEX 0, 0, 291, 209
+IDD_OPTIONS DIALOGEX 0, 0, 291, 209
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Tapulator Configuration Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,180,188,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,233,188,50,14
-    PUSHBUTTON      "Apply",IDC_BUTTON_APPLY,125,188,50,14
-    EDITTEXT        IDC_EDIT_FS,88,8,167,14,ES_AUTOHSCROLL
     LTEXT           "Virtual FileSystem Path",IDC_STATIC,7,8,73,8
-    EDITTEXT        IDC_EDIT_EPG,88,62,167,14,ES_AUTOHSCROLL
-    LTEXT           "EPG Data File",IDC_STATIC,7,62,73,8
+    EDITTEXT        IDC_EDIT_FS,88,8,167,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BUTTON_BROWSE_FS,262,8,21,14
+    GROUPBOX        "Initial Current Folder for TAPs",IDC_STATIC,7,25,276,28
+    CONTROL         "/ProgramFiles",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,13,37,59,10
+    CONTROL         "/ProgramFiles/Auto Start",IDC_RADIO2,"Button",
+                    BS_AUTORADIOBUTTON,88,37,95,10
+    LTEXT           "EPG Data File",IDC_STATIC,7,62,73,8
+    EDITTEXT        IDC_EDIT_EPG,88,62,167,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BUTTON_BROWSE_EPG,262,62,21,14
+    LTEXT           "OSD Transparency",IDC_STATIC,7,111,61,8
+    CONTROL         "",IDC_OSDTRANSPARENCY,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,88,108,147,15
     GROUPBOX        "Logging Filter",IDC_STATIC,7,128,276,56
     CONTROL         "Critical",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,13,142,73,10
@@ -448,11 +450,11 @@ BEGIN
                     WS_TABSTOP,88,170,42,10
     CONTROL         "User",IDC_CHECK7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     163,142,31,10
-    GROUPBOX        "Initial Current Folder for TAPs",IDC_STATIC,7,25,276,28
-    CONTROL         "/ProgramFiles",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,13,37,59,10
-    CONTROL         "/ProgramFiles/Auto Start",IDC_RADIO2,"Button",
-                    BS_AUTORADIOBUTTON,88,37,95,10
+    DEFPUSHBUTTON   "OK",IDOK,123,188,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,178,188,50,14
+    PUSHBUTTON      "Apply",IDC_BUTTON_APPLY,233,188,50,14
+    LTEXT           "0%",IDC_STATIC,77,111,12,8
+    LTEXT           "50%",IDC_STATIC,239,111,16,8
 END
 
 
@@ -466,7 +468,7 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_REMOTE, DIALOG
     BEGIN
-        BOTTOMMARGIN, 399
+        RIGHTMARGIN, 132
         HORZGUIDE, 403
     END
 
@@ -482,7 +484,7 @@ BEGIN
         BOTTOMMARGIN, 87
     END
 
-    IDD_DIALOG1, DIALOG
+    IDD_OPTIONS, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 283

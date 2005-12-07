@@ -22,12 +22,12 @@
 
 // CRemoteDialog dialog
 
-class CRemoteDialog : public CDialog
+class CRemoteDialog : public CDialogBar
 {
 	DECLARE_DYNAMIC(CRemoteDialog)
 
 public:
-	CRemoteDialog(CWnd* pParent = NULL);   // standard constructor
+	CRemoteDialog();   // standard constructor
 	virtual ~CRemoteDialog();
 
 // Dialog Data
@@ -84,8 +84,11 @@ public:
 	afx_msg void OnBnClickedBlue();
 	afx_msg void OnBnClickedPipswap();
 	afx_msg void OnBnClickedWhite();
+void EnableButton(CCmdUI* p);
 
 private :
 	void RaiseKeyEvent(int keyCode, int hardwareKeyCode);
 
+public:
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };

@@ -22,6 +22,7 @@
 #include "Window.h"
 #include "Regions.h"
 #include "Heap.h"
+#include "Utils.h"
 
 COLORREF ConvertRGB(DWORD dwToppyColor)
 {
@@ -114,17 +115,17 @@ int OSDRegion::PutBox(DWORD x, DWORD y, DWORD w, DWORD h, const void *data, bool
 
 	CDC* pDC = GetDC();
 
-	int dx = GetXOffs();
-	int dy = GetYOffs();
+	int dx = x + GetXOffs();
+	int dy = y + GetYOffs();
 
 	word* pData = (word*) data;
-	for (unsigned int i = 0; i<w; i++)
+	for (unsigned int j = 0; j<h; j++)
 	{
-		for (unsigned int j = 0; j<h; j++)
+		for (unsigned int i = 0; i<w; i++)
 		{
 			if (!sprite || (*pData != 0))
 			{
-				pDC->SetPixelV(i + dx, j + dy, ConvertRGB(*pData));
+				pDC->SetPixelV(i + dx, j + dy, ConvertRGB(SWAPWORD(*pData)));
 			}
 			pData++;
 		}
@@ -154,12 +155,17 @@ int OSDRegion::GetBox(DWORD x, DWORD y, DWORD w, DWORD h, void *data)
 	bmInfo.bmiHeader.biBitCount = 16;
 	bmInfo.bmiHeader.biCompression = BI_RGB;
 
-	if (GetDIBits(destDC, (HBITMAP)areaBM.m_hObject, 0, h, data, &bmInfo, DIB_RGB_COLORS) != h)
+	int lines = GetDIBits(destDC, (HBITMAP)areaBM.m_hObject, 0, h, data, &bmInfo, DIB_RGB_COLORS);
+
+	WORD* pixel = (WORD*)data;
+	int dataSize = w * lines;
+    while ( dataSize-- > 0 )
 	{
-		return 1;
+		*pixel = SWAPWORD(*pixel);
+		++pixel;
 	}
 
-	return 0;
+	return lines != h ? 1 : 0;
 }
 
 int OSDRegion::Ctrl(DWORD ctrl)
@@ -242,7 +248,10 @@ int OSDRegion::DrawPixmap(DWORD x, DWORD y, DWORD w, DWORD h, void *pixmap, bool
 		CDC newDC;
 		newDC.CreateCompatibleDC(pDC);
 		newDC.SelectObject(&bm);
-		pDC->BitBlt(x  + GetXOffs(), y + GetYOffs(), w, h, &newDC, 0, 0, SRCCOPY);
+		if ( sprite )
+			pDC->TransparentBlt(x + GetXOffs(), y + GetYOffs(), w, h, &newDC, 0, 0, w, h, 0);
+		else
+			pDC->BitBlt(x  + GetXOffs(), y + GetYOffs(), w, h, &newDC, 0, 0, SRCCOPY);
 	}
 	else
 	{
@@ -411,16 +420,24 @@ void OSDRegion::DrawFilledBox(CRect rect, DWORD dwFillColor, DWORD dwEdgeColor)
 CFont* OSDRegion::CreateFont(int iFont, int iFontSize)
 {
 	CDC* pDC = GetDC();
-	int iFontPoints = (iFontSize * 3) + 10;
+	int iFontPoints = iFontSize == 0 ? -120 : iFontSize == 1 ? -150 : -180;
 
 	CFont* thefont  = new CFont();
-	thefont->CreatePointFont(iFontPoints * 10 , "Arial", pDC);
+
+	LOGFONT logFont;
+	memset(&logFont, 0, sizeof(LOGFONT));
+	logFont.lfCharSet = DEFAULT_CHARSET;
+	logFont.lfWeight = FW_BOLD;
+	logFont.lfHeight = iFontPoints;
+	strcpy(logFont.lfFaceName, "Arial Narrow" );
+
+	thefont->CreatePointFontIndirect(&logFont, pDC);
 
 	ReleaseDC();
 	return thefont;
 }
 
-void OSDRegion::DrawSomeText(CRect rect, CString txt, DWORD color, DWORD backcolor, int font, int iFontSize, 
+void OSDRegion::DrawSomeText(CRect rect, const CString& txt, DWORD color, DWORD backcolor, int font, int iFontSize, 
 							 DWORD dwFlags,
 							 bool bTransparent)
 {
@@ -445,7 +462,7 @@ void OSDRegion::DrawSomeText(CRect rect, CString txt, DWORD color, DWORD backcol
 	ReleaseDC();
 }
 
-void OSDRegion::DrawTextInBox(CRect rect, CString text, DWORD dwForeColor, DWORD dwBackColor, DWORD dwBorderColor, int iFont, int iSize, DWORD dwFlags)
+void OSDRegion::DrawTextInBox(CRect rect, const CString& text, DWORD dwForeColor, DWORD dwBackColor, DWORD dwBorderColor, int iFont, int iSize, DWORD dwFlags)
 {
 	DrawFilledBox(rect, dwBackColor, dwBorderColor);
 	rect.top +=1;

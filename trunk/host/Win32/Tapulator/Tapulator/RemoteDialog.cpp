@@ -33,9 +33,10 @@
 
 // CRemoteDialog dialog
 
-IMPLEMENT_DYNAMIC(CRemoteDialog, CDialog)
-CRemoteDialog::CRemoteDialog(CWnd* pParent /*=NULL*/)
-	: CDialog(CRemoteDialog::IDD, pParent)
+IMPLEMENT_DYNAMIC(CRemoteDialog, CDialogBar)
+
+CRemoteDialog::CRemoteDialog()
+	: CDialogBar()
 {
 }
 
@@ -43,13 +44,19 @@ CRemoteDialog::~CRemoteDialog()
 {
 }
 
+
 void CRemoteDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CDialogBar::DoDataExchange(pDX);
 }
 
+void CRemoteDialog::EnableButton(CCmdUI* p)
+{
+	p->Enable();
+}
 
-BEGIN_MESSAGE_MAP(CRemoteDialog, CDialog)
+BEGIN_MESSAGE_MAP(CRemoteDialog, CDialogBar)
+	ON_UPDATE_COMMAND_UI_RANGE(0, 65535, EnableButton)
 	ON_BN_CLICKED(IDC_BPOWER, OnBnClickedBpower)
 	ON_BN_CLICKED(IDC_BMUTE, OnBnClickedBmute)
 	ON_BN_CLICKED(IDC_RADIO, OnBnClickedRadio)
@@ -96,6 +103,7 @@ BEGIN_MESSAGE_MAP(CRemoteDialog, CDialog)
 	ON_BN_CLICKED(IDC_BLUE, OnBnClickedBlue)
 	ON_BN_CLICKED(IDC_PIPSWAP, OnBnClickedPipswap)
 	ON_BN_CLICKED(IDC_WHITE, OnBnClickedWhite)
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 
@@ -381,3 +389,10 @@ void CRemoteDialog::OnBnClickedWhite()
 	RaiseKeyEvent(RKEY_Ab,0x14c); // Yep
 }
 
+
+void CRemoteDialog::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialogBar::OnKeyDown(nChar, nRepCnt, nFlags);
+}

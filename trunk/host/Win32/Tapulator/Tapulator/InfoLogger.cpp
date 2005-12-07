@@ -30,7 +30,7 @@ InfoLogger::~InfoLogger(void)
 {
 }
 
-void InfoLogger::LogInfo(CString sFmt, ...)
+void InfoLogger::LogInfo(LPCTSTR sFmt, ...)
 {
 	if ((GetFilter() & LOG_SEVERITY_INFO) == 0)
 		return;
@@ -40,7 +40,7 @@ void InfoLogger::LogInfo(CString sFmt, ...)
 	va_end(argList);
 }
 
-void InfoLogger::LogError(CString sFmt, ...)
+void InfoLogger::LogError(LPCTSTR sFmt, ...)
 {
 	if ((GetFilter() & LOG_SEVERITY_ERROR) == 0)
 		return;
@@ -50,7 +50,7 @@ void InfoLogger::LogError(CString sFmt, ...)
 	va_end(argList);
 }
 
-void InfoLogger::LogVerbose(CString sFmt, ...)
+void InfoLogger::LogVerbose(LPCTSTR sFmt, ...)
 {
 	if ((GetFilter() & LOG_SEVERITY_VERBOSE) == 0)
 		return;
@@ -60,7 +60,7 @@ void InfoLogger::LogVerbose(CString sFmt, ...)
 	va_end(argList);
 }
 
-void InfoLogger::LogUser(CString sFmt, va_list argList)
+void InfoLogger::LogUser(LPCTSTR sFmt, va_list argList)
 {
 	if ((GetFilter() & LOG_SEVERITY_USER) == 0)
 		return;
@@ -68,24 +68,24 @@ void InfoLogger::LogUser(CString sFmt, va_list argList)
 }
 
 
-void InfoLogger::LogSomething(CString sMessage)
+void InfoLogger::LogSomething(LPCTSTR sMessage)
 {
 	CMainFrame* pMainFrame = (CMainFrame*) AfxGetMainWnd();
 	pMainFrame->LogEvent(sMessage);
 }
 
-void InfoLogger::LogUnimplemented(CString sMsg)
+void InfoLogger::LogUnimplemented(LPCTSTR sMsg)
 {
 	if ((GetFilter() & LOG_SEVERITY_UNIMPL) == 0)
 		return;
-	LogSomething("UNIMPL: "+sMsg);
+	LogSomething(CString("UNIMPL: ")+sMsg);
 //	ASSERT(false);
 }
 
-void InfoLogger::LogVarArgs(CString sFmt, CString sPrefix, va_list argList)
+void InfoLogger::LogVarArgs(LPCTSTR sFmt, LPCTSTR sPrefix, va_list argList)
 {
 	char buf[2048];
-	_vsnprintf(buf, 2048, sFmt, argList);
+	_vsnprintf(buf, 2048, (LPCTSTR)sFmt, argList);
 	LogSomething(sPrefix+CString(buf));
 }
 

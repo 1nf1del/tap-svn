@@ -103,7 +103,7 @@ void ToppyFramework::Draw(CDC* pDC)
 			tempDC.SelectObject(&tempBM);
 			tempDC.BitBlt(0,0, 720, 576, pMemDC, 0, 0, SRCCOPY);
 
-			BLENDFUNCTION bf = {AC_SRC_OVER, 0, 192, 0};
+			BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255-(BYTE)(GetConfig()->GetOsdTransparency() * 255/100), 0};
 			pMemDC->AlphaBlend(0, 0, 720, 576, &osdDC, 0, 0, 720, 576, bf );
 	//
 	////		 now contains correct over OSD area, wrong in background

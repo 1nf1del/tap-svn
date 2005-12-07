@@ -35,7 +35,7 @@
 
 BEGIN_MESSAGE_MAP(CTapulatorApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-	ON_COMMAND(ID_FILE_OPEN32771, OnFileOpen32771)
+	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 END_MESSAGE_MAP()
 
 
@@ -77,7 +77,7 @@ BOOL CTapulatorApp::InitInstance()
 	// Change the registry key under which our settings are stored
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
-	SetRegistryKey(_T("Tapulator"));
+	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 	// To create the main window, this code creates a new frame window
 	// object and then sets it as the application's main window object
 
@@ -146,7 +146,7 @@ void CTapulatorApp::OnAppAbout()
 // CTapulatorApp message handlers
 
 
-void CTapulatorApp::OnFileOpen32771()
+void CTapulatorApp::OnFileOpen()
 {
 	CFileDialog dlf(TRUE, "dll", 0, 0, "TAP modules (*.dll)|*.dll||", m_pMainWnd, 0);
 	if (dlf.DoModal() != IDOK)

@@ -39,8 +39,8 @@ public:
 
 	void DrawToBitmap();
 	void DrawFilledBox(CRect rect, DWORD dwFillColor, DWORD dwEdgeColor);
-	void DrawSomeText(CRect rect, CString txt, DWORD color, DWORD backcolor, int ifont, int iPointSize, DWORD dwFlags, bool bTransparent = false);
-	void DrawTextInBox(CRect rect, CString text, DWORD dwForeColor, DWORD dwBackColor, DWORD dwBorderColor, int iFont, int iSize, DWORD dwFlags);
+	void DrawSomeText(CRect rect, const CString& txt, DWORD color, DWORD backcolor, int ifont, int iPointSize, DWORD dwFlags, bool bTransparent = false);
+	void DrawTextInBox(CRect rect, const CString& text, DWORD dwForeColor, DWORD dwBackColor, DWORD dwBorderColor, int iFont, int iSize, DWORD dwFlags);
 	void DrawRectangle(CRect rect, DWORD dwColor, int thickness);
 
 	int Move(DWORD x, DWORD y);

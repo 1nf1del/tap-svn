@@ -66,6 +66,7 @@ CMainFrame::CMainFrame()
 {
 	m_pFramework = 0;
 	m_pConfigData = new CConfiguration();
+	m_pRemote = NULL;
 }
 
 CMainFrame::~CMainFrame()
@@ -95,15 +96,20 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rcThis;
 	GetWindowRect(rcThis);
 
-	m_pRemote = new CRemoteDialog(this);
-	m_pRemote->Create(IDD_REMOTE, this);
-	m_pRemote->SetWindowPos(0, rcThis.right + 10, rcThis.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-	m_pRemote->ShowWindow(SW_SHOW);
-	
+	m_pRemote = new CRemoteDialog();
+	m_pRemote->Create(this, IDD_REMOTE, CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_ALIGN_RIGHT, 777 );
+	m_pRemote->SetWindowText("Remote");
+
 	m_pInfoDialog = new CInfoDialog(this);
 	m_pInfoDialog->Create(IDD_INFODIALOG, this);
-	m_pInfoDialog->SetWindowPos(0, 0, rcThis.bottom - 70, 0, 0,  SWP_NOZORDER | SWP_NOSIZE);
+	m_pInfoDialog->SetWindowPos(0, 0, rcThis.bottom, 0, 0,  SWP_NOZORDER | SWP_NOSIZE);
 	m_pInfoDialog->ShowWindow(SW_SHOW);
+
+	EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
+	m_pRemote->EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
+	DockControlBar(m_pRemote);
+
+	m_pRemote->ShowWindow(SW_SHOW);
 
 	if (__argc > 1)
 	{
@@ -208,11 +214,10 @@ bool CMainFrame::IsTapLoaded()
 {
 	return m_pFramework != NULL;
 }
+
 void CMainFrame::OnSize(UINT nType, int cx, int cy)
 {
-
 	CFrameWnd::OnSize(nType, cx, cy);
-
 }
 
 void CMainFrame::OnSizing(UINT fwSide, LPRECT pRect)
@@ -233,11 +238,10 @@ void CMainFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 	if (IsWindow(m_wndToolBar))
 		m_wndToolBar.GetWindowRect(toolBar);
 
-	lpMMI->ptMaxTrackSize.x = 740;
-	lpMMI->ptMaxTrackSize.y = 640;
-	lpMMI->ptMinTrackSize.x = 740;
-	lpMMI->ptMinTrackSize.y = 640;
-
+	lpMMI->ptMaxTrackSize.x = 920;
+	lpMMI->ptMaxTrackSize.y = 620;
+	lpMMI->ptMinTrackSize.x = 920;
+	lpMMI->ptMinTrackSize.y = 620;
 }
 
 LRESULT CMainFrame::OnInitTap(WPARAM wParam, LPARAM lParam)

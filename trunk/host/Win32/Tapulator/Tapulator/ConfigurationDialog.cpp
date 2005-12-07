@@ -26,6 +26,7 @@
 #include ".\configurationdialog.h"
 #include "Connfiguration.H"
 #include "InfoLogger.h"
+#include "XBrowseForFolder.h"
 
 // CConfigurationDialog dialog
 
@@ -40,6 +41,7 @@ CConfigurationDialog::CConfigurationDialog(CWnd* pParent /*=NULL*/)
 	, m_bLogVerbose(false)
 	, m_bLogUser(false)
 	, m_iStartupFolder(0)
+	, m_iOsdTransparency(10)
 {
 	m_pConfig = new CConfiguration();
 }
@@ -62,6 +64,8 @@ void CConfigurationDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_CHECK6, m_bLogVerbose);
 	DDX_Check(pDX, IDC_CHECK7, m_bLogUser);
 	DDX_Radio(pDX, IDC_RADIO1, m_iStartupFolder);
+	DDX_Slider(pDX, IDC_SLIDER1, m_iOsdTransparency);
+	DDX_Control(pDX, IDC_SLIDER1, m_OsdTransparencySlider);
 }
 
 
@@ -76,22 +80,19 @@ END_MESSAGE_MAP()
 
 
 // CConfigurationDialog message handlers
-
-#pragma warning (disable : 4278)
-#import "c:\windows\system32\shell32.dll"
-
 void CConfigurationDialog::OnBnClickedButtonBrowseFs()
 {
-	CoInitialize(NULL);
-	Shell32::IShellDispatch4Ptr pShell("Shell.Application");
-	Shell32::Folder3Ptr pFolder = pShell->BrowseForFolder((long)this->m_hWnd, _bstr_t("Choose Root Folder"),
-		BIF_NEWDIALOGSTYLE| BIF_NONEWFOLDERBUTTON | BIF_EDITBOX | BIF_RETURNONLYFSDIRS);
+	CString csFolder;
+	m_FSPathEdit.GetWindowText(csFolder);
 
-	if (pFolder == NULL)
-		return; // cancelled
-	CString csFolder = pFolder->Self->Path;
-	m_FSPathEdit.SetWindowText(csFolder);
-	CoUninitialize();
+	TCHAR szFolder[MAX_PATH*2];
+	szFolder[0] = _T('\0');
+
+	BOOL bRet = XBrowseForFolder(m_hWnd,
+								 csFolder,		// start with current setting
+								 szFolder,
+								 sizeof(szFolder)/sizeof(TCHAR)-2);
+	m_FSPathEdit.SetWindowText(szFolder);
 }
 
 void CConfigurationDialog::OnBnClickedButtonBrowseEpg()
@@ -143,6 +144,7 @@ BOOL CConfigurationDialog::OnInitDialog()
 
 	m_EPGEdit.SetWindowText(m_pConfig->GetEPGFile());
 	m_FSPathEdit.SetWindowText(m_pConfig->GetRootFolderPath());
+	m_OsdTransparencySlider.SetRange( 0, 50 );
 
 	DWORD dwFilter = m_pConfig->GetLoggingFilter();
 
@@ -155,6 +157,7 @@ BOOL CConfigurationDialog::OnInitDialog()
 	m_bLogUser			= (dwFilter & LOG_SEVERITY_USER) != 0;
 
 	m_iStartupFolder = m_pConfig->GetStartInAutoStart();
+	m_iOsdTransparency = m_pConfig->GetOsdTransparency();
 
 	UpdateData(false);
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -181,5 +184,6 @@ void CConfigurationDialog::SaveData()
 
 	m_pConfig->SetLoggingFiler(dwFilter);
 	m_pConfig->SetStartInAutoStart(m_iStartupFolder);
+	m_pConfig->SetOsdTransparency(m_iOsdTransparency);
 	m_pConfig->Save();
 }

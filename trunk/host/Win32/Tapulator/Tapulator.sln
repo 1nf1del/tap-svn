@@ -5,6 +5,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtapulator", "libtapulato
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tapulator", "Tapulator\Tapulator.vcproj", "{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}"
 	ProjectSection(ProjectDependencies) = postProject
+		{F4672D43-3230-4B19-A133-715665259563} = {F4672D43-3230-4B19-A133-715665259563}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aTap", "demo taps\aTap\aTap.vcproj", "{F4672D43-3230-4B19-A133-715665259563}"
@@ -16,20 +17,27 @@ Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
 		Release = Release
+		Tapulator = Tapulator
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Debug.ActiveCfg = Debug|Win32
 		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Debug.Build.0 = Debug|Win32
 		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Release.ActiveCfg = Release|Win32
 		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Release.Build.0 = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator.ActiveCfg = Debug|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator.Build.0 = Debug|Win32
 		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Debug.ActiveCfg = Debug|Win32
 		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Debug.Build.0 = Debug|Win32
 		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Release.ActiveCfg = Release|Win32
 		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Release.Build.0 = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator.ActiveCfg = Debug|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator.Build.0 = Debug|Win32
 		{F4672D43-3230-4B19-A133-715665259563}.Debug.ActiveCfg = Debug|Win32
 		{F4672D43-3230-4B19-A133-715665259563}.Debug.Build.0 = Debug|Win32
 		{F4672D43-3230-4B19-A133-715665259563}.Release.ActiveCfg = Release|Win32
 		{F4672D43-3230-4B19-A133-715665259563}.Release.Build.0 = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator.ActiveCfg = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator.Build.0 = Tapulator|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

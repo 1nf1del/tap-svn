@@ -50,7 +50,7 @@ public:
 
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
-	afx_msg void OnFileOpen32771();
+	afx_msg void OnFileOpen();
 };
 
 extern CTapulatorApp theApp;

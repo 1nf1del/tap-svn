@@ -32,7 +32,7 @@ public:
 	virtual ~CConfigurationDialog();
 
 // Dialog Data
-	enum { IDD = IDD_DIALOG1 };
+	enum { IDD = IDD_OPTIONS };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -42,9 +42,12 @@ protected:
 public:
 	CEdit m_FSPathEdit;
 	CEdit m_EPGEdit;
+	CSliderCtrl m_OsdTransparencySlider;
 	afx_msg void OnBnClickedButtonBrowseFs();
 	afx_msg void OnBnClickedButtonBrowseEpg();
 	afx_msg void OnBnClickedButtonApply();
+	int m_iStartupFolder;
+	int m_iOsdTransparency;
 	int m_bLogCritical;
 	int m_bLogError;
 	int m_bLogWarning;
@@ -60,5 +63,4 @@ public:
 	afx_msg void OnBnClickedCancel();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual BOOL OnInitDialog();
-	int m_iStartupFolder;
 };

@@ -37,6 +37,7 @@ void CConfiguration::Save()
 	pApp->WriteProfileString("Configuration", "EPGFile", m_sEPGFile);
 	pApp->WriteProfileInt("Configuration", "LoggingFilter", m_dwLoggingFilter);
 	pApp->WriteProfileInt("Configuration", "StartInAutoStart", m_iStartInAutoStart);
+	pApp->WriteProfileInt("Configuration", "OSDTransparency", m_iOsdTransparency);
 }
 
 void CConfiguration::Load()
@@ -51,6 +52,7 @@ void CConfiguration::Load()
 		   LOG_SEVERITY_INFO		|	
 		   LOG_SEVERITY_USER		);
 	m_iStartInAutoStart = pApp->GetProfileInt("Configuration", "StartInAutoStart", 0);
+	m_iOsdTransparency = pApp->GetProfileInt("Configuration", "OSDTransparency", 10);
 }
 
 CString CConfiguration::GetRootFolderPath()
@@ -72,6 +74,11 @@ int CConfiguration::GetStartInAutoStart()
 	return m_iStartInAutoStart;
 }
 
+int CConfiguration::GetOsdTransparency()
+{
+	return m_iOsdTransparency;
+}
+
 void CConfiguration::SetLoggingFiler(DWORD dwVal)
 {
 	m_dwLoggingFilter = dwVal;
@@ -90,4 +97,9 @@ void CConfiguration::SetEPGFile(CString sVal)
 void CConfiguration::SetStartInAutoStart(int iVal)
 {
 	m_iStartInAutoStart = iVal;
+}
+
+void CConfiguration::SetOsdTransparency(int iVal)
+{
+	m_iOsdTransparency = iVal;
 }

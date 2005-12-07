@@ -31,15 +31,26 @@ Timers::Timers(void)
 	TYPE_TimerInfo info;
 	Zeromemory(info);	
 	info.duration = 30;
-	strcpy(info.fileName,"Some Recording");
+	strcpy(info.fileName,"Some Recording.rec");
 	info.isRec = 1; // recording, not just programmed
 	info.nameFix = false;
 	info.reservationType = RESERVE_TYPE_Onetime;
 	info.startTime = (MJDUtil::Today() << 16) + (23 << 8) + 30;
 	info.svcType = SVC_TYPE_Tv;
 	info.svcNum = 0;
-	info.tuner = 4;
+	info.tuner = 3;
 
+	Add(&info);
+	++info.svcNum;
+	strcpy(info.fileName,"The House of Tiny Tearaw_12-06.rec");
+	Add(&info);
+	++info.svcNum;
+	Add(&info);
+	++info.svcNum;
+	Add(&info);
+	++info.svcNum;
+	Add(&info);
+	++info.svcNum;
 	Add(&info);
 }
 

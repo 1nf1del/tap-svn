@@ -1,4 +1,4 @@
-//Tapulator - An emulator for the Topfield PVR TAP API
+//LibTapulator - A library for the Tapulator emulator
 //Copyright (C) 2005  Robin Glover
 //
 //This program is free software; you can redistribute it and/or
@@ -17,34 +17,16 @@
 //
 // You can contact the author via email at robin.w.glover@gmail.com
 
-#pragma once
 
-class CConfiguration
+// aTap.cpp : Defines the entry point for the DLL application.
+//
+
+#include "stdafx.h"
+BOOL APIENTRY DllMain( HANDLE hModule, 
+                       DWORD  ul_reason_for_call, 
+                       LPVOID lpReserved
+					 )
 {
-public:
-	CConfiguration(void);
-	~CConfiguration(void);
+    return TRUE;
+}
 
-	void Save();
-	void Load();
-
-	CString GetRootFolderPath();
-	CString GetEPGFile();
-	DWORD GetLoggingFilter();
-	int GetStartInAutoStart();
-	int GetOsdTransparency();
-
-	void SetLoggingFiler(DWORD dwVal);
-	void SetRootFolderPath(CString sVal);
-	void SetEPGFile(CString sVal);
-	void SetStartInAutoStart(int iVal);
-	void SetOsdTransparency(int iVal);
-
-private:
-
-	CString m_sRootFolder;
-	CString m_sEPGFile;
-	DWORD m_dwLoggingFilter;
-	int m_iStartInAutoStart;
-	int m_iOsdTransparency;
-};

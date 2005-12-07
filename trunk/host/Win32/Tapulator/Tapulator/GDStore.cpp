@@ -73,8 +73,6 @@ GDStore::~GDStore(void)
 	}
 
 }
-#define SWAPWORD(x) (MAKEWORD(HIBYTE(x), LOBYTE(x)))
-#define SWAPDWORD(x) ((SWAPWORD(x>>16)) + (SWAPWORD(x&0xFFFF)<<16))
 
 BYTE* GDStore::UnpackData(TYPE_GrData* pGD)
 {

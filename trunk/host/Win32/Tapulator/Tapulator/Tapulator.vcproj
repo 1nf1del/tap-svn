@@ -25,6 +25,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				EnableFunctionLevelLinking="TRUE"
 				TreatWChar_tAsBuiltInType="FALSE"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
@@ -215,6 +216,9 @@
 			<File
 				RelativePath=".\Windows.cpp">
 			</File>
+			<File
+				RelativePath=".\XBrowseForFolder.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -297,6 +301,9 @@
 			</File>
 			<File
 				RelativePath=".\Windows.h">
+			</File>
+			<File
+				RelativePath=".\XBrowseForFolder.h">
 			</File>
 		</Filter>
 		<Filter

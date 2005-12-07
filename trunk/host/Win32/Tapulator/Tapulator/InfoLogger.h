@@ -34,14 +34,14 @@ public:
 	InfoLogger(void);
 	virtual ~InfoLogger(void);
 
-	void LogInfo(CString sFmt, ...);
-	void LogUnimplemented(CString sMsg);
-	void LogError(CString sFmt, ...);
-	void LogVerbose(CString sFmt, ...);
-	void LogUser(CString sFmt, va_list argList);
+	void LogInfo(LPCTSTR sFmt, ...);
+	void LogUnimplemented(LPCTSTR sMsg);
+	void LogError(LPCTSTR sFmt, ...);
+	void LogVerbose(LPCTSTR sFmt, ...);
+	void LogUser(LPCTSTR sFmt, va_list argList);
 
 private:
 	DWORD GetFilter();
-	void LogVarArgs(CString sFmt, CString sPrefix, va_list argList);
-	void LogSomething(CString sMessage);
+	void LogVarArgs(LPCTSTR sFmt, LPCTSTR sPrefix, va_list argList);
+	void LogSomething(LPCTSTR sMessage);
 };
