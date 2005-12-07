@@ -132,25 +132,27 @@ void CreateNewFolder(void)
      TAP_Hdd_Create(grpName, ATTR_FOLDER);
      strcpy(blankFile.name, grpName);
      blankFile.attr = ATTR_FOLDER;
-     myfolders[CurrentDirNumber].numberOfFiles++;    // Increase local file/folder count for the number of subfolders (count starts at 0).
-     myfolders[CurrentDirNumber].numberOfFolders++;  // Increase local folder count for the number of subfolders (count starts at 0).
+     myfolders[CurrentDirNumber]->numberOfFiles++;    // Increase local file/folder count for the number of subfolders (count starts at 0).
+     myfolders[CurrentDirNumber]->numberOfFolders++;  // Increase local folder count for the number of subfolders (count starts at 0).
      numberOfFolders++;                              // Increase global count for number of folders (/Datafiles is #0).
      
-     AddNewFolder(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber].numberOfFiles, blankFile, numberOfFolders);     // Create subfolder entry in the "myfiles" array.
+     AddNewFolder(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->numberOfFiles, blankFile, numberOfFolders);     // Create subfolder entry in the "myfiles" array.
      // Create new parent directory entry.
      strcpy(newDir, CurrentDir);
      strcat(newDir, "/");
      strcat(newDir, grpName);
+
      AddNewParentFolder(newDir, numberOfFolders, 1, CurrentDirNumber); 
      
      // Save information on file and sub-folder counts for new directory.
-     myfolders[numberOfFolders].numberOfFiles      = 1;
-     myfolders[numberOfFolders].numberOfFolders    = 0;
-     myfolders[numberOfFolders].numberOfRecordings = 0;
-     myfolders[numberOfFolders].parentDirNumber    = CurrentDirNumber;
+     myfolders[numberOfFolders]->numberOfFiles      = 1;
+     myfolders[numberOfFolders]->numberOfFolders    = 0;
+     myfolders[numberOfFolders]->numberOfRecordings = 0;
+     myfolders[numberOfFolders]->parentDirNumber    = CurrentDirNumber;
+     myfolders[numberOfFolders]->directoryNumber    = numberOfFolders;
      
-     maxShown         = myfolders[CurrentDirNumber].numberOfFiles;
-     numberOfFiles    = myfolders[CurrentDirNumber].numberOfFiles;
+     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
 }
              
 
@@ -163,19 +165,19 @@ void ChangeToParentDir()
      
      appendToLogfile("ChangeToParentDir: Started.");
 
-     strcpy(subFolder,myfolders[CurrentDirNumber].name);  // Extract the current qunquailified directory name from the fully qualified directory name.
+     strcpy(subFolder,myfolders[CurrentDirNumber]->name);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
 
-     CurrentDirNumber = myfolders[CurrentDirNumber].parentDirNumber;  // Retrieve the new directory number
-     maxShown         = myfolders[CurrentDirNumber].numberOfFiles;
-     numberOfFiles    = myfolders[CurrentDirNumber].numberOfFiles;
+     CurrentDirNumber = myfolders[CurrentDirNumber]->parentDirNumber;  // Retrieve the new directory number
+     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
 
      if (CurrentDirNumber == 0) strcpy(CurrentDir, "/DataFiles");     // We're pointing at the DataFiles directory
      else strcpy(CurrentDir, myfiles[CurrentDirNumber][1].directory); // else get the full directory name from the first file/folder.
 
 // Following 4 if we don't do recursive scan on entry.
      SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
- 	 LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber].parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+ 	 LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
      LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
 	 
@@ -389,11 +391,11 @@ void ArchiveAction (int line)
                       TAP_SPrint(newDir, "%s/%s",CurrentDir,myfiles[CurrentDirNumber][line].name);
                       strcpy(CurrentDir, newDir);
                       CurrentDirNumber = myfiles[CurrentDirNumber][line].directoryNumber;
-	                  maxShown         = myfolders[CurrentDirNumber].numberOfFiles;
-	                  numberOfFiles    = myfolders[CurrentDirNumber].numberOfFiles;
+	                  maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+	                  numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
 // Following 3 if we don't do recursive scan on entry.
                       SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
- 	                  LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber].parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+ 	                  LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
                       DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
 
 	                  LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.

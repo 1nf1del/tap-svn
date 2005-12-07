@@ -2,7 +2,7 @@
 				OZ Archive
 	Archive Recordings display, and management TAP
                                
-	     	    
+ 	    
 	This module is the main event handler
  
 Name	: OZ Archive.c
@@ -77,7 +77,7 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-                          
+                             
                        
 static dword lastTick;
 static byte oldMin;
@@ -117,7 +117,7 @@ void ActivationRoutine( void )
  
 //TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "loadarchive", COLOR_White, COLOR_Black );
 //	LoadArchiveInfo("/DataFiles", 0, 0);            // Check all of the files/folders again to see if there are any new files/folders.
-	LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber].parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+	LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
 
 //TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "delete all", COLOR_White, COLOR_Black );
 //    DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
@@ -126,7 +126,7 @@ void ActivationRoutine( void )
 //TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "goto path", COLOR_White, COLOR_Black );
     GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
     
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;          // Set the number of files for this directory.
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;          // Set the number of files for this directory.
     maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
 //TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "get playback", COLOR_White, COLOR_Black );
 
@@ -489,24 +489,27 @@ int TAP_Main (void)
     CreateBlankFile();
 	
     // Blank out initial folder variable space.
-    memset(&myfolders[0],0,sizeof (myfolders[0]));
-  
+//    memset(&*myfolders[0],0,sizeof (*myfolders[0]));
+    myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
+    memset(myfolders[0],0,sizeof (*myfolders[0]));
+
 	GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");
     CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();
 
     SetAllFilesToNotPresent();
-    strcpy(myfolders[0].name,"/DataFiles");
+    strcpy(myfolders[0]->name,"/DataFiles");
+    
 	LoadArchiveInfo("/DataFiles", 0, 0, TRUE);
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
     DeleteAllFilesNotPresent();
 
     GetPlaybackInfo();  // Get info about any active playback.
     LoadPlaybackStatusInfo();  
 
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
 
 	oldMin = 100;

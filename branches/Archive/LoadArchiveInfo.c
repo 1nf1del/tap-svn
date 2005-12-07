@@ -15,8 +15,8 @@ History	: v0.0 Kidhazy: 18-10-05	Inception Date
 	Last change:  USE   
 **************************************************************/
 
-#define MAX_FILES 50  // Define how many files in a single directory we will handle.
-#define MAX_DIRS  100  // Define how many directories we will handle.
+#define MAX_FILES 20  // Define how many files in a single directory we will handle.
+#define MAX_DIRS  50  // Define how many directories we will handle.
 //#define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
 
 #define PARENT_DIR_TEXT "Move up a directory"   // Define the text to be used for the parent directory.
@@ -178,7 +178,7 @@ typedef struct
 
 
 TYPE_My_Files myfiles[MAX_DIRS][MAX_FILES], currentFile;  // Establish a global array that will hold the file details for all the files in the current directory.
-TYPE_Dir_List myfolders[MAX_DIRS], currentFolder;
+TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder;
 TYPE_File     file, blankFile;
 TYPE_RecInfo  recInfo[2];
 TYPE_Played_Files playedFiles[MAX_FILES];
@@ -683,17 +683,24 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
         myfiles[dirNumber][index].directoryNumber = newFolderNumber;  // Give each new directory a new number.
              
         // Blank out existing variable space.
-        memset(&myfolders[newFolderNumber],0,sizeof (myfolders[newFolderNumber]));
+//        memset(&*myfolders[newFolderNumber],0,sizeof (*myfolders[newFolderNumber]));
+        myfolders[newFolderNumber] = TAP_MemAlloc( sizeof  currentFolder); 
+        memset(myfolders[newFolderNumber],0,sizeof (*myfolders[newFolderNumber]));
 
         // Make new folder entry in the "myfolders" array.
-        strcpy(myfolders[newFolderNumber].name, file.name);                   // Save the partial directory name.
-        myfolders[newFolderNumber].parentDirNumber = dirNumber;                     // Save the parent directory number.
+        strcpy(myfolders[newFolderNumber]->name, file.name);                   // Save the partial directory name.
+        myfolders[newFolderNumber]->directoryNumber    = newFolderNumber;      // Save the new directory number.
+        myfolders[newFolderNumber]->parentDirNumber    = dirNumber;            // Save the parent directory number.
+        myfolders[newFolderNumber]->numberOfFiles      = 0;
+        myfolders[newFolderNumber]->numberOfFolders    = 0;
+        myfolders[newFolderNumber]->numberOfRecordings = 0;
 }
 
 void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDirNumber)
 {
         // Blank out existing variable space.
-        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
+//        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
+        memset(&myfiles[dirNumber][index],0,sizeof (currentFile));
 
         myfiles[dirNumber][index].attr = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
         strcpy( myfiles[dirNumber][index].name, PARENT_DIR_TEXT );
@@ -701,7 +708,6 @@ void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDir
         strcpy( myfiles[dirNumber][index].directory, directory );
         myfiles[dirNumber][index].directoryNumber = parentDirNumber;
         myfiles[dirNumber][index].present = TRUE;                  // Mark it as being present
-
 }
 
 
@@ -729,7 +735,7 @@ bool FileExistsInList(char* directory, char* filename, int dirNumber, int *found
     
     if (strcmp( directory, myfiles[dirNumber][1].directory ) != 0) return FALSE;
     
-    for ( fileIndex=1; fileIndex<= myfolders[dirNumber].numberOfFiles; fileIndex++)
+    for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	{
           if (FileExists( directory, filename, dirNumber, fileIndex) ) 
           {
@@ -746,7 +752,7 @@ void SetDirFilesToNotPresent(int dirNumber)
 {
     int fileIndex;
     
-    for ( fileIndex=1; fileIndex<= myfolders[dirNumber].numberOfFiles; fileIndex++)
+    for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
             myfiles[dirNumber][fileIndex].present     = FALSE;   // Mark it as being NOT present
             myfiles[dirNumber][fileIndex].isRecording = FALSE;   // Default the isRecording flag to FALSE.
@@ -774,21 +780,21 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
      if (IsFileRec(myfiles[dirNumber][fileIndex].name, myfiles[dirNumber][fileIndex].attr))   //If this is a recording
      {
         DeleteProgressInfo( dirNumber, fileIndex, FALSE);   // Delete any playback progress information for this file.
-        myfolders[dirNumber].numberOfRecordings--;  // Decrease the number of recordings in this directory.    
+        myfolders[dirNumber]->numberOfRecordings--;  // Decrease the number of recordings in this directory.    
      }   
      else // It must be a folder
      {
-        myfolders[dirNumber].numberOfFolders--;       // Decrease the number of folders in this directory.    
+        myfolders[dirNumber]->numberOfFolders--;       // Decrease the number of folders in this directory.    
      }
      
-     for ( i=fileIndex; i < myfolders[dirNumber].numberOfFiles; i++)
+     for ( i=fileIndex; i < myfolders[dirNumber]->numberOfFiles; i++)
      {
          myfiles[dirNumber][i] = myfiles[dirNumber][i+1];    // Shuffle each of the remaining entries down one.
      }
-     memset(&myfiles[dirNumber][myfolders[dirNumber].numberOfFiles],0,sizeof (myfiles[dirNumber][myfolders[dirNumber].numberOfFiles]));  // Clear out the last entry since we've deleted on.
-     myfiles[dirNumber][myfolders[dirNumber].numberOfFiles].present = TRUE;                                // Mark the entry as present so we don't try to delete it.
+     memset(&myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles],0,sizeof (myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]));  // Clear out the last entry since we've deleted on.
+     myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles].present = TRUE;                                // Mark the entry as present so we don't try to delete it.
 
-     myfolders[dirNumber].numberOfFiles--;       // Decrease the number of files/folders in this directory.    
+     myfolders[dirNumber]->numberOfFiles--;       // Decrease the number of files/folders in this directory.    
 
 }
 
@@ -797,7 +803,7 @@ void DeleteMyfilesFolderEntry(int dirNumber)
 {
      int i;
      
-     for ( i=1; i < myfolders[dirNumber].numberOfFiles; i++)
+     for ( i=1; i < myfolders[dirNumber]->numberOfFiles; i++)
      {
          if (myfiles[dirNumber][i].attr == ATTR_FOLDER)  // This is a subfolder that we need to recursively delete.
          {
@@ -810,7 +816,8 @@ void DeleteMyfilesFolderEntry(int dirNumber)
          memset(&myfiles[dirNumber][i],0,sizeof (myfiles[dirNumber][i]));  // Clear out the entry.
      }
 
-     memset(&myfolders[dirNumber],0,sizeof (myfolders[dirNumber]));  // Clear out the myfolders entry.
+//     memset(&myfolders[dirNumber],0,sizeof (myfolders[dirNumber]));  // Clear out the *myfolders entry.
+     memset(myfolders[dirNumber],0,sizeof (*myfolders[dirNumber]));  // Clear out the *myfolders entry.
 }
 
 
@@ -818,7 +825,7 @@ void DeleteDirFilesNotPresent(int dirNumber)
 {
     int fileIndex;
     
-    for ( fileIndex=1; fileIndex<= myfolders[dirNumber].numberOfFiles; fileIndex++)
+    for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
          if (!myfiles[dirNumber][fileIndex].present)               // File was not present when we reinvoked Archive
          {
@@ -859,14 +866,11 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
   
     // Set the local directory pointers.  If this is the first time through for this directory they will all equal 0, otherwise they will 
     // have the previous local totals.   
-//       numberOfDirFiles      = 0;
-//       numberOfDirFolders    = 0;
-//       numberOfDirRecordings = 0;
-    numberOfDirFiles      = myfolders[dirNumber].numberOfFiles;
-    numberOfDirFolders    = myfolders[dirNumber].numberOfFolders;
-    numberOfDirRecordings = myfolders[dirNumber].numberOfRecordings;
+    numberOfDirFiles      = myfolders[dirNumber]->numberOfFiles;
+    numberOfDirFolders    = myfolders[dirNumber]->numberOfFolders;
+    numberOfDirRecordings = myfolders[dirNumber]->numberOfRecordings;
     subFolderCount        = 0;  // Tracks the number of subfolders to recursively check.
-//    parentDirNumber       = myfolders[dirNumber].parentDirNumber;
+//    parentDirNumber       = *myfolders[dirNumber].parentDirNumber;
     
     // Create a parent directory entry as the first file when we're in a subdirectory - but not in /DataFiles.
     if (!InDataFilesFolder( directory ))
@@ -982,10 +986,10 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
 //TAP_Print("Finished dir\r\n");
    
     // Save new or updated information on file and sub-folder counts for THIS directory.
-    myfolders[dirNumber].numberOfFiles      = numberOfDirFiles;
-    myfolders[dirNumber].numberOfFolders    = numberOfDirFolders;
-    myfolders[dirNumber].numberOfRecordings = numberOfDirRecordings;
-    myfolders[dirNumber].parentDirNumber    = parentDirNumber;
+    myfolders[dirNumber]->numberOfFiles      = numberOfDirFiles;
+    myfolders[dirNumber]->numberOfFolders    = numberOfDirFolders;
+    myfolders[dirNumber]->numberOfRecordings = numberOfDirRecordings;
+    myfolders[dirNumber]->parentDirNumber    = parentDirNumber;
     
 //TAP_Print("Dir #%d >%s<\r\n",dirNumber,directory);
 //TAP_Print("dirfiles=%d dirfolders=%d recs=%d \r\n",    numberOfDirFiles,numberOfDirFolders,numberOfDirRecordings);
@@ -1022,7 +1026,7 @@ void LoadPlaybackStatusInfo(void)
      
 	for ( dirNumber=0; dirNumber<= numberOfFolders; dirNumber++)
 	{
-	    for ( fileIndex=1; fileIndex<= myfolders[dirNumber].numberOfFiles; fileIndex++)
+	    for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	    {
           if (IsFileRec(myfiles[dirNumber][fileIndex].name, myfiles[dirNumber][fileIndex].attr))  // If we're looking at a recorded show, match up any existing playback status info.
           {

@@ -289,7 +289,7 @@ void DetermineStartingLine(int *line)
 {
     int i, numberOfFiles;
     
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
 
     *line = numberOfFiles;                            // Select the last file when we start in the "DataFiles" directory.	
 
@@ -383,7 +383,7 @@ void SortList(int sortOrder)
 		swaps++;         
     }	
 
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     
     strcpy(sortTitle,"[by name]");   // Default the sort title to by name.
     //	Always sort files in the array by name 
@@ -628,7 +628,7 @@ void DrawBackground(void)
 	char	str[200];
 	
 	if (InDataFilesFolder(CurrentDir)) strcpy(str,"DataFiles");  // Don't print the "/" for the base directory.
-	else strcpy(str,myfolders[CurrentDirNumber].name);
+	else strcpy(str,myfolders[CurrentDirNumber]->name);
     TAP_SPrint( str, "%s %s",str, sortTitle ); 
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
 
@@ -668,16 +668,16 @@ void DisplayFolderText(int line, int i)
                             TAP_Osd_PutGd( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET-8, &_folder_yellowGd, TRUE );
                        
                             // Number of subfolders in folder.
-                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders > 0)
+                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders > 0)
                             {
-	                           TAP_SPrint(str, "%d folder%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders, myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfFolders >= 2 ? 's':' ');
+	                           TAP_SPrint(str, "%d folder%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders, myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders >= 2 ? 's':' ');
 	                           PrintCenter( listRgn, COLUMN3_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN3_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
                             }   
                             
                             // Number of recordings in folder.
-                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings > 0)
+                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings > 0)
                             {
-	                           TAP_SPrint(str, "%d %s%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings, column4Option == 2 ? "rec":"recording", myfolders[myfiles[CurrentDirNumber][line].directoryNumber].numberOfRecordings == 1 ? ' ':'s');
+	                           TAP_SPrint(str, "%d %s%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings, column4Option == 2 ? "rec":"recording", myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings == 1 ? ' ':'s');
 	                           PrintCenter( listRgn, COLUMN4_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN4_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
                             }
                             break;
@@ -1516,7 +1516,7 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_Info :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine].attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine].isRecording) )
                             { 
                                  currentFile   = myfiles[CurrentDirNumber][chosenLine];
-                                 currentFolder = myfolders[myfiles[CurrentDirNumber][chosenLine].directoryNumber];
+                                 currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine].directoryNumber];
                                  ActivateInfoWindow();
                             }     
 							break;
@@ -1584,7 +1584,7 @@ void initialiseArchiveWindow( void )
 
 void RefreshArchiveWindow( void )
 {
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;          // Set the number of files for this directory.
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;          // Set the number of files for this directory.
     maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
 
 	SortList(sortOrder);						   // sort the files in selected order
@@ -1611,7 +1611,7 @@ void RefreshArchiveList( bool reposition )
 {
     appendToLogfile("RefreshArchiveList: Started.");
 
-    numberOfFiles = myfolders[CurrentDirNumber].numberOfFiles;          // Set the number of files for this directory.
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;          // Set the number of files for this directory.
     maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
 
 	SortList(sortOrder);						   // sort the files in selected order
