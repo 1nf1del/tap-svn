@@ -26,6 +26,8 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 */
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"
+#include "graphics/Keyboard_Help_Screen_OZ.GD"
+#include "graphics/Keyboard_Help_Screen_UK.GD"
 #include "TIC.C"
 
 #define KB_STEP_X	60
@@ -42,8 +44,8 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 
 #define KB_HELP_LINES1  11                          // Number of help lines in 1st column
 #define KB_HELP_LINES2  11                          // Number of help lines in 2nd column
-#define KB_HELP_HEIGHT 321
-#define KB_HELP_WIDTH 520
+#define KB_HELP_HEIGHT 490 //321
+#define KB_HELP_WIDTH 476 //520
 #define KB_HELP_BASE_X  ((MAX_SCREEN_X-KB_HELP_WIDTH)/2)
 #define KB_HELP_BASE_Y	((MAX_SCREEN_Y-KB_HELP_HEIGHT)/2)
 #define KB_HELP_TEXT_X1  (KB_HELP_BASE_X + 10)
@@ -197,8 +199,12 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
 #endif          
 
     // Display the pop-up window.
-    TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
-
+    if ( unitModelType==TF5800t) // Display the UK style remote
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_screen_ukGd, TRUE );
+    else  
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_screen_ozGd, TRUE );
+//    TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
+/*
     TAP_SPrint(str, "Keyboard Help");
 	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_TITLE_Y, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	 
@@ -224,7 +230,7 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
     TAP_SPrint(str, "(Press EXIT or INFO      to close this help window)");
 	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
     TAP_Osd_PutGd( rgn, KB_HELP_TEXT_X1+207, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35+2, &_infooval38x19Gd, TRUE );
-
+*/
 }
 
      

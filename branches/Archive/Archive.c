@@ -327,6 +327,9 @@ dword My_IdleHandler(void)
 
 	if ( min != oldMin )  // Update the clock and any recording/playback entries that are displayed, every minute.
 	{
+	    if ( archiveHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
+	    if ( keyboardHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
+
 	    oldMin = min;
 		UpdateListClock();
 	    
@@ -334,7 +337,6 @@ dword My_IdleHandler(void)
         if ( infoWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
 	    if ( deleteWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
 	    if ( stopWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
-	    if ( archiveHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
 		
 		// Check if there is an active playback displayed on the screen.  If so, update it's progress information.
 		if ((inPlaybackMode) && (playbackOnScreenEntry>0))
@@ -493,7 +495,7 @@ int TAP_Main (void)
     strcpy(CurrentDir,"/DataFiles");
     CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();
-    
+
     SetAllFilesToNotPresent();
     strcpy(myfolders[0].name,"/DataFiles");
 	LoadArchiveInfo("/DataFiles", 0, 0, TRUE);

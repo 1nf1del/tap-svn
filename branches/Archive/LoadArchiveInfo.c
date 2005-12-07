@@ -15,8 +15,8 @@ History	: v0.0 Kidhazy: 18-10-05	Inception Date
 	Last change:  USE   
 **************************************************************/
 
-#define MAX_FILES 100  // Define how many files in a single directory we will handle.
-#define MAX_DIRS  50  // Define how many directories we will handle.
+#define MAX_FILES 50  // Define how many files in a single directory we will handle.
+#define MAX_DIRS  100  // Define how many directories we will handle.
 //#define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
 
 #define PARENT_DIR_TEXT "Move up a directory"   // Define the text to be used for the parent directory.
