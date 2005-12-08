@@ -39,7 +39,7 @@ char outputFilename[256];
 FILE *outputFile;
 FILE *headerFile;
 int outputHeader = FALSE;
-int verbose = TRUE;
+int verbose = FALSE;
 
 // Returns a pointer to the beginning of the filename
 char* GetFilename(char* path)
@@ -192,6 +192,8 @@ int ProcessImage( char* filename )
 			return FALSE;
 		}
 		fprintf( outputFile, "#include <tap.h>\n\n" );
+		if ( verbose )
+			fprintf( stderr, "Created %s\n", filename );
 	}
 
 	switch ( compression )
@@ -202,7 +204,7 @@ int ProcessImage( char* filename )
 		{
 			fprintf( headerFile, "#define %s_Width %d\n", graphicName, width );
 			fprintf( headerFile, "#define %s_Height %d\n", graphicName, height );
-			fprintf( headerFile, "extern word _%sData[];\n", graphicName );
+			fprintf( headerFile, "extern word %sData[];\n", graphicName );
 		}
 		else
 		{
@@ -323,6 +325,8 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 		fprintf( outputFile, "#include <tap.h>\n\n" );
+		if ( verbose )
+			fprintf( stderr, "Created source %s\n", outputFilename );
 
 		// Create matching header file
 		StripFilenameExtension( outputFilename );
@@ -333,6 +337,9 @@ int main(int argc, char* argv[])
 			fprintf( stderr, "Can't open output file %s\n", outputFilename );
 			return 1;
 		}
+		if ( verbose )
+			fprintf( stderr, "Created header %s\n", outputFilename );
+
 		StripFilenameExtension( outputFilename );
 		fprintf( headerFile, "#ifndef __%s_H\n#define __%s_H\n\n", outputFilename, outputFilename );
 		fprintf( headerFile, "#include <tap.h>\n\n" );
@@ -349,7 +356,7 @@ int main(int argc, char* argv[])
 			{
 				if ( errno == EINVAL )
 					fprintf( stderr, "%s is not a valid wildcard\n", argv[i] );
-				else if ( errno == ENOENT )
+				else if ( errno == ENOENT && verbose )
 					fprintf( stderr, "No files found matching %s\n", argv[i] );
 			}
 			else
@@ -370,8 +377,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if ( verbose )
-		fprintf( stderr, "Processed %d files\n", fileCount );
+	fprintf( stderr, "Processed %d files\n", fileCount );
 
 	if ( outputFile )
 		fclose( outputFile );
