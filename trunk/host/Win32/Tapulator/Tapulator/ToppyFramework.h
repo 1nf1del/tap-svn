@@ -231,11 +231,11 @@ private:
 	Windows m_Windows;
 	TapModule* m_pMod;
 	CString m_sCurrentFolder;
-	Timers m_Timers;
 
 	std::map<TYPE_File*, FILE*> m_mapOpenFiles;
 	HANDLE m_hCurrentFind;
 	CChannelList m_ChannelList;
+	Timers m_Timers;
 	JagFileReader m_EPGImpl;
 	ToppyState m_TheState;
 	DWORD m_iFirstTick;

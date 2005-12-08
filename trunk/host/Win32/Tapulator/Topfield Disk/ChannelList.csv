@@ -1,0 +1,54 @@
+1,BBC ONE,TV
+2,BBC TWO,TV
+3,ITV1,TV
+4,Channel 4,TV
+5,five,TV
+6,ITV2,TV
+7,BBC THREE,TV
+9,BBC FOUR,TV
+10,ITV3,TV
+11,Sky Travel,TV
+12,UKTV History,TV
+13,More4,TV
+14,E4,TV
+15,abc1,TV
+18,The Hits,TV
+19,UKTV Bright Ideas,TV
+20,Ftn,TV
+21,TMF,TV
+30,ITV4,TV
+32,E4+1,TV
+38,Men & Motors,TV
+70,CBBC Channel,TV
+71,CBeebies,TV
+80,BBC News 24,TV
+81,ITV News,TV
+82,Sky News,TV
+83,Sky Sports News,TV
+85,BBC Parliament,TV
+87,Community,TV
+88,Teachers' TV,TV
+700,BBC Radio 1,Radio
+701,BBC 1Xtra,Radio
+702,BBC Radio 2,Radio
+703,BBC Radio 3,Radio
+704,BBC Radio 4,Radio
+705,BBC Radio 5 Live,Radio
+706,BBC 5L SportsX,Radio
+707,BBC 6 Music,Radio
+708,BBC 7,Radio
+709,BBC Asian Network,Radio
+710,BBC World Service,Radio
+711,The Hits Radio,Radio
+712,Smash Hits!,Radio
+713,Kiss,Radio
+714,Heat,Radio
+715,Magic,Radio
+716,Q,Radio
+717,oneword,Radio
+718,Jazz FM,Radio
+721,Mojo,Radio
+722,Kerrang!,Radio
+723,talkSPORT,Radio
+724,3C,Radio
+725,Premier Radio,Radio

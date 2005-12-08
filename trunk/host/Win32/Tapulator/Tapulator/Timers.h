@@ -20,10 +20,12 @@
 #pragma once
 #include "InfoLogger.h"
 
+class CChannelList;
+
 class Timers : public InfoLogger
 {
 public:
-	Timers(void);
+	Timers( CChannelList* channelList );
 	~Timers(void);
 
 	int GetTotalNum(void );
@@ -33,6 +35,16 @@ public:
 	bool Delete(unsigned int entryNum );
 
 private:
+	// Timer loading functions from UKTimers
+	CString ReadTimerField();
+	word ExtractServiceID( char *LCN_str, char *serviceName, byte serviceType );
+	dword ReadTimerStart();
+	word ReadTimerDuration();
+	bool ProcessTimerLine();
+
+private:
 
 	std::vector<TYPE_TimerInfo> m_vecTimers;
+	CChannelList* m_ChannelList;
+	CString m_line;
 };

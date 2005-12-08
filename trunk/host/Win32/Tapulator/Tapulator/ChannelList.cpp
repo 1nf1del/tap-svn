@@ -19,8 +19,9 @@
 
 #include "StdAfx.h"
 #include ".\channellist.h"
-
-static int LogicalChannelNums[] = {1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,20,32,38,70,71,80,81,82,83};
+#include "MainFrm.h"
+#include "Connfiguration.h"
+#include "StringUtils.h"
 
 CChannelList::CChannelList(void)
 {
@@ -32,6 +33,31 @@ CChannelList::CChannelList(void)
 	m_rcMain = CRect(0,0,720, 576);
 	m_rcSub = CRect(450, 50, 690, 242);
 	m_bIsDirty = false;
+
+	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
+	CConfiguration* pConfig = pFrame->GetConfig();
+	CStdioFile file;
+	if ( file.Open( pConfig->GetChannelFile(), CFile::modeRead ) )
+	{
+		CString line;
+		while ( file.ReadString( line ) )
+		{
+			CStringArray split;
+			if ( Split( line, ",", split ) > 1 )
+			{
+				TYPE_TapChInfo chInfo;
+				chInfo.logicalChNum = atoi( split[0] );
+				strcpy(chInfo.satName, "");
+				strcpy(chInfo.chName, split[1]);
+				chInfo.dolbyTrack = -1;
+				chInfo.ttxAvailable = 1;
+				if ( split[2].CompareNoCase( "TV" ) == 0 )
+					m_vecTV.push_back( chInfo );
+				else
+					m_vecRadio.push_back( chInfo );
+			}
+		}
+	}
 }
 
 CChannelList::~CChannelList(void)
@@ -51,225 +77,31 @@ int CChannelList::IsTVOrRadio()
 
 int CChannelList::GetTVCount()
 {
-	return sizeof(LogicalChannelNums)/sizeof(int);
+	return m_vecTV.size();
 }
 
 int CChannelList::GetRadioCount()
 {
-	return 0;
-
+	return m_vecRadio.size();
 }
+
 
 int CChannelList::GetInfo(int svcType, int svcNum, TYPE_TapChInfo *chInfo )
 {
 	ZeroMemory(chInfo, sizeof(TYPE_TapChInfo));
-	if (svcType == SVC_TYPE_Radio)
-		return 0;
+	std::vector<TYPE_TapChInfo>& v = svcType == SVC_TYPE_Radio ? m_vecRadio : m_vecTV;
 
-	if (svcNum >= GetTVCount())
-		return 0;
-
-	chInfo->logicalChNum = LogicalChannelNums[svcNum];
-	strcpy (chInfo->chName, GetNameForChannel(chInfo->logicalChNum));
-	chInfo->dolbyTrack = -1;
-	chInfo->ttxAvailable = 1;
-	return 1;
-}
-
-CString CChannelList::GetNameForChannel(int iChannelNum)
-{
-	CString sName;
-	switch (iChannelNum)
+	std::vector<TYPE_TapChInfo>::iterator p;
+	int i = 0;
+	for ( p = v.begin(); p != v.end(); ++p, ++i )
 	{
-	case 1:
-		sName="BBC ONE";
-		break;
-	case 2:
-		sName="BBC TWO";
-		break;
-	case 3:
-		sName="ITV1";
-		break;
-	case 4:
-		sName="Channel 4";
-		break;
-	case 5:
-		sName="five";
-		break;
-	case 6:
-		sName="ITV2";
-		break;
-	case 7:
-		sName="BBC THREE";
-		break;
-	case 8:
-		sName="S4C";
-		break;
-	case 9:
-		sName="BBC FOUR";
-		break;
-	case 10:
-		sName="ITV3";
-		break;
-	case 11:
-		sName="Sky Travel";
-		break;
-	case 12:
-		sName="UKTV History";
-		break;
-	case 13:
-		sName="More 4";
-		break;
-	case 14:
-		sName="E4";
-		break;
-	case 15:
-		sName="ABC1";
-		break;
-	case 16:
-		sName="QVC";
-		break;
-	case 17:
-		sName="UKTV Gold";
-		break;
-	case 18:
-		sName="The Hits";
-		break;
-	case 19:
-		sName="UKTV Br'tIdeas";
-		break;
-	case 20:
-		sName="f tn";
-		break;
-	case 21:
-		sName="TMF";
-		break;
-	case 22:
-		sName="Ideal World";
-		break;
-	case 23:
-		sName="Bid TV";
-		break;
-	case 24:
-		sName="Price-Drop TV";
-		break;
-	case 25:
-		sName="TCM";
-		break;
-	case 26:
-		sName="UKTV Style";
-		break;
-	case 27:
-		sName="Discovery";
-		break;
-	case 28:
-		sName="DiscoveryRTime";
-		break;
-	case 29:
-		sName="UKTV Food";
-		break;
-	case 32:
-		sName="E4+1";
-		break;
-	case 33:
-		sName="Eurosport";
-		break;
-	case 34:
-		sName="Setanta Sports";
-		break;
-	case 36:
-		sName="Xtraview";
-		break;
-	case 37:
-		sName="Quiz Call";
-		break;
-	case 38:
-		sName="Men & Motors";
-		break;
-	case 70:
-		sName="CBBC Channel";
-		break;
-	case 71:
-		sName="Cbeebies";
-		break;
-	case 72:
-		sName="Cartoon Network";
-		break;
-	case 73:
-		sName="Boomerang";
-		break;
-	case 74:
-		sName="Toonami";
-		break;
-	case 80:
-		sName="BBC News 24";
-		break;
-	case 81:
-		sName="ITV News";
-		break;
-	case 82:
-		sName="Sky News";
-		break;
-	case 83:
-		sName="Sky Spts News";
-		break;
-	case 84:
-		sName="Bloomberg";
-		break;
-	case 85:
-		sName="BBC Parlmnt";
-		break;
-	case 86:
-		sName="S4C2";
-		break;
-	case 87:
-		sName="Community";
-		break;
-	case 88:
-		sName="Teachers' TV";
-		break;
-	case 97:
-		sName="Television X";
-		break;
-	case 98:
-		sName="Red Hot";
-		break;
-	case 100:
-		sName="Teletext";
-		break;
-	case 101:
-		sName="Teletext TV Guide";
-		break;
-	case 102:
-		sName="Teletext Holidays";
-		break;
-	case 103:
-		sName="Teletext Cars";
-		break;
-	case 104:
-		sName="Teletext on 4";
-		break;
-	case 105:
-		sName="BBCi";
-		break;
-	case 106:
-		sName="YooPlay";
-		break;
-	case 300:
-		sName="4TV Interactive";
-		break;
-	case 301:
-		sName="(BBCi)";
-		break;
-	case 302:
-		sName="(BBCi)";
-		break;
-	case 303:
-		sName="(BBCi)";
-		break;
+		if ( i == svcNum )
+		{
+			*chInfo = *p;
+			return 1;
+		}
 	}
-
-	return sName;
+	return 0;
 }
 
 void CChannelList::DecrementCurrentChannel()

@@ -56,6 +56,7 @@ void CConfigurationDialog::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EDIT_FS, m_FSPathEdit);
 	DDX_Control(pDX, IDC_EDIT_EPG, m_EPGEdit);
+	DDX_Control(pDX, IDC_EDIT_TIMER, m_TimerEdit);
 	DDX_Check(pDX, IDC_CHECK1, m_bLogCritical);
 	DDX_Check(pDX, IDC_CHECK2, m_bLogError);
 	DDX_Check(pDX, IDC_CHECK3, m_bLogWarning);
@@ -66,11 +67,14 @@ void CConfigurationDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Radio(pDX, IDC_RADIO1, m_iStartupFolder);
 	DDX_Slider(pDX, IDC_SLIDER1, m_iOsdTransparency);
 	DDX_Control(pDX, IDC_SLIDER1, m_OsdTransparencySlider);
+	DDX_Control(pDX, IDC_EDIT_CHANNEL, m_ChannelEdit);
 }
 
 
 BEGIN_MESSAGE_MAP(CConfigurationDialog, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE_FS, OnBnClickedButtonBrowseFs)
+	ON_BN_CLICKED(IDC_BUTTON_BROWSE_CHANNEL, OnBnClickedButtonBrowseChannel)
+	ON_BN_CLICKED(IDC_BUTTON_BROWSE_TIMER, OnBnClickedButtonBrowseTimer)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE_EPG, OnBnClickedButtonBrowseEpg)
 	ON_BN_CLICKED(IDC_BUTTON_APPLY, OnBnClickedButtonApply)
 	ON_BN_CLICKED(IDOK, OnBnClickedOk)
@@ -93,6 +97,28 @@ void CConfigurationDialog::OnBnClickedButtonBrowseFs()
 								 szFolder,
 								 sizeof(szFolder)/sizeof(TCHAR)-2);
 	m_FSPathEdit.SetWindowText(szFolder);
+}
+
+void CConfigurationDialog::OnBnClickedButtonBrowseChannel()
+{
+	CString cs;
+	m_ChannelEdit.GetWindowText(cs);
+	CFileDialog fd(true, ".DAT", cs, OFN_HIDEREADONLY, "Channel List Files (*.csv)|*.csv|All Files (*.*)|*.*||", this, 0);
+	if (fd.DoModal() == IDOK)
+	{
+		m_ChannelEdit.SetWindowText(fd.GetPathName());
+	}
+}
+
+void CConfigurationDialog::OnBnClickedButtonBrowseTimer()
+{
+	CString cs;
+	m_TimerEdit.GetWindowText(cs);
+	CFileDialog fd(true, ".txt", cs, OFN_HIDEREADONLY, "Timer Data Files (*.txt)|*.txt|All Files (*.*)|*.*||", this, 0);
+	if (fd.DoModal() == IDOK)
+	{
+		m_TimerEdit.SetWindowText(fd.GetPathName());
+	}
 }
 
 void CConfigurationDialog::OnBnClickedButtonBrowseEpg()
@@ -142,8 +168,10 @@ BOOL CConfigurationDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_EPGEdit.SetWindowText(m_pConfig->GetEPGFile());
 	m_FSPathEdit.SetWindowText(m_pConfig->GetRootFolderPath());
+	m_ChannelEdit.SetWindowText(m_pConfig->GetChannelFile());
+	m_TimerEdit.SetWindowText(m_pConfig->GetTimerFile());
+	m_EPGEdit.SetWindowText(m_pConfig->GetEPGFile());
 	m_OsdTransparencySlider.SetRange( 0, 50 );
 
 	DWORD dwFilter = m_pConfig->GetLoggingFilter();
@@ -167,6 +195,10 @@ BOOL CConfigurationDialog::OnInitDialog()
 void CConfigurationDialog::SaveData()
 {
 	CString cs;
+	m_ChannelEdit.GetWindowText(cs);
+	m_pConfig->SetChannelFile(cs);
+	m_TimerEdit.GetWindowText(cs);
+	m_pConfig->SetTimerFile(cs);
 	m_EPGEdit.GetWindowText(cs);
 	m_pConfig->SetEPGFile(cs);
 

@@ -193,6 +193,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\StringUtils.cpp">
+			</File>
+			<File
 				RelativePath=".\TapModule.cpp">
 			</File>
 			<File
@@ -279,6 +282,9 @@
 				RelativePath=".\stdafx.h">
 			</File>
 			<File
+				RelativePath=".\StringUtils.h">
+			</File>
+			<File
 				RelativePath=".\TapModule.h">
 			</File>
 			<File
@@ -326,9 +332,6 @@
 				RelativePath=".\res\Toolbar.bmp">
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt">
-		</File>
 		<File
 			RelativePath=".\res\Tapulator.manifest">
 		</File>

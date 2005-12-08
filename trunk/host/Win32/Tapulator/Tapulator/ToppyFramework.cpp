@@ -30,7 +30,7 @@
 #include "MainFrm.h"
 #include "Connfiguration.h"
 
-ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), m_TheState(&m_ChannelList, &m_EPGImpl)
+ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), m_TheState(&m_ChannelList, &m_EPGImpl), m_Timers(&m_ChannelList)
 {
 	m_pMod = pModule;
 	m_hCurrentFind = 0;

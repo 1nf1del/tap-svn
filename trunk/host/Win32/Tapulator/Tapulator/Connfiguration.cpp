@@ -34,7 +34,9 @@ void CConfiguration::Save()
 {
 	CWinApp* pApp = AfxGetApp();
 	pApp->WriteProfileString("Configuration", "FileSystemPath", m_sRootFolder);
+	pApp->WriteProfileString("Configuration", "ChannelFile", m_sChannelFile);
 	pApp->WriteProfileString("Configuration", "EPGFile", m_sEPGFile);
+	pApp->WriteProfileString("Configuration", "TimerFile", m_sTimerFile);
 	pApp->WriteProfileInt("Configuration", "LoggingFilter", m_dwLoggingFilter);
 	pApp->WriteProfileInt("Configuration", "StartInAutoStart", m_iStartInAutoStart);
 	pApp->WriteProfileInt("Configuration", "OSDTransparency", m_iOsdTransparency);
@@ -44,7 +46,9 @@ void CConfiguration::Load()
 {
 	CWinApp* pApp = AfxGetApp();
 	m_sRootFolder = pApp->GetProfileString("Configuration", "FileSystemPath", "c:\\toppy");
+	m_sChannelFile = pApp->GetProfileString("Configuration", "ChannelFile", "c:\\ChannelList.csv");
 	m_sEPGFile = pApp->GetProfileString("Configuration", "EPGFile", "c:\\Jags_EPG.Buffer.DAT");
+	m_sTimerFile = pApp->GetProfileString("Configuration", "TimerFile", "c:\\TimerList.txt");
 	m_dwLoggingFilter = pApp->GetProfileInt("Configuration", "LoggingFilter", LOG_SEVERITY_CRIT		|
 		   LOG_SEVERITY_ERROR		|
 		   LOG_SEVERITY_UNIMPL		|
@@ -59,6 +63,17 @@ CString CConfiguration::GetRootFolderPath()
 {
 	return m_sRootFolder;
 }
+
+CString CConfiguration::GetChannelFile()
+{
+	return m_sChannelFile;
+}
+
+CString CConfiguration::GetTimerFile()
+{
+	return m_sTimerFile;
+}
+
 CString CConfiguration::GetEPGFile()
 {
 	return m_sEPGFile;
@@ -84,12 +99,22 @@ void CConfiguration::SetLoggingFiler(DWORD dwVal)
 	m_dwLoggingFilter = dwVal;
 }
 
-void CConfiguration::SetRootFolderPath(CString sVal)
+void CConfiguration::SetRootFolderPath(const CString& sVal)
 {
 	m_sRootFolder = sVal;
 }
 
-void CConfiguration::SetEPGFile(CString sVal)
+void CConfiguration::SetChannelFile(const CString& sVal)
+{
+	m_sChannelFile = sVal;
+}
+
+void CConfiguration::SetTimerFile(const CString& sVal)
+{
+	m_sTimerFile = sVal;
+}
+
+void CConfiguration::SetEPGFile(const CString& sVal)
 {
 	m_sEPGFile = sVal;
 }

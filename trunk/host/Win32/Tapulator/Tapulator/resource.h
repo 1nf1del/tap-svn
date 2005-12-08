@@ -54,9 +54,14 @@
 #define IDC_SLIDER1                     1020
 #define IDC_OSDTRANSPARENCY             1020
 #define IDC_LIST                        1021
+#define IDC_EDIT_TIMER                  1021
 #define IDC_GUIDE                       1022
+#define IDC_BUTTON_BROWSE_TIMER         1022
 #define IDC_MENU                        1023
+#define IDC_EDIT_CHANNEL                1023
 #define IDC_EXIT                        1024
+#define IDC_BUTTON_BROWSE_EPG2          1024
+#define IDC_BUTTON_BROWSE_CHANNEL       1024
 #define IDC_VOLUP                       1025
 #define IDC_VOLDOWN                     1026
 #define IDC_PROGUP                      1027

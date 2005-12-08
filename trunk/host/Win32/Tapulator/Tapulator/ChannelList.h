@@ -60,8 +60,6 @@ public:
 	CRect GetChannelRect(int mainSub);
 
 private:
-	CString GetNameForChannel(int iChannelNum);
-
 	int m_iCurrentChannel;
 	int m_iCurrentSubChannel;
 	int m_iFindNextPos;
@@ -70,4 +68,7 @@ private:
 	bool m_bIsDirty;
 	CRect m_rcMain;
 	CRect m_rcSub;
+
+	std::vector<TYPE_TapChInfo> m_vecTV;
+	std::vector<TYPE_TapChInfo> m_vecRadio;
 };

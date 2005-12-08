@@ -29,20 +29,26 @@ public:
 	void Load();
 
 	CString GetRootFolderPath();
+	CString GetChannelFile();
+	CString GetTimerFile();
 	CString GetEPGFile();
 	DWORD GetLoggingFilter();
 	int GetStartInAutoStart();
 	int GetOsdTransparency();
 
 	void SetLoggingFiler(DWORD dwVal);
-	void SetRootFolderPath(CString sVal);
-	void SetEPGFile(CString sVal);
+	void SetRootFolderPath(const CString& sVal);
+	void SetChannelFile(const CString& sVal);
+	void SetTimerFile(const CString& sVal);
+	void SetEPGFile(const CString& sVal);
 	void SetStartInAutoStart(int iVal);
 	void SetOsdTransparency(int iVal);
 
 private:
 
 	CString m_sRootFolder;
+	CString m_sChannelFile;
+	CString m_sTimerFile;
 	CString m_sEPGFile;
 	DWORD m_dwLoggingFilter;
 	int m_iStartInAutoStart;

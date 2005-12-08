@@ -41,9 +41,13 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CEdit m_FSPathEdit;
+	CEdit m_ChannelEdit;
+	CEdit m_TimerEdit;
 	CEdit m_EPGEdit;
 	CSliderCtrl m_OsdTransparencySlider;
 	afx_msg void OnBnClickedButtonBrowseFs();
+	afx_msg void OnBnClickedButtonBrowseChannel();
+	afx_msg void OnBnClickedButtonBrowseTimer();
 	afx_msg void OnBnClickedButtonBrowseEpg();
 	afx_msg void OnBnClickedButtonApply();
 	int m_iStartupFolder;
