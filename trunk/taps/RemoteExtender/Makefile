@@ -35,7 +35,7 @@ RemoteExtender.elf::	RemoteExtender.o RemoteMap.o ../../libs/libutils/libutils.a
 RemoteExtender.o:		RemoteExtender.c RemoteMap.h
 RemoteMap.o:			RemoteMap.c RemoteMap.h
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware
+CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -C ../../libs/libutils

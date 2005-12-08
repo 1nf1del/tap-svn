@@ -28,11 +28,12 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender");
+TAP_PROGRAM_NAME("Remote Extender 0.3");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
 
+#include <TSRCommander.h>
 
 dword lastKey = 0;
 
@@ -72,7 +73,7 @@ dword remoteReceiveSignature[] =
 	0xafbf0010,
 	0x0080f025,
 	0x0000a825,
-	0x0c0000f4,
+	0x0c0000ff,
 	0x00000000,
 	0x0040b025,
 	0x3c198060,
@@ -189,7 +190,7 @@ bool AdjustDispatchKeyFunction()
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
 #ifdef DEBUG
-	if ( ( event == EVT_KEY || event == EVT_KEY-1 )&& ( param1 == RKEY_Power || param1 == RKEY_Recall ) ) 
+	if ( ( event == EVT_KEY || event == EVT_KEY-1 )&& param1 == RKEY_Recall ) 
 	{
 		UndoFirmwareHacks();
 		TAP_Exit();
@@ -210,7 +211,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			incall = TRUE;
 			param2 = lastKey ? 0x100 | (lastKey & 0xff) : 0;
 
-			TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
+			//TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
 
 			for ( i = 0 ; i < TAP_MAX; ++i )
 			{
@@ -224,7 +225,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 						tempParam1 = keys5000[param2 & 0xff];
 					}
 					*/
-					TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, tempParam1, param2 );
+					// TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, tempParam1, param2 );
 					tempParam1 = TAP_SendEvent( i, EVT_KEY, tempParam1, param2 );
 
 					// Zero return value should mean don't pass the value on to other TAPs
@@ -256,26 +257,36 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 
 //-----------------------------------------------------------------------------
+void TSRCommanderConfigDialog()
+{
+}
+
+
+bool TSRCommanderExitTAP()
+{
+	UndoFirmwareHacks();
+	TAP_Exit();
+}
+
+
 int TAP_Main()
 {
 	TAP_Print( "Starting Remote Extender TAP\n" );
 
 	if ( !StartTAPExtensions() )
 	{
-		ShowMessage( "Failed StartTAPExtensions\n", 200 );
+		ShowMessage( "Sorry, Remote Extender is not compatible with your firmware", 200 );
 		return 0;
 	}
 
 	if ( !HookReceiveKeyFunction() )
 	{
-		ShowMessage( "Failed HookReceiveKeyFunction\n", 200);
 		UndoFirmwareHacks();
 		return 0;
 	}
 
 	if ( !AdjustDispatchKeyFunction() )
 	{
-		ShowMessage( "Failed AdjustDispatchKeyFunction\n", 200);
 		UndoFirmwareHacks();
 		return 0;
 	}
