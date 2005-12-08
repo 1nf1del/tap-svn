@@ -83,7 +83,7 @@ void StripFilenameExtension(char* path)
 }
 
 
-void HexDump( BYTE* buffer, int bufferLength )
+void HexDumpByte( BYTE* buffer, int bufferLength )
 {
 	int colCount = 0;
 	fprintf( outputFile, "\t" );
@@ -98,8 +98,25 @@ void HexDump( BYTE* buffer, int bufferLength )
 	}
 	fprintf( outputFile, "\n" );
 }
-
 unsigned short swap( unsigned short w );
+
+void HexDumpWord( WORD* buffer, int bufferLength )
+{
+	int colCount = 0;
+	fprintf( outputFile, "\t" );
+	while ( bufferLength-- )
+	{
+		fprintf( outputFile, "0x%04x%s", swap(*(buffer++)), bufferLength ? "," : "" );
+		if ( bufferLength && ++colCount == 0x10 )
+		{
+			colCount = 0;
+			fprintf( outputFile, "\n\t" );
+		}
+	}
+	fprintf( outputFile, "\n" );
+}
+
+
 
 
 
@@ -183,19 +200,19 @@ int ProcessImage( char* filename )
 	{
 		if ( headerFile )
 		{
-			fprintf( headerFile, "#define %s_Width %d;\n", graphicName, width );
-			fprintf( headerFile, "#define %s_Height %d;\n", graphicName, height );
+			fprintf( headerFile, "#define %s_Width %d\n", graphicName, width );
+			fprintf( headerFile, "#define %s_Height %d\n", graphicName, height );
 			fprintf( headerFile, "extern word _%sData[];\n", graphicName );
 		}
 		else
 		{
-			fprintf( outputFile, "#define %s_WIDTH %d;\n", graphicName, width );
-			fprintf( outputFile, "#define %s_HEIGHT %d;\n", graphicName, height );
+			fprintf( outputFile, "#define %s_Width %d\n", graphicName, width );
+			fprintf( outputFile, "#define %s_Height %d\n", graphicName, height );
 		}
 		fprintf( outputFile, "\n" );
 		fprintf( outputFile, "word %sData[] = \n", graphicName );
 		fprintf( outputFile, "{\n" );
-		HexDump( buffer, bufferSize );
+		HexDumpWord( (WORD*)buffer, bufferSize/2 );
 		fprintf( outputFile, "};\n" );
 		fprintf( outputFile, "\n" );
 		break;
@@ -205,7 +222,7 @@ int ProcessImage( char* filename )
 		BYTE *output = (BYTE*)malloc( bufferSize );
 		int compressed = tfdcompress( buffer, bufferSize, output );
 		fprintf( outputFile, "byte _%sCpm[] = \n{\n", graphicName );
-		HexDump( output, compressed );
+		HexDumpByte( output, compressed );
 		fprintf( outputFile, "};\n" );
 		fprintf( outputFile, "TYPE_GrData _%sGd = { 1, 0, OSD_1555, COMPRESS_Tfp, _%sCpm, %d, %d, %d };\n\n", graphicName, graphicName, bufferSize, width, height );
 		if ( headerFile )
