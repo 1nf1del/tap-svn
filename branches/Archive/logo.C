@@ -280,7 +280,8 @@ void ReadLogoFile()
 	char		channelName[CHANNEL_NAME_SIZE];
 	int i; //+++
 
-	TAP_Hdd_ChangeDir("UK TAP Project");
+//	TAP_Hdd_ChangeDir("UK TAP Project");
+	GotoPath( TAPIniDir );
 	if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
 	
 	logoFile = TAP_Hdd_Fopen( "logo.dat" );
@@ -303,7 +304,7 @@ void ReadLogoFile()
 	}
 
 	TAP_Hdd_Fclose( logoFile );
-	TAP_Hdd_ChangeDir("..");											// return to original directory
+//	TAP_Hdd_ChangeDir("..");											// return to original directory
 	TAP_MemFree( junkBuffer );
 }
 	

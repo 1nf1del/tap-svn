@@ -41,7 +41,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define ID_UK_Channels 		0x800440FC
 //#define ID_UK_USB			0x800440FB
 #define ID_OZ_Archive			0x800440FA
-              
+                
 TAP_ID( ID_OZ_Archive );
       
 #if DEBUG != 0
@@ -77,7 +77,7 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-                             
+                               
                        
 static dword lastTick;
 static byte oldMin;
@@ -86,7 +86,7 @@ static byte oldSec;
                                                                                
                                 
 //------------
-//            
+//             
 void ActivationRoutine( void )
 {  
     appendToLogfile("ActivationRoutine: Started.");
@@ -95,7 +95,8 @@ void ActivationRoutine( void )
     memRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
     listRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
 
-//    ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
+    if (recursiveLoadOption)
+      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
        
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.");
     if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
@@ -105,44 +106,37 @@ void ActivationRoutine( void )
         strcpy(CurrentDir,"/DataFiles");            // Set the current directory name.
     }    
 
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "Gotodatafiles", COLOR_White, COLOR_Black );
-//    GotoDataFiles();                                // Change directory to the root /DataFiles directory.
-    GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
-
-    GetRecordingInfo();
-
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "sett all to not present", COLOR_White, COLOR_Black );
-//    SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
-    SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
- 
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "loadarchive", COLOR_White, COLOR_Black );
-//	LoadArchiveInfo("/DataFiles", 0, 0);            // Check all of the files/folders again to see if there are any new files/folders.
-	LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
-
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "delete all", COLOR_White, COLOR_Black );
-//    DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
-    DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
-
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "goto path", COLOR_White, COLOR_Black );
+    if (recursiveLoadOption)
+    {
+      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+      GetRecordingInfo();
+      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo("/DataFiles", 0, 0, TRUE);      // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
+    }
+    else  
+    {
+      GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+      GetRecordingInfo();
+      SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+    }
+    
     GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
     
-    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;          // Set the number of files for this directory.
-    maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "get playback", COLOR_White, COLOR_Black );
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
+    maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
 
     GetPlaybackInfo();                              // Get info about any active playback.
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "load playback", COLOR_White, COLOR_Black );
     LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
 
 	sortOrder = sortOrderOption;                    // Default to default sort order.
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "sort", COLOR_White, COLOR_Black );
 	SortList(sortOrder);		                    // Sort the list.
     
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "determine", COLOR_White, COLOR_Black );
     DetermineStartingLine( &chosenLine );           // Determine which line to highlight when we start.
 
     appendToLogfile("ActivationRoutine: Activating Archive Window.");
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, "activate", COLOR_White, COLOR_Black );
 	ActivateArchiveWindow();
  
     appendToLogfile("ActivationRoutine: Finished.");
@@ -161,11 +155,23 @@ void ExitRoutine( void )
 //
 void TerminateRoutine( void )											// Performs the clean-up and terminate TAP
 {
+    int dirNumber, fileIndex;
+    
     SaveDatToFile();
 	TerminateMenu();
 	TerminateConfigMenu();
 	ReleaseLogoMemory();												// clean-up logo routines
 	ExitRoutine();
+
+    for (dirNumber=0; dirNumber<=numberOfFolders; dirNumber++)
+    {
+        for (fileIndex=1; fileIndex <= myfolders[dirNumber]->numberOfFiles; fileIndex++)
+        {
+            TAP_MemFree(myfiles[dirNumber][fileIndex]);
+        }
+        TAP_MemFree(myfolders[dirNumber]);
+    }
+            
 	closeLogfile();   // Close logfile if we were in debug mode.
     TAP_Exit();															// exit
 }
@@ -244,8 +250,8 @@ void CheckFlags( void )
         {
              if (infoWindowShowing) CloseArchiveInfoWindow();  // If we deleted the file from the info window, then close the info window.
 //             DeleteProgressInfo(CurrentDirNumber, chosenLine, FALSE);       // Delete any associated playback progress info (no message window)
-             if (myfiles[CurrentDirNumber][chosenLine].attr == ATTR_FOLDER)  // Delete any subfolders first.
-                   DeleteMyfilesFolderEntry( myfiles[CurrentDirNumber][chosenLine].directoryNumber);
+             if (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER)  // Delete any subfolders first.
+                   DeleteMyfilesFolderEntry( myfiles[CurrentDirNumber][chosenLine]->directoryNumber);
              DeleteMyfilesEntry(CurrentDirNumber, chosenLine);
              fileDeleted = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
@@ -263,7 +269,7 @@ void CheckFlags( void )
              LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
 //             if (inPlaybackMode) LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
 //             else
-//                 myfiles[CurrentDirNumber][chosenLine].isPlaying      = FALSE;
+//                 myfiles[CurrentDirNumber][chosenLine]->isPlaying      = FALSE;
 
              fileStopped = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
@@ -344,7 +350,7 @@ dword My_IdleHandler(void)
             SetPlaybackStatus(CurrentDirNumber, playbackOnScreenEntry);                                 // Load the latest information from the playback file.
             DisplayArchiveLine( playbackOnScreenEntry, playbackOnScreenLine );        // Update the playback line.
         }
-        
+         
 		// Check if there is are active recording(s) displayed on the screen.  If so, update their progress information.
 		if ((recordingOnScreenEntry1 + recordingOnScreenEntry2)>0)                    // There's at least 1 active recording on the screen.
 		{
@@ -361,7 +367,7 @@ dword My_IdleHandler(void)
             } 
         }
 	}
-  
+   
 	if ( infoWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( deleteWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( stopWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
@@ -372,7 +378,7 @@ dword My_IdleHandler(void)
         oldSec = sec;
         
         // If I've highlighted an active recording, then update it's recording information every second.    
-        if (myfiles[0][chosenLine].isRecording) // Update the recording information very second.
+        if (myfiles[0][chosenLine]->isRecording) // Update the recording information very second.
         {
            GetRecordingInfo();               // Update the recording information.
            LoadRecordingInfo( 0, chosenLine );  // Update the myfiles array with the updated recording information.
@@ -456,12 +462,12 @@ int TAP_Main (void)
 
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
-
+  
     appendToLogfile("TAP_Main: Loading configuration data.");
 	LoadConfiguration();
 	sortOrder = sortOrderOption; // Default to sort order specified in the config file. 
     ResetScreenColumns();        // Set column widths according to column options.
- 
+
     appendToLogfile("TAP_Main: Loading Play Data.");
 	LoadPlayData();  // Load up the playback status information from the dat file.
 
@@ -487,21 +493,26 @@ int TAP_Main (void)
 	numberOfFiles   = 0;
 	numberOfFolders = 0;
     CreateBlankFile();
+
 	
-    // Blank out initial folder variable space.
+    // Blank out initial folder & file variable space.
 //    memset(&*myfolders[0],0,sizeof (*myfolders[0]));
     myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
     memset(myfolders[0],0,sizeof (*myfolders[0]));
+    myfiles[0][0] = TAP_MemAlloc(sizeof (*myfiles[0][0]));
+    memset(myfiles[0][0],0,sizeof (*myfiles[0][0]));
+    myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
+    memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
 
 	GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");
     CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();
-
+ 
     SetAllFilesToNotPresent();
     strcpy(myfolders[0]->name,"/DataFiles");
-    
 	LoadArchiveInfo("/DataFiles", 0, 0, TRUE);
+
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
     DeleteAllFilesNotPresent();

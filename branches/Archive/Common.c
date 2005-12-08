@@ -317,6 +317,8 @@ static int column4Option;
 static int column5Option;
 static int infoLineOption;
 static int numberLinesOption;
+static bool recursiveLoadOption=TRUE;
+static int recCheckOption=0;
        
 static bool CalledByTSRCommander=FALSE;
 static bool inPlaybackMode = FALSE;

@@ -15,8 +15,8 @@ History	: v0.0 Kidhazy: 18-10-05	Inception Date
 	Last change:  USE   
 **************************************************************/
 
-#define MAX_FILES 20  // Define how many files in a single directory we will handle.
-#define MAX_DIRS  50  // Define how many directories we will handle.
+#define MAX_FILES 200  // Define how many files in a single directory we will handle.
+#define MAX_DIRS  100  // Define how many directories we will handle.
 //#define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
 
 #define PARENT_DIR_TEXT "Move up a directory"   // Define the text to be used for the parent directory.
@@ -177,31 +177,31 @@ typedef struct
 } TYPE_Played_Files;
 
 
-TYPE_My_Files myfiles[MAX_DIRS][MAX_FILES], currentFile;  // Establish a global array that will hold the file details for all the files in the current directory.
+TYPE_My_Files *myfiles[MAX_DIRS][MAX_FILES], currentFile;  // Establish a global array that will hold the file details for all the files in the current directory.
 TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder;
 TYPE_File     file, blankFile;
 TYPE_RecInfo  recInfo[2];
-TYPE_Played_Files playedFiles[MAX_FILES];
+TYPE_Played_Files *playedFiles[MAX_FILES];
 
 void CreateBlankFile(void)
 {
      // Set the standard settings.
 /*     
-     blankFile.attr         = file.attr;
+     blankfile.attr         = file.attr;
      blankFile.mjd          = file.mjd;
      blankFile.hour         = file.hour;
      blankFile.min          = file.min;
      blankFile.sec          = file.sec;
      blankFile.localOffset  = file.localOffset;
-     blankFile.startCluster = file.startCluster;
-     blankFile.name,file.name);
-     blankFile.directory, directory);
-     blankFile.directoryNumber = dirNumber;
-     blankFile.crypt        = file.crypt;
+     blankfile.startCluster = file.startCluster;
+     blankfile.name,file.name);
+     blankfile.directory, directory);
+     blankfile.directoryNumber = dirNumber;
+     blankfile.crypt        = file.crypt;
      blankFile.size         = file.size;
      blankFile.currentPos   = file.currentPos;
-     blankFile.isRecording  = FALSE;   // Default the isRecording flag to FALSE.
-     blankFile.isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
+     blankfile.isRecording  = FALSE;   // Default the isRecording flag to FALSE.
+     blankfile.isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
 */
      memset(&blankFile,0,sizeof (blankFile));   // Make blankFile or zeroes.
 }
@@ -257,44 +257,44 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
     TAP_Hdd_Fread( buf, BUFFER_SIZE, 1, fp );
     TAP_Hdd_Fclose( fp );
 
-    myfiles[dir][index].recDuration = buf[REC_DURATION_OFFSET]*256 + buf[REC_DURATION_OFFSET+1];
+    myfiles[dir][index]->recDuration = buf[REC_DURATION_OFFSET]*256 + buf[REC_DURATION_OFFSET+1];
 
-    myfiles[dir][index].svcNum = buf[SVC_NUM_OFFSET]*256 + buf[SVC_NUM_OFFSET+1];
+    myfiles[dir][index]->svcNum = buf[SVC_NUM_OFFSET]*256 + buf[SVC_NUM_OFFSET+1];
 
-    myfiles[dir][index].svcType = buf[SVC_TYPE_OFFSET];
+    myfiles[dir][index]->svcType = buf[SVC_TYPE_OFFSET];
 
-    memcpy(myfiles[dir][index].serviceName,(buf+SERVICE_NAME_OFFSET),SERVICE_NAME_LENGTH);   
-    myfiles[dir][index].serviceName[SERVICE_NAME_LENGTH]='\0';
+    memcpy(myfiles[dir][index]->serviceName,(buf+SERVICE_NAME_OFFSET),SERVICE_NAME_LENGTH);   
+    myfiles[dir][index]->serviceName[SERVICE_NAME_LENGTH]='\0';
 
-    myfiles[dir][index].parentalRating = buf[PARENTAL_RATING_OFFSET+headerOffset];
+    myfiles[dir][index]->parentalRating = buf[PARENTAL_RATING_OFFSET+headerOffset];
     
-    myfiles[dir][index].eventNameLength = buf[EVENT_NAME_LENGTH_OFFSET+headerOffset];
+    myfiles[dir][index]->eventNameLength = buf[EVENT_NAME_LENGTH_OFFSET+headerOffset];
 
-    memcpy(myfiles[dir][index].eventName,(buf+EVENT_NAME_OFFSET+headerOffset),myfiles[dir][index].eventNameLength);   
-    myfiles[dir][index].eventName[myfiles[dir][index].eventNameLength]='\0';
+    memcpy(myfiles[dir][index]->eventName,(buf+EVENT_NAME_OFFSET+headerOffset),myfiles[dir][index]->eventNameLength);   
+    myfiles[dir][index]->eventName[myfiles[dir][index]->eventNameLength]='\0';
 
-    memcpy(myfiles[dir][index].eventDescName,(buf+EVENT_NAME_OFFSET+headerOffset+myfiles[dir][index].eventNameLength),EVENT_NAME_MAX_LENGTH);   
+    memcpy(myfiles[dir][index]->eventDescName,(buf+EVENT_NAME_OFFSET+headerOffset+myfiles[dir][index]->eventNameLength),EVENT_NAME_MAX_LENGTH);   
 
-    myfiles[dir][index].extInfoLength = buf[EXT_INFO_LENGTH_OFFSET+headerOffset]*256 + buf[EXT_INFO_LENGTH_OFFSET+headerOffset+1];
+    myfiles[dir][index]->extInfoLength = buf[EXT_INFO_LENGTH_OFFSET+headerOffset]*256 + buf[EXT_INFO_LENGTH_OFFSET+headerOffset+1];
     //extInfo = "This is the Extended Event Information. I have put more information in here to see what that does to the scrolling.  I was hoping that this could get across multiple pages to see what happens after you do multiple Info key presses. You may find that this goes over multiple lines and wrap around at the word boundary.  The quick brown fox jumps over the lazy dog. You will often find multiple pages particularly when you look at the SBS channel.  The ABC is another channel where you have several pages of extended information.  I still need to look at what happens in the routine if we have a zero length string or a really long string that fills the entire line.";
     
-    memcpy(myfiles[dir][index].extInfo,(buf+EXT_INFO_OFFSET+headerOffset), myfiles[dir][index].extInfoLength);   
-    myfiles[dir][index].extInfo[myfiles[dir][index].extInfoLength]='\0';
+    memcpy(myfiles[dir][index]->extInfo,(buf+EXT_INFO_OFFSET+headerOffset), myfiles[dir][index]->extInfoLength);   
+    myfiles[dir][index]->extInfo[myfiles[dir][index]->extInfoLength]='\0';
 
     // I think this is wrong and 1st byte=hours, 2nd byte= minutes
-    myfiles[dir][index].eventDuration = buf[EVENT_DURATION_OFFSET+headerOffset]*256 + buf[EVENT_DURATION_OFFSET+headerOffset+1];
+    myfiles[dir][index]->eventDuration = buf[EVENT_DURATION_OFFSET+headerOffset]*256 + buf[EVENT_DURATION_OFFSET+headerOffset+1];
 
-    myfiles[dir][index].eventStartMJD = buf[EVENT_STARTMJD_OFFSET+headerOffset]*256 + buf[EVENT_STARTMJD_OFFSET+headerOffset+1];
+    myfiles[dir][index]->eventStartMJD = buf[EVENT_STARTMJD_OFFSET+headerOffset]*256 + buf[EVENT_STARTMJD_OFFSET+headerOffset+1];
 
-    myfiles[dir][index].eventStartHour = buf[EVENT_STARTHOUR_OFFSET+headerOffset];
+    myfiles[dir][index]->eventStartHour = buf[EVENT_STARTHOUR_OFFSET+headerOffset];
     
-    myfiles[dir][index].eventStartMin = buf[EVENT_STARTMIN_OFFSET+headerOffset];
+    myfiles[dir][index]->eventStartMin = buf[EVENT_STARTMIN_OFFSET+headerOffset];
     
-    myfiles[dir][index].eventEndMJD = buf[EVENT_ENDMJD_OFFSET+headerOffset]*256 + buf[EVENT_ENDMJD_OFFSET+headerOffset+1];
+    myfiles[dir][index]->eventEndMJD = buf[EVENT_ENDMJD_OFFSET+headerOffset]*256 + buf[EVENT_ENDMJD_OFFSET+headerOffset+1];
 
-    myfiles[dir][index].eventEndHour = buf[EVENT_ENDHOUR_OFFSET+headerOffset];
+    myfiles[dir][index]->eventEndHour = buf[EVENT_ENDHOUR_OFFSET+headerOffset];
     
-    myfiles[dir][index].eventEndMin = buf[EVENT_ENDMIN_OFFSET+headerOffset];
+    myfiles[dir][index]->eventEndMin = buf[EVENT_ENDMIN_OFFSET+headerOffset];
   
     appendToLogfile("LoadHeaderInfo: Finished.");
 
@@ -323,11 +323,11 @@ void SetPlaybackStatus(int dirNumber, int fileIndex)
     for (i=1; i <= numberOfPlayedFiles; i += 1)
     {
         // If the file has the same filename and the same disk startcluster we consider it a match.
-        if ((myfiles[dirNumber][fileIndex].startCluster == playedFiles[i].startCluster) && (strcmp(myfiles[dirNumber][fileIndex].name,playedFiles[i].name)==0))
+        if ((myfiles[dirNumber][fileIndex]->startCluster == playedFiles[i]->startCluster) && (strcmp(myfiles[dirNumber][fileIndex]->name,playedFiles[i]->name)==0))
         {
-              myfiles[dirNumber][fileIndex].hasPlayed = TRUE;
-              myfiles[dirNumber][fileIndex].currentBlock = playedFiles[i].currentBlock;
-              myfiles[dirNumber][fileIndex].totalBlock = playedFiles[i].totalBlock;
+              myfiles[dirNumber][fileIndex]->hasPlayed = TRUE;
+              myfiles[dirNumber][fileIndex]->currentBlock = playedFiles[i]->currentBlock;
+              myfiles[dirNumber][fileIndex]->totalBlock = playedFiles[i]->totalBlock;
               break; // We've found a match, so don't bother checking other playback entries.
         }              
     }   
@@ -374,40 +374,40 @@ void LoadPlaybackInfo( int dir, int index )
    appendToLogfile("LoadPlaybackInfo: Started.");
 
    // We match the current playback file based on disk startcluster and filename. 
-   if ((myfiles[dir][index].startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[dir][index].name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
+   if ((myfiles[dir][index]->startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[dir][index]->name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
    {
-         appendStringToLogfile("LoadPlaybackInfo: Match on CurrentPlaybackFile->name=%s<<",CurrentPlaybackFile->name);
-         appendStringToLogfile("LoadPlaybackInfo: for myfiles.name=%s<<",myfiles[dir][index].name);
+         appendStringToLogfile("LoadPlaybackInfo: Match on CurrentPlaybackFile.name=%s<<",CurrentPlaybackFile.name);
+         appendStringToLogfile("LoadPlaybackInfo: for myfiles->name=%s<<",myfiles[dir][index]->name);
 
-         myfiles[dir][index].recDuration = CurrentPlaybackInfo.duration;
-         myfiles[dir][index].svcNum      = CurrentPlaybackInfo.svcNum;
-         myfiles[dir][index].svcType     = CurrentPlaybackInfo.svcType;
+         myfiles[dir][index]->recDuration = CurrentPlaybackInfo.duration;
+         myfiles[dir][index]->svcNum      = CurrentPlaybackInfo.svcNum;
+         myfiles[dir][index]->svcType     = CurrentPlaybackInfo.svcType;
 
-         TAP_Channel_GetInfo( myfiles[dir][index].svcType, myfiles[dir][index].svcNum, &chInfo);
-         strcpy(myfiles[dir][index].serviceName,chInfo.chName);
+         TAP_Channel_GetInfo( myfiles[dir][index]->svcType, myfiles[dir][index]->svcNum, &chInfo);
+         strcpy(myfiles[dir][index]->serviceName,chInfo.chName);
          
-         myfiles[dir][index].parentalRating = CurrentPlaybackEvent.parentalRating;
+         myfiles[dir][index]->parentalRating = CurrentPlaybackEvent.parentalRating;
     
-         strcpy(myfiles[dir][index].eventName, CurrentPlaybackEvent.eventName);
-         strcpy(myfiles[dir][index].eventDescName, CurrentPlaybackEvent.description);
+         strcpy(myfiles[dir][index]->eventName, CurrentPlaybackEvent.eventName);
+         strcpy(myfiles[dir][index]->eventDescName, CurrentPlaybackEvent.description);
 
-         myfiles[dir][index].extInfoLength = 0;
-         myfiles[dir][index].extInfo[0]='\0';
+         myfiles[dir][index]->extInfoLength = 0;
+         myfiles[dir][index]->extInfo[0]='\0';
 
-         myfiles[dir][index].eventDuration  = ((CurrentPlaybackEvent.duration>>8)&0xff) + (CurrentPlaybackEvent.duration&0xff);  
+         myfiles[dir][index]->eventDuration  = ((CurrentPlaybackEvent.duration>>8)&0xff) + (CurrentPlaybackEvent.duration&0xff);  
 
-         myfiles[dir][index].eventStartMJD  = ((CurrentPlaybackEvent.startTime>>16)&0xffff);
-         myfiles[dir][index].eventStartHour = ((CurrentPlaybackEvent.startTime>>8)&0xff);
-         myfiles[dir][index].eventStartMin  = ((CurrentPlaybackEvent.startTime)&0xff);
+         myfiles[dir][index]->eventStartMJD  = ((CurrentPlaybackEvent.startTime>>16)&0xffff);
+         myfiles[dir][index]->eventStartHour = ((CurrentPlaybackEvent.startTime>>8)&0xff);
+         myfiles[dir][index]->eventStartMin  = ((CurrentPlaybackEvent.startTime)&0xff);
 
-         myfiles[dir][index].eventEndMJD    = ((CurrentPlaybackEvent.endTime>>16)&0xffff);
-         myfiles[dir][index].eventEndHour   = ((CurrentPlaybackEvent.endTime>>8)&0xff);
-         myfiles[dir][index].eventEndMin    = ((CurrentPlaybackEvent.endTime)&0xff);
+         myfiles[dir][index]->eventEndMJD    = ((CurrentPlaybackEvent.endTime>>16)&0xffff);
+         myfiles[dir][index]->eventEndHour   = ((CurrentPlaybackEvent.endTime>>8)&0xff);
+         myfiles[dir][index]->eventEndMin    = ((CurrentPlaybackEvent.endTime)&0xff);
          
-         myfiles[dir][index].isPlaying      = TRUE;
+         myfiles[dir][index]->isPlaying      = TRUE;
    }     
    else
-         myfiles[dir][index].isPlaying      = FALSE;
+         myfiles[dir][index]->isPlaying      = FALSE;
         
    appendToLogfile("LoadPlaybackInfo: Finished.");
 }
@@ -426,31 +426,31 @@ void LoadRecordingInfo(int dir, int index)
     
     for (i=0; i <= 1; i += 1)
     {
-        if (strncmp(myfiles[dir][index].name, recInfo[i].fileName, TS_FILE_NAME_SIZE)==0) 
+        if (strncmp(myfiles[dir][index]->name, recInfo[i].fileName, TS_FILE_NAME_SIZE)==0) 
         {
                 appendStringToLogfile("LoadRecordingInfo: Match on recInfo.filename=%s<<",recInfo[i].fileName);
-                appendStringToLogfile("LoadRecordingInfo: for myfiles.name=%s<<",myfiles[dir][index].name);
-                myfiles[dir][index].isRecording    = TRUE;  
-                myfiles[dir][index].svcNum         = recInfo[i].svcNum;  
-                myfiles[dir][index].svcType        = recInfo[i].svcType; 
+                appendStringToLogfile("LoadRecordingInfo: for myfiles->name=%s<<",myfiles[dir][index]->name);
+                myfiles[dir][index]->isRecording    = TRUE;  
+                myfiles[dir][index]->svcNum         = recInfo[i].svcNum;  
+                myfiles[dir][index]->svcType        = recInfo[i].svcType; 
                 
-                TAP_Channel_GetInfo( myfiles[dir][index].svcType, myfiles[dir][index].svcNum, &chInfo);
-                strcpy(myfiles[dir][index].serviceName,chInfo.chName);
+                TAP_Channel_GetInfo( myfiles[dir][index]->svcType, myfiles[dir][index]->svcNum, &chInfo);
+                strcpy(myfiles[dir][index]->serviceName,chInfo.chName);
                 
-                myfiles[dir][index].recDuration   = recInfo[i].duration;  
-                myfiles[dir][index].recordedSec   = recInfo[i].recordedSec;  
+                myfiles[dir][index]->recDuration   = recInfo[i].duration;  
+                myfiles[dir][index]->recordedSec   = recInfo[i].recordedSec;  
                 
-                myfiles[dir][index].eventStartMJD  = ((recInfo[i].startTime>>16)&0xffff);  
-                myfiles[dir][index].eventStartHour = ((recInfo[i].startTime>>8)&0xff);  
-                myfiles[dir][index].eventStartMin  =  (recInfo[i].startTime&0xff);  
+                myfiles[dir][index]->eventStartMJD  = ((recInfo[i].startTime>>16)&0xffff);  
+                myfiles[dir][index]->eventStartHour = ((recInfo[i].startTime>>8)&0xff);  
+                myfiles[dir][index]->eventStartMin  =  (recInfo[i].startTime&0xff);  
                                  
-                myfiles[dir][index].eventEndMJD    = ((recInfo[i].endTime>>16)&0xffff);  
-                myfiles[dir][index].eventEndHour   = ((recInfo[i].endTime>>8)&0xff);
-                myfiles[dir][index].eventEndMin    =  (recInfo[i].endTime&0xff);    
+                myfiles[dir][index]->eventEndMJD    = ((recInfo[i].endTime>>16)&0xffff);  
+                myfiles[dir][index]->eventEndHour   = ((recInfo[i].endTime>>8)&0xff);
+                myfiles[dir][index]->eventEndMin    =  (recInfo[i].endTime&0xff);    
                 break;  // Found our match, so no need to keep checking.
         }
         else
-                myfiles[dir][index].isRecording    = FALSE;          
+                myfiles[dir][index]->isRecording    = FALSE;          
     }   
     appendToLogfile("LoadRecordingInfo: Finished checking recordings.");
 
@@ -644,47 +644,51 @@ _#
 void AddCommonInfo(char* directory, int dirNumber, int index, TYPE_File file )
 {
         // Set the standard settings.
-        myfiles[dirNumber][index].attr         = file.attr;
-        myfiles[dirNumber][index].mjd          = file.mjd;
-        myfiles[dirNumber][index].hour         = file.hour;
-        myfiles[dirNumber][index].min          = file.min;
-        myfiles[dirNumber][index].sec          = file.sec;
-        myfiles[dirNumber][index].localOffset  = file.localOffset;
-        myfiles[dirNumber][index].startCluster = file.startCluster;
-        strcpy(myfiles[dirNumber][index].name,file.name);
-        strcpy(myfiles[dirNumber][index].directory, directory);
-        myfiles[dirNumber][index].directoryNumber = dirNumber;
-        myfiles[dirNumber][index].crypt        = file.crypt;
-        myfiles[dirNumber][index].size         = file.size;
-        myfiles[dirNumber][index].currentPos   = file.currentPos;
-        myfiles[dirNumber][index].isRecording  = FALSE;   // Default the isRecording flag to FALSE.
-        myfiles[dirNumber][index].isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
-        myfiles[dirNumber][index].present      = TRUE;    // Mark it as being present
+        myfiles[dirNumber][index]->attr         = file.attr;
+        myfiles[dirNumber][index]->mjd          = file.mjd;
+        myfiles[dirNumber][index]->hour         = file.hour;
+        myfiles[dirNumber][index]->min          = file.min;
+        myfiles[dirNumber][index]->sec          = file.sec;
+        myfiles[dirNumber][index]->localOffset  = file.localOffset;
+        myfiles[dirNumber][index]->startCluster = file.startCluster;
+        strcpy(myfiles[dirNumber][index]->name,file.name);
+        strcpy(myfiles[dirNumber][index]->directory, directory);
+        myfiles[dirNumber][index]->directoryNumber = dirNumber;
+        myfiles[dirNumber][index]->crypt        = file.crypt;
+        myfiles[dirNumber][index]->size         = file.size;
+        myfiles[dirNumber][index]->currentPos   = file.currentPos;
+        myfiles[dirNumber][index]->isRecording  = FALSE;   // Default the isRecording flag to FALSE.
+        myfiles[dirNumber][index]->isPlaying    = FALSE;   // Default the isPlaying flag to FALSE.
+        myfiles[dirNumber][index]->present      = TRUE;    // Mark it as being present
 }
 
 void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
 {
 
         // Blank out existing variable space.
-        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
+//        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
+        myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
-        FormatSortName(myfiles[dirNumber][index].sortName,file.name);
+        FormatSortName(myfiles[dirNumber][index]->sortName,file.name);
 }
 
 void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int newFolderNumber)
 {
 
-        // Blank out existing variable space.
-        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
-        AddCommonInfo( directory, dirNumber, index, file);
-        strcpy(myfiles[dirNumber][index].sortName,file.name);
+        // Allocate & blank out existing new 'myfiles' entry.
+        myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
-        myfiles[dirNumber][index].directoryNumber = newFolderNumber;  // Give each new directory a new number.
+        AddCommonInfo( directory, dirNumber, index, file);
+
+        strcpy(myfiles[dirNumber][index]->sortName,file.name);
+
+        myfiles[dirNumber][index]->directoryNumber = newFolderNumber;  // Give each new directory a new number.
              
-        // Blank out existing variable space.
-//        memset(&*myfolders[newFolderNumber],0,sizeof (*myfolders[newFolderNumber]));
-        myfolders[newFolderNumber] = TAP_MemAlloc( sizeof  currentFolder); 
+        // Allocate & blank out existing new 'myfolders' entry.
+        myfolders[newFolderNumber] = TAP_MemAlloc( sizeof  (*myfolders[newFolderNumber])); 
         memset(myfolders[newFolderNumber],0,sizeof (*myfolders[newFolderNumber]));
 
         // Make new folder entry in the "myfolders" array.
@@ -699,26 +703,32 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
 void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDirNumber)
 {
         // Blank out existing variable space.
-//        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
-        memset(&myfiles[dirNumber][index],0,sizeof (currentFile));
+        myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
-        myfiles[dirNumber][index].attr = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
-        strcpy( myfiles[dirNumber][index].name, PARENT_DIR_TEXT );
-        strcpy( myfiles[dirNumber][index].sortName, PARENT_DIR_TEXT );
-        strcpy( myfiles[dirNumber][index].directory, directory );
-        myfiles[dirNumber][index].directoryNumber = parentDirNumber;
-        myfiles[dirNumber][index].present = TRUE;                  // Mark it as being present
+        myfiles[dirNumber][index]->attr             = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
+        myfiles[dirNumber][index]->directoryNumber  = parentDirNumber;
+        myfiles[dirNumber][index]->present          = TRUE;             // Mark it as being present
+        strcpy( myfiles[dirNumber][index]->name,      PARENT_DIR_TEXT );
+        strcpy( myfiles[dirNumber][index]->sortName,  PARENT_DIR_TEXT );
+        strcpy( myfiles[dirNumber][index]->directory, directory );
 }
 
 
 bool FileExists(char* directory, char* filename, int dirNumber, int fileIndex)
 {
-//TAP_Print("FE Comapring %s< to %s< dn=%d, fi=%d\r\n",filename,myfiles[dirNumber][fileIndex].name,dirNumber,fileIndex);
-    if (strcmp( directory, myfiles[dirNumber][fileIndex].directory ) != 0) return FALSE;
-    
-    if (strcmp( filename,  myfiles[dirNumber][fileIndex].name)       == 0) 
+//TAP_Print("FE Comapring %s< to %s< dn=%d, fi=%d\r\n",filename,myfiles[dirNumber][fileIndex]->name,dirNumber,fileIndex);
+    if (myfiles[dirNumber][fileIndex] == NULL)           
     {
-        myfiles[dirNumber][fileIndex].present = TRUE;                  // Mark it as being present
+        myfiles[dirNumber][fileIndex] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][fileIndex]));
+        memset(myfiles[dirNumber][fileIndex],0,sizeof (*myfiles[dirNumber][fileIndex]));
+    }
+    
+    if (strncmp( directory, myfiles[dirNumber][fileIndex]->directory, TS_FILE_NAME_SIZE ) != 0) return FALSE;
+    
+    if (strncmp( filename,  myfiles[dirNumber][fileIndex]->name, TS_FILE_NAME_SIZE)       == 0) 
+    {
+        myfiles[dirNumber][fileIndex]->present = TRUE;                  // Mark it as being present
         return TRUE;
     }    
     
@@ -731,9 +741,19 @@ bool FileExistsInList(char* directory, char* filename, int dirNumber, int *found
     int fileIndex;
 //TAP_Print("FEIL Comapring %s< to list dn=%d\r\n",filename,dirNumber);
 //TAP_Print("FEIL dir %s< \r\n",directory);
-//TAP_Print("FEIL myfd %s< \r\n",myfiles[dirNumber][1].directory);
+//TAP_Print("FEIL myfd %s< \r\n",myfiles[dirNumber][1]->directory);
+    if (myfiles[dirNumber][0] == NULL)           
+    {
+        myfiles[dirNumber][0] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][0]));
+        memset(myfiles[dirNumber][0],0,sizeof (*myfiles[dirNumber][0]));
+    }
+    if (myfiles[dirNumber][1] == NULL)           
+    {
+        myfiles[dirNumber][1] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][1]));
+        memset(myfiles[dirNumber][1],0,sizeof (*myfiles[dirNumber][1]));
+    }
     
-    if (strcmp( directory, myfiles[dirNumber][1].directory ) != 0) return FALSE;
+    if (strncmp( directory, myfiles[dirNumber][1]->directory, TS_FILE_NAME_SIZE ) != 0) return FALSE;
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	{
@@ -754,9 +774,9 @@ void SetDirFilesToNotPresent(int dirNumber)
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
-            myfiles[dirNumber][fileIndex].present     = FALSE;   // Mark it as being NOT present
-            myfiles[dirNumber][fileIndex].isRecording = FALSE;   // Default the isRecording flag to FALSE.
-            myfiles[dirNumber][fileIndex].isPlaying   = FALSE;   // Default the isPlaying flag to FALSE.
+            myfiles[dirNumber][fileIndex]->present     = FALSE;   // Mark it as being NOT present
+            myfiles[dirNumber][fileIndex]->isRecording = FALSE;   // Default the isRecording flag to FALSE.
+            myfiles[dirNumber][fileIndex]->isPlaying   = FALSE;   // Default the isPlaying flag to FALSE.
     }
 }
 
@@ -777,7 +797,7 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
 {
      int i;
      
-     if (IsFileRec(myfiles[dirNumber][fileIndex].name, myfiles[dirNumber][fileIndex].attr))   //If this is a recording
+     if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))   //If this is a recording
      {
         DeleteProgressInfo( dirNumber, fileIndex, FALSE);   // Delete any playback progress information for this file.
         myfolders[dirNumber]->numberOfRecordings--;  // Decrease the number of recordings in this directory.    
@@ -787,12 +807,17 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
         myfolders[dirNumber]->numberOfFolders--;       // Decrease the number of folders in this directory.    
      }
      
+     TAP_MemFree( myfiles[dirNumber][fileIndex] );   // Free the allocated memory of this entry as we repoint the pointers next.
+     // Shuffle each of the remaining entries down one.
      for ( i=fileIndex; i < myfolders[dirNumber]->numberOfFiles; i++)
      {
-         myfiles[dirNumber][i] = myfiles[dirNumber][i+1];    // Shuffle each of the remaining entries down one.
+         myfiles[dirNumber][i] = myfiles[dirNumber][i+1];  
      }
-     memset(&myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles],0,sizeof (myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]));  // Clear out the last entry since we've deleted on.
-     myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles].present = TRUE;                                // Mark the entry as present so we don't try to delete it.
+     
+     // Clear out the last entry since we've deleted 1 entry in the list.
+//     memset(myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles],0,sizeof (*myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]));  // Clear out the last entry since we've deleted on.
+//     myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]->present = TRUE;    // Mark the entry as present so we don't try to delete it.
+//     TAP_MemFree( myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles] );   // Free the allocated memory of this entry.
 
      myfolders[dirNumber]->numberOfFiles--;       // Decrease the number of files/folders in this directory.    
 
@@ -803,21 +828,25 @@ void DeleteMyfilesFolderEntry(int dirNumber)
 {
      int i;
      
-     for ( i=1; i < myfolders[dirNumber]->numberOfFiles; i++)
+     for ( i=1; i <= myfolders[dirNumber]->numberOfFiles; i++)
      {
-         if (myfiles[dirNumber][i].attr == ATTR_FOLDER)  // This is a subfolder that we need to recursively delete.
+         if (myfiles[dirNumber][i]->attr == ATTR_FOLDER)  // This is a subfolder that we need to recursively delete.
          {
-            DeleteMyfilesFolderEntry( myfiles[dirNumber][i].directoryNumber );
+            DeleteMyfilesFolderEntry( myfiles[dirNumber][i]->directoryNumber );
          }   
          else
          {
             DeleteProgressInfo( dirNumber, i, FALSE);   // Delete any playback progress information for this file.
          }
-         memset(&myfiles[dirNumber][i],0,sizeof (myfiles[dirNumber][i]));  // Clear out the entry.
+//         memset(myfiles[dirNumber][i],0,sizeof (*myfiles[dirNumber][i]));  // Clear out the entry.
+         TAP_MemFree(myfiles[dirNumber][i]);                               // Free up the memory.
      }
 
-//     memset(&myfolders[dirNumber],0,sizeof (myfolders[dirNumber]));  // Clear out the *myfolders entry.
-     memset(myfolders[dirNumber],0,sizeof (*myfolders[dirNumber]));  // Clear out the *myfolders entry.
+//     memset(myfolders[dirNumber],0,sizeof (*myfolders[dirNumber]));   // Clear out the *myfolders entry.
+     myfolders[dirNumber]->numberOfFiles      = 0;  // Set number of files to 0
+     myfolders[dirNumber]->numberOfFolders    = 0;  // Set number of folders to 0
+     myfolders[dirNumber]->numberOfRecordings = 0;  // Set number of recordings to 0
+//     TAP_MemFree(myfolders[dirNumber]);                               // Free up the memory.
 }
 
 
@@ -827,10 +856,10 @@ void DeleteDirFilesNotPresent(int dirNumber)
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
-         if (!myfiles[dirNumber][fileIndex].present)               // File was not present when we reinvoked Archive
+         if (!myfiles[dirNumber][fileIndex]->present)               // File was not present when we reinvoked Archive
          {
-               if (myfiles[dirNumber][fileIndex].attr == ATTR_FOLDER)  // Delete any subfolders first.
-                   DeleteMyfilesFolderEntry( myfiles[dirNumber][fileIndex].directoryNumber);
+               if (myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)  // Delete any subfolders first.
+                   DeleteMyfilesFolderEntry( myfiles[dirNumber][fileIndex]->directoryNumber);
                DeleteMyfilesEntry( dirNumber, fileIndex);
                fileIndex--;  // Move pointer back as we need to recheck the file that has just been shuffled down.
          }
@@ -859,10 +888,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     TYPE_Dir_List subfolders[MAX_DIRS];
     char subdir[1024];
 
-//TAP_Print("started for %s< d=%d p=%d\r\n",directory,dirNumber, parentDirNumber);    
     appendToLogfile("LoadArchiveInfo: Started.");
-//TAP_SPrint(str1,"LoadArchive %s<",directory);    
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, str1, COLOR_White, COLOR_Black );
   
     // Set the local directory pointers.  If this is the first time through for this directory they will all equal 0, otherwise they will 
     // have the previous local totals.   
@@ -887,6 +913,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
 
     // Find all the Files and Folders in the current directory.
     cnt = TAP_Hdd_FindFirst(&file); 
+
     appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",directory);
     appendIntToLogfile("LoadArchiveInfo: Count=%d",cnt);
     appendIntToLogfile("LoadArchiveInfo: ATTR_FOLDER=%d",ATTR_FOLDER);
@@ -921,7 +948,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
              
                 // If the current file is NOT an active recording, we can load the extra information from the header.
                 appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.");
-                if (!myfiles[dirNumber][numberOfDirFiles].isRecording)
+                if (!myfiles[dirNumber][numberOfDirFiles]->isRecording)
                 {
                     appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
                     LoadHeaderInfo( file.name, dirNumber, numberOfDirFiles);
@@ -940,12 +967,12 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
              
                 // If the current file is NOT an active recording, AND the header information hasn't already been loaded, read the header.
                 appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.");
-                if ((!myfiles[dirNumber][foundIndex].isRecording) && (myfiles[dirNumber][foundIndex].eventNameLength==0))
+                if ((!myfiles[dirNumber][foundIndex]->isRecording) && (myfiles[dirNumber][foundIndex]->eventNameLength==0))
                 {
                     appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
 //TAP_SPrint(str,"OLD header -name=%s< dir=%s< ",file.name, directory);                 
 //TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, str, COLOR_White, COLOR_Black );
-//TAP_SPrint(str,"OLD header -dirn=%d fi=%d enl=%d ",dirNumber, foundIndex, myfiles[dirNumber][foundIndex].eventNameLength);                 
+//TAP_SPrint(str,"OLD header -dirn=%d fi=%d enl=%d ",dirNumber, foundIndex, myfiles[dirNumber][foundIndex]->eventNameLength);                 
 //TAP_Osd_PutStringAf1926( rgn, 50, 130, 700, str, COLOR_White, COLOR_Black );
  
                     LoadHeaderInfo( file.name, dirNumber, foundIndex);
@@ -975,9 +1002,9 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
                 // Add the name of this folder to the list of files to recursively check at the end.  Index 1 is the first subfolder to check.
                 subFolderCount++;
                 strcpy( subfolders[subFolderCount].name, file.name );
-//TAP_Print("FoundIndex=%d dn=%d \r\n",foundIndex,    myfiles[dirNumber][foundIndex].directoryNumber);
+//TAP_Print("FoundIndex=%d dn=%d \r\n",foundIndex,    myfiles[dirNumber][foundIndex]->directoryNumber);
 //TAP_Delay(00);
-            subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex].directoryNumber;     // Save the current directory number for this existing folder.
+            subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
              }   
           }
              
@@ -1003,7 +1030,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
           strcpy(subdir, directory);        // Add in our starting directory.
           strcat(subdir,"/");               // Add a slash.
           strcat(subdir, subfolders[i].name);     // Add the subfolder name.
-//TAP_Print("Doing subdir i=%d numb=%d %s<\r\n",i,subfolders[i].directoryNumber,subdir);
+//TAP_Print("Doing subdir i=%d numb=%d %s<\r\n",i,subfolders[i]->directoryNumber,subdir);
 //TAP_Delay(00);
           // Change directory to the subfolder.
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
@@ -1028,7 +1055,7 @@ void LoadPlaybackStatusInfo(void)
 	{
 	    for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	    {
-          if (IsFileRec(myfiles[dirNumber][fileIndex].name, myfiles[dirNumber][fileIndex].attr))  // If we're looking at a recorded show, match up any existing playback status info.
+          if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))  // If we're looking at a recorded show, match up any existing playback status info.
           {
                 appendToLogfile("LoadArchiveInfo: Setting playback status.");
                 // Copy any playback status information from the playedFiles array to the matching myFiles entries.

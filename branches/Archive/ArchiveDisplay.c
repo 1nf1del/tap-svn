@@ -301,7 +301,7 @@ void DetermineStartingLine(int *line)
         // Scan through the files in the current directory to see if we have a match.
         for (i=1; i<numberOfFiles; i++)
         {
-            if ((myfiles[CurrentDirNumber][i].startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[CurrentDirNumber][i].name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
+            if ((myfiles[CurrentDirNumber][i]->startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[CurrentDirNumber][i]->name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
             {   // We've found a match, so allocate line number.
                 *line = i;
                 break;
@@ -347,17 +347,12 @@ void DisplayInstructions(void)
     TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+1, &_whiteoval38x19Gd, TRUE );	
 	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y, INSTR_AREA_X + INSTR_AREA_W, "Delete File", INFO_COLOUR, INFO_FILL_COLOUR );
 
-//    TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+26, &_greenoval38x19Gd, TRUE );
-//	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+25, INSTR_AREA_X + INSTR_AREA_W, "New Folder", INFO_COLOUR, INFO_FILL_COLOUR );
-
 	TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+26, &_infooval38x19Gd, TRUE );	
 	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+25, INSTR_AREA_X + INSTR_AREA_W, "Information", INFO_COLOUR, INFO_FILL_COLOUR );
 
     TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+51, &_redoval38x19Gd, TRUE );
 	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+50, INSTR_AREA_X + INSTR_AREA_W, "Help", INFO_COLOUR, INFO_FILL_COLOUR );
 
-//  TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+76, &_pauseoval38x19Gd, TRUE );	
-// 	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+75, INSTR_AREA_X + INSTR_AREA_W, "Change Sort", INFO_COLOUR, INFO_FILL_COLOUR );
 }	
      
 
@@ -373,47 +368,40 @@ void SortList(int sortOrder)
     //  sortOrder = 3    sort by size
     // 
 	int 	i, i2, swaps, numberOfFiles;
-    TYPE_My_Files tempfile;
+    TYPE_My_Files *tempfile;
     
     void SwapEntries(void)
     {
+        // Do swap by swapping pointers around - faster than moving contents. 
 		tempfile = myfiles[CurrentDirNumber][i+1];
 		myfiles[CurrentDirNumber][i+1] = myfiles[CurrentDirNumber][i];
-		myfiles[CurrentDirNumber][i] = tempfile ;
+		myfiles[CurrentDirNumber][i]   = tempfile ;
 		swaps++;         
     }	
 
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
-    
+
     strcpy(sortTitle,"[by name]");   // Default the sort title to by name.
     //	Always sort files in the array by name 
 	do { 
 		for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
 		{
-//			if ( strcmp(myfiles[CurrentDirNumber][i].name,myfiles[CurrentDirNumber][i+1].name)>0 ) SwapEntries();
-			if ( strcmp(myfiles[CurrentDirNumber][i].sortName,myfiles[CurrentDirNumber][i+1].sortName)>0 ) SwapEntries();
-			if ( strcmp(myfiles[CurrentDirNumber][i].sortName,myfiles[CurrentDirNumber][i+1].sortName)==0 ) // If the names are the same, sort on date/time.
+			if ( strcmp(myfiles[CurrentDirNumber][i]->sortName,myfiles[CurrentDirNumber][i+1]->sortName)>0 ) SwapEntries();
+			if ( strcmp(myfiles[CurrentDirNumber][i]->sortName,myfiles[CurrentDirNumber][i+1]->sortName)==0 ) // If the names are the same, sort on date/time.
             {
-                 if ( myfiles[CurrentDirNumber][i].mjd > myfiles[CurrentDirNumber][i+1].mjd ) SwapEntries();
-                 if ( myfiles[CurrentDirNumber][i].mjd == myfiles[CurrentDirNumber][i+1].mjd )
+                 if ( myfiles[CurrentDirNumber][i]->mjd > myfiles[CurrentDirNumber][i+1]->mjd ) SwapEntries();
+                 if ( myfiles[CurrentDirNumber][i]->mjd == myfiles[CurrentDirNumber][i+1]->mjd )
 			     {
-				      if ( myfiles[CurrentDirNumber][i].hour > myfiles[CurrentDirNumber][i+1].hour ) SwapEntries();
-				      if ( myfiles[CurrentDirNumber][i].hour == myfiles[CurrentDirNumber][i+1].hour )
+				      if ( myfiles[CurrentDirNumber][i]->hour > myfiles[CurrentDirNumber][i+1]->hour ) SwapEntries();
+				      if ( myfiles[CurrentDirNumber][i]->hour == myfiles[CurrentDirNumber][i+1]->hour )
 				      {
-					       if ( myfiles[CurrentDirNumber][i].min > myfiles[CurrentDirNumber][i+1].min ) SwapEntries();
+					       if ( myfiles[CurrentDirNumber][i]->min > myfiles[CurrentDirNumber][i+1]->min ) SwapEntries();
 				      }
 			     }
             }     
 		}
 	} 
 	while ( swaps > 1 );
-
-
-	for ( i=1; i<= numberOfFiles; i++)
-	{
-//    TAP_Print("name %d %s=%s %d<<\r\n",i, myfiles[CurrentDirNumber][i].directory,myfiles[CurrentDirNumber][i].name,myfiles[CurrentDirNumber][i].attr);
-//    TAP_Delay(40);
-    }
 
     if (sortOrder == SORT_DATE_OPTION)
     {	
@@ -422,13 +410,13 @@ void SortList(int sortOrder)
 	   do { 
 		for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
 		{
-            if ( myfiles[CurrentDirNumber][i].mjd > myfiles[CurrentDirNumber][i+1].mjd ) SwapEntries();
-            if ( myfiles[CurrentDirNumber][i].mjd == myfiles[CurrentDirNumber][i+1].mjd )
+            if ( myfiles[CurrentDirNumber][i]->mjd > myfiles[CurrentDirNumber][i+1]->mjd ) SwapEntries();
+            if ( myfiles[CurrentDirNumber][i]->mjd == myfiles[CurrentDirNumber][i+1]->mjd )
 			{
-				if ( myfiles[CurrentDirNumber][i].hour > myfiles[CurrentDirNumber][i+1].hour ) SwapEntries();
-				if ( myfiles[CurrentDirNumber][i].hour == myfiles[CurrentDirNumber][i+1].hour )
+				if ( myfiles[CurrentDirNumber][i]->hour > myfiles[CurrentDirNumber][i+1]->hour ) SwapEntries();
+				if ( myfiles[CurrentDirNumber][i]->hour == myfiles[CurrentDirNumber][i+1]->hour )
 				{
-					if ( myfiles[CurrentDirNumber][i].min > myfiles[CurrentDirNumber][i+1].min ) SwapEntries();
+					if ( myfiles[CurrentDirNumber][i]->min > myfiles[CurrentDirNumber][i+1]->min ) SwapEntries();
 				}
 			}
 		}
@@ -444,7 +432,7 @@ void SortList(int sortOrder)
 	   do { 
 	   	for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
 		{
-            if ( myfiles[CurrentDirNumber][i].svcNum > myfiles[CurrentDirNumber][i+1].svcNum ) SwapEntries();
+            if ( myfiles[CurrentDirNumber][i]->svcNum > myfiles[CurrentDirNumber][i+1]->svcNum ) SwapEntries();
 		}
 	   } 
 	   while ( swaps > 1 );
@@ -458,7 +446,7 @@ void SortList(int sortOrder)
 	   do { 
 	   	for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
 		{
-            if ( myfiles[CurrentDirNumber][i].size > myfiles[CurrentDirNumber][i+1].size ) SwapEntries();
+            if ( myfiles[CurrentDirNumber][i]->size > myfiles[CurrentDirNumber][i+1]->size ) SwapEntries();
 		}
 	   } 
 	   while ( swaps > 1 );
@@ -473,32 +461,33 @@ void SortList(int sortOrder)
 			switch (folderSortOrder)
 			{
                    case 0: // Put Folders at top. 
-                           if ( myfiles[CurrentDirNumber][i].attr < myfiles[CurrentDirNumber][i+1].attr ) SwapEntries(); 
+                           if ( myfiles[CurrentDirNumber][i]->attr < myfiles[CurrentDirNumber][i+1]->attr ) SwapEntries(); 
                            break;
                            
                    case 1: // Put Folders at bottom. 
-                           if ( myfiles[CurrentDirNumber][i].attr > myfiles[CurrentDirNumber][i+1].attr ) SwapEntries(); 
+                           if ( myfiles[CurrentDirNumber][i]->attr > myfiles[CurrentDirNumber][i+1]->attr ) SwapEntries(); 
                            break;
             }
 		}
 	} 
 	while ( swaps > 1 );
 
+/*
     //	Finally, always sort files in the array by directory 
 	do { 
 		for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
 		{
-			if ( strcmp(myfiles[CurrentDirNumber][i].directory,myfiles[CurrentDirNumber][i+1].directory)>0 ) SwapEntries();
+			if ( strcmp(myfiles[CurrentDirNumber][i]->directory,myfiles[CurrentDirNumber][i+1]->directory)>0 ) SwapEntries();
 		}
 	} 
 	while ( swaps > 1 );
-
 	for ( i=1; i<= numberOfFiles; i++)
 	{
-//    TAP_Print("dir %d %s=%s %d<<\r\n",i, myfiles[CurrentDirNumber][i].directory,myfiles[CurrentDirNumber][i].name,myfiles[CurrentDirNumber][i].attr);
-//    TAP_Delay(40);
+    TAP_Print("dir %d %s=%s %d<<\r\n",i, myfiles[CurrentDirNumber][i]->directory,myfiles[CurrentDirNumber][i]->name,myfiles[CurrentDirNumber][i]->attr);
+    TAP_Delay(40);
     }
 
+*/
 
 }
 
@@ -654,7 +643,7 @@ void DisplayFolderText(int line, int i)
 {
     char	str[80], str2[80], str3[80];
 
-    switch (myfiles[CurrentDirNumber][i].attr)
+    switch (myfiles[CurrentDirNumber][line]->attr)
     {
            case PARENT_DIR_ATTR:
            case 240:        // Parent Directory  ".."
@@ -668,23 +657,23 @@ void DisplayFolderText(int line, int i)
                             TAP_Osd_PutGd( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET-8, &_folder_yellowGd, TRUE );
                        
                             // Number of subfolders in folder.
-                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders > 0)
+                            if (myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfFolders > 0)
                             {
-	                           TAP_SPrint(str, "%d folder%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders, myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfFolders >= 2 ? 's':' ');
+	                           TAP_SPrint(str, "%d folder%c",myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfFolders, myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfFolders >= 2 ? 's':' ');
 	                           PrintCenter( listRgn, COLUMN3_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN3_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
                             }   
                             
                             // Number of recordings in folder.
-                            if (myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings > 0)
+                            if (myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfRecordings > 0)
                             {
-	                           TAP_SPrint(str, "%d %s%c",myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings, column4Option == 2 ? "rec":"recording", myfolders[myfiles[CurrentDirNumber][line].directoryNumber]->numberOfRecordings == 1 ? ' ':'s');
+	                           TAP_SPrint(str, "%d %s%c",myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfRecordings, column4Option == 2 ? "rec":"recording", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfRecordings == 1 ? ' ':'s');
 	                           PrintCenter( listRgn, COLUMN4_START+COLUMN_GAP_W, i*Y1_STEP+Y1_OFFSET, COLUMN4_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
                             }
                             break;
     }                                                        
 
     // Print the Folder name
-	TAP_SPrint(str,"%s", myfiles[CurrentDirNumber][line].name);
+	TAP_SPrint(str,"%s", myfiles[CurrentDirNumber][line]->name);
     PrintLeft( listRgn, COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
 
 }
@@ -781,15 +770,15 @@ void FormatTimeAndDuration(int line, char* str, int option)
 	word	startTime;
 	int		endHour, endMin;
 
-    hour = myfiles[CurrentDirNumber][line].hour;							// extract the time
-	min  = myfiles[CurrentDirNumber][line].min;
+    hour = myfiles[CurrentDirNumber][line]->hour;							// extract the time
+	min  = myfiles[CurrentDirNumber][line]->min;
 
-	endMin  = min + myfiles[CurrentDirNumber][line].recDuration;				// add the duration in miutes
+	endMin  = min + myfiles[CurrentDirNumber][line]->recDuration;				// add the duration in miutes
 	endHour = hour + endMin/60;							// should we have increamented the hour
 	if ( endHour >= 24 ) endHour -= 24;					// did the day roll over ?
 	endMin = endMin%60;									// Finally remove the hours from the minutes field.
 				
-    FormatListDuration(	myfiles[CurrentDirNumber][line].recDuration, str2 );		
+    FormatListDuration(	myfiles[CurrentDirNumber][line]->recDuration, str2 );		
 
     switch (option)
     {
@@ -829,7 +818,7 @@ void FormatDate(int line, char* str, int option, int *fontSize)
 	TAP_GetTime( &currentMJD, &currentHour, &currentMin, &currentSec);
 	TAP_ExtractMjd( currentMJD, &currentYear, &currentMonth, &currentDay, &currentWeekDay) ;
 
- 	mjd = myfiles[CurrentDirNumber][line].mjd;
+ 	mjd = myfiles[CurrentDirNumber][line]->mjd;
 	TAP_ExtractMjd( mjd, &year, &month, &day, &weekDay) ;
 
 	WeekdayToAlpha( weekDay, str2 );  // Get the name of the day.
@@ -889,7 +878,7 @@ void PrintListFileSize(int line, int i, int option)
 {
      char str[30];
      
-     FormatFileSize(myfiles[CurrentDirNumber][line].size, str, option);
+     FormatFileSize(myfiles[CurrentDirNumber][line]->size, str, option);
 
      switch (option)
      {
@@ -925,7 +914,7 @@ void FormatFilename(int x, int y, int max, int line, char* strSource, int option
                    break;
                    
            case 1: // Filename with -# ##-##-## patterns removed.
-                   strcpy(str, myfiles[CurrentDirNumber][line].sortName);
+                   strcpy(str, myfiles[CurrentDirNumber][line]->sortName);
                    break;
 
            case 2: // Full filename - including .rec
@@ -949,25 +938,25 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     // COLUMN 1 - Print the file number, play or recording indicator.
     /////////////////////////////////////////////////   
-    if (myfiles[CurrentDirNumber][line].isRecording)  // If the file is recording print recording icon.
+    if (myfiles[CurrentDirNumber][line]->isRecording)  // If the file is recording print recording icon.
     {
          TAP_Osd_PutGd( listRgn, COLUMN1_START+4, i*Y1_STEP+Y1_OFFSET, &_redcircle25x25Gd, TRUE );
 		 TAP_Osd_PutStringAf1419( listRgn, COLUMN1_START+11, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, "R", MAIN_TEXT_COLOUR, 0 );
          
          // Flag that there is a recording on the screen, and indicate which recording slot it is.
-         if (strncmp(myfiles[CurrentDirNumber][line].name, recInfo[0].fileName, TS_FILE_NAME_SIZE)==0)   // It's the 1st recording slot.
+         if (strncmp(myfiles[CurrentDirNumber][line]->name, recInfo[0].fileName, TS_FILE_NAME_SIZE)==0)   // It's the 1st recording slot.
          {
              recordingOnScreenEntry1 = line;         
              recordingOnScreenLine1 = i;
          }
-         if (strncmp(myfiles[CurrentDirNumber][line].name, recInfo[1].fileName, TS_FILE_NAME_SIZE)==0)   // It's the 2nd recording slot.
+         if (strncmp(myfiles[CurrentDirNumber][line]->name, recInfo[1].fileName, TS_FILE_NAME_SIZE)==0)   // It's the 2nd recording slot.
          {
              recordingOnScreenEntry2 = line;         
              recordingOnScreenLine2 = i;
          }
     }
     else
-    if (myfiles[CurrentDirNumber][line].isPlaying)  // If the file is playing print play icon.
+    if (myfiles[CurrentDirNumber][line]->isPlaying)  // If the file is playing print play icon.
     {
          TAP_Osd_PutGd( listRgn, COLUMN1_START+4, i*Y1_STEP+Y1_OFFSET, &_greencircle25x25Gd, TRUE );
          TAP_Osd_PutStringAf1622( listRgn, COLUMN1_START+13, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, ">", COLOR_Black, 0 );
@@ -986,45 +975,45 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     // COLUMN 2 - Print the File name
     /////////////////////////////////////////////////   
-	TAP_SPrint(str,"%s", myfiles[CurrentDirNumber][line].name);
+	TAP_SPrint(str,"%s", myfiles[CurrentDirNumber][line]->name);
 
     // For testing purposes on Windows - always assume some set data.
 #ifdef WIN32    
-       myfiles[CurrentDirNumber][line].hasPlayed=TRUE;
-       myfiles[CurrentDirNumber][line].currentBlock = 200;
-       myfiles[CurrentDirNumber][line].totalBlock = 300;
-       myfiles[CurrentDirNumber][line].recDuration = 240;
+       myfiles[CurrentDirNumber][line]->hasPlayed=TRUE;
+       myfiles[CurrentDirNumber][line]->currentBlock = 200;
+       myfiles[CurrentDirNumber][line]->totalBlock = 300;
+       myfiles[CurrentDirNumber][line]->recDuration = 240;
 #endif       
     
-     if (myfiles[CurrentDirNumber][line].hasPlayed)
+     if (myfiles[CurrentDirNumber][line]->hasPlayed)
      {
          // Calculate how many minutes have been watched. (Round up to nearest minute)
-         curDuration = (( max(0,myfiles[CurrentDirNumber][line].currentBlock) * myfiles[CurrentDirNumber][line].recDuration)  / max(1,myfiles[CurrentDirNumber][line].totalBlock) );
-         curPercent  = (( max(0,myfiles[CurrentDirNumber][line].currentBlock) * 100)                        / max(1,myfiles[CurrentDirNumber][line].totalBlock) );
-         if ((curPercent < 95) || (myfiles[CurrentDirNumber][line].isPlaying)) // If we haven't watched the entire show, or the show is playing, display the progress bar.
+         curDuration = (( max(0,myfiles[CurrentDirNumber][line]->currentBlock) * myfiles[CurrentDirNumber][line]->recDuration)  / max(1,myfiles[CurrentDirNumber][line]->totalBlock) );
+         curPercent  = (( max(0,myfiles[CurrentDirNumber][line]->currentBlock) * 100)                        / max(1,myfiles[CurrentDirNumber][line]->totalBlock) );
+         if ((curPercent < 95) || (myfiles[CurrentDirNumber][line]->isPlaying)) // If we haven't watched the entire show, or the show is playing, display the progress bar.
          {
             // Print the Filename at the top of the row.
-            FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line].name, column2Option);
+            FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
             // Display the progress bar at the bottom of the row.
             switch (progressBarOption)
             {
                    case PB_MULTI:
                    case PB_SINGLE:
                    case PB_SOLID:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line].currentBlock), max(1,myfiles[CurrentDirNumber][line].totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
                                break;
                                
                    case PB_REDGREEN:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line].currentBlock), max(1,myfiles[CurrentDirNumber][line].totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Green);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Green);
                                break;
                                
                    case PB_WHITE:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line].currentBlock), max(1,myfiles[CurrentDirNumber][line].totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, MAIN_TEXT_COLOUR);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, MAIN_TEXT_COLOUR);
                                break;
             } 
 
             // Display the progress in minutes watched and minutes not watch at the end of the progress bar in small font.
-	        TAP_SPrint( str, "+%dm/-%dm", curDuration, myfiles[CurrentDirNumber][line].recDuration-curDuration);
+	        TAP_SPrint( str, "+%dm/-%dm", curDuration, myfiles[CurrentDirNumber][line]->recDuration-curDuration);
             PrintLeft( listRgn, COLUMN2_TEXT_START + LIST_PROGRESS_BAR_WIDTH + 5, i*Y1_STEP+Y1_OFFSET+14, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
          }
          else   // Don't display the progress bar, and just indicate a "Watched" tick.
@@ -1032,44 +1021,44 @@ void DisplayFileText(int line, int i)
             // Display a green tick at the end of the filename.
             TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET-2, &_greentick25x26Gd, TRUE );
             // Print the Filename in the middle of the row.
-            FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line].name, column2Option);
+            FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
             // Display a green tick at the end of the filename.
             TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET-2, &_greentick25x26Gd, TRUE );
          }    
     }
     
-    if (myfiles[CurrentDirNumber][line].isRecording)
+    if (myfiles[CurrentDirNumber][line]->isRecording)
     {
          // Calculate how many minutes have been recorded. (Round up to nearest minute)
-         curDuration = max(0, myfiles[CurrentDirNumber][line].recordedSec/60);
+         curDuration = max(0, myfiles[CurrentDirNumber][line]->recordedSec/60);
          // Print the Filename at the top of the row.
-         FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line].name, column2Option);
+         FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
          // Display the progress bar at the bottom of the row.
          switch (progressBarOption)
          {
                 case PB_MULTI:
                 case PB_SINGLE:
                 case PB_SOLID:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line].recordedSec, myfiles[CurrentDirNumber][line].recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
                             break;
                              
                 case PB_REDGREEN:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line].recordedSec, myfiles[CurrentDirNumber][line].recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Red);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Red);
                             break;
                                
                 case PB_WHITE:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line].recordedSec, myfiles[CurrentDirNumber][line].recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_White);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_White);
                             break;
          } 
 
          // Display the progress in minutes watched and minutes not watch at the end of the progress bar in small font.
-         TAP_SPrint( str, "+%dm/-%dm", curDuration, myfiles[CurrentDirNumber][line].recDuration-curDuration);
+         TAP_SPrint( str, "+%dm/-%dm", curDuration, myfiles[CurrentDirNumber][line]->recDuration-curDuration);
          PrintLeft( listRgn, COLUMN2_TEXT_START + LIST_PROGRESS_BAR_WIDTH + 5, i*Y1_STEP+Y1_OFFSET+14, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
     }
     
-    if ((!myfiles[CurrentDirNumber][line].hasPlayed) && (!myfiles[CurrentDirNumber][line].isRecording))
+    if ((!myfiles[CurrentDirNumber][line]->hasPlayed) && (!myfiles[CurrentDirNumber][line]->isRecording))
     {
-        FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line].name, column2Option);
+        FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
     }
     
     
@@ -1095,14 +1084,14 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     // COLUMN 5 - Channel logo or File Size.
     /////////////////////////////////////////////////   
-    //myfiles[CurrentDirNumber][line].size=290000000;
+    //myfiles[CurrentDirNumber][line]->size=290000000;
     switch (column5Option)
     {
            case 0: // Channel Logo
                    if (sortOrder == SORT_SIZE_OPTION)  // If we've sorted by Size then override logo option and display the size.
 	                   PrintListFileSize(line, i, 1);     // Display size as xxxMB
                    else
-	                   DisplayLogo( listRgn, COLUMN5_TEXT_START, i*Y1_STEP+Y1_OFFSET-8, myfiles[CurrentDirNumber][line].svcNum, myfiles[CurrentDirNumber][i].svcType );
+	                   DisplayLogo( listRgn, COLUMN5_TEXT_START, i*Y1_STEP+Y1_OFFSET-8, myfiles[CurrentDirNumber][line]->svcNum, myfiles[CurrentDirNumber][i]->svcType );
                    break;
                    
            case 1: // Recording size.
@@ -1123,7 +1112,7 @@ void DisplayArchiveText(int line, int i)
 {
 	if ( line == 0 ) return;											// bounds check
     
-    switch (myfiles[CurrentDirNumber][line].attr)
+    switch (myfiles[CurrentDirNumber][line]->attr)
     {
            case PARENT_DIR_ATTR:
            case 240:          // Parent Directory  ".."
@@ -1205,7 +1194,7 @@ void UpdateFileSelectionText(int chosenLine)
     int     dateFontSize;
     
     // Print Event Name & Description over 2 lines.  
-    TAP_SPrint(str,"%s. %s", myfiles[CurrentDirNumber][chosenLine].eventName, myfiles[CurrentDirNumber][chosenLine].eventDescName);
+    TAP_SPrint(str,"%s. %s", myfiles[CurrentDirNumber][chosenLine]->eventName, myfiles[CurrentDirNumber][chosenLine]->eventDescName);
     LastWrapPutStr_Start = 0;  // Reset "first character" pointer to start for Event Name & Description
     LastWrapPutStr_P = 0;      // Reset "last character" pointer to start for Event Name & Description
     LastWrapPutStr_Y = INFO_TEXT_Y + (0*INFO_TEXT_H); // Set the starting y-coordinate for the Event Name & Description
@@ -1220,8 +1209,8 @@ void UpdateFileSelectionText(int chosenLine)
            case 1:   // 1 line of event info, 1 line of extra info.
                      WrapPutStr( memRgn, str, INFO_TEXT_X, LastWrapPutStr_Y, INFO_TEXT_W-8, INFO_COLOUR, INFO_FILL_COLOUR, 1, FNT_Size_1622, 0);
 	                 FormatDate(chosenLine, dateStr, 0, &dateFontSize);  // Format date as "DDD X MMM"
-	                 FormatFileSize(myfiles[CurrentDirNumber][chosenLine].size, fileSize, 1);  // Get size as xxxMB
-                     TAP_SPrint(str, "%s.   %s.    %s", myfiles[CurrentDirNumber][chosenLine].serviceName, dateStr, fileSize);
+	                 FormatFileSize(myfiles[CurrentDirNumber][chosenLine]->size, fileSize, 1);  // Get size as xxxMB
+                     TAP_SPrint(str, "%s.   %s.    %s", myfiles[CurrentDirNumber][chosenLine]->serviceName, dateStr, fileSize);
                      PrintLeft( memRgn, INFO_TEXT_X, INFO_TEXT_Y + (1*INFO_TEXT_H), INFO_TEXT_W, str, INFO_COLOUR, 0, FNT_Size_1622 );	
                      break;
     }
@@ -1242,14 +1231,14 @@ void UpdateRecordingSelectionText(int chosenLine)
     TAP_SPrint(str,"Recording...");
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X, INFO_TEXT_Y, INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
 
-    recHour = myfiles[CurrentDirNumber][chosenLine].recDuration / 60;
-    recMin  = myfiles[CurrentDirNumber][chosenLine].recDuration % 60;
-    totalRecSec = myfiles[CurrentDirNumber][chosenLine].recordedSec;
+    recHour = myfiles[CurrentDirNumber][chosenLine]->recDuration / 60;
+    recMin  = myfiles[CurrentDirNumber][chosenLine]->recDuration % 60;
+    totalRecSec = myfiles[CurrentDirNumber][chosenLine]->recordedSec;
     curRecHour  = totalRecSec / 60 / 60;
     curRecMin   = (totalRecSec - (curRecHour * 60 * 60)) / 60;
     curRecSec   = (totalRecSec - (curRecHour * 60 * 60)) % 60;
 
-    DisplayProgressBar(memRgn, myfiles[CurrentDirNumber][chosenLine].recordedSec, myfiles[CurrentDirNumber][chosenLine].recDuration*60 , INFO_TEXT_X, INFO_TEXT_Y+27, RECORDING_PROGRESS_BAR_WIDTH, 10, COLOR_Black, 1, 0);
+    DisplayProgressBar(memRgn, myfiles[CurrentDirNumber][chosenLine]->recordedSec, myfiles[CurrentDirNumber][chosenLine]->recDuration*60 , INFO_TEXT_X, INFO_TEXT_Y+27, RECORDING_PROGRESS_BAR_WIDTH, 10, COLOR_Black, 1, 0);
 
     TAP_SPrint(str,"%02d:%02d:%02d Recorded ", curRecHour, curRecMin, curRecSec);
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X+RECORDING_PROGRESS_BAR_WIDTH+5, INFO_TEXT_Y+21, INFO_TEXT_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
@@ -1263,10 +1252,10 @@ void UpdateFolderSelectionText(int chosenLine)
     char	str[500];
 
     // folder name
-	if ((myfiles[CurrentDirNumber][chosenLine].attr == 240) || (myfiles[CurrentDirNumber][chosenLine].attr == PARENT_DIR_ATTR))
+	if ((myfiles[CurrentDirNumber][chosenLine]->attr == 240) || (myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR))
 	    TAP_SPrint(str,"Moves back to the previous directory.");
     else
-	    TAP_SPrint(str,"Folder: %s",  myfiles[CurrentDirNumber][chosenLine].name );
+	    TAP_SPrint(str,"Folder: %s",  myfiles[CurrentDirNumber][chosenLine]->name );
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X, INFO_TEXT_Y, INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
 
 }
@@ -1291,7 +1280,7 @@ void UpdateSelectionNumber(void)
 
 	if ( chosenLine > 0 )												// update, or blank the last line
 	{
-         switch (myfiles[CurrentDirNumber][chosenLine].attr)
+         switch (myfiles[CurrentDirNumber][chosenLine]->attr)
          {
                 case PARENT_DIR_ATTR:
                 case 240:
@@ -1301,7 +1290,7 @@ void UpdateSelectionNumber(void)
                      
                 case ATTR_TS:
                 default:
-                             if (myfiles[CurrentDirNumber][chosenLine].isRecording)
+                             if (myfiles[CurrentDirNumber][chosenLine]->isRecording)
                              {
                                 UpdateRecordingSelectionText( chosenLine );
                              }
@@ -1493,7 +1482,7 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;
 
 
-		case RKEY_Blue :	if ( playedFiles[0].totalBlock <=0 ) break; // If no last playback has been set, ignore Blue.
+		case RKEY_Blue :	if ( playedFiles[0]->totalBlock <=0 ) break; // If no last playback has been set, ignore Blue.
                             if (RestartLastPlayback() == 0)             // Attempt to restart last playback file.
                                 exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
 							break;
@@ -1501,7 +1490,7 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_Ok :		if ( chosenLine > 0 ) ArchiveAction(chosenLine);
 							break;
 							
-		case RKEY_Play :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine].attr == ATTR_TS))
+		case RKEY_Play :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_TS))
                                RestartPlayback( chosenLine, 0);   // Start playback from the start, without jumping.
 							break;
 
@@ -1510,13 +1499,13 @@ dword ArchiveWindowKeyHandler(dword key)
 		                    else sortOrder = SORT_DATE_OPTION;
 		                    SortList(sortOrder);            // Resort the list with the new sort order.
 		                    DrawBackground();               // Update the title.
-		                    RefreshArchiveList(TRUE);           // Redraw the contents of the screen.
+		                    RefreshArchiveList(TRUE);       // Redraw the contents of the screen.
 		                    break;
 							
-		case RKEY_Info :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine].attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine].isRecording) )
+		case RKEY_Info :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
-                                 currentFile   = myfiles[CurrentDirNumber][chosenLine];
-                                 currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine].directoryNumber];
+                                 currentFile   = *myfiles[CurrentDirNumber][chosenLine];
+                                 currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
                                  ActivateInfoWindow();
                             }     
 							break;
@@ -1540,10 +1529,10 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_Mute :	return key;
 
 
-        case RKEY_Stop:     if ((myfiles[CurrentDirNumber][chosenLine].isRecording) || (myfiles[CurrentDirNumber][chosenLine].isPlaying)) ActivateStopWindow(myfiles[CurrentDirNumber][chosenLine].name);
+        case RKEY_Stop:     if ((myfiles[CurrentDirNumber][chosenLine]->isRecording) || (myfiles[CurrentDirNumber][chosenLine]->isPlaying)) ActivateStopWindow(myfiles[CurrentDirNumber][chosenLine]->name);
                             break;
     
-        case RKEY_White :   if (myfiles[CurrentDirNumber][chosenLine].attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine].name,myfiles[CurrentDirNumber][chosenLine].attr);
+        case RKEY_White :   if (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine]->name,myfiles[CurrentDirNumber][chosenLine]->attr);
                             break;
 							
 		default :			break;

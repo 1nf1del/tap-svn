@@ -211,17 +211,29 @@ void	ExtractLastField ( char* path, char* result )
 //
 bool	IsFileRec( char *recFile, 	dword	attr )
 {
+    //
+    // Checks if a file is a valid recording.
+    //
+    // 2 options available via "recCheckOption"
+    // recCheckOption=0 - filename ends with ".rec" AND file attribute must equal ATTR_TS 
+    // recCheckOption=1 - filename ends with ".rec" 
+    //
+    
 	char buff[128];
 
-	strcpy( buff, recFile );
-	strlwr( buff );
+	strcpy( buff, recFile );       // Copy the filename into the buffer for checking.
+	strlwr( buff );                // Convert the filename into all lowercase for easy comparison.
+	
 #ifdef WIN32
     if ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 )
         	return TRUE;
 	else
         	return FALSE;
 #else
-    if ((attr == ATTR_TS) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ))
+    if ((recCheckOption==0) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ) && (attr == ATTR_TS) )
+        	return TRUE;
+    else     
+    if ((recCheckOption==1) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ))
         	return TRUE;
 	else
         	return FALSE;

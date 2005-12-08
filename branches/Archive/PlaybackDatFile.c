@@ -98,7 +98,7 @@ void SaveDatToFile( void )
          // 2. current block position.
          // 3. total block size.
          // 4. filename.
-         TAP_SPrint(str, "%d\t%d\t%d\t%s\r\n", playedFiles[i].startCluster, playedFiles[i].currentBlock, playedFiles[i].totalBlock, playedFiles[i].name); 
+         TAP_SPrint(str, "%d\t%d\t%d\t%s\r\n", playedFiles[i]->startCluster, playedFiles[i]->currentBlock, playedFiles[i]->totalBlock, playedFiles[i]->name); 
 	     WriteStrToDatBuf( str );
     }
 
@@ -175,12 +175,12 @@ void SetDatVariables( void )
 
     for (index = 0; index<=numberOfPlayedFiles; index ++)
     {
-         memset(&playedFiles[index],0,sizeof (playedFiles[index]));
-         
-         playedFiles[index].startCluster = ReadDatDecimal();   // Read the disk start cluster.
-         playedFiles[index].currentBlock = ReadDatDecimal();   // Read the current block position.
-         playedFiles[index].totalBlock   = ReadDatDecimal();   // Read the total block size.
-         strcpy(playedFiles[index].name,ReadDatField());        // Read the file name.
+//         memset(&playedFiles[index],0,sizeof (playedFiles[index]));
+         playedFiles[index] = TAP_MemAlloc( sizeof (*playedFiles[index]));
+         playedFiles[index]->startCluster = ReadDatDecimal();   // Read the disk start cluster.
+         playedFiles[index]->currentBlock = ReadDatDecimal();   // Read the current block position.
+         playedFiles[index]->totalBlock   = ReadDatDecimal();   // Read the total block size.
+         strcpy(playedFiles[index]->name,ReadDatField());        // Read the file name.
     }
 
 }
@@ -215,7 +215,7 @@ bool ReadDatFile( void )
 	TAP_Hdd_Fread( playDataBuffer_ini, fileLength, 1, readFile );			// grab all the data from the file
 
 	TAP_Hdd_Fclose( readFile );
-	TAP_Hdd_ChangeDir("..");											// return to original directory
+//	TAP_Hdd_ChangeDir("..");											// return to original directory
 
 	SetDatVariables();
 
@@ -240,15 +240,15 @@ void LoadPlayData( void )
 		
         numberOfPlayedFiles = 1;
 		
-        playedFiles[0].startCluster = 0;   // Store the disk start cluster.
-        playedFiles[0].currentBlock = 0;   // Store the current block position.
-        playedFiles[0].totalBlock   = 0;   // Store the total block size.
-        strcpy(playedFiles[0].name,"Placeholder for last played file.rec");        // Store the file name.
+        playedFiles[0]->startCluster = 0;   // Store the disk start cluster.
+        playedFiles[0]->currentBlock = 0;   // Store the current block position.
+        playedFiles[0]->totalBlock   = 0;   // Store the total block size.
+        strcpy(playedFiles[0]->name,"Placeholder for last played file.rec");        // Store the file name.
         
-        playedFiles[1].startCluster = 12345678;   // Store the disk start cluster.
-        playedFiles[1].currentBlock = 9876543;   // Store the current block position.
-        playedFiles[1].totalBlock   = 9999999;   // Store the total block size.
-        strcpy(playedFiles[1].name,"This is a dummy filename.rec");        // Store the file name.
+        playedFiles[1]->startCluster = 12345678;   // Store the disk start cluster.
+        playedFiles[1]->currentBlock = 9876543;   // Store the current block position.
+        playedFiles[1]->totalBlock   = 9999999;   // Store the total block size.
+        strcpy(playedFiles[1]->name,"This is a dummy filename.rec");        // Store the file name.
 
         appendToLogfile("LoadPlayData: Calling SaveDataToFile for new file.");
 		SaveDatToFile();
@@ -260,8 +260,8 @@ void LoadPlayData( void )
     TAP_Print("\r\n from loading numberOfPlayedFiles=%d \r\n",numberOfPlayedFiles);
     for (i = 1; i<=numberOfPlayedFiles; i ++)
     {
-         TAP_Print("%d<< %d<< %d<<\r\n", playedFiles[i].startCluster, playedFiles[i].currentBlock, playedFiles[i].totalBlock); 
-         TAP_Print("%s<<\r\n", playedFiles[i].name); 
+         TAP_Print("%d<< %d<< %d<<\r\n", playedFiles[i]->startCluster, playedFiles[i]->currentBlock, playedFiles[i]->totalBlock); 
+         TAP_Print("%s<<\r\n", playedFiles[i]->name); 
     }
 */
     appendToLogfile("LoadPlayData: Finished.");
@@ -294,9 +294,9 @@ void DeletePlayData( void )
     // Got through all of our current files and remove any progress information.
     for (i=1; i <= numberOfFiles; i += 1)
     {
-        myfiles[CurrentDirNumber][i].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
-        myfiles[CurrentDirNumber][i].currentBlock = 0;
-        myfiles[CurrentDirNumber][i].totalBlock = 0;
+        myfiles[CurrentDirNumber][i]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
+        myfiles[CurrentDirNumber][i]->currentBlock = 0;
+        myfiles[CurrentDirNumber][i]->totalBlock = 0;
     }   
 
     ShowMessageWin( rgn, "All Progress Info Cleared.", "Removed playback information", "for all recorded files.", 400 );
@@ -344,23 +344,23 @@ void CheckPlaybackStatus( void )
    CurrentPlaybackFile = CurrentPlaybackInfo.file;
    
    // Copy the current playing info to the 'last' variable so we can restart the very last playback.
-   playedFiles[0].startCluster = CurrentPlaybackFile->startCluster;   // Save the disk start cluster.
-   playedFiles[0].currentBlock = CurrentPlaybackInfo.currentBlock;   // Save the current block position.
-   playedFiles[0].totalBlock   = CurrentPlaybackInfo.totalBlock;     // Save the total block size.
-   strcpy(playedFiles[0].name,CurrentPlaybackFile->name);        // Save the file name.
+   playedFiles[0]->startCluster = CurrentPlaybackFile->startCluster;   // Save the disk start cluster.
+   playedFiles[0]->currentBlock = CurrentPlaybackInfo.currentBlock;   // Save the current block position.
+   playedFiles[0]->totalBlock   = CurrentPlaybackInfo.totalBlock;     // Save the total block size.
+   strcpy(playedFiles[0]->name,CurrentPlaybackFile->name);        // Save the file name.
    
    matchFound = FALSE;
    
    // Search through the existing played file list to see if we have a match.
    for (i=1; i<=numberOfPlayedFiles; i++)
    {
-        l1 = strlen(playedFiles[i].name);
+        l1 = strlen(playedFiles[i]->name);
         l2 = strlen(CurrentPlaybackFile->name);
         l = max(l1, l2);
-        if ((playedFiles[i].startCluster == CurrentPlaybackFile->startCluster) && (strncmp(playedFiles[i].name,CurrentPlaybackFile->name,TS_FILE_NAME_SIZE)==0))
+        if ((playedFiles[i]->startCluster == CurrentPlaybackFile->startCluster) && (strncmp(playedFiles[i]->name,CurrentPlaybackFile->name,TS_FILE_NAME_SIZE)==0))
         {
               // If we match an existing entry in our playedFiles array, update the currentBlock position information.
-              playedFiles[i].currentBlock = CurrentPlaybackInfo.currentBlock;
+              playedFiles[i]->currentBlock = CurrentPlaybackInfo.currentBlock;
               matchFound = TRUE;
               break; // We've found a match, so don't bother checking other playback entries.
         }
@@ -370,10 +370,10 @@ void CheckPlaybackStatus( void )
    if ((!matchFound) && (numberOfPlayedFiles < MAX_FILES) && (strcmp(CurrentPlaybackFile->name,"__temprec__.ts")!=0))
    {
          numberOfPlayedFiles++;  // Increase the number of Played Files.
-         playedFiles[numberOfPlayedFiles].startCluster = CurrentPlaybackFile->startCluster;   // Save the disk start cluster.
-         playedFiles[numberOfPlayedFiles].currentBlock = CurrentPlaybackInfo.currentBlock;   // Save the current block position.
-         playedFiles[numberOfPlayedFiles].totalBlock   = CurrentPlaybackInfo.totalBlock;     // Save the total block size.
-         strcpy(playedFiles[numberOfPlayedFiles].name,CurrentPlaybackFile->name);        // Save the file name.
+         playedFiles[numberOfPlayedFiles]->startCluster = CurrentPlaybackFile->startCluster;   // Save the disk start cluster.
+         playedFiles[numberOfPlayedFiles]->currentBlock = CurrentPlaybackInfo.currentBlock;   // Save the current block position.
+         playedFiles[numberOfPlayedFiles]->totalBlock   = CurrentPlaybackInfo.totalBlock;     // Save the total block size.
+         strcpy(playedFiles[numberOfPlayedFiles]->name,CurrentPlaybackFile->name);        // Save the file name.
          playinfoChanged = TRUE;  // Set flag so that playback info will get written to disk.
    }     
         

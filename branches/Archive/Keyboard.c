@@ -397,6 +397,7 @@ void DisplayCurrentString( bool flashOn )
 
     totalWidth = 0;
     startPos = 0;
+    TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord, "  ", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
 	if ( currentIndex > 0 )												// print up to the cursor
 	{
 		strncpy( str, currentString, currentIndex);
@@ -414,8 +415,6 @@ void DisplayCurrentString( bool flashOn )
         }
         if (charactersToLeft) 
 		   TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord+width, "«", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
-        else
-		   TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord+width, "  ", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
 		TAP_Osd_PutStringAf1926( keyboardRgn, x_coord, y_coord, x_coord+width, str, MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
         
 		x_coord += width;

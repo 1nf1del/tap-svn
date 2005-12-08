@@ -207,7 +207,8 @@ bool ReadConfigurationFile( void )
 	int i;
 	dword fileLength;
 
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+	GotoPath( TAPIniDir );
 	if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) ) return FALSE;			// check the timer file exits in the current directory
 	
 	readFile = TAP_Hdd_Fopen( OPTIONS_FILENAME );
@@ -223,7 +224,7 @@ bool ReadConfigurationFile( void )
 	TAP_Hdd_Fread( dataBuffer_ini, fileLength, 1, readFile );			// grab all the data from the file
 
 	TAP_Hdd_Fclose( readFile );
-	TAP_Hdd_ChangeDir("..");											// return to original directory
+//	TAP_Hdd_ChangeDir("..");											// return to original directory
 
 	SetConfigurationVariables();
 
