@@ -1,8 +1,17 @@
-Please add your descriptions of release tags when you create them.
+Tagging a particular release is easy. First, make sure that the
+current version of the repository contains up to date source code
+that builds. Prepare your release and then use the following SVN
+command to create a tag:
 
-Make sure that you provide some high level release notes for each tag.
+svn copy \
+    svn+ssh://svn.berlios.de/svnroot/repos/tap/trunk/taps/example \
+    svn+ssh://svn.berlios.de/svnroot/repos/tap/tags/taps/example-1.0 \
+    -m "Tag release 1.0 of example TAP"
 
-The format is simple the tag line must start the string "TAG:", then
+Add your descriptions of the release tag to this file. Make sure that
+you provide some high level release notes for each tag.
+
+The format is simple. The tag line must start the string "TAG:", then
 the rest of that line is the path to the tag (relative to the tag
 level of the repository), then all subsequent lines until the next
 tag keyword (or end of file) form the release notes for that tag.
