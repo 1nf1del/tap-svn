@@ -42,14 +42,17 @@ void DeletePlayedFileEntry(int entry)
     appendToLogfile("DeletePlayedFileEntry: Started.");
     appendIntToLogfile("DeletePlayedFileEntry: At start, entry=%d",entry);
     appendIntToLogfile("DeletePlayedFileEntry: At start, numberOfPlayedFiles=%d",numberOfPlayedFiles);
+ShowMessageWin( rgn, "DeletePlayedFileEntry", "Starting", "",1);
 
+    TAP_MemFree( playedFiles[i] );   // Clear the allocated memory for this entry as we will reassign it in the shuffle.
+ShowMessageWin( rgn, "DeletePlayedFileEntry", "Loop start", "",1);
     for (i=entry; i <= numberOfPlayedFiles-1; i += 1)
     {
         playedFiles[i] = playedFiles[i+1];  // Shuffle everything down one in the list.
     }    
     
-    memset(&playedFiles[numberOfPlayedFiles],0,sizeof(playedFiles[numberOfPlayedFiles]));   // Clear out the last entry.
     numberOfPlayedFiles--;                                                             // Decrease the count of the entries.
+ShowMessageWin( rgn, "DeletePlayedFileEntry", "Loop ended", "",1);
     
     appendIntToLogfile("DeletePlayedFileEntry: At end, numberOfPlayedFiles=%d",numberOfPlayedFiles);
     appendToLogfile("DeletePlayedFileEntry: Finished.");
@@ -72,7 +75,8 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
     if ((!message) && (myfiles[dirNumbr][index]->startCluster == playedFiles[0]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[0]->name)==0))
     {
         appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.");
-        memset(&playedFiles[0],0,sizeof(playedFiles[0]));   // Clear out the lastplayback entry.
+ShowMessageWin( rgn, "DeleteProgressInfo", "Deleting lastplayed entry", "",1);
+        memset(playedFiles[0],0,sizeof(*playedFiles[0]));   // Clear out the lastplayback entry.
         playedFiles[0]->startCluster = 0;
         match = TRUE;
     }
@@ -84,10 +88,12 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
         // If the file has the same filename and the same disk startcluster we consider it a match.
         if ((myfiles[dirNumbr][index]->startCluster == playedFiles[i]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[i]->name)==0))
         {
+ShowMessageWin( rgn, "DeleteProgressInfo", "Resetting myfiles entry", "",1);
               myfiles[dirNumbr][index]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
               myfiles[dirNumbr][index]->currentBlock = 0;
               myfiles[dirNumbr][index]->totalBlock = 0;
               appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i);
+ShowMessageWin( rgn, "DeleteProgressInfo", "Calling DeletePlayedFileEntry", "",1);
               DeletePlayedFileEntry(i);
               match = TRUE;
               break; // We've found a match, so don't bother checking other playback entries.
@@ -208,11 +214,12 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
 {
      dword lastPos;
      dword   curPercent;
+char str[80], str2[80];
 
      if (currentBlock > totalBlock) currentBlock = 0;  // Check there's no invalid block data.
      
      curPercent  = (( max(0,currentBlock) * 100) / max(1,totalBlock) );
-     
+
      if (curPercent < 95) // If we haven't watched more than 95%, jump to the last position.
      {     
            // Jump back a further 60 blocks so we have some overlap from where we left off.
@@ -220,8 +227,12 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
      }
      else  // Start from the start.
            lastPos = 0;
+TAP_SPrint(str2,"curperc=%d lastpos=%d",curPercent,lastPos);     
+TAP_SPrint(str,"cb=%d< tb=%d< ", myfiles[CurrentDirNumber][chosenLine]->currentBlock, myfiles[CurrentDirNumber][chosenLine]->totalBlock);    
+ShowMessageWin( rgn, "Before ChangePos", str, str2,1);
      
      TAP_Hdd_ChangePlaybackPos( lastPos );
+ShowMessageWin( rgn, "After ChangePos", str, str2,400);
 }
 
 
@@ -349,8 +360,9 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump)
      }
   
      if ((jump == 1) && (myfiles[CurrentDirNumber][chosenLine]->hasPlayed))  // If we want to resume playback, and the file has been previously played.
+     {
         JumpToLastPosition(myfiles[CurrentDirNumber][chosenLine]->currentBlock, myfiles[CurrentDirNumber][chosenLine]->totalBlock);
-     
+     }
      return 0;
 }     
 

@@ -300,20 +300,7 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
 
 }
 
-void ReadPlaybackInfo()
-{
-    int i;
-    
-    for (i=1; i <= MAX_FILES; i += 1)
-    {
-        memset(&playedFiles[i],0,sizeof (playedFiles[i]));
-        
-        // Read the playback info from the playback ini file.
-       
-    }   
 
-    numberOfPlayedFiles = 0;
-}
 
 
 void SetPlaybackStatus(int dirNumber, int fileIndex)
@@ -478,6 +465,8 @@ void GetRecordingInfo()
     }    
     appendToLogfile("GetRecordingInfo: Finished.");
 }
+
+
 
 bool MatchFileStamp( char* stamp, char* str)
 {
@@ -666,7 +655,6 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
 {
 
         // Blank out existing variable space.
-//        memset(&myfiles[dirNumber][index],0,sizeof (myfiles[dirNumber][index]));
         myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
@@ -814,11 +802,6 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
          myfiles[dirNumber][i] = myfiles[dirNumber][i+1];  
      }
      
-     // Clear out the last entry since we've deleted 1 entry in the list.
-//     memset(myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles],0,sizeof (*myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]));  // Clear out the last entry since we've deleted on.
-//     myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles]->present = TRUE;    // Mark the entry as present so we don't try to delete it.
-//     TAP_MemFree( myfiles[dirNumber][myfolders[dirNumber]->numberOfFiles] );   // Free the allocated memory of this entry.
-
      myfolders[dirNumber]->numberOfFiles--;       // Decrease the number of files/folders in this directory.    
 
 }
@@ -838,7 +821,6 @@ void DeleteMyfilesFolderEntry(int dirNumber)
          {
             DeleteProgressInfo( dirNumber, i, FALSE);   // Delete any playback progress information for this file.
          }
-//         memset(myfiles[dirNumber][i],0,sizeof (*myfiles[dirNumber][i]));  // Clear out the entry.
          TAP_MemFree(myfiles[dirNumber][i]);                               // Free up the memory.
      }
 
@@ -853,17 +835,30 @@ void DeleteMyfilesFolderEntry(int dirNumber)
 void DeleteDirFilesNotPresent(int dirNumber)
 {
     int fileIndex;
+char str[90],str2[90];
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
+TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
+TAP_SPrint(str2,"fileindex=%d",fileIndex);     
+ShowMessageWin( rgn, "DeleteDirFilesNotPresent Checking", str, str2,1);
          if (!myfiles[dirNumber][fileIndex]->present)               // File was not present when we reinvoked Archive
          {
                if (myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)  // Delete any subfolders first.
+               {
+TAP_SPrint(str,"dirnumber=%d< fileindex=%d", dirNumber,fileIndex);    
+TAP_SPrint(str2,"myfiles.dirnumber=%d",myfiles[dirNumber][fileIndex]->directoryNumber);     
+ShowMessageWin( rgn, "calling DeleteMyfilesFolderEntry", str, str2,1);
                    DeleteMyfilesFolderEntry( myfiles[dirNumber][fileIndex]->directoryNumber);
+                }    
+TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
+TAP_SPrint(str2,"fileindex=%d",fileIndex);     
+ShowMessageWin( rgn, "calling DeleteMyfilesEntry", str, str2,1);
                DeleteMyfilesEntry( dirNumber, fileIndex);
                fileIndex--;  // Move pointer back as we need to recheck the file that has just been shuffled down.
          }
     }
+ShowMessageWin( rgn, "DeleteDirFilesNotPresent Finished", str, str2,1);
 }
 
 void DeleteAllFilesNotPresent(void)
@@ -896,8 +891,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     numberOfDirFolders    = myfolders[dirNumber]->numberOfFolders;
     numberOfDirRecordings = myfolders[dirNumber]->numberOfRecordings;
     subFolderCount        = 0;  // Tracks the number of subfolders to recursively check.
-//    parentDirNumber       = *myfolders[dirNumber].parentDirNumber;
-    
+
     // Create a parent directory entry as the first file when we're in a subdirectory - but not in /DataFiles.
     if (!InDataFilesFolder( directory ))
     {
@@ -923,7 +917,6 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
 	{
           appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name);
           appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr);
-//TAP_Print("File %d %s<\r\n",i,file.name);    
       
           //
           // RECORDING
@@ -970,11 +963,6 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
                 if ((!myfiles[dirNumber][foundIndex]->isRecording) && (myfiles[dirNumber][foundIndex]->eventNameLength==0))
                 {
                     appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
-//TAP_SPrint(str,"OLD header -name=%s< dir=%s< ",file.name, directory);                 
-//TAP_Osd_PutStringAf1926( rgn, 50, 100, 700, str, COLOR_White, COLOR_Black );
-//TAP_SPrint(str,"OLD header -dirn=%d fi=%d enl=%d ",dirNumber, foundIndex, myfiles[dirNumber][foundIndex]->eventNameLength);                 
-//TAP_Osd_PutStringAf1926( rgn, 50, 130, 700, str, COLOR_White, COLOR_Black );
- 
                     LoadHeaderInfo( file.name, dirNumber, foundIndex);
                 }   
              }   
@@ -1002,24 +990,18 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
                 // Add the name of this folder to the list of files to recursively check at the end.  Index 1 is the first subfolder to check.
                 subFolderCount++;
                 strcpy( subfolders[subFolderCount].name, file.name );
-//TAP_Print("FoundIndex=%d dn=%d \r\n",foundIndex,    myfiles[dirNumber][foundIndex]->directoryNumber);
-//TAP_Delay(00);
             subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
              }   
           }
              
           TAP_Hdd_FindNext (&file);
     }
-//TAP_Print("Finished dir\r\n");
    
     // Save new or updated information on file and sub-folder counts for THIS directory.
     myfolders[dirNumber]->numberOfFiles      = numberOfDirFiles;
     myfolders[dirNumber]->numberOfFolders    = numberOfDirFolders;
     myfolders[dirNumber]->numberOfRecordings = numberOfDirRecordings;
     myfolders[dirNumber]->parentDirNumber    = parentDirNumber;
-    
-//TAP_Print("Dir #%d >%s<\r\n",dirNumber,directory);
-//TAP_Print("dirfiles=%d dirfolders=%d recs=%d \r\n",    numberOfDirFiles,numberOfDirFolders,numberOfDirRecordings);
     
     if (recursive)       // If we have asked to recursively load files, call the additional subfolders.
     { 
@@ -1030,8 +1012,6 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
           strcpy(subdir, directory);        // Add in our starting directory.
           strcat(subdir,"/");               // Add a slash.
           strcat(subdir, subfolders[i].name);     // Add the subfolder name.
-//TAP_Print("Doing subdir i=%d numb=%d %s<\r\n",i,subfolders[i]->directoryNumber,subdir);
-//TAP_Delay(00);
           // Change directory to the subfolder.
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
           // Recurcively call the LoadArchiveInfo to read/load the information for te subfolder.

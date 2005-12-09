@@ -250,9 +250,7 @@ bool GotoPath(char *path){
 	char *endPos;
 	bool ready;
 
-	// TAP_Print("GotoPath: going to root...\r\n");
 	ChangeDirRoot();
-	//GotoRoot();
 
 	startPos=path;
 	if ((*startPos)!='/'){

@@ -175,7 +175,6 @@ void SetDatVariables( void )
 
     for (index = 0; index<=numberOfPlayedFiles; index ++)
     {
-//         memset(&playedFiles[index],0,sizeof (playedFiles[index]));
          playedFiles[index] = TAP_MemAlloc( sizeof (*playedFiles[index]));
          playedFiles[index]->startCluster = ReadDatDecimal();   // Read the disk start cluster.
          playedFiles[index]->currentBlock = ReadDatDecimal();   // Read the current block position.
@@ -240,11 +239,13 @@ void LoadPlayData( void )
 		
         numberOfPlayedFiles = 1;
 		
+        playedFiles[0] = TAP_MemAlloc( sizeof (*playedFiles[0]));
         playedFiles[0]->startCluster = 0;   // Store the disk start cluster.
         playedFiles[0]->currentBlock = 0;   // Store the current block position.
         playedFiles[0]->totalBlock   = 0;   // Store the total block size.
         strcpy(playedFiles[0]->name,"Placeholder for last played file.rec");        // Store the file name.
         
+        playedFiles[1] = TAP_MemAlloc( sizeof (*playedFiles[1]));
         playedFiles[1]->startCluster = 12345678;   // Store the disk start cluster.
         playedFiles[1]->currentBlock = 9876543;   // Store the current block position.
         playedFiles[1]->totalBlock   = 9999999;   // Store the total block size.
@@ -370,6 +371,7 @@ void CheckPlaybackStatus( void )
    if ((!matchFound) && (numberOfPlayedFiles < MAX_FILES) && (strcmp(CurrentPlaybackFile->name,"__temprec__.ts")!=0))
    {
          numberOfPlayedFiles++;  // Increase the number of Played Files.
+         playedFiles[numberOfPlayedFiles] = TAP_MemAlloc( sizeof (*playedFiles[numberOfPlayedFiles]));
          playedFiles[numberOfPlayedFiles]->startCluster = CurrentPlaybackFile->startCluster;   // Save the disk start cluster.
          playedFiles[numberOfPlayedFiles]->currentBlock = CurrentPlaybackInfo.currentBlock;   // Save the current block position.
          playedFiles[numberOfPlayedFiles]->totalBlock   = CurrentPlaybackInfo.totalBlock;     // Save the total block size.

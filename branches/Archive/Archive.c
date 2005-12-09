@@ -2,7 +2,7 @@
 				OZ Archive
 	Archive Recordings display, and management TAP
                                
- 	    
+ 
 	This module is the main event handler
  
 Name	: OZ Archive.c
@@ -95,6 +95,7 @@ void ActivationRoutine( void )
     memRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
     listRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
 
+    ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
     if (recursiveLoadOption)
       ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
        
@@ -117,9 +118,13 @@ void ActivationRoutine( void )
     else  
     {
       GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+ShowMessageBox( rgn, "GetRecordingInfo", "", "");
       GetRecordingInfo();
+ShowMessageBox( rgn, "SetAllFilesToNotPresent", "", "");
       SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
+ShowMessageBox( rgn, "LoadArchiveInfo", "", "");
       LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+ShowMessageBox( rgn, "DeleteDirFilesNotPresent", "", "");
       DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
     }
     
@@ -128,9 +133,12 @@ void ActivationRoutine( void )
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
     maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
 
+ShowMessageBox( rgn, "GetPlaybackInfo", "", "");
     GetPlaybackInfo();                              // Get info about any active playback.
+ShowMessageBox( rgn, "LoadPlaybackStatusInfo", "", "");
     LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
 
+ShowMessageBox( rgn, "SortList", "", "");
 	sortOrder = sortOrderOption;                    // Default to default sort order.
 	SortList(sortOrder);		                    // Sort the list.
     
@@ -146,7 +154,6 @@ void ActivationRoutine( void )
 void ExitRoutine( void )
 {
     CloseArchiveWindow();
-    TAP_Osd_Delete( rgn );
 	TAP_EnterNormal();
 }
 
@@ -496,7 +503,6 @@ int TAP_Main (void)
 
 	
     // Blank out initial folder & file variable space.
-//    memset(&*myfolders[0],0,sizeof (*myfolders[0]));
     myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
     memset(myfolders[0],0,sizeof (*myfolders[0]));
     myfiles[0][0] = TAP_MemAlloc(sizeof (*myfiles[0][0]));
@@ -515,8 +521,8 @@ int TAP_Main (void)
 
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
-    DeleteAllFilesNotPresent();
-
+//    DeleteAllFilesNotPresent();
+ 
     GetPlaybackInfo();  // Get info about any active playback.
     LoadPlaybackStatusInfo();  
 
