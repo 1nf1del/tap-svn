@@ -44,22 +44,22 @@ void (*YesNoCallback)( bool );										// points to the procedure to be called 
 //
 void DisplayYesNoLine(void)
 {
-	TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigbluebuttonGd, FALSE );
     PrintCenter(rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, YesNoButton1, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigbluebuttonGd, FALSE );
 	PrintCenter(rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, YesNoButton2, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
 	switch ( YesNoOption )
 	{
 
 		case 0 :
-					TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_biggreenbuttonGd, FALSE );
 				    PrintCenter(rgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, YesNoButton1, COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
 					
 		case 1 :
-					TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					TAP_Osd_PutGd( rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_biggreenbuttonGd, FALSE );
 					PrintCenter(rgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, YesNoButton2, COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
 					

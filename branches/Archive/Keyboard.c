@@ -17,20 +17,16 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 
 #include "graphics/KeyHighlight.GD"
 #include "graphics/KeyOverStamp.GD"
-/* Following 2 lines moved to Common.c
 #include "graphics/BigKeyGreen.GD"
 #include "graphics/BigKeyBlue.GD"
-*/
 
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"
 
-//#include "graphics/Keyboard_Help_Screen_OZ.GD"
-//#include "graphics/Keyboard_Help_Screen_UK.GD"
 #include "graphics/keyboard_help_oz.GD"
 #include "graphics/keyboard_help_uk.GD"
 #include "graphics/sms_keys_oz.GD"
-//#include "graphics/sms_keys_uk.GD"
+#include "graphics/info_key38x24.GD"
 #include "TIC.C"
 
 #define KB_STEP_X	60
@@ -663,9 +659,9 @@ void KeyboardHelpKeyHandler( dword key )
 		                     if (keyboardHelpSMSWindowShowing)
 		                     {
                                  if ( unitModelType==TF5800t) // Display the UK style remote
-                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
+                                     TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
                                  else  
-                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
+                                     TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
                                  keyboardHelpSMSWindowShowing = FALSE;
                              }
                              else
@@ -928,8 +924,8 @@ void RedrawKeyboard( void )
 				
 	// Print the basic instructions (in center of screen)
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Instructions, row, column);
-	PrintCenter( rgn, x_coord, y_coord, x_coord+KB_WIDTH, "(Press INFO         for Help Screen)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
-    TAP_Osd_PutGd( rgn, x_coord+199, y_coord, &_infooval38x19Gd, TRUE );
+	PrintCenter( rgn, x_coord, y_coord, x_coord+KB_WIDTH, "(Press INFO           for Help Screen)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+    TAP_Osd_PutGd( rgn, x_coord+202, y_coord-2, &_info_key38x24Gd, TRUE );
 }
 
 
