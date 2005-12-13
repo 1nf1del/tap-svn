@@ -25,6 +25,7 @@
 #include "RemoteDialog.h"
 #include ".\remotedialog.h"
 #include "Mainfrm.h"
+#include "RawKey.h"
 
 #define RKEY_Red        0x1003f
 #define RKEY_Green      0x10024
@@ -103,296 +104,288 @@ BEGIN_MESSAGE_MAP(CRemoteDialog, CDialogBar)
 	ON_BN_CLICKED(IDC_BLUE, OnBnClickedBlue)
 	ON_BN_CLICKED(IDC_PIPSWAP, OnBnClickedPipswap)
 	ON_BN_CLICKED(IDC_WHITE, OnBnClickedWhite)
-	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 
 void CRemoteDialog::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 {
 	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
-	pFrame->GetTapModule()->RaiseKeyEvent(keyCode, hardwareKeyCode == 0 ? keyCode : hardwareKeyCode);
+	pFrame->GetTapModule()->RaiseKeyEvent(keyCode, hardwareKeyCode);
 
 }
 // CRemoteDialog message handlers
 
 void CRemoteDialog::OnBnClickedBpower()
 {
-	RaiseKeyEvent(RKEY_Power,0x1f0);
+	RaiseKeyEvent(RKEY_Power, RAWKEY_Power);
 }
 
 
 void CRemoteDialog::OnBnClickedBmute()
 {
-	RaiseKeyEvent(RKEY_Mute, 0x10c);
+	RaiseKeyEvent(RKEY_Mute, RAWKEY_Mute);
 }
 
 void CRemoteDialog::OnBnClickedRadio()
 {
-	RaiseKeyEvent(RKEY_TvRadio,0x143);
+	RaiseKeyEvent(RKEY_TvRadio, RAWKEY_TVRadio_Uhf);
 }
 
 
 void CRemoteDialog::OnBnClickedSource()
 {
-	RaiseKeyEvent(RKEY_TvSat,0x108); 
+	RaiseKeyEvent(RKEY_TvSat, RAWKEY_TvSat); 
 }
 
 
 void CRemoteDialog::OnBnClickedOpt()
 {
-	RaiseKeyEvent(RKEY_Sleep,0x144); 
+	RaiseKeyEvent(RKEY_Sleep, RAWKEY_Opt_Sleep); 
 }
 
 
 void CRemoteDialog::OnBnClickedNum1()
 {
-	RaiseKeyEvent(RKEY_Cmd_1,0x111);
+	RaiseKeyEvent(RKEY_1, RAWKEY_1);
 }
 
 
 void CRemoteDialog::OnBnClickedNum2()
 {
-	RaiseKeyEvent(RKEY_Cmd_2,0x112);
+	RaiseKeyEvent(RKEY_2, RAWKEY_2);
 }
 
 
 void CRemoteDialog::OnBnClickedNum3()
 {
-	RaiseKeyEvent(RKEY_Cmd_3,0x113);
+	RaiseKeyEvent(RKEY_3, RAWKEY_3);
 }
 
 
 void CRemoteDialog::OnBnClickedNum4()
 {
-	RaiseKeyEvent(RKEY_Cmd_4,0x114);
+	RaiseKeyEvent(RKEY_4, RAWKEY_4);
 }
 
 
 void CRemoteDialog::OnBnClickedNum5()
 {
-	RaiseKeyEvent(RKEY_Cmd_5,0x115);
+	RaiseKeyEvent(RKEY_5, RAWKEY_5);
 }
 
 
 void CRemoteDialog::OnBnClickedNum6()
 {
-	RaiseKeyEvent(RKEY_Cmd_6,0x116);
+	RaiseKeyEvent(RKEY_6,  RAWKEY_6);
 }
 
 
 void CRemoteDialog::OnBnClickedNum7()
 {
-	RaiseKeyEvent(RKEY_Cmd_7,0x117);
+	RaiseKeyEvent(RKEY_7,  RAWKEY_7);
 }
 
 
 void CRemoteDialog::OnBnClickedNum8()
 {
-	RaiseKeyEvent(RKEY_Cmd_8,0x118);
+	RaiseKeyEvent(RKEY_8,  RAWKEY_8);
 }
 
 
 void CRemoteDialog::OnBnClickedNum9()
 {
-	RaiseKeyEvent(RKEY_Cmd_9,0x119);
+	RaiseKeyEvent(RKEY_9,  RAWKEY_9);
 }
 
 
 void CRemoteDialog::OnBnClickedRecall()
 {
-	RaiseKeyEvent(RKEY_Recall,0x11e);
+	RaiseKeyEvent(RKEY_Recall, RAWKEY_Recall);
 }
 
 
 void CRemoteDialog::OnBnClickedNum0()
 {
-	RaiseKeyEvent(RKEY_Cmd_0,0x110);
+	RaiseKeyEvent(RKEY_0, RAWKEY_0);
 }
 
 
 void CRemoteDialog::OnBnClickedInfo()
 {
-	RaiseKeyEvent(RKEY_Info,0x11d);
+	RaiseKeyEvent(RKEY_Info, RAWKEY_Info);
 }
 
 
 void CRemoteDialog::OnBnClickedGuide()
 {
-	RaiseKeyEvent(RKEY_Guide,0x11b);
+	RaiseKeyEvent(RKEY_Guide,  RAWKEY_Guide);
 }
 
 
 void CRemoteDialog::OnBnClickedList()
 {
-	RaiseKeyEvent(RKEY_Ok,0x104); //??
+	RaiseKeyEvent(RKEY_Ok,  RAWKEY_Ok); //??
 }
 
 
 void CRemoteDialog::OnBnClickedUp()
 {
-	RaiseKeyEvent(RKEY_ChUp,0x100);
+	RaiseKeyEvent(RKEY_ChUp,  RAWKEY_Up);
 }
 
 
 void CRemoteDialog::OnBnClickedMenu()
 {
-	RaiseKeyEvent(RKEY_Menu,0x11a);
+	RaiseKeyEvent(RKEY_Menu, RAWKEY_Down);
 }
 
 
 void CRemoteDialog::OnBnClickedExit()
 {
-	RaiseKeyEvent(RKEY_Exit,0x105);
+	RaiseKeyEvent(RKEY_Exit, RAWKEY_Exit_AudioTrk);
 }
 
 
 void CRemoteDialog::OnBnClickedOklist()
 {
-	RaiseKeyEvent(RKEY_Ok,0x11f);
+	RaiseKeyEvent(RKEY_Ok,  RAWKEY_Ok);
 }
 
 
 void CRemoteDialog::OnBnClickedLeft()
 {
-	RaiseKeyEvent(RKEY_VolDown,0x103);
+	RaiseKeyEvent(RKEY_VolDown,  RAWKEY_Left);
 }
 
 
 void CRemoteDialog::OnBnClickedRight()
 {
-	RaiseKeyEvent(RKEY_VolUp,0x102);
+	RaiseKeyEvent(RKEY_VolUp,  RAWKEY_Right);
 }
 
 
 void CRemoteDialog::OnBnClickedVolup()
 {
-	RaiseKeyEvent(RKEY_VolUp,0x109);
+	RaiseKeyEvent(RKEY_VolUp, RAWKEY_VolUp_Fav);
 }
 
 
 void CRemoteDialog::OnBnClickedVoldown()
 {
-	RaiseKeyEvent(RKEY_VolDown,0x11c);
+	RaiseKeyEvent(RKEY_VolDown,  RAWKEY_VolDown_Exit);
 }
 
 
 void CRemoteDialog::OnBnClickedDown()
 {
-	RaiseKeyEvent(RKEY_ChDown,0x101);
+	RaiseKeyEvent(RKEY_ChDown, RAWKEY_Down);
 }
 
 
 void CRemoteDialog::OnBnClickedProgdown()
 {
-	RaiseKeyEvent(RKEY_ChDown,0x147);
+	RaiseKeyEvent(RKEY_ChDown, RAWKEY_ChDown_Teletext);
 }
 
 
 void CRemoteDialog::OnBnClickedProgup()
 {
-	RaiseKeyEvent(RKEY_ChUp,107);
+	RaiseKeyEvent(RKEY_ChUp, RAWKEY_ChUp_Subt );
 }
 
 
 void CRemoteDialog::OnBnClickedRewind()
 {
-	RaiseKeyEvent(RKEY_Rewind,0x145);
+	RaiseKeyEvent(RKEY_Rewind, RAWKEY_Rewind);
 }
 
 
 void CRemoteDialog::OnBnClickedPlay()
 {
-	RaiseKeyEvent(RKEY_Play,0x146);
+	RaiseKeyEvent(RKEY_Play, RAWKEY_Play);
 }
 
 
 void CRemoteDialog::OnBnClickedForward()
 {
-	RaiseKeyEvent(RKEY_Forward,0x148);
+	RaiseKeyEvent(RKEY_Forward, RAWKEY_Forward);
 }
 
 
 void CRemoteDialog::OnBnClickedSlow()
 {
-	RaiseKeyEvent(RKEY_Slow,0x149);
+	RaiseKeyEvent(RKEY_Slow, RAWKEY_Slow);
 }
 
 
 void CRemoteDialog::OnBnClickedStop()
 {
-	RaiseKeyEvent(RKEY_Stop,0x14a);
+	RaiseKeyEvent(RKEY_Stop, RAWKEY_Stop);
 }
 
 
 void CRemoteDialog::OnBnClickedRecord()
 {
-	RaiseKeyEvent(RKEY_Record,0x14b);
+	RaiseKeyEvent(RKEY_Record, RAWKEY_Record);
 }
 
 
 void CRemoteDialog::OnBnClickedPause()
 {
-	RaiseKeyEvent(RKEY_Pause,0x106);
+	RaiseKeyEvent(RKEY_Pause, RAWKEY_Pause);
 }
 
 
 void CRemoteDialog::OnBnClickedPip()
 {
-	RaiseKeyEvent(RKEY_Prev,0x150); // really pip it seems
+	RaiseKeyEvent(RKEY_Prev, RAWKEY_PIP_Prev); // really pip it seems
 }
 
 
 void CRemoteDialog::OnBnClickedArchive()
 {
-	RaiseKeyEvent(RKEY_PlayList,0x151);
+	RaiseKeyEvent(RKEY_PlayList, RAWKEY_PlayList);
 }
 
 
 void CRemoteDialog::OnBnClickedText()
 {
-	RaiseKeyEvent(RKEY_Next,0x152); // yes,yes, but that's what the text key sends 
+	RaiseKeyEvent(RKEY_Next, RAWKEY_Teletext_Next); // yes,yes, but that's what the text key sends 
 }
 
 
 void CRemoteDialog::OnBnClickedRed()
 {
-	RaiseKeyEvent(RKEY_Red,0x14d);
+	RaiseKeyEvent(RKEY_Red, RAWKEY_Red);
 }
 
 
 void CRemoteDialog::OnBnClickedGreen()
 {
-	RaiseKeyEvent(RKEY_Green,0x10d);
+	RaiseKeyEvent(RKEY_Green, RAWKEY_Green);
 }
 
 
 void CRemoteDialog::OnBnClickedYellow()
 {
-	RaiseKeyEvent(RKEY_Yellow,0x10e);
+	RaiseKeyEvent(RKEY_Yellow, RAWKEY_Yellow);
 }
 
 
 void CRemoteDialog::OnBnClickedBlue()
 {
-	RaiseKeyEvent(RKEY_Blue,0x10f);
+	RaiseKeyEvent(RKEY_Blue, RAWKEY_Blue);
 }
 
 
 void CRemoteDialog::OnBnClickedPipswap()
 {
-	RaiseKeyEvent(RKEY_Sat,0x15e); // yep
+	RaiseKeyEvent(RKEY_Sat, RAWKEY_PIPSwap_Sat); // yep
 }
 
 
 void CRemoteDialog::OnBnClickedWhite()
 {
-	RaiseKeyEvent(RKEY_Ab,0x14c); // Yep
+	RaiseKeyEvent(RKEY_Ab, RAWKEY_White_Ab); // Yep
 }
 
-
-void CRemoteDialog::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: Add your message handler code here and/or call default
-
-	CDialogBar::OnKeyDown(nChar, nRepCnt, nFlags);
-}

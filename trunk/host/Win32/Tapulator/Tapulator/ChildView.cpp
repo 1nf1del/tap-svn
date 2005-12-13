@@ -26,6 +26,7 @@
 #include "ChildView.h"
 #include "MainFrm.h"
 #include ".\childview.h"
+#include "RawKey.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -46,6 +47,7 @@ CChildView::~CChildView()
 BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 
@@ -82,4 +84,80 @@ BOOL CChildView::OnEraseBkgnd(CDC* pDC)
 		return 0;
 
 	return CWnd::OnEraseBkgnd(pDC);
+}
+
+void RaiseKeyEvent(int keyCode, int hardwareKeyCode)
+{
+	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
+	pFrame->GetTapModule()->RaiseKeyEvent(keyCode, hardwareKeyCode);
+}
+
+
+void CChildView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	switch ( nChar )
+	{
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		RaiseKeyEvent(RKEY_0+nChar-48, RAWKEY_0+nChar-48);
+		break;
+	case VK_F1:
+		RaiseKeyEvent(RKEY_NewF1, RAWKEY_Red);
+		break;
+	case VK_F2:
+		RaiseKeyEvent(RKEY_F2, RAWKEY_Green);
+		break;
+	case VK_F3:
+		RaiseKeyEvent(RKEY_F3, RAWKEY_Yellow);
+		break;
+	case VK_F4:
+		RaiseKeyEvent(RKEY_F4, RAWKEY_Blue);
+		break;
+	case VK_F5:
+		RaiseKeyEvent(RKEY_Sat, RAWKEY_PIPSwap_Sat);
+		break;
+	case VK_F6:
+		RaiseKeyEvent(RKEY_Ab, RAWKEY_White_Ab);
+		break;
+	case VK_LEFT:
+		RaiseKeyEvent(RKEY_VolDown, RAWKEY_Left);
+		break;
+	case VK_RIGHT:
+		RaiseKeyEvent(RKEY_VolUp, RAWKEY_Right);
+		break;
+	case VK_UP:
+		RaiseKeyEvent(RKEY_ChUp, RAWKEY_Up);
+		break;
+	case VK_DOWN:
+		RaiseKeyEvent(RKEY_ChDown, RAWKEY_Down);
+		break;
+	case VK_ESCAPE:
+		RaiseKeyEvent(RKEY_Exit, RAWKEY_Exit_AudioTrk);
+		break;
+	case VK_RETURN:
+		RaiseKeyEvent(RKEY_Ok, RAWKEY_Ok);
+		break;
+	case 'A':
+		RaiseKeyEvent(RKEY_PlayList, RAWKEY_PlayList);
+		break;
+	case 'I':
+		RaiseKeyEvent(RKEY_Info, RAWKEY_Info);
+		break;
+	case 'M':
+		RaiseKeyEvent(RKEY_Menu, RAWKEY_Menu);
+		break;
+	case 'G':
+		RaiseKeyEvent(RKEY_Guide, RAWKEY_Guide);
+		break;
+	}
+
+	CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }

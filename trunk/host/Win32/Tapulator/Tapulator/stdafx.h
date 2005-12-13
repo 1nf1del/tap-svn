@@ -34,6 +34,7 @@
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdisp.h>        // MFC Automation classes
+#include <afxadv.h>        // MFC Automation classes
 
 #include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
 #ifndef _AFX_NO_AFXCMN_SUPPORT
@@ -50,4 +51,4 @@
 #undef malloc
 #undef free
 
-#define TRANSPARENT_COLOUR (WinRGB(254,0,254))
+#define TRANSPARENT_COLOUR (WinRGB(0,0,0))

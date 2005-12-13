@@ -84,11 +84,9 @@ public:
 	afx_msg void OnBnClickedBlue();
 	afx_msg void OnBnClickedPipswap();
 	afx_msg void OnBnClickedWhite();
-void EnableButton(CCmdUI* p);
+
+	void EnableButton(CCmdUI* p);
 
 private :
 	void RaiseKeyEvent(int keyCode, int hardwareKeyCode);
-
-public:
-	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };

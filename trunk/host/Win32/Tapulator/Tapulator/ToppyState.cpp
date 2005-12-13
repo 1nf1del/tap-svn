@@ -62,7 +62,7 @@ ToppyState::~ToppyState(void)
 void ToppyState::DrawScreen(CDC* pDC, CRect rcScreen, int iChannelNum, bool bMain)
 {
 	COLORREF crBack = bMain ? WinRGB(0,0,0) : WinRGB(201, 205, 44);
-	COLORREF crFore = bMain ? WinRGB(201,205,44) : WinRGB(221, 224, 112);
+	COLORREF crFore = bMain ? WinRGB(20,20,44) : WinRGB(20, 20, 44);
 
 	pDC->FillSolidRect(rcScreen, crBack);
 

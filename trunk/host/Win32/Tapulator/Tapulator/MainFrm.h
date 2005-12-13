@@ -47,7 +47,7 @@ public:
 public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
-	virtual void LoadTap(CString sFileName);
+	virtual BOOL LoadTap(CString sFileName);
 // Implementation
 public:
 	virtual ~CMainFrame();
@@ -91,6 +91,8 @@ public:
 	afx_msg LRESULT OnInitTap(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg void OnFileOptions();
+	afx_msg void OnViewInfo();
+	afx_msg void OnUpdateViewInfo(CCmdUI *pCmdUI);
 };
 
 

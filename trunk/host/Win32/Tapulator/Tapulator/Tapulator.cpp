@@ -31,11 +31,16 @@
 #endif
 
 
+const TCHAR _afxFileSection[] = _T("Recent File List");
+const TCHAR _afxFileEntry[] = _T("File%d");
+
 // CTapulatorApp
 
 BEGIN_MESSAGE_MAP(CTapulatorApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
+	ON_UPDATE_COMMAND_UI(ID_FILE_MRU_FILE1, OnUpdateRecentFileMenu)
+	ON_COMMAND_EX_RANGE(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, OnOpenRecentFile)
 END_MESSAGE_MAP()
 
 
@@ -78,6 +83,9 @@ BOOL CTapulatorApp::InitInstance()
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	m_pRecentFileList = new CRecentFileList(0, _afxFileSection, _afxFileEntry, 10 );
+	m_pRecentFileList->ReadList();
+
 	// To create the main window, this code creates a new frame window
 	// object and then sets it as the application's main window object
 
@@ -100,6 +108,27 @@ BOOL CTapulatorApp::InitInstance()
 	return TRUE;
 }
 
+void CTapulatorApp::OnUpdateRecentFileMenu(CCmdUI* pCmdUI)
+{
+	ASSERT_VALID(this);
+	if (m_pRecentFileList == NULL) // no MRU files
+		pCmdUI->Enable(FALSE);
+	else
+		m_pRecentFileList->UpdateMenu(pCmdUI);
+}
+
+
+BOOL CTapulatorApp::OnOpenRecentFile(UINT nID)
+{
+	int nIndex = nID - ID_FILE_MRU_FILE1;
+
+	if ( ((CMainFrame*)m_pMainWnd)->LoadTap((*m_pRecentFileList)[nIndex]) )
+		AddToRecentFileList( (*m_pRecentFileList)[nIndex] );
+	else
+		m_pRecentFileList->Remove(nIndex);
+
+	return TRUE;
+}
 
 // CTapulatorApp message handlers
 
@@ -152,8 +181,8 @@ void CTapulatorApp::OnFileOpen()
 	if (dlf.DoModal() != IDOK)
 		return;
 
-	((CMainFrame*)m_pMainWnd)->LoadTap(dlf.GetFileName());
-	// TODO: Add your command handler code here
+	if ( ((CMainFrame*)m_pMainWnd)->LoadTap(dlf.GetFileName()) )
+		AddToRecentFileList( dlf.GetFileName() );
 }
 
 bool CTapulatorApp::AcceptsLicense()

@@ -49,6 +49,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_MESSAGE(WM_USER + 123, OnInitTap)
 	ON_WM_TIMER()
 	ON_COMMAND(ID_FILE_OPTIONS, OnFileOptions)
+	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_INFO, OnUpdateViewInfo)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -171,17 +173,18 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 }
 
 
-void CMainFrame::LoadTap(CString sFileName)
+BOOL CMainFrame::LoadTap(CString sFileName)
 {
 	if (!m_TapInfo.LoadModule(sFileName))
 	{
 		AfxMessageBox(m_TapInfo.GetError());
-		return;
+		return FALSE;
 	}
 
 	m_TapInfo.SetFramework(GetFramework());
 
 	this->PostMessage(WM_USER+123, 0,0);
+	return TRUE;
 }
 
 ToppyFramework* CMainFrame::GetFramework()
@@ -294,9 +297,23 @@ CConfiguration* CMainFrame::GetConfig()
 {
 	return m_pConfigData;
 }
+
 void CMainFrame::OnFileOptions()
 {
 	CConfigurationDialog dlg;
 	dlg.DoModal();
 	m_pConfigData->Load();
+}
+
+void CMainFrame::OnViewInfo()
+{
+	if ( m_pInfoDialog->IsWindowVisible() )
+        m_pInfoDialog->ShowWindow( SW_HIDE );
+	else
+        m_pInfoDialog->ShowWindow( SW_SHOW );
+}
+
+void CMainFrame::OnUpdateViewInfo(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck( m_pInfoDialog->IsWindowVisible() );
 }

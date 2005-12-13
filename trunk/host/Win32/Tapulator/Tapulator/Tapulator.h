@@ -51,6 +51,11 @@ public:
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnFileOpen();
+	afx_msg void OnUpdateRecentFileMenu(CCmdUI* pCmdUI);
+	afx_msg BOOL OnOpenRecentFile(UINT nID);
+
+private:
+	CRecentFileList* m_pRecentFileList;
 };
 
 extern CTapulatorApp theApp;
