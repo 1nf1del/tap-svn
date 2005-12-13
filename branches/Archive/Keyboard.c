@@ -15,23 +15,22 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 	Last change:  USE  12 Aug 105    7:16 pm
 **************************************************************/
 
-/* Included in Common.c
-#include "graphics/Calendar.GD"
-#include "graphics/DateHighlight.GD"
-#include "graphics/DateOverStamp.GD"
-
-
+#include "graphics/KeyHighlight.GD"
+#include "graphics/KeyOverStamp.GD"
+/* Following 2 lines moved to Common.c
 #include "graphics/BigKeyGreen.GD"
 #include "graphics/BigKeyBlue.GD"
 */
+
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"
+
 //#include "graphics/Keyboard_Help_Screen_OZ.GD"
 //#include "graphics/Keyboard_Help_Screen_UK.GD"
 #include "graphics/keyboard_help_oz.GD"
 #include "graphics/keyboard_help_uk.GD"
 #include "graphics/sms_keys_oz.GD"
-#include "graphics/sms_keys_uk.GD"
+//#include "graphics/sms_keys_uk.GD"
 #include "TIC.C"
 
 #define KB_STEP_X	60
@@ -107,7 +106,6 @@ static int  insertMode;
 static char insertModeStr[2][6] = {"[Ins]", "[Ovr]"};
 static int  caseMode;
 static char caseModeStr[3][6] = {"[Abc]", "[ABC]", "[abc]"};
-//static char KeyCharArray[10][6] = {" &-'", "ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWX", "YZ,.", "01234", "56789"};
 static char KeyCharArray[10][15] = {" 0", ".,&-?'()[]+=!#", "ABC2", "DEF3", "GHI4", "JKL5", "MNO6", "PQRS7", "TUV8", "WXYZ9"};
 static int  remoteKeyPressCount;                                        // Track how many times a remote control digit key is pressed.    
 static int  remoteKeyPrevKey;                                           // Keep track of what was the last digit key pressed.
@@ -411,7 +409,6 @@ void DisplayCurrentString( bool flashOn )
 		str[ currentIndex ] = '\0';
 
 		width = TAP_Osd_GetW( str, 0, FNT_Size_1926);
-//		if (width > KB_TITLE_WIDTH) width = KB_TITLE_WIDTH;             // Bounds check (added by kidhazy 3 Nov 2005)
 		while (width > KB_TITLE_WIDTH-30)                               // String is too wide to fit on screen, so back off some letters.
 		{
 	       charactersToLeft = TRUE;
@@ -449,11 +446,6 @@ void DisplayCurrentString( bool flashOn )
 
 	if ( currentIndex < len )											// now split out everything to the right of the cursor
 	{																	// (if anything)
-//		for ( i=0; i<len-currentIndex-1 ;i++ )
-//		{
-//		    str[i] = currentString[i+currentIndex+1];
-//		}
-//		str[i] = '\0';
         strncpy( str, currentString+currentIndex+1, len-currentIndex);
         str[ len-currentIndex ] = '\0';
         endPos = strlen(str);
@@ -678,10 +670,7 @@ void KeyboardHelpKeyHandler( dword key )
                              }
                              else
 		                     {
-                                 if ( unitModelType==TF5800t) // Display the UK style remote
-                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ukGd, TRUE );
-                                 else  
-                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ozGd, TRUE );
+                                 TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ozGd, TRUE );
                                  keyboardHelpSMSWindowShowing = TRUE;
                              }
                              break;
@@ -712,9 +701,6 @@ void KeyboardKeyHandler( dword key )
 							        break;
 								if ((currentRow == 4) && (currentColumn == 6))          // Toggle the Case Mode
 							        break;
-//                                remoteKeyPrevKey = 0;  // Reset the previous remote digit key, so that we skip to the next character.
-    //lastRemoteKeyDigit = TAP_GetTick();
-    								break;
 							}
 							break;
 							
@@ -925,9 +911,9 @@ void RedrawKeyboard( void )
 
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     keyboardWindowCopy = TAP_Osd_SaveBox(rgn, KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT);
-#ifdef WIN32  // If testing on WIN32 platform 
-TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );				// clear the screen
-#endif          
+    #ifdef WIN32  // If testing on WIN32 platform 
+       TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );				// clear the screen
+    #endif          
 
     // Display the pop-up window.
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Background, row, column);
@@ -972,9 +958,6 @@ void ActivateKeyboard( char *str, int maxChars, void (*ReturningProcedure)( char
     remoteKeyActive=FALSE;
 
     keyboardRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
-    // Display the pop-up window in the memory buffer so that we copy across any background.
-//	CalcKeyboardPosition( &x_coord, &y_coord, KB_Background, row, column);
-//    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_popup476x416Gd, TRUE );
 
 	RedrawKeyboard();
 }

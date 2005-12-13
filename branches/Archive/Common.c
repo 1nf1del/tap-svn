@@ -164,8 +164,6 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 
 #include "graphics/popup476x416.GD"
 
-#include "graphics/KeyHighlight.GD"
-#include "graphics/KeyOverStamp.GD"
 #include "graphics/BigKeyGreen.GD"
 #include "graphics/BigKeyBlue.GD"
 
