@@ -42,17 +42,14 @@ void DeletePlayedFileEntry(int entry)
     appendToLogfile("DeletePlayedFileEntry: Started.");
     appendIntToLogfile("DeletePlayedFileEntry: At start, entry=%d",entry);
     appendIntToLogfile("DeletePlayedFileEntry: At start, numberOfPlayedFiles=%d",numberOfPlayedFiles);
-ShowMessageWin( rgn, "DeletePlayedFileEntry", "Starting", "",1);
 
     TAP_MemFree( playedFiles[i] );   // Clear the allocated memory for this entry as we will reassign it in the shuffle.
-ShowMessageWin( rgn, "DeletePlayedFileEntry", "Loop start", "",1);
     for (i=entry; i <= numberOfPlayedFiles-1; i += 1)
     {
         playedFiles[i] = playedFiles[i+1];  // Shuffle everything down one in the list.
     }    
     
     numberOfPlayedFiles--;                                                             // Decrease the count of the entries.
-ShowMessageWin( rgn, "DeletePlayedFileEntry", "Loop ended", "",1);
     
     appendIntToLogfile("DeletePlayedFileEntry: At end, numberOfPlayedFiles=%d",numberOfPlayedFiles);
     appendToLogfile("DeletePlayedFileEntry: Finished.");
@@ -75,7 +72,6 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
     if ((!message) && (myfiles[dirNumbr][index]->startCluster == playedFiles[0]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[0]->name)==0))
     {
         appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.");
-ShowMessageWin( rgn, "DeleteProgressInfo", "Deleting lastplayed entry", "",1);
         memset(playedFiles[0],0,sizeof(*playedFiles[0]));   // Clear out the lastplayback entry.
         playedFiles[0]->startCluster = 0;
         match = TRUE;
@@ -88,12 +84,10 @@ ShowMessageWin( rgn, "DeleteProgressInfo", "Deleting lastplayed entry", "",1);
         // If the file has the same filename and the same disk startcluster we consider it a match.
         if ((myfiles[dirNumbr][index]->startCluster == playedFiles[i]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[i]->name)==0))
         {
-ShowMessageWin( rgn, "DeleteProgressInfo", "Resetting myfiles entry", "",1);
               myfiles[dirNumbr][index]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
               myfiles[dirNumbr][index]->currentBlock = 0;
               myfiles[dirNumbr][index]->totalBlock = 0;
               appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i);
-ShowMessageWin( rgn, "DeleteProgressInfo", "Calling DeletePlayedFileEntry", "",1);
               DeletePlayedFileEntry(i);
               match = TRUE;
               break; // We've found a match, so don't bother checking other playback entries.
@@ -182,7 +176,6 @@ void ChangeToParentDir()
      if (CurrentDirNumber == 0) strcpy(CurrentDir, "/DataFiles");     // We're pointing at the DataFiles directory
      else strcpy(CurrentDir, myfiles[CurrentDirNumber][1]->directory); // else get the full directory name from the first file/folder.
 
-// Following 4 if we don't do recursive scan on entry.
      if (!recursiveLoadOption)
      {     
         SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
@@ -227,12 +220,11 @@ char str[80], str2[80];
      }
      else  // Start from the start.
            lastPos = 0;
-TAP_SPrint(str2,"curperc=%d lastpos=%d",curPercent,lastPos);     
-TAP_SPrint(str,"cb=%d< tb=%d< ", myfiles[CurrentDirNumber][chosenLine]->currentBlock, myfiles[CurrentDirNumber][chosenLine]->totalBlock);    
-ShowMessageWin( rgn, "Before ChangePos", str, str2,1);
+TAP_SPrint(str,"cb=%d  tb=%d", currentBlock, totalBlock);    
+TAP_SPrint(str2,"curperc=%d  lastPos=%d",curPercent,lastPos);     
      
      TAP_Hdd_ChangePlaybackPos( lastPos );
-ShowMessageWin( rgn, "After ChangePos", str, str2,400);
+//ShowMessageWin( rgn, "After ChangePos", str, str2,400);
 }
 
 
@@ -316,8 +308,6 @@ int RestartLastPlayback(void)
      int mainType, mainNum;   // Temporary storage for the current service in case we need to switch back after a failed playback.
      dword lastPos;
      
-//     CurrentDir = GetCurrentDir();
-     
      ChangeDirRoot();                // Change to the root directory.
      TAP_Hdd_ChangeDir("DataFiles");	// Let's go to the data file directory. To start playback.
      TAP_Channel_GetCurrent( &mainType, &mainNum );   // Store the current channel in case we need to switch back after a failed playback.
@@ -330,11 +320,8 @@ int RestartLastPlayback(void)
         sprintf(str2,"file: %s",playedFiles[0]->name);
         ShowMessageWin( rgn, "Restarting Last Playback Failed.", str, str2, 400 );
         GotoPath( CurrentDir );  // Return to the current directory.
-//      TAP_Channel_Start(1, mainType, mainNum);  // Switch back to current channel.
         return result;
      }
-//     else  // Set the current directory to where the playback file was.
-//        CurrentDir = GetCurrentDir();
   
      // Jump back to the last watched position - or to the start if >95% watched.
      JumpToLastPosition(playedFiles[0]->currentBlock, playedFiles[0]->totalBlock);
@@ -374,7 +361,6 @@ void RestartPlayback(int line, int jump)
     if (myfiles[CurrentDirNumber][line]->isRecording) // If this is an active recording, then change to the channel first and jump back to start.
     {
         TAP_Channel_Start(1, myfiles[CurrentDirNumber][line]->svcType, myfiles[CurrentDirNumber][line]->svcNum);
-        // GotoDataFiles();
         TAP_Hdd_ChangePlaybackPos( 0 );                      
 	    exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }

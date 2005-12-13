@@ -656,6 +656,11 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
 
         // Blank out existing variable space.
         myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        if (myfiles[dirNumber][index] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'AddNewFile'", 500);
+               return;
+        }
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
@@ -667,6 +672,11 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
 
         // Allocate & blank out existing new 'myfiles' entry.
         myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        if (myfiles[dirNumber][index] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'AddNewFolder'", 500);
+               return;
+        }
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
@@ -677,6 +687,11 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
              
         // Allocate & blank out existing new 'myfolders' entry.
         myfolders[newFolderNumber] = TAP_MemAlloc( sizeof  (*myfolders[newFolderNumber])); 
+        if (myfolders[newFolderNumber]  == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfolders' in 'AddNewFolder'", 500);
+               return;
+        }
         memset(myfolders[newFolderNumber],0,sizeof (*myfolders[newFolderNumber]));
 
         // Make new folder entry in the "myfolders" array.
@@ -692,6 +707,11 @@ void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDir
 {
         // Blank out existing variable space.
         myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
+        if (myfiles[dirNumber][index] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'AddNewParentFolder'", 500);
+               return;
+        }
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         myfiles[dirNumber][index]->attr             = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
@@ -709,6 +729,11 @@ bool FileExists(char* directory, char* filename, int dirNumber, int fileIndex)
     if (myfiles[dirNumber][fileIndex] == NULL)           
     {
         myfiles[dirNumber][fileIndex] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][fileIndex]));
+        if (myfiles[dirNumber][fileIndex] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'FileExists'", 500);
+               return;
+        }
         memset(myfiles[dirNumber][fileIndex],0,sizeof (*myfiles[dirNumber][fileIndex]));
     }
     
@@ -733,11 +758,21 @@ bool FileExistsInList(char* directory, char* filename, int dirNumber, int *found
     if (myfiles[dirNumber][0] == NULL)           
     {
         myfiles[dirNumber][0] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][0]));
+        if (myfiles[dirNumber][0] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'FileExistsInList'", 500);
+               return -1;
+        }
         memset(myfiles[dirNumber][0],0,sizeof (*myfiles[dirNumber][0]));
     }
     if (myfiles[dirNumber][1] == NULL)           
     {
         myfiles[dirNumber][1] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][1]));
+        if (myfiles[dirNumber][1] == NULL)
+        {
+               ShowMessageWin( rgn, "TAP Memory Allocation Failure", "Unable to allocate enough memory", "for 'myfiles' in 'FileExistsInList'", 500);
+               return -1;
+        }
         memset(myfiles[dirNumber][1],0,sizeof (*myfiles[dirNumber][1]));
     }
     
@@ -841,24 +876,24 @@ char str[90],str2[90];
     {
 TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
 TAP_SPrint(str2,"fileindex=%d",fileIndex);     
-ShowMessageWin( rgn, "DeleteDirFilesNotPresent Checking", str, str2,1);
+//ShowMessageWin( rgn, "DeleteDirFilesNotPresent Checking", str, str2,1);
          if (!myfiles[dirNumber][fileIndex]->present)               // File was not present when we reinvoked Archive
          {
                if (myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)  // Delete any subfolders first.
                {
 TAP_SPrint(str,"dirnumber=%d< fileindex=%d", dirNumber,fileIndex);    
 TAP_SPrint(str2,"myfiles.dirnumber=%d",myfiles[dirNumber][fileIndex]->directoryNumber);     
-ShowMessageWin( rgn, "calling DeleteMyfilesFolderEntry", str, str2,1);
+//ShowMessageWin( rgn, "calling DeleteMyfilesFolderEntry", str, str2,1);
                    DeleteMyfilesFolderEntry( myfiles[dirNumber][fileIndex]->directoryNumber);
                 }    
 TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
 TAP_SPrint(str2,"fileindex=%d",fileIndex);     
-ShowMessageWin( rgn, "calling DeleteMyfilesEntry", str, str2,1);
+//ShowMessageWin( rgn, "calling DeleteMyfilesEntry", str, str2,1);
                DeleteMyfilesEntry( dirNumber, fileIndex);
                fileIndex--;  // Move pointer back as we need to recheck the file that has just been shuffled down.
          }
     }
-ShowMessageWin( rgn, "DeleteDirFilesNotPresent Finished", str, str2,1);
+//ShowMessageWin( rgn, "DeleteDirFilesNotPresent Finished", str, str2,1);
 }
 
 void DeleteAllFilesNotPresent(void)

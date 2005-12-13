@@ -117,6 +117,12 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (numberLinesOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (borderOption) );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", (recCheckOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -198,6 +204,8 @@ void SetConfigurationVariables( void )
 	sortOrderOption     = ReadIniDecimal();
 	progressBarOption   = ReadIniDecimal();
 	numberLinesOption   = ReadIniDecimal();
+	borderOption        = ReadIniDecimal();
+	recCheckOption      = ReadIniDecimal();
 }
 
 
@@ -258,6 +266,8 @@ void LoadConfiguration( void )
 		column4Option     = 0;
 		column5Option     = 0;
 		numberLinesOption = 9;
+		borderOption      = 0;
+		recCheckOption    = 0;
 
 		SaveConfigurationToFile();
 	}

@@ -91,6 +91,9 @@ void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int del
 
 }
 
+
+
+
 //--------------------------------------------------------------------
 //    D I R E C T O R Y    Utilities
 //--------------------------------------------------------------------
@@ -459,9 +462,48 @@ return TF5000_BP_WP;
         return TFOther;
 }
 
-
-
 /*
+// Finds the location of the INI file.
+void LocateINIfileDir( void )
+{
+    char* currentPath;
+    
+    // Find the current path that we're in.
+    currentPath = GetCurrentDir();
+    
+    //
+    // FIRST - try /ProgramFiles/Settings
+    //
+    // Got to the /ProgramFiles directory
+    GotoProgramFiles();
+    // Check if the /ProgramFiles/Settings directory exists.  
+    if (TAP_Hdd_Exist("Settings"))
+    {
+        TAP_Hdd_ChangeDir("Settings");               // Change to the "/ProgramFiles/Settings" directory.
+        TAP_MemFree( currentPath );
+        TAPIniDir = GetCurrentDir();                 // Store the directory location of the INI file.	
+        return;    
+    }
+   
+
+
+    //
+    // SECOND - try <CurrentDir>/UK TAP Project
+    //
+    // Got back to the original directory
+    GotoPath( currentPath );
+    // Attempt to change to the "UK TAP Project" directory.
+	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
+
+    // If the above fails, we fall through into the current directory, so use that as our location.
+    TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
+
+    // Free up any allocated memory.
+    TAP_MemFree( currentPath );
+}  
+
+
+
 void DeterminePIN(char *pin)
 {
   word       SysID = *((volatile word*)0xa3fffffa);

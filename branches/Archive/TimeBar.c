@@ -62,7 +62,8 @@ void UpdateListClock(void)
 	TAP_SPrint( str, "%s %d %s %d:%02d%cm", str2, day, str3, (hour+23)%12 + 1, min, hour >= 12 ? 'p':'a'); //Display a 12 hour clock with am/pm indicator
 	width = TAP_Osd_GetW( str, 0, FNT_Size_1622 );
 
-	TAP_Osd_PutGd( rgn, 494, 34, &_timebarGd, TRUE );
+//	TAP_Osd_PutGd( rgn, 494, 34, &_timebarGd, TRUE );
+	TAP_Osd_PutGd( rgn, 494, 34, &_timebar_blackGd, TRUE );
 	TAP_Osd_PutStringAf1622( rgn, 581-(width/2), 39, 660, str, TIME_COLOUR, 0 );
 }
 

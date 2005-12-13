@@ -62,14 +62,15 @@ int DrawLineColour(int percent)
 // linewidth  - width of the graph
 // lineheight - height of the graph
 // freeSpaceColour - colour of the background of the graph
-// BoxLineWidth    - width of the black line surrounding around the graph
+// BoxLineWidth    - width  of the line surrounding  the graph
+// BoxLineColour   - colour of the line surrounding the graph
 // style           - style of bar to draw.
 //                   0 = colour gradient fill
 //                   1 = solid colour partial fill
 //                   2 = solid colour full bar
 //                  >2 = colour partial fill 
 //
-void DisplayProgressBar(word scrrgn, dword amount, dword max_amount, int x_pos, int y_pos, int linewidth, int lineheight, int freeSpaceColour, int BoxLineWidth, int style)
+void DisplayProgressBar(word scrrgn, dword amount, dword max_amount, int x_pos, int y_pos, int linewidth, int lineheight, int freeSpaceColour, int BoxLineWidth, int BoxLineColour, int style)
 {
     int amount_percent;  int line_percent;  int percent;
     int wf;
@@ -110,7 +111,7 @@ void DisplayProgressBar(word scrrgn, dword amount, dword max_amount, int x_pos, 
         DrawLine(scrrgn, x_pos+tempX+BoxLineWidth, y_pos, lineheight, LineDrawcolour);         // Draw one single line
     }
     // Draw Box around Bar
-    TAP_Osd_DrawRectangle(scrrgn, x_pos, y_pos , linewidth, lineheight, BoxLineWidth, COLOR_Gray);
+    TAP_Osd_DrawRectangle(scrrgn, x_pos, y_pos , linewidth, lineheight, BoxLineWidth, BoxLineColour);
 
 }
 

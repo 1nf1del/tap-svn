@@ -57,6 +57,8 @@ void WriteDatFile( TYPE_File *writeFile )
     appendStringToLogfile("WriteDatFile: Returning to=%s.",currentDir);
 	GotoPath(currentDir);            // Return to the original directory.
 
+    TAP_MemFree( currentDir );   // Free allocated memory.
+    
     appendToLogfile("WriteDatFile: Finished.");
 }
 
@@ -301,6 +303,8 @@ void DeletePlayData( void )
     }   
 
     ShowMessageWin( rgn, "All Progress Info Cleared.", "Removed playback information", "for all recorded files.", 400 );
+
+    TAP_MemFree( currentDir );   // Free allocated memory.
 
     appendToLogfile("DeletePlayData: Finished.");
 }

@@ -26,8 +26,12 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 */
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"
-#include "graphics/Keyboard_Help_Screen_OZ.GD"
-#include "graphics/Keyboard_Help_Screen_UK.GD"
+//#include "graphics/Keyboard_Help_Screen_OZ.GD"
+//#include "graphics/Keyboard_Help_Screen_UK.GD"
+#include "graphics/keyboard_help_oz.GD"
+#include "graphics/keyboard_help_uk.GD"
+#include "graphics/sms_keys_oz.GD"
+#include "graphics/sms_keys_uk.GD"
 #include "TIC.C"
 
 #define KB_STEP_X	60
@@ -110,6 +114,7 @@ static int  remoteKeyPrevKey;                                           // Keep 
 static bool remoteKeyFirstPress;                                        // Flag to indicate first time a key is pressed.
 static bool remoteKeyActive;                                            // Is there a digit key character active awaiting timeout?
 static word keyboardRgn;												// a memory region used for our text string.
+static bool keyboardHelpSMSWindowShowing;
 
 void (*Callback)( char*, bool );										// points to the procedure to be called when we've done
 
@@ -200,9 +205,11 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
 
     // Display the pop-up window.
     if ( unitModelType==TF5800t) // Display the UK style remote
-       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_screen_ukGd, TRUE );
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
     else  
-       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_screen_ozGd, TRUE );
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
+    keyboardHelpSMSWindowShowing = FALSE;
+    
 //    TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
 /*
     TAP_SPrint(str, "Keyboard Help");
@@ -323,12 +330,12 @@ void HighlightLetter( int row, int column, bool highlight)
 
 		if ( highlight )
 		{
-		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_datehighlightGd, TRUE );	// display the highlight
+		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_keyhighlightGd, TRUE );	// display the highlight
 			PrintCenter( rgn, x_coord, y_coord+9, (x_coord + KB_HIGHLIGHT_WIDTH), str, COLOR_Yellow, 0, FNT_Size_1926 );	// re-write the date text
 		}
 		else
 		{
-		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_dateoverstampGd, TRUE );
+		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_keyoverstampGd, TRUE );
 			PrintCenter( rgn, x_coord, y_coord+9, (x_coord + KB_HIGHLIGHT_WIDTH), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 		}
 	}
@@ -660,7 +667,25 @@ void KeyboardHelpKeyHandler( dword key )
 {
 	switch ( key )
 	{
-		case RKEY_Info:
+		case RKEY_Info:      // Alternate between general keys and SMS text help screens.
+		                     if (keyboardHelpSMSWindowShowing)
+		                     {
+                                 if ( unitModelType==TF5800t) // Display the UK style remote
+                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
+                                 else  
+                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
+                                 keyboardHelpSMSWindowShowing = FALSE;
+                             }
+                             else
+		                     {
+                                 if ( unitModelType==TF5800t) // Display the UK style remote
+                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ukGd, TRUE );
+                                 else  
+                                        TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ozGd, TRUE );
+                                 keyboardHelpSMSWindowShowing = TRUE;
+                             }
+                             break;
+             
         case RKEY_Exit :	CloseKeyboardHelp();									// quick access key : cancel and exit
 							break;
 
@@ -981,6 +1006,7 @@ void InitialiseKeyboard( void )
 {
 	keyboardWindowShowing = FALSE;
 	keyboardHelpWindowShowing = FALSE;
+	keyboardHelpSMSWindowShowing = FALSE;
 	keyboardListType = 0;
 	currentRow = 0;
 	currentColumn = 0;

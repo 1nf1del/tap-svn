@@ -186,9 +186,9 @@ void DisplayArchiveHelp( void )
 
     // Display the pop-up window.
     if ( unitModelType==TF5800t) // Display the UK style remote
-       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_screen_ukGd, TRUE );
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_ukGd, TRUE );
     else  
-       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_screen_ozGd, TRUE );
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_help_ozGd, TRUE );
 /*    
     TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_popup520x269Gd, TRUE );
 
@@ -329,7 +329,7 @@ void DrawFreeSpaceBar()
     // Calculate remaining time, taking into consideration 1 hour of timeshift buffer (ie 1 x recordingRateOption)
     hoursRemaining   = ((freeSpace-recordingRateOption)/recordingRateOption);
     minutesRemaining = (((freeSpace-recordingRateOption)*100)/((recordingRateOption*100)/60)) - (hoursRemaining*60);  // Use '100' multiplier to help with integer maths.
-    DisplayProgressBar(memRgn, totalSpace-freeSpace, totalSpace, DISK_INFO_X, DISK_INFO_Y, DISK_PROGRESS_BAR_WIDTH, 20, COLOR_Black, 1, 0);
+    DisplayProgressBar(memRgn, totalSpace-freeSpace, totalSpace, DISK_INFO_X, DISK_INFO_Y, DISK_PROGRESS_BAR_WIDTH, 20, COLOR_Black, 1, COLOR_Gray, 0);
 
     TAP_SPrint(str,"%02d%% %dMB Remaining: %01dhr %01dmin  ", freePercent, freeSpace, hoursRemaining, minutesRemaining);
 	TAP_Osd_PutStringAf1419( memRgn, DISK_INFO_X+DISK_PROGRESS_BAR_WIDTH+5, DISK_INFO_Y, DISK_INFO_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
@@ -573,16 +573,35 @@ void MonthToAlpha (byte month, char *str)
 //
 void DrawGraphicBorders(void)
 {
-#ifdef WIN32
-    TAP_Osd_FillBox( rgn, 0, 0, 720, 576, COLOR_DarkGray );				// clear the screen
-#else    
-    TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );				// clear the screen
-#endif
-    TAP_Osd_PutGd( rgn, 0, 0, &_topGd, TRUE );							// draw top graphics
-    TAP_Osd_PutGd( rgn, 0, 0, &_sideGd, TRUE );							// draw left side graphics
-	TAP_Osd_PutGd( rgn, 672, 0, &_sideGd, TRUE );						// draw right side graphics
-	if (numberLinesOption == 9)           
-       TAP_Osd_PutGd( rgn, 0, (MAX_SCREEN_Y-39), &_bottomGd, TRUE );	// draw bottom graphics
+    switch (borderOption)
+    {
+           case 0:       // Traditional Blue screen border.  
+                         #ifdef WIN32
+                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, COLOR_DarkGray );				// clear the screen
+                         #else    
+                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );				// clear the screen
+                         #endif
+                         //TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );				    // Clear the entire screen with black.
+                         TAP_Osd_PutGd( rgn, 0, 0, &_topGd, TRUE );							    // draw top graphics
+                         TAP_Osd_PutGd( rgn, 0, 0, &_sideGd, TRUE );					        // draw left side graphics
+	                     TAP_Osd_PutGd( rgn, 672, 0, &_sideGd, TRUE );						    // draw right side graphics
+	                     if (numberLinesOption == 9)           
+                            TAP_Osd_PutGd( rgn, 0, (MAX_SCREEN_Y-39), &_bottomGd, TRUE );	    // draw bottom graphics
+                         break;
+           case 1:       // Transparent border    
+                         #ifdef WIN32
+                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, COLOR_DarkGray );				// clear the screen
+                         #else    
+                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );		      		            // clear the screen with transparency colour
+                            TAP_Osd_FillBox( rgn, INFO_AREA_X-COLUMN_GAP_W, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W+(2*COLUMN_GAP_W), (INFO_AREA_Y+INFO_AREA_H)-(Y1_STEP+Y1_OFFSET-11), FILL_COLOUR );	// Fill the center with black.
+                         #endif
+                         TAP_Osd_PutGd( rgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
+                         TAP_Osd_PutGd( rgn, 0, 0, &_side_blackGd, TRUE );						// draw left side graphics
+	                     TAP_Osd_PutGd( rgn, 672, 0, &_side_blackGd, TRUE );					// draw right side graphics
+	                     if (numberLinesOption == 9)           
+                            TAP_Osd_PutGd( rgn, 0, (MAX_SCREEN_Y-39), &_bottom_blackGd, TRUE );	// draw bottom graphics
+                         break;
+    }   
 }
 
 
@@ -940,8 +959,8 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     if (myfiles[CurrentDirNumber][line]->isRecording)  // If the file is recording print recording icon.
     {
-         TAP_Osd_PutGd( listRgn, COLUMN1_START+4, i*Y1_STEP+Y1_OFFSET, &_redcircle25x25Gd, TRUE );
-		 TAP_Osd_PutStringAf1419( listRgn, COLUMN1_START+11, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, "R", MAIN_TEXT_COLOUR, 0 );
+         TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_redglasscircle25x25Gd, TRUE );
+		 TAP_Osd_PutStringAf1419( listRgn, COLUMN1_START+13, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, "R", MAIN_TEXT_COLOUR, 0 );
          
          // Flag that there is a recording on the screen, and indicate which recording slot it is.
          if (strncmp(myfiles[CurrentDirNumber][line]->name, recInfo[0].fileName, TS_FILE_NAME_SIZE)==0)   // It's the 1st recording slot.
@@ -958,8 +977,8 @@ void DisplayFileText(int line, int i)
     else
     if (myfiles[CurrentDirNumber][line]->isPlaying)  // If the file is playing print play icon.
     {
-         TAP_Osd_PutGd( listRgn, COLUMN1_START+4, i*Y1_STEP+Y1_OFFSET, &_greencircle25x25Gd, TRUE );
-         TAP_Osd_PutStringAf1622( listRgn, COLUMN1_START+13, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, ">", COLOR_Black, 0 );
+         TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_greenglasscircle25x25Gd, TRUE );
+         TAP_Osd_PutStringAf1622( listRgn, COLUMN1_START+15, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, ">", COLOR_Black, 0 );
 
          // Flag that there is an active playback on the screen.
          playbackOnScreenEntry = line;
@@ -1000,15 +1019,15 @@ void DisplayFileText(int line, int i)
                    case PB_MULTI:
                    case PB_SINGLE:
                    case PB_SOLID:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, progressBarOption);
                                break;
                                
                    case PB_REDGREEN:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Green);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, COLOR_Green);
                                break;
                                
                    case PB_WHITE:
-                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, MAIN_TEXT_COLOUR);
+                               DisplayProgressBar(listRgn, max(0,myfiles[CurrentDirNumber][line]->currentBlock), max(1,myfiles[CurrentDirNumber][line]->totalBlock), COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, MAIN_TEXT_COLOUR);
                                break;
             } 
 
@@ -1018,12 +1037,11 @@ void DisplayFileText(int line, int i)
          }
          else   // Don't display the progress bar, and just indicate a "Watched" tick.
          {
-            // Display a green tick at the end of the filename.
-            TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET-2, &_greentick25x26Gd, TRUE );
+            // Display a green tick in front of the filename.
+//            TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET-2, &_greentick25x26Gd, TRUE );
+            TAP_Osd_PutGd( listRgn, COLUMN1_START+7, i*Y1_STEP+Y1_OFFSET-2, &_blueglasscircletick25x25Gd, TRUE );
             // Print the Filename in the middle of the row.
             FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
-            // Display a green tick at the end of the filename.
-            TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET-2, &_greentick25x26Gd, TRUE );
          }    
     }
     
@@ -1039,15 +1057,15 @@ void DisplayFileText(int line, int i)
                 case PB_MULTI:
                 case PB_SINGLE:
                 case PB_SOLID:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, progressBarOption);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, progressBarOption);
                             break;
                              
                 case PB_REDGREEN:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Red);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, COLOR_Red);
                             break;
                                
                 case PB_WHITE:
-                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_White);
+                            DisplayProgressBar(listRgn, myfiles[CurrentDirNumber][line]->recordedSec, myfiles[CurrentDirNumber][line]->recDuration*60 , COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET+19, LIST_PROGRESS_BAR_WIDTH, 8, COLOR_Black, 1, COLOR_Black, COLOR_White);
                             break;
          } 
 
@@ -1238,7 +1256,7 @@ void UpdateRecordingSelectionText(int chosenLine)
     curRecMin   = (totalRecSec - (curRecHour * 60 * 60)) / 60;
     curRecSec   = (totalRecSec - (curRecHour * 60 * 60)) % 60;
 
-    DisplayProgressBar(memRgn, myfiles[CurrentDirNumber][chosenLine]->recordedSec, myfiles[CurrentDirNumber][chosenLine]->recDuration*60 , INFO_TEXT_X, INFO_TEXT_Y+27, RECORDING_PROGRESS_BAR_WIDTH, 10, COLOR_Black, 1, 0);
+    DisplayProgressBar(memRgn, myfiles[CurrentDirNumber][chosenLine]->recordedSec, myfiles[CurrentDirNumber][chosenLine]->recDuration*60 , INFO_TEXT_X, INFO_TEXT_Y+27, RECORDING_PROGRESS_BAR_WIDTH, 10, COLOR_Black, 1, COLOR_Gray, 0);
 
     TAP_SPrint(str,"%02d:%02d:%02d Recorded ", curRecHour, curRecMin, curRecSec);
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X+RECORDING_PROGRESS_BAR_WIDTH+5, INFO_TEXT_Y+21, INFO_TEXT_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
@@ -1511,17 +1529,12 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;
 
         case RKEY_Green:    CreateNewFolder();
-//                            LoadArchiveInfo();
                             RefreshArchiveList(TRUE);
                             break;
 
         case RKEY_Red:    DisplayArchiveHelp();
                             break;
 
-        case RKEY_Yellow:   TAP_Osd_PutGd( rgn, 150,50, &_archive_help_screen_ozGd, TRUE );
-
-                            TAP_Delay(600);
-                            break;
                             							
 		case RKEY_Menu :	ActivateMenu();
 						    break;
