@@ -243,14 +243,14 @@ void DisplayArchiveInfoWindow()
 	     char   filesString[10], foldersString[10];
 	     
 	     // Format the number of files and subfolders in this folder.
-	     TAP_SPrint(filesString,   "%d", currentFile.numberOfFiles);
-	     TAP_SPrint(foldersString, "%d", currentFile.numberOfFolders);
+	     TAP_SPrint(filesString,   "%d", currentFolder.numberOfRecordings);
+	     TAP_SPrint(foldersString, "%d", currentFolder.numberOfFolders);
 	     
          TAP_SPrint(title, "Folder Details");
 	     PrintCenter( rgn, INFO_WINDOW_X, INFO_WINDOW_Y +  14, INFO_WINDOW_X+INFO_WINDOW_W, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	     
          PrintRight( rgn, INFO_WINDOW_X+10,  INFO_WINDOW_Y+ 100, INFO_WINDOW_X+180, "Folder Name:", HEADING_TEXT_COLOUR, 0, FNT_Size_1926 );
-         PrintLeft ( rgn, INFO_WINDOW_X+190, INFO_WINDOW_Y+ 100, INFO_WINDOW_X+INFO_WINDOW_W-8, currentFile.name, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+         PrintLeft ( rgn, INFO_WINDOW_X+190, INFO_WINDOW_Y+ 100, INFO_WINDOW_X+INFO_WINDOW_W-8, currentFolder.name, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
          
 	     PrintRight( rgn, INFO_WINDOW_X+10,  INFO_WINDOW_Y+ 150, INFO_WINDOW_X+180, "Number of Files:", HEADING_TEXT_COLOUR, 0, FNT_Size_1926 );
          PrintLeft ( rgn, INFO_WINDOW_X+190, INFO_WINDOW_Y+ 150, INFO_WINDOW_X+INFO_WINDOW_W-8, filesString, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
@@ -335,7 +335,7 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;	
 
 								case 1 :   // DELETE
-                                           if (myfiles[chosenLine].attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[chosenLine].name,myfiles[chosenLine].attr);
+                                           if (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine]->name,myfiles[CurrentDirNumber][chosenLine]->attr);
                                            break;
 
 								case 2 :   // RENAME
@@ -343,8 +343,8 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;
 
 								case 3 :   // RESET PROGRESS
-                                           if ((myfiles[chosenLine].attr == ATTR_FOLDER) || (myfiles[chosenLine].attr == PARENT_DIR_ATTR)) break;  // Ignore when looking at folders.
-                                           DeleteProgressInfo(TRUE);
+                                           if ((myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER) || (myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR)) break;  // Ignore when looking at folders.
+                                           DeleteProgressInfo(CurrentDirNumber, chosenLine, TRUE);
                                            fileReset = TRUE;
                                            infoCommandOption = INFO_OK_OPTION;  // Move to the OK option.
                                            DisplayInfoLine();                   // Redraw command buttons with new selection.

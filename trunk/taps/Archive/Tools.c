@@ -30,16 +30,13 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 
 word* sysID = (word*)0xa3fffffa;
 
-
-//   ShowMessageWin 
+//   ShowMessageBox 
 //
 
-void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int delay )
+void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
 {
-
     word   width, msgY;
     int    msgScrWidth;
-    byte*  msgWindowCopy;
     
     msgScrWidth = MSG_SCREEN_W-10;
     msgY = MSG_SCREEN_Y+12;
@@ -51,8 +48,6 @@ void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int del
 
     if ( width > msgScrWidth ) width = msgScrWidth;
 
-    // Save the region where we are about to display the pop-up.
-    msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
 #ifdef WIN32  // If testing on WIN32 platform 
 TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, FILL_COLOUR );				// clear the screen
 #endif          
@@ -74,12 +69,30 @@ TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, 
 		FALSE, ALIGN_CENTER);											// show 3. message
 
 
+}
+
+
+//   ShowMessageWin 
+//
+
+void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int delay )
+{
+    byte*  msgWindowCopy;
+    
+    // Save the region where we are about to display the pop-up.
+    msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
+
+    ShowMessageBox(msgRgn, msg1, msg2, msg3 );
+
     TAP_Delay( delay );    
 
 	TAP_Osd_RestoreBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, msgWindowCopy);
 	TAP_MemFree(msgWindowCopy);
 
 }
+
+
+
 
 //--------------------------------------------------------------------
 //    D I R E C T O R Y    Utilities
@@ -97,18 +110,18 @@ char *_currentDirPtr = NULL;
 
 //------------------------------ InDataFilesFolder --------------------------------------
 //
-bool	InDataFilesFolder()
+bool	InDataFilesFolder(char* currentDir)
 {
-    if (strcmp(CurrentDir,"/DataFiles")==0) return TRUE;
+    if (strncmp(currentDir,"/DataFiles",TS_FILE_NAME_SIZE)==0) return TRUE;
     else return FALSE;
 }
 
 
 //------------------------------ InDataFilesFolderSubDir --------------------------------------
 //
-bool	InDataFilesSubFolder()
+bool	InDataFilesSubFolder(char* currentDir)
 {
-    if (strncmp(CurrentDir,"/DataFiles/",11)==0) return TRUE;
+    if (strncmp(currentDir,"/DataFiles/",11)==0) return TRUE;
     else return FALSE;
 }
 
@@ -201,17 +214,29 @@ void	ExtractLastField ( char* path, char* result )
 //
 bool	IsFileRec( char *recFile, 	dword	attr )
 {
+    //
+    // Checks if a file is a valid recording.
+    //
+    // 2 options available via "recCheckOption"
+    // recCheckOption=0 - filename ends with ".rec" AND file attribute must equal ATTR_TS 
+    // recCheckOption=1 - filename ends with ".rec" 
+    //
+    
 	char buff[128];
 
-	strcpy( buff, recFile );
-	strlwr( buff );
+	strcpy( buff, recFile );       // Copy the filename into the buffer for checking.
+	strlwr( buff );                // Convert the filename into all lowercase for easy comparison.
+	
 #ifdef WIN32
     if ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 )
         	return TRUE;
 	else
         	return FALSE;
 #else
-    if ((attr == ATTR_TS) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ))
+    if ((recCheckOption==0) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ) && (attr == ATTR_TS) )
+        	return TRUE;
+    else     
+    if ((recCheckOption==1) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ))
         	return TRUE;
 	else
         	return FALSE;
@@ -228,9 +253,7 @@ bool GotoPath(char *path){
 	char *endPos;
 	bool ready;
 
-	// TAP_Print("GotoPath: going to root...\r\n");
 	ChangeDirRoot();
-	//GotoRoot();
 
 	startPos=path;
 	if ((*startPos)!='/'){
@@ -439,9 +462,48 @@ return TF5000_BP_WP;
         return TFOther;
 }
 
-
-
 /*
+// Finds the location of the INI file.
+void LocateINIfileDir( void )
+{
+    char* currentPath;
+    
+    // Find the current path that we're in.
+    currentPath = GetCurrentDir();
+    
+    //
+    // FIRST - try /ProgramFiles/Settings
+    //
+    // Got to the /ProgramFiles directory
+    GotoProgramFiles();
+    // Check if the /ProgramFiles/Settings directory exists.  
+    if (TAP_Hdd_Exist("Settings"))
+    {
+        TAP_Hdd_ChangeDir("Settings");               // Change to the "/ProgramFiles/Settings" directory.
+        TAP_MemFree( currentPath );
+        TAPIniDir = GetCurrentDir();                 // Store the directory location of the INI file.	
+        return;    
+    }
+   
+
+
+    //
+    // SECOND - try <CurrentDir>/UK TAP Project
+    //
+    // Got back to the original directory
+    GotoPath( currentPath );
+    // Attempt to change to the "UK TAP Project" directory.
+	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
+
+    // If the above fails, we fall through into the current directory, so use that as our location.
+    TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
+
+    // Free up any allocated memory.
+    TAP_MemFree( currentPath );
+}  
+
+
+
 void DeterminePIN(char *pin)
 {
   word       SysID = *((volatile word*)0xa3fffffa);

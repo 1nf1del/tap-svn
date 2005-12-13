@@ -60,6 +60,8 @@ static int currentColumn4Option;
 static int currentColumn5Option;
 static int currentInfoLineOption;
 static int currentNumberLinesOption;
+static int currentBorderOption;
+static int currentRecCheckOption;
 
 
 
@@ -302,6 +304,38 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
+		case 15 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Screen Border", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentBorderOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "Traditional Blue" );
+								break;
+								
+					case 1 : 	sprintf( str, "No background border" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
+		case 16 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Recording Check", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentRecCheckOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "'.rec' and file attribute" );
+								break;
+								
+					case 1 : 	sprintf( str, "'.rec' only" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
 		case 10 :		
 		case 20 :
 				TAP_Osd_PutGd( rgn, 53, lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
@@ -357,6 +391,8 @@ void CopyConfiguration( void )
 	currentSortOrderOption     = sortOrderOption;
 	currentProgressBarOption   = progressBarOption;
 	currentNumberLinesOption   = numberLinesOption;
+    currentBorderOption        = borderOption;
+    currentRecCheckOption      = recCheckOption;
 }
 
 void SaveConfiguration( void )
@@ -374,6 +410,8 @@ void SaveConfiguration( void )
 	sortOrderOption     = currentSortOrderOption;
     progressBarOption   = currentProgressBarOption;
     numberLinesOption   = currentNumberLinesOption;
+    borderOption        = currentBorderOption;
+    recCheckOption      = currentRecCheckOption;
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -714,6 +752,40 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentNumberLinesOption == 10 ) currentNumberLinesOption = 9;
 		            	                    else currentNumberLinesOption = 10;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 15 :	switch ( key )										// Background border option
+					{
+		            	case RKEY_VolUp:	if (currentBorderOption == 0 ) currentBorderOption++;
+		            	                    else currentBorderOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentBorderOption == 1 ) currentBorderOption--;
+		            	                    else currentBorderOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 16 :	switch ( key )										// Recording Check Option
+					{
+		            	case RKEY_VolUp:	if (currentRecCheckOption == 0 ) currentRecCheckOption++;
+		            	                    else currentRecCheckOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentRecCheckOption == 1 ) currentRecCheckOption--;
+		            	                    else currentRecCheckOption = 1;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 

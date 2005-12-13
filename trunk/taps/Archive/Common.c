@@ -1,7 +1,7 @@
 /************************************************************
 				Part of the ukEPG project
 	This module handles the definition of all common items
-
+ 
 Name	: Common.c
 Author	: Darkmatter
 Version	: 0.0
@@ -13,7 +13,7 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 
 	Last change:  USE   2 Aug 105   11:30 pm
 ************************************************************/
-
+  
 //-----------------
 // Screen coordinates
 //
@@ -27,7 +27,7 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 #define INFO_AREA_Y (490-((10-NUMBER_OF_LINES)*42)) // 490
 #define INFO_AREA_W 614  // Total width of list window.
 //#define INFO_AREA_H (MAX_SCREEN_Y-INFO_AREA_Y)
-#define INFO_AREA_H 86
+#define INFO_AREA_H 83 //86
 
 // Dimensions for instructions on Info Window
 #define INSTR_AREA_W 150
@@ -108,6 +108,9 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #define DISK_INFO_Y (INFO_AREA_Y+50)
 #define DISK_PROGRESS_BAR_WIDTH 200  // Width of the Progress Bar for the disk space.
 
+#define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
+
+
 // Define the numbers of the options on the  Archive Info window.
 #define INFO_OK_OPTION 0
 #define INFO_DELETE_OPTION 1
@@ -143,12 +146,15 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 //#include "graphics/rowC.GD"
 //#include "graphics/row.GD"
 #include "graphics/highlight.GD"
-#include "graphics/RedCircle.GD"
-#include "graphics/GreenCircle.GD"
+
 #include "graphics/top.GD"
 #include "graphics/side.GD"
 #include "graphics/bottom.GD"
 #include "graphics/timeBar.GD"
+#include "graphics/top_black.GD"
+#include "graphics/side_black.GD"
+#include "graphics/bottom_black.GD"
+#include "graphics/timeBar_black.GD"
 
 #include "graphics/smallGreenBar.GD"
 
@@ -156,48 +162,26 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/MenuRow_Highlight.GD"
 #include "graphics/Menu_Title.GD"
 
-#include "graphics/PopUp466x406.GD"
 #include "graphics/popup476x416.GD"
-#include "graphics/popup360x180.GD"
-#include "graphics/Calendar.GD"
-#include "graphics/DateHighlight.GD"
-#include "graphics/DateOverStamp.GD"
-#include "graphics/BigKeyGreen.GD"
-#include "graphics/BigKeyBlue.GD"
 
-#include "graphics/GreenCircle22x22.GD"
-#include "graphics/InfoCircle22x22.GD"
-#include "graphics/RedCircle22x22.GD"
-#include "graphics/WhiteCircle22x22.GD"
-#include "graphics/YellowCircle22x22.GD"
+#include "graphics/BigGreenButton.GD"
+#include "graphics/BigBlueButton.GD"
 
-#include "graphics/GreenCircle30x39.GD"
-#include "graphics/RedCircle30x39.GD"
+#include "graphics/GreenGlassCircle25x25.GD"
+#include "graphics/BlueGlassCircle25x25.GD"
+#include "graphics/BlueGlassCircleTick25x25.GD"
+#include "graphics/RedGlassCircle25x25.GD"
 
-#include "graphics/GreenCircle25x25.GD"
-#include "graphics/RedCircle25x25.GD"
-
-#include "graphics/GreenOval38x19.GD"
 #include "graphics/InfoOval38x19.GD"
 #include "graphics/RedOval38x19.GD"
 #include "graphics/WhiteOval38x19.GD"
-#include "graphics/YellowOval38x19.GD"
-#include "graphics/PauseOval38x19.GD"
 
-#include "graphics/GreenOval44x22.GD"
-#include "graphics/InfoOval44x22.GD"
-#include "graphics/RedOval44x22.GD"
-#include "graphics/WhiteOval44x22.GD"
-#include "graphics/YellowOval44x22.GD"
-//#include "graphics/PauseOval44x22.GD"
+#include "graphics/archive_help_uk.GD"
+#include "graphics/archive_help_oz.GD"
 
-#include "graphics/popup520x269.GD"
-
-
-
+ 
 #include "graphics/folder_yellow.GD"
 #include "graphics/folder_yellow_parent.GD"
-#include "graphics/greentick25x26.GD"
 
 
 //#define FILL_COLOUR RGB(0,0,102)
@@ -260,6 +244,7 @@ void ChangeToParentDir(void);
 int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump);
 void WeekdayToAlpha (byte weekday, char *str);
 void RestartPlayback(int line, int jump);
+void DeleteProgressInfo(int dirNumbr, int index, bool message);
 
 //*****************
 //global variables
@@ -297,7 +282,8 @@ static int maxShown;
 static int  sortOrder;
 static int  folderSortOrder = 0;
 static char sortTitle[20];
-       char*   CurrentDir;
+static char CurrentDir[ MAX_FULL_DIR_NAME_LENGTH ];
+static int CurrentDirNumber;       
 static char  infoCommandOption;
 static int recordingRateOption;
 static int GMToffsetOption;
@@ -310,6 +296,9 @@ static int column4Option;
 static int column5Option;
 static int infoLineOption;
 static int numberLinesOption;
+static bool recursiveLoadOption=FALSE;
+static int borderOption;
+static int recCheckOption;
        
 static bool CalledByTSRCommander=FALSE;
 static bool inPlaybackMode = FALSE;

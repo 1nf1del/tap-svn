@@ -15,17 +15,18 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 	Last change:  USE  12 Aug 105    7:16 pm
 **************************************************************/
 
-/* Included in Common.c
-#include "graphics/Calendar.GD"
-#include "graphics/DateHighlight.GD"
-#include "graphics/DateOverStamp.GD"
-
-
+#include "graphics/KeyHighlight.GD"
+#include "graphics/KeyOverStamp.GD"
 #include "graphics/BigKeyGreen.GD"
 #include "graphics/BigKeyBlue.GD"
-*/
+
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"
+
+#include "graphics/keyboard_help_oz.GD"
+#include "graphics/keyboard_help_uk.GD"
+#include "graphics/sms_keys_oz.GD"
+#include "graphics/info_key38x24.GD"
 #include "TIC.C"
 
 #define KB_STEP_X	60
@@ -42,8 +43,8 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 
 #define KB_HELP_LINES1  11                          // Number of help lines in 1st column
 #define KB_HELP_LINES2  11                          // Number of help lines in 2nd column
-#define KB_HELP_HEIGHT 321
-#define KB_HELP_WIDTH 520
+#define KB_HELP_HEIGHT 490 //321
+#define KB_HELP_WIDTH 476 //520
 #define KB_HELP_BASE_X  ((MAX_SCREEN_X-KB_HELP_WIDTH)/2)
 #define KB_HELP_BASE_Y	((MAX_SCREEN_Y-KB_HELP_HEIGHT)/2)
 #define KB_HELP_TEXT_X1  (KB_HELP_BASE_X + 10)
@@ -101,13 +102,13 @@ static int  insertMode;
 static char insertModeStr[2][6] = {"[Ins]", "[Ovr]"};
 static int  caseMode;
 static char caseModeStr[3][6] = {"[Abc]", "[ABC]", "[abc]"};
-//static char KeyCharArray[10][6] = {" &-'", "ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWX", "YZ,.", "01234", "56789"};
 static char KeyCharArray[10][15] = {" 0", ".,&-?'()[]+=!#", "ABC2", "DEF3", "GHI4", "JKL5", "MNO6", "PQRS7", "TUV8", "WXYZ9"};
 static int  remoteKeyPressCount;                                        // Track how many times a remote control digit key is pressed.    
 static int  remoteKeyPrevKey;                                           // Keep track of what was the last digit key pressed.
 static bool remoteKeyFirstPress;                                        // Flag to indicate first time a key is pressed.
 static bool remoteKeyActive;                                            // Is there a digit key character active awaiting timeout?
 static word keyboardRgn;												// a memory region used for our text string.
+static bool keyboardHelpSMSWindowShowing;
 
 void (*Callback)( char*, bool );										// points to the procedure to be called when we've done
 
@@ -197,8 +198,14 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
 #endif          
 
     // Display the pop-up window.
-    TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
-
+    if ( unitModelType==TF5800t) // Display the UK style remote
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
+    else  
+       TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
+    keyboardHelpSMSWindowShowing = FALSE;
+    
+//    TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
+/*
     TAP_SPrint(str, "Keyboard Help");
 	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_TITLE_Y, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	 
@@ -224,7 +231,7 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
     TAP_SPrint(str, "(Press EXIT or INFO      to close this help window)");
 	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
     TAP_Osd_PutGd( rgn, KB_HELP_TEXT_X1+207, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35+2, &_infooval38x19Gd, TRUE );
-
+*/
 }
 
      
@@ -317,12 +324,12 @@ void HighlightLetter( int row, int column, bool highlight)
 
 		if ( highlight )
 		{
-		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_datehighlightGd, TRUE );	// display the highlight
+		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_keyhighlightGd, TRUE );	// display the highlight
 			PrintCenter( rgn, x_coord, y_coord+9, (x_coord + KB_HIGHLIGHT_WIDTH), str, COLOR_Yellow, 0, FNT_Size_1926 );	// re-write the date text
 		}
 		else
 		{
-		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_dateoverstampGd, TRUE );
+		    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_keyoverstampGd, TRUE );
 			PrintCenter( rgn, x_coord, y_coord+9, (x_coord + KB_HIGHLIGHT_WIDTH), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 		}
 	}
@@ -391,13 +398,13 @@ void DisplayCurrentString( bool flashOn )
 
     totalWidth = 0;
     startPos = 0;
+    TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord, "  ", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
 	if ( currentIndex > 0 )												// print up to the cursor
 	{
 		strncpy( str, currentString, currentIndex);
 		str[ currentIndex ] = '\0';
 
 		width = TAP_Osd_GetW( str, 0, FNT_Size_1926);
-//		if (width > KB_TITLE_WIDTH) width = KB_TITLE_WIDTH;             // Bounds check (added by kidhazy 3 Nov 2005)
 		while (width > KB_TITLE_WIDTH-30)                               // String is too wide to fit on screen, so back off some letters.
 		{
 	       charactersToLeft = TRUE;
@@ -408,8 +415,6 @@ void DisplayCurrentString( bool flashOn )
         }
         if (charactersToLeft) 
 		   TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord+width, "«", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
-        else
-		   TAP_Osd_PutStringAf1926( keyboardRgn, x_coord-20, y_coord, x_coord+width, "  ", MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
 		TAP_Osd_PutStringAf1926( keyboardRgn, x_coord, y_coord, x_coord+width, str, MAIN_TEXT_COLOUR, KB_TOP_BACKGROUND );
         
 		x_coord += width;
@@ -437,11 +442,6 @@ void DisplayCurrentString( bool flashOn )
 
 	if ( currentIndex < len )											// now split out everything to the right of the cursor
 	{																	// (if anything)
-//		for ( i=0; i<len-currentIndex-1 ;i++ )
-//		{
-//		    str[i] = currentString[i+currentIndex+1];
-//		}
-//		str[i] = '\0';
         strncpy( str, currentString+currentIndex+1, len-currentIndex);
         str[ len-currentIndex ] = '\0';
         endPos = strlen(str);
@@ -655,7 +655,22 @@ void KeyboardHelpKeyHandler( dword key )
 {
 	switch ( key )
 	{
-		case RKEY_Info:
+		case RKEY_Info:      // Alternate between general keys and SMS text help screens.
+		                     if (keyboardHelpSMSWindowShowing)
+		                     {
+                                 if ( unitModelType==TF5800t) // Display the UK style remote
+                                     TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ukGd, TRUE );
+                                 else  
+                                     TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_keyboard_help_ozGd, TRUE );
+                                 keyboardHelpSMSWindowShowing = FALSE;
+                             }
+                             else
+		                     {
+                                 TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_sms_keys_ozGd, TRUE );
+                                 keyboardHelpSMSWindowShowing = TRUE;
+                             }
+                             break;
+             
         case RKEY_Exit :	CloseKeyboardHelp();									// quick access key : cancel and exit
 							break;
 
@@ -682,9 +697,6 @@ void KeyboardKeyHandler( dword key )
 							        break;
 								if ((currentRow == 4) && (currentColumn == 6))          // Toggle the Case Mode
 							        break;
-//                                remoteKeyPrevKey = 0;  // Reset the previous remote digit key, so that we skip to the next character.
-    //lastRemoteKeyDigit = TAP_GetTick();
-    								break;
 							}
 							break;
 							
@@ -895,9 +907,9 @@ void RedrawKeyboard( void )
 
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     keyboardWindowCopy = TAP_Osd_SaveBox(rgn, KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT);
-#ifdef WIN32  // If testing on WIN32 platform 
-TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );				// clear the screen
-#endif          
+    #ifdef WIN32  // If testing on WIN32 platform 
+       TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );				// clear the screen
+    #endif          
 
     // Display the pop-up window.
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Background, row, column);
@@ -912,8 +924,8 @@ TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );		
 				
 	// Print the basic instructions (in center of screen)
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Instructions, row, column);
-	PrintCenter( rgn, x_coord, y_coord, x_coord+KB_WIDTH, "(Press INFO         for Help Screen)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
-    TAP_Osd_PutGd( rgn, x_coord+199, y_coord, &_infooval38x19Gd, TRUE );
+	PrintCenter( rgn, x_coord, y_coord, x_coord+KB_WIDTH, "(Press INFO           for Help Screen)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+    TAP_Osd_PutGd( rgn, x_coord+202, y_coord-2, &_info_key38x24Gd, TRUE );
 }
 
 
@@ -942,9 +954,6 @@ void ActivateKeyboard( char *str, int maxChars, void (*ReturningProcedure)( char
     remoteKeyActive=FALSE;
 
     keyboardRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
-    // Display the pop-up window in the memory buffer so that we copy across any background.
-//	CalcKeyboardPosition( &x_coord, &y_coord, KB_Background, row, column);
-//    TAP_Osd_PutGd( rgn, x_coord, y_coord, &_popup476x416Gd, TRUE );
 
 	RedrawKeyboard();
 }
@@ -976,6 +985,7 @@ void InitialiseKeyboard( void )
 {
 	keyboardWindowShowing = FALSE;
 	keyboardHelpWindowShowing = FALSE;
+	keyboardHelpSMSWindowShowing = FALSE;
 	keyboardListType = 0;
 	currentRow = 0;
 	currentColumn = 0;

@@ -1,8 +1,8 @@
 /************************************************************
 				OZ Archive
 	Archive Recordings display, and management TAP
-              
-		    
+                               
+
 	This module is the main event handler
  
 Name	: OZ Archive.c
@@ -16,7 +16,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.02 kidhazy    11-05   TF5800 support
           v0.03 kidhazy    11-05 
           v0.04 kidhazy    11-05
-          test
+          V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -26,14 +26,14 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 #define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                    
+                     
 
-#define DEBUG 0  // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen.
+#define DEBUG 0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output
     
 #define TAP_NAME "Archive"
 #define VERSION "0.05a"       
 
-#include <tap.h>
+#include "tap.h"
 #include "morekeys.h"
      
 //#define ID_UK_Timers 		0x800440FE
@@ -41,9 +41,9 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define ID_UK_Channels 		0x800440FC
 //#define ID_UK_USB			0x800440FB
 #define ID_OZ_Archive			0x800440FA
-             
+                
 TAP_ID( ID_OZ_Archive );
-                         
+      
 #if DEBUG != 0
    TAP_PROGRAM_NAME(TAP_NAME " v" VERSION " DEBUG ONLY" __TIME__);
 #else
@@ -53,11 +53,11 @@ TAP_ID( ID_OZ_Archive );
 TAP_AUTHOR_NAME("kidhazy");
 TAP_DESCRIPTION("View and monitor recordings.");
 TAP_ETCINFO(__DATE__);
-
+ 
 char* TAPIniDir;
                         
 #include "TSRCommander.inc"
-                                                
+                                                     
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"
@@ -66,7 +66,7 @@ char* TAPIniDir;
 #include "Tools.c"
 #include "LoadArchiveInfo.c"
 #include "PlaybackDatFile.c"
-#include "logo.C"
+#include "logo.c"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
 #include "ArchiveDelete.c"
@@ -77,46 +77,75 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-                     
-                   
+                               
+                       
 static dword lastTick;
 static byte oldMin;
 static byte oldSec;
                                
-                                                                   
-              
+                                                                          
+                                
 //------------
-//
+//             
 void ActivationRoutine( void )
-{
+{  
     appendToLogfile("ActivationRoutine: Started.");
   	TAP_ExitNormal();
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
     memRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
     listRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
 
-    appendToLogfile("ActivationRoutine: Retrieving current directory.");
-    CurrentDir = GetCurrentDir();           // Stores the current directory name.
-
+    if (recursiveLoadOption)
+      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
+       
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.");
-    if ((!InDataFilesFolder()) && (!InDataFilesSubFolder()))
+    if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
     {
         appendToLogfile("ActivationRoutine: Not in Datafiles or subdir, so moving to DataFiles.");
         GotoDataFiles();
-        CurrentDir="/DataFiles";            // Set the current directory name.
+        strcpy(CurrentDir,"/DataFiles");            // Set the current directory name.
     }    
 
-    appendToLogfile("ActivationRoutine: Loading archive info.");
-    LoadArchiveInfo();
-
-	sortOrder = sortOrderOption;        // Default to default sort order.
-	SortList(sortOrder);		
+    if (recursiveLoadOption)
+    {
+      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+      GetRecordingInfo();
+      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo("/DataFiles", 0, 0, TRUE);      // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
+    }
+    else  
+    {
+      GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+//ShowMessageBox( rgn, "GetRecordingInfo", "", "");
+      GetRecordingInfo();
+//ShowMessageBox( rgn, "SetAllFilesToNotPresent", "", "");
+      SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
+//ShowMessageBox( rgn, "LoadArchiveInfo", "", "");
+      LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+//ShowMessageBox( rgn, "DeleteDirFilesNotPresent", "", "");
+      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+    }
     
-    DetermineStartingLine( &chosenLine );       // Determine which line to highlight when we start.
+    GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+    
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
+    maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
+
+//ShowMessageBox( rgn, "GetPlaybackInfo", "", "");
+    GetPlaybackInfo();                              // Get info about any active playback.
+//ShowMessageBox( rgn, "LoadPlaybackStatusInfo", "", "");
+    LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
+
+//ShowMessageBox( rgn, "SortList", "", "");
+	sortOrder = sortOrderOption;                    // Default to default sort order.
+	SortList(sortOrder);		                    // Sort the list.
+    
+    DetermineStartingLine( &chosenLine );           // Determine which line to highlight when we start.
 
     appendToLogfile("ActivationRoutine: Activating Archive Window.");
 	ActivateArchiveWindow();
-
+ 
     appendToLogfile("ActivationRoutine: Finished.");
 }
      
@@ -124,10 +153,7 @@ void ActivationRoutine( void )
 void ExitRoutine( void )
 {
     CloseArchiveWindow();
-    TAP_Osd_Delete( rgn );
 	TAP_EnterNormal();
-   //TAP_GenerateEvent( EVT_KEY, RKEY_Play, 0 );
-	
 }
 
  
@@ -135,15 +161,29 @@ void ExitRoutine( void )
 //
 void TerminateRoutine( void )											// Performs the clean-up and terminate TAP
 {
+    int dirNumber, fileIndex;
+    
     SaveDatToFile();
 	TerminateMenu();
 	TerminateConfigMenu();
 	ReleaseLogoMemory();												// clean-up logo routines
 	ExitRoutine();
-	closeLogfile();   // Close logfile if we were in debug mode.
-	TAP_Exit();															// exit
-}
 
+    // Free up any memory that may have been allocated during TAP.
+    for (dirNumber=0; dirNumber<=MAX_DIRS; dirNumber++)
+    {
+        for (fileIndex=1; fileIndex <= MAX_FILES; fileIndex++)
+        {
+            if (myfiles[dirNumber][fileIndex] != NULL) TAP_MemFree(myfiles[dirNumber][fileIndex]);
+        }
+        if (myfolders[dirNumber] != NULL) TAP_MemFree(myfolders[dirNumber]);
+    }
+    if (TAPIniDir != NULL) TAP_MemFree( TAPIniDir );
+              
+	closeLogfile();   // Close logfile if we were in debug mode.
+    TAP_Exit();															// exit
+}
+ 
     
 //------------
 //  
@@ -217,19 +257,23 @@ void CheckFlags( void )
 		if ( fileDeleted )        // If the file/folder was deleted, reload the file/folder data and refresh the list.
         {
              if (infoWindowShowing) CloseArchiveInfoWindow();  // If we deleted the file from the info window, then close the info window.
-             DeleteProgressInfo(FALSE);                        // Delete any associated playback progress info (no message window)
-             LoadArchiveInfo();                                // Reload the archive list 
+             if (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER)  // Delete any subfolders first.
+                   DeleteMyfilesFolderEntry( myfiles[CurrentDirNumber][chosenLine]->directoryNumber);
+             DeleteMyfilesEntry(CurrentDirNumber, chosenLine);
              fileDeleted = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
         }
 	}
-   
+
 	if ( returnFromStop == TRUE )											// Handle returning from delete.
 	{																		// redraw the underlying window if it's changed.
 	    returnFromStop = FALSE;
 		if ( fileStopped )        // If the file/folder was stopped, reload the file/folder data and refresh the list.
         {
-             LoadArchiveInfo();                                // Reload the archive list 
+             GetRecordingInfo();                                 // Get the information about the current active recordings.
+             LoadRecordingInfo(CurrentDirNumber, chosenLine);    // Assign any current recording info to the current line.
+             GetPlaybackInfo();                                  // Get the information about the current active playbacks.
+             LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
              fileStopped = FALSE; 
              RefreshArchiveList(FALSE);                        // Redisplay the entire list.
         }
@@ -292,6 +336,9 @@ dword My_IdleHandler(void)
 
 	if ( min != oldMin )  // Update the clock and any recording/playback entries that are displayed, every minute.
 	{
+	    if ( archiveHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
+	    if ( keyboardHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
+
 	    oldMin = min;
 		UpdateListClock();
 	    
@@ -299,32 +346,31 @@ dword My_IdleHandler(void)
         if ( infoWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
 	    if ( deleteWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
 	    if ( stopWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
-	    if ( archiveHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
 		
 		// Check if there is an active playback displayed on the screen.  If so, update it's progress information.
 		if ((inPlaybackMode) && (playbackOnScreenEntry>0))
 		{
-            SetPlaybackStatus(playbackOnScreenEntry);                                 // Load the latest information from the playback file.
+            SetPlaybackStatus(CurrentDirNumber, playbackOnScreenEntry);                                 // Load the latest information from the playback file.
             DisplayArchiveLine( playbackOnScreenEntry, playbackOnScreenLine );        // Update the playback line.
         }
-        
+         
 		// Check if there is are active recording(s) displayed on the screen.  If so, update their progress information.
 		if ((recordingOnScreenEntry1 + recordingOnScreenEntry2)>0)                    // There's at least 1 active recording on the screen.
 		{
             GetRecordingInfo();                                                       // Get the latest information from the recordings.
             if (recordingOnScreenEntry1 > 0)                                          // Is it the 1st recording?
             {
-               LoadRecordingInfo( recordingOnScreenEntry1 );                          // Load the latest information into the list.
+               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry1 );                          // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry1, recordingOnScreenLine1 ); // Update the playback line.
             } 
             if (recordingOnScreenEntry2 > 0)                                          // Is it the 2nd recording?
             {
-               LoadRecordingInfo( recordingOnScreenEntry2 );                          // Load the latest information into the list.
+               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry2 );                          // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry2, recordingOnScreenLine2 ); // Update the playback line.
             } 
         }
 	}
-
+   
 	if ( infoWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( deleteWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
 	if ( stopWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
@@ -335,10 +381,10 @@ dword My_IdleHandler(void)
         oldSec = sec;
         
         // If I've highlighted an active recording, then update it's recording information every second.    
-        if (myfiles[chosenLine].isRecording) // Update the recording information very second.
+        if (myfiles[0][chosenLine]->isRecording) // Update the recording information very second.
         {
            GetRecordingInfo();               // Update the recording information.
-           LoadRecordingInfo( chosenLine );  // Update the myfiles array with the updated recording information.
+           LoadRecordingInfo( 0, chosenLine );  // Update the myfiles array with the updated recording information.
         }   
         UpdateSelectionNumber();             // Update diskspace and recording info every second.
     }      
@@ -378,7 +424,7 @@ void TSRCommanderConfigDialog()
     DisplayConfigWindow();
 	return;
 }
-   
+
 bool TSRCommanderExitTAP (void)
 {	
 
@@ -387,11 +433,19 @@ bool TSRCommanderExitTAP (void)
 	return TRUE;
 }
 
-        
+          
 int TAP_Main (void)
 {
+    int i,d, dirNumber, fileIndex;
+
+#ifdef WIN32
+#else
+    // Create a full screen region in case there are any messages to be displayed during the initial startup.
+	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
+#endif
+     
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
-    
+
     appendToLogfile("Archive TAP Started.");
 
     if (GetModel() == TF5800t) 
@@ -411,22 +465,22 @@ int TAP_Main (void)
 
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
-
+  
     appendToLogfile("TAP_Main: Loading configuration data.");
 	LoadConfiguration();
 	sortOrder = sortOrderOption; // Default to sort order specified in the config file. 
     ResetScreenColumns();        // Set column widths according to column options.
-    
+
     appendToLogfile("TAP_Main: Loading Play Data.");
 	LoadPlayData();  // Load up the playback status information from the dat file.
 
     appendToLogfile("TAP_Main: Caching logos.");
-	CacheLogos();
-
+	CacheLogos();    
+  
     appendToLogfile("TAP_Main: Starting initialisation routines.");
     appendToLogfile("TAP_Main: Initialising ArchiveWindow.");
 	initialiseArchiveWindow();
-
+     
     appendToLogfile("TAP_Main: Initialising ArchiveDelete.");
     initialiseArchiveDelete();
 
@@ -438,6 +492,47 @@ int TAP_Main (void)
 
     appendToLogfile("TAP_Main: Initialising ConfigRoutines.");
 	InitialiseConfigRoutines();
+	  
+	numberOfFiles   = 0;
+	numberOfFolders = 0;
+	// Loop through and set all folder and file pointers to NULL.
+    for (dirNumber=0; dirNumber<=MAX_DIRS; dirNumber++)
+    {
+        myfolders[dirNumber] = NULL;
+        for (fileIndex=1; fileIndex <= MAX_FILES; fileIndex++)
+        {
+            myfiles[dirNumber][fileIndex] = NULL;
+        }
+    }
+	
+    CreateBlankFile();
+
+	
+    // Blank out initial folder & file variable space.
+    myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
+    memset(myfolders[0],0,sizeof (*myfolders[0]));
+    myfiles[0][0] = TAP_MemAlloc(sizeof (*myfiles[0][0]));
+    memset(myfiles[0][0],0,sizeof (*myfiles[0][0]));
+    myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
+    memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
+
+	GotoDataFiles();
+    strcpy(CurrentDir,"/DataFiles");
+    CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
+    GetRecordingInfo();
+
+    SetAllFilesToNotPresent();
+    strcpy(myfolders[0]->name,"/DataFiles");
+	LoadArchiveInfo("/DataFiles", 0, 0, TRUE);
+
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
+    maxShown      = numberOfFiles;
+ 
+    GetPlaybackInfo();  // Get info about any active playback.
+    LoadPlaybackStatusInfo();  
+
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
+    maxShown      = numberOfFiles;
 
 	oldMin = 100;
 	oldSec = 100;
@@ -446,6 +541,12 @@ int TAP_Main (void)
 	generatedPlayList = FALSE;
 
     appendToLogfile("TAP_Main: Finished initial TAP_Main routine.");
+
+#ifdef WIN32
+#else
+    TAP_Osd_Delete( rgn );
+#endif
+
     return 1;
 }
 

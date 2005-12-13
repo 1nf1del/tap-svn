@@ -43,12 +43,12 @@ void DeletePlayedFileEntry(int entry)
     appendIntToLogfile("DeletePlayedFileEntry: At start, entry=%d",entry);
     appendIntToLogfile("DeletePlayedFileEntry: At start, numberOfPlayedFiles=%d",numberOfPlayedFiles);
 
+    TAP_MemFree( playedFiles[i] );   // Clear the allocated memory for this entry as we will reassign it in the shuffle.
     for (i=entry; i <= numberOfPlayedFiles-1; i += 1)
     {
         playedFiles[i] = playedFiles[i+1];  // Shuffle everything down one in the list.
     }    
     
-    memset(&playedFiles[numberOfPlayedFiles],0,sizeof(playedFiles[numberOfPlayedFiles]));   // Clear out the last entry.
     numberOfPlayedFiles--;                                                             // Decrease the count of the entries.
     
     appendIntToLogfile("DeletePlayedFileEntry: At end, numberOfPlayedFiles=%d",numberOfPlayedFiles);
@@ -58,7 +58,7 @@ void DeletePlayedFileEntry(int entry)
 
 //------------
 //
-void DeleteProgressInfo(bool message)
+void DeleteProgressInfo(int dirNumbr, int index, bool message)
 {
     int i;
     bool match;
@@ -69,11 +69,11 @@ void DeleteProgressInfo(bool message)
     match = FALSE;
 
     // Check if the deleted file was set as the last playback file.  If so, remove the last playback information.
-    if ((!message) && (myfiles[chosenLine].startCluster == playedFiles[0].startCluster) && (strcmp(myfiles[chosenLine].name,playedFiles[0].name)==0))
+    if ((!message) && (myfiles[dirNumbr][index]->startCluster == playedFiles[0]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[0]->name)==0))
     {
         appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.");
-        memset(&playedFiles[0],0,sizeof(playedFiles[0]));   // Clear out the lastplayback entry.
-        playedFiles[0].startCluster = 0;
+        memset(playedFiles[0],0,sizeof(*playedFiles[0]));   // Clear out the lastplayback entry.
+        playedFiles[0]->startCluster = 0;
         match = TRUE;
     }
         
@@ -82,11 +82,11 @@ void DeleteProgressInfo(bool message)
     for (i=1; i <= numberOfPlayedFiles; i += 1)
     {
         // If the file has the same filename and the same disk startcluster we consider it a match.
-        if ((myfiles[chosenLine].startCluster == playedFiles[i].startCluster) && (strcmp(myfiles[chosenLine].name,playedFiles[i].name)==0))
+        if ((myfiles[dirNumbr][index]->startCluster == playedFiles[i]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[i]->name)==0))
         {
-              myfiles[chosenLine].hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
-              myfiles[chosenLine].currentBlock = 0;
-              myfiles[chosenLine].totalBlock = 0;
+              myfiles[dirNumbr][index]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
+              myfiles[dirNumbr][index]->currentBlock = 0;
+              myfiles[dirNumbr][index]->totalBlock = 0;
               appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i);
               DeletePlayedFileEntry(i);
               match = TRUE;
@@ -94,7 +94,7 @@ void DeleteProgressInfo(bool message)
         }              
     }   
 
-    TAP_SPrint(str,myfiles[chosenLine].name);
+    TAP_SPrint(str,myfiles[dirNumbr][index]->name);
     if (match)
     {
         SaveDatToFile();   // Write the updated data to disk.
@@ -115,12 +115,12 @@ void DeleteProgressInfo(bool message)
 void CreateNewFolder(void)
 {
      int grp, result;
-     char grpName[10];
+     char grpName[12];
+     char newDir[ MAX_FULL_DIR_NAME_LENGTH ];
      
      for (grp = 1; grp <= 99; grp += 1)
      {
         TAP_SPrint(grpName,"FOLDER %02d",grp);
-        result = TAP_Hdd_Exist(grpName);
         if (!TAP_Hdd_Exist(grpName)) break;
      }   
      
@@ -129,8 +129,31 @@ void CreateNewFolder(void)
          ShowMessageWin( rgn, "Folder Create Failed.", "All 'FOLDER xx' folders between", "'FOLDER 01' and 'FOLDER 99' already exist.", 400 );
          return;
      }    
-     
      TAP_Hdd_Create(grpName, ATTR_FOLDER);
+     strcpy(blankFile.name, grpName);
+     blankFile.attr = ATTR_FOLDER;
+     myfolders[CurrentDirNumber]->numberOfFiles++;    // Increase local file/folder count for the number of subfolders (count starts at 0).
+     myfolders[CurrentDirNumber]->numberOfFolders++;  // Increase local folder count for the number of subfolders (count starts at 0).
+     numberOfFolders++;                               // Increase global count for number of folders (/Datafiles is #0).
+     
+     AddNewFolder(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->numberOfFiles, blankFile, numberOfFolders);     // Create subfolder entry in the "myfiles" array.
+
+     // Create new parent directory entry.
+     strcpy(newDir, CurrentDir);
+     strcat(newDir, "/");
+     strcat(newDir, grpName);
+
+     AddNewParentFolder(newDir, numberOfFolders, 1, CurrentDirNumber); 
+     
+     // Save information on file and sub-folder counts for new directory.
+     myfolders[numberOfFolders]->numberOfFiles      = 1;
+     myfolders[numberOfFolders]->numberOfFolders    = 0;
+     myfolders[numberOfFolders]->numberOfRecordings = 0;
+     myfolders[numberOfFolders]->parentDirNumber    = CurrentDirNumber;
+     myfolders[numberOfFolders]->directoryNumber    = numberOfFolders;
+     
+     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
 }
              
 
@@ -143,23 +166,34 @@ void ChangeToParentDir()
      
      appendToLogfile("ChangeToParentDir: Started.");
 
-     ExtractLastField ( CurrentDir, subFolder);  // Extract the current qunquailified directory name from the fully qualified directory name.
+     strcpy(subFolder,myfolders[CurrentDirNumber]->name);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
-     CurrentDir = GetCurrentDir();               // Retrieve the new current directory name.
-     LoadArchiveInfo();                          // Load the file/folder info for the new directory.
-	 SortList(sortOrder);		                 // Sort the list.
+
+     CurrentDirNumber = myfolders[CurrentDirNumber]->parentDirNumber;  // Retrieve the new directory number
+     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
+
+     if (CurrentDirNumber == 0) strcpy(CurrentDir, "/DataFiles");     // We're pointing at the DataFiles directory
+     else strcpy(CurrentDir, myfiles[CurrentDirNumber][1]->directory); // else get the full directory name from the first file/folder.
+
+     if (!recursiveLoadOption)
+     {     
+        SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
+ 	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+        DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+        LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
+     }   
 	 
      chosenLine = 1;                             // By default select the first line to highlight.
      // Scan through the FOLDERS in the current directory to see if we have a match to the folder that we came from.
-     for (i=1; i<numberOfFiles; i++)
+     for (i=1; i<=numberOfFiles; i++)
      {
-          if ((myfiles[i].attr == ATTR_FOLDER) && (strncmp(myfiles[i].name,subFolder, TS_FILE_NAME_SIZE)==0))
+          if ((myfiles[CurrentDirNumber][i]->attr == ATTR_FOLDER) && (strncmp(myfiles[CurrentDirNumber][i]->name,subFolder, TS_FILE_NAME_SIZE)==0))
           {   // We've found a match, so allocate line number.
               chosenLine = i;
               break;
           }
      }
-     
      DeterminePrintingLine(chosenLine);     // Determine where we will start printing this line.
      
 	 RefreshArchiveList( TRUE );
@@ -173,11 +207,12 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
 {
      dword lastPos;
      dword   curPercent;
+char str[80], str2[80];
 
      if (currentBlock > totalBlock) currentBlock = 0;  // Check there's no invalid block data.
      
      curPercent  = (( max(0,currentBlock) * 100) / max(1,totalBlock) );
-     
+
      if (curPercent < 95) // If we haven't watched more than 95%, jump to the last position.
      {     
            // Jump back a further 60 blocks so we have some overlap from where we left off.
@@ -185,8 +220,11 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
      }
      else  // Start from the start.
            lastPos = 0;
+TAP_SPrint(str,"cb=%d  tb=%d", currentBlock, totalBlock);    
+TAP_SPrint(str2,"curperc=%d  lastPos=%d",curPercent,lastPos);     
      
      TAP_Hdd_ChangePlaybackPos( lastPos );
+//ShowMessageWin( rgn, "After ChangePos", str, str2,400);
 }
 
 
@@ -270,28 +308,23 @@ int RestartLastPlayback(void)
      int mainType, mainNum;   // Temporary storage for the current service in case we need to switch back after a failed playback.
      dword lastPos;
      
-     CurrentDir = GetCurrentDir();
-     
      ChangeDirRoot();                // Change to the root directory.
      TAP_Hdd_ChangeDir("DataFiles");	// Let's go to the data file directory. To start playback.
      TAP_Channel_GetCurrent( &mainType, &mainNum );   // Store the current channel in case we need to switch back after a failed playback.
 
-     result = PlayTs(playedFiles[0].name, playedFiles[0].startCluster);
+     result = PlayTs(playedFiles[0]->name, playedFiles[0]->startCluster);
 
      if (result != 0)
      { 
         sprintf(str,"Return code #%d when trying to play",result);
-        sprintf(str2,"file: %s",playedFiles[0].name);
+        sprintf(str2,"file: %s",playedFiles[0]->name);
         ShowMessageWin( rgn, "Restarting Last Playback Failed.", str, str2, 400 );
         GotoPath( CurrentDir );  // Return to the current directory.
-//      TAP_Channel_Start(1, mainType, mainNum);  // Switch back to current channel.
         return result;
      }
-     else  // Set the current directory to where the playback file was.
-        CurrentDir = GetCurrentDir();
   
      // Jump back to the last watched position - or to the start if >95% watched.
-     JumpToLastPosition(playedFiles[0].currentBlock, playedFiles[0].totalBlock);
+     JumpToLastPosition(playedFiles[0]->currentBlock, playedFiles[0]->totalBlock);
 
      return 0;
 }     
@@ -313,9 +346,10 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump)
         return result;
      }
   
-     if ((jump == 1) && (myfiles[chosenLine].hasPlayed))  // If we want to resume playback, and the file has been previously played.
-        JumpToLastPosition(myfiles[chosenLine].currentBlock, myfiles[chosenLine].totalBlock);
-     
+     if ((jump == 1) && (myfiles[CurrentDirNumber][chosenLine]->hasPlayed))  // If we want to resume playback, and the file has been previously played.
+     {
+        JumpToLastPosition(myfiles[CurrentDirNumber][chosenLine]->currentBlock, myfiles[CurrentDirNumber][chosenLine]->totalBlock);
+     }
      return 0;
 }     
 
@@ -324,16 +358,15 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump)
 //
 void RestartPlayback(int line, int jump)
 {
-    if (myfiles[line].isRecording) // If this is an active recording, then change to the channel first and jump back to start.
+    if (myfiles[CurrentDirNumber][line]->isRecording) // If this is an active recording, then change to the channel first and jump back to start.
     {
-        TAP_Channel_Start(1, myfiles[line].svcType, myfiles[line].svcNum);
-        GotoDataFiles();
+        TAP_Channel_Start(1, myfiles[CurrentDirNumber][line]->svcType, myfiles[CurrentDirNumber][line]->svcNum);
         TAP_Hdd_ChangePlaybackPos( 0 );                      
 	    exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }
     else
     {
-        if (StartPlayback(myfiles[line].name, jump)==0) // If playback starts OK.
+        if (StartPlayback(myfiles[CurrentDirNumber][line]->name, jump)==0) // If playback starts OK.
 	       exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
     }
 }
@@ -344,8 +377,9 @@ void RestartPlayback(int line, int jump)
 //
 void ArchiveAction (int line)
 {
-
-    switch (myfiles[line].attr)
+    char newDir[ MAX_FULL_DIR_NAME_LENGTH ];
+    
+    switch (myfiles[CurrentDirNumber][line]->attr)
     {
            case 250:
            case 240:  // Parent directory.
@@ -353,13 +387,29 @@ void ArchiveAction (int line)
           	          break;
           	          
            case ATTR_FOLDER:  // Sub folder
-          	          TAP_Hdd_ChangeDir(myfiles[line].name);
-                      CurrentDir = GetCurrentDir();           // Stores the current directory name.
-                      LoadArchiveInfo();
-	                  SortList(sortOrder);		
-	                  maxShown = numberOfFiles;
+          	          TAP_Hdd_ChangeDir(myfiles[CurrentDirNumber][line]->name);
+                      TAP_SPrint(newDir, "%s/%s",CurrentDir,myfiles[CurrentDirNumber][line]->name);
+                      strcpy(CurrentDir, newDir);
+                      // Change the CurrentDirNumber to be the new directory number.
+                      CurrentDirNumber = myfiles[CurrentDirNumber][line]->directoryNumber;
+                      
+	                  maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+	                  numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
+
+                      if (!recursiveLoadOption)
+                      {     
+                         SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
+ 	                     LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+                         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+                         // Reload the numberOfFiles/maxshown variables incase any files/folders were deleted.
+   	                     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+	                     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
+                      }   
+
+	                  LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
 	                  chosenLine = 1;
 	                  printLine = 1;
+
                       RefreshArchiveList(TRUE);
           	          break;
           	          
