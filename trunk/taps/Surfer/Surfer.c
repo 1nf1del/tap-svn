@@ -1,10 +1,3 @@
-#ifdef WIN32
-#include "c:\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h"
-#undef RGB
-//#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
-#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
-#endif    
-                   
 /************************************************************
 	  			UK OZ Surfer
            
@@ -39,6 +32,13 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 	Last change:  USE  13 Aug 105   10:05 pm
 **************************************************************/
           
+#ifdef WIN32
+#include "c:\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h"
+#undef RGB
+//#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
+#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
+#endif    
+                   
 #define TAP_NAME "Surfer"
 #define VERSION "0.12a"       
 
