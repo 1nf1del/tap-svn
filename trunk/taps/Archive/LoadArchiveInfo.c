@@ -664,6 +664,8 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
+        if (recCheckOption ==1)   // If option to ignore Attribute in recording check is set, then force the TS Attribute in case this recording doesn't have it set.
+           myfiles[dirNumber][index]->attr = ATTR_TS;   
         FormatSortName(myfiles[dirNumber][index]->sortName,file.name);
 }
 

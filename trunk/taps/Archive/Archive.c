@@ -31,7 +31,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define DEBUG 0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output
     
 #define TAP_NAME "Archive"
-#define VERSION "0.05a"       
+#define VERSION "0.05b"       
 
 #include "tap.h"
 #include "morekeys.h"
