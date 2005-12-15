@@ -15,7 +15,7 @@ TAP_HOME?=$(TAP_GCC_DIR)/topfield-sdk
 # # Note that we *must* use -fno-delayed-branch or else the topfield goes gaga
 #
 MANDATORY_C_FLAGS= -mqnxpic -fno-delayed-branch -mlong-calls -msoft-float -isystem $(TAP_HOME)/include
-MANDATORY_CXX_FLAGS=$(MANDATORY_C_FLAGS) -fno-rtti -fno-exceptions -Wno-pmf-conversions
+MANDATORY_CXX_FLAGS=$(MANDATORY_C_FLAGS) -fno-rtti -fno-exceptions -Wno-pmf-conversions -fno-weak
 MANDATORY_LD_FLAGS=--script $(TAP_GCC_DIR)/mips/lib/tap.ld
 
 # Specify crosscompilation prefix
