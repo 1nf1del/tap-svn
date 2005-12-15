@@ -125,9 +125,8 @@ int ProcessImage( char* filename )
 	FREE_IMAGE_FORMAT fif;
 	FIBITMAP *dib;
 	char graphicName[100];
-	int width, height;
-	RGBQUAD rgb;
-	int bufferSize, x,y;
+	int width, height, outputWidth;
+	int bufferSize, i;
 	BYTE* buffer;
 	WORD *p;
 
@@ -154,32 +153,24 @@ int ProcessImage( char* filename )
 	StripFilenameExtension( graphicName );
 	strlwr( graphicName );
 
-	width = FreeImage_GetWidth( dib );
+	outputWidth = width = FreeImage_GetWidth( dib );
 	height = FreeImage_GetHeight( dib );
+	// gd format needs to be padded to an even number of pixels
+	if ( compression == COMPRESSION_TFD )
+		outputWidth += width % 2;
 
-	// Convert RGB to ARGB555
-	bufferSize = (width+1)*height*2;
+	// Get the raw bits in RGB555 format
+	bufferSize = outputWidth*height*2;
 	buffer = (BYTE*)malloc( bufferSize );
-	p = (WORD*)buffer;
-	for ( y = height-1; y >= 0; --y )
-	{
-		for ( x = 0; x < width; ++x )
-		{
-			FreeImage_GetPixelColor( dib, x,y, &rgb );
-			rgb.rgbRed = (rgb.rgbRed+3) >> 3;
-			rgb.rgbGreen = (rgb.rgbGreen+3) >> 3;
-			rgb.rgbBlue = (rgb.rgbBlue+3) >> 3;
-			*p++ = swap(0x8000 + (((min(31,rgb.rgbRed) << 5) + min(31,rgb.rgbGreen)) << 5) + min(31,rgb.rgbBlue));
-		}
-		// odd widths are padded with a black pixel on the right side of the image
-		if ( width % 2 )
-			*p++ = swap(0x8000);
-	}
-
-	// make new image width even
-	width += width % 2;
-
+	// ensure that any padding bytes are set to zero
+	memset( buffer, 0, bufferSize );
+	FreeImage_ConvertToRawBits( buffer, dib, 2*outputWidth, 16, FI16_555_RED_MASK,FI16_555_GREEN_MASK,FI16_555_BLUE_MASK, FALSE );
 	FreeImage_Unload( dib );
+
+	// Swap words for MIPs big endian format
+	p = (WORD*)buffer;
+	for ( i = 0; i < bufferSize; i+=2 )
+		*p++ = swap(*p);
 
 	if ( !outputHeader )
 	{
@@ -202,13 +193,13 @@ int ProcessImage( char* filename )
 	{
 		if ( headerFile )
 		{
-			fprintf( headerFile, "#define %s_Width %d\n", graphicName, width );
+			fprintf( headerFile, "#define %s_Width %d\n", graphicName, outputWidth );
 			fprintf( headerFile, "#define %s_Height %d\n", graphicName, height );
 			fprintf( headerFile, "extern word %sData[];\n", graphicName );
 		}
 		else
 		{
-			fprintf( outputFile, "#define %s_Width %d\n", graphicName, width );
+			fprintf( outputFile, "#define %s_Width %d\n", graphicName, outputWidth );
 			fprintf( outputFile, "#define %s_Height %d\n", graphicName, height );
 		}
 		fprintf( outputFile, "\n" );
@@ -226,7 +217,7 @@ int ProcessImage( char* filename )
 		fprintf( outputFile, "byte _%sCpm[] = \n{\n", graphicName );
 		HexDumpByte( output, compressed );
 		fprintf( outputFile, "};\n" );
-		fprintf( outputFile, "TYPE_GrData _%sGd = { 1, 0, OSD_1555, COMPRESS_Tfp, _%sCpm, %d, %d, %d };\n\n", graphicName, graphicName, bufferSize, width, height );
+		fprintf( outputFile, "TYPE_GrData _%sGd = { 1, 0, OSD_1555, COMPRESS_Tfp, _%sCpm, %d, %d, %d };\n\n", graphicName, graphicName, bufferSize, outputWidth, height );
 		if ( headerFile )
 		{
 			fprintf( headerFile, "extern TYPE_GrData _%sGd;\n", graphicName );
@@ -256,7 +247,7 @@ int ProcessImage( char* filename )
 
 int Usage()
 {
-	printf("Make Graphics 1.0, a graphics to source converter for Topfield TAPs\n");
+	printf("Make Graphics 1.1, a graphics to source converter for Topfield TAPs\n");
 	printf("Usage: makegraphics <image filenames> [options]\n");
 	printf("\t<image filenames> may contain wildcards\n");
 	printf("\t-g\tGenerate compressed gd format files\n");
