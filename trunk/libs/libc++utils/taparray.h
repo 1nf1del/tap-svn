@@ -25,6 +25,7 @@
 
 inline void* operator new (size_t s, void* _where)
 {
+	s;
 	return _where;
 }
 

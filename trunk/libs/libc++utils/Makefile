@@ -27,7 +27,7 @@ include tap.mak
 # The first target is the default target.
 all: libc++utils.a
 
-libc++utils.a: array.o string.o
+libc++utils.a: taparray.o tapstring.o
 	$(AR) cr $@ $^
 
 

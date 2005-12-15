@@ -53,9 +53,9 @@ public:
 	int compare(const string& other) const;
 	int compareNoCase(const string& other) const;
 
-	int find(const string& toFind) const;
-	int find(const char* pToFind) const;
-	int find(char c) const;
+	int find(const string& toFind, int iStartPos = -1) const;
+	int find(const char* pToFind, int iStartPos = -1) const;
+	int find(char c, int iStartPos = -1) const;
 
 	bool empty() const;
 	void clear();
@@ -71,8 +71,8 @@ private:
 	void grow(unsigned int iNewSize);
 	void shrink(unsigned int iNewSize);
 	void append(const char* pdata, int iLen);
-	int indexof(const char* pToFind) const;
-	int indexof(char c) const;
+	int indexof(const char* pToFind, int iStartPos) const;
+	int indexof(char c, int iStartPos) const;
 	const char* getstr() const;
 	char* getstr();
 	void init();

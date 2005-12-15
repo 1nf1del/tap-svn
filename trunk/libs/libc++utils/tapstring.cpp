@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "tap.h"
-#include ".\string.h"
+#include ".\tapstring.h"
 
 string::string(void) 
 {
@@ -161,19 +161,19 @@ int string::compareNoCase(const string& other) const
 }
 
 
-int string::find(const string& toFind) const
+int string::find(const string& toFind, int iStartPos) const
 {
-	return indexof(toFind);
+	return indexof(toFind, iStartPos);
 }
 	
-int string::find(const char* pToFind) const
+int string::find(const char* pToFind, int iStartPos) const
 {
-	return indexof(pToFind);
+	return indexof(pToFind, iStartPos);
 }
 
-int string::find(char c) const
+int string::find(char c, int iStartPos) const
 {
-	return indexof(c);
+	return indexof(c, iStartPos);
 }
 
 bool string::empty() const
@@ -242,18 +242,18 @@ void string::append(const char* pData, int iLen)
 	getstr()[m_iLen] = 0;
 }
 
-int string::indexof(const char* pToFind) const
+int string::indexof(const char* pToFind, int iStartPos) const
 {
-	char* result = strstr(getstr(), pToFind);
+	char* result = strstr(getstr() + iStartPos + 1, pToFind);
 	if (result == 0)
 		return -1;
 
 	return result - getstr();
 }
 
-int string::indexof(char c) const
+int string::indexof(char c, int iStartPos) const
 {
-	char* result = strchr(getstr(), c);
+	char* result = strchr(getstr() + iStartPos + 1, c);
 	if (result == 0)
 		return -1;
 
