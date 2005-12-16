@@ -13,6 +13,10 @@
  * Added floating point support, D. Jeff Dionne, 1995, 1997
  */
 
+// under emulation we don't need a custom vsprintf, and the code below doesn't compile under MSVC
+// sometimes you get lucky :-)
+#ifndef WIN32
+
 #include <stdarg.h>
 #include <tap.h>
 
@@ -361,3 +365,4 @@ int sprintf(char * buf, const char *fmt, ...)
 }
 #endif
 
+#endif

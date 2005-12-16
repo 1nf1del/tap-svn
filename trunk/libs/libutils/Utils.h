@@ -3,6 +3,10 @@
 
 #include <stdarg.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 #define MAX_STR_LEN 500
 #define MAX_MESSAGE_SIZE 1024
 
@@ -22,6 +26,10 @@ void InitError();
 int GetLastErrorCode();
 char* GetLastErrorString();
 int vsprintf(char *, const char *, va_list);
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif  // _UTILS
 

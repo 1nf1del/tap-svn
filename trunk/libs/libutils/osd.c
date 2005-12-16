@@ -34,7 +34,8 @@ bool OsdActive()
 	// scan every 4th line
     for ( iRow = 200; iRow < 350; iRow += 4 )
     {
-        wScrn = osdBaseInfo.eAddr + 720 * iRow;
+		// gcc treats sizeof(void) as 1, other compilers do not so explicitly cast to char*
+        wScrn = (dword*)((char*)osdBaseInfo.eAddr + 720 * iRow); 
 
 		// scan every 6 pixels to save time and resource
 		// stop at 400 as new f/w puts channel details to the right.

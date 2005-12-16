@@ -7,6 +7,10 @@
 #include "ini.h"
 #include "Utils.h"
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 #define MAX_KEYMAPS 512
 #define MAX_KEY 50
 
@@ -46,6 +50,10 @@ int getLogicalKeyVal(char*, int);
 int getNextLogicalKeyVal(char*, int);
 void dumpKeyVals();
 void initKeyMap();
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif //_UTILS_KEYMAP
 

@@ -22,8 +22,16 @@
 #ifndef __OSD_H
 #define __OSD_H
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 
 bool OsdActive();
+
+#ifdef  __cplusplus
+}
+#endif
 
 
 #endif

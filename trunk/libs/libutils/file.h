@@ -3,6 +3,10 @@
 
 #include <tap.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 //block read size
 #define BUFSIZ		2048
 #define EOF		(-1)
@@ -52,6 +56,10 @@ enum _flags {
 #define fprintf4(a, b, c, d) { char t[BUFSIZ]; sprintf(t, b, c, d); fputs(t, a); }
 
 #define fprintf3(a, b, c) { char t[BUFSIZ]; sprintf(t, b, c); fputs(t, a); }
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif  // _UTILS_FILE
 

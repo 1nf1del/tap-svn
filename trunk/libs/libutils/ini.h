@@ -1,5 +1,8 @@
 #ifndef _UTILS_INI
 #define _UTILS_INI
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 /*max ini key value length */
 #define MAX_INI 256
@@ -186,5 +189,9 @@ If the function fails, the return value is zero. To get extended error informati
 GetLastError.
 
 */
+#ifdef  __cplusplus
+}
+#endif
+
 #endif  // _UTILS_INI
 
