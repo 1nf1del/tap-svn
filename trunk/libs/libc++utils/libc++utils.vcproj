@@ -60,9 +60,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="4"
-				UsePrecompiledHeader="3"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>

@@ -161,19 +161,19 @@ int string::compareNoCase(const string& other) const
 }
 
 
-int string::find(const string& toFind, int iStartPos) const
+int string::find(const string& toFind, int iStartAfterChar) const
 {
-	return indexof(toFind, iStartPos);
+	return indexof(toFind, iStartAfterChar);
 }
 	
-int string::find(const char* pToFind, int iStartPos) const
+int string::find(const char* pToFind, int iStartAfterChar) const
 {
-	return indexof(pToFind, iStartPos);
+	return indexof(pToFind, iStartAfterChar);
 }
 
-int string::find(char c, int iStartPos) const
+int string::find(char c, int iStartAfterChar) const
 {
-	return indexof(c, iStartPos);
+	return indexof(c, iStartAfterChar);
 }
 
 bool string::empty() const
@@ -242,18 +242,18 @@ void string::append(const char* pData, int iLen)
 	getstr()[m_iLen] = 0;
 }
 
-int string::indexof(const char* pToFind, int iStartPos) const
+int string::indexof(const char* pToFind, int iStartAfterChar) const
 {
-	char* result = strstr(getstr() + iStartPos + 1, pToFind);
+	char* result = strstr(getstr() + iStartAfterChar + 1, pToFind);
 	if (result == 0)
 		return -1;
 
 	return result - getstr();
 }
 
-int string::indexof(char c, int iStartPos) const
+int string::indexof(char c, int iStartAfterChar) const
 {
-	char* result = strchr(getstr() + iStartPos + 1, c);
+	char* result = strchr(getstr() + iStartAfterChar + 1, c);
 	if (result == 0)
 		return -1;
 
