@@ -420,7 +420,7 @@ void OSDRegion::DrawFilledBox(CRect rect, DWORD dwFillColor, DWORD dwEdgeColor)
 CFont* OSDRegion::CreateFont(int iFont, int iFontSize)
 {
 	CDC* pDC = GetDC();
-	int iFontPoints = iFontSize == 0 ? -120 : iFontSize == 1 ? -150 : -180;
+	int iFontPoints = iFontSize == 0 ? -120 : iFontSize == 1 ? -140 : -180;
 
 	CFont* thefont  = new CFont();
 
