@@ -21,17 +21,14 @@
 #
 
 # The next line pulls in the rule sets for building TAPs.
-include tap.mak
+include ../../tools/build/tap.mk
 
 
 # The first target is the default target.
 all: libc++utils.a
 
-libc++utils.a: taparray.o tapstring.o
-	$(AR) cr $@ $^
-
+libc++utils.a: taparray.o tapstring.o vtable.o
 
 # A target for removing generated files.
 clean:
 	-rm -f *.a *.o *.elf
-

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libc++utils"
-	ProjectGUID="{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}"
+	ProjectGUID="{BD04B515-31C7-4A7E-A46A-7A896A424A8C}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -14,59 +14,45 @@
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
-			ConfigurationType="4"
+			ConfigurationType="0"
 			CharacterSet="2">
 			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				Detect64BitPortabilityProblems="FALSE"
-				DebugInformationFormat="4"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/libc++utils.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCNMakeTool"
+				BuildCommandLine="make DEBUG=1"
+				ReBuildCommandLine="make -B DEBUG=1"
+				CleanCommandLine="make clean"
+				Output="libc++utils"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
+			ConfigurationType="0"
+			CharacterSet="2">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make"
+				ReBuildCommandLine="make -B"
+				CleanCommandLine="make clean"
+				Output="libc++utils"/>
+		</Configuration>
+		<Configuration
+			Name="Tapulator|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="2"
+				Optimization="0"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -105,16 +91,28 @@
 			<File
 				RelativePath=".\tapstring.cpp">
 			</File>
+			<File
+				RelativePath=".\vtable.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath=".\fastdelegate.h">
+			</File>
+			<File
+				RelativePath=".\tap++.h">
+			</File>
+			<File
 				RelativePath=".\taparray.h">
 			</File>
 			<File
 				RelativePath=".\tapstring.h">
+			</File>
+			<File
+				RelativePath=".\vtable.h">
 			</File>
 		</Filter>
 		<Filter
