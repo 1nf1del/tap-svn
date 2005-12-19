@@ -242,13 +242,13 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
     word year;
     byte  month, day, weekDay;
 
-    appendToLogfile("LoadHeaderInfo: Started.");
+    appendToLogfile("LoadHeaderInfo: Started.", INFO);
 
     fp = TAP_Hdd_Fopen( filename ); 
     if( fp==NULL) 
     {
-            appendStringToLogfile("LoadHeaderInfo: Failure opening filename=%s<<",filename);
-            appendToLogfile("LoadHeaderInfo: Exiting.");
+            appendStringToLogfile("LoadHeaderInfo: Failure opening filename=%s<<",filename, ERR);
+            appendToLogfile("LoadHeaderInfo: Exiting.", ERR);
             return;
     }        
 
@@ -269,6 +269,7 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
     myfiles[dir][index]->parentalRating = buf[PARENTAL_RATING_OFFSET+headerOffset];
     
     myfiles[dir][index]->eventNameLength = buf[EVENT_NAME_LENGTH_OFFSET+headerOffset];
+    myfiles[dir][index]->eventNameLength = min( myfiles[dir][index]->eventNameLength, EVENT_NAME_MAX_LENGTH );  //Make sure we don't exceed our limit.
 
     memcpy(myfiles[dir][index]->eventName,(buf+EVENT_NAME_OFFSET+headerOffset),myfiles[dir][index]->eventNameLength);   
     myfiles[dir][index]->eventName[myfiles[dir][index]->eventNameLength]='\0';
@@ -276,6 +277,7 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
     memcpy(myfiles[dir][index]->eventDescName,(buf+EVENT_NAME_OFFSET+headerOffset+myfiles[dir][index]->eventNameLength),EVENT_NAME_MAX_LENGTH);   
 
     myfiles[dir][index]->extInfoLength = buf[EXT_INFO_LENGTH_OFFSET+headerOffset]*256 + buf[EXT_INFO_LENGTH_OFFSET+headerOffset+1];
+    myfiles[dir][index]->extInfoLength = min( myfiles[dir][index]->extInfoLength, EXT_INFO_MAX_LENGTH );  //Make sure we don't exceed our limit.
     //extInfo = "This is the Extended Event Information. I have put more information in here to see what that does to the scrolling.  I was hoping that this could get across multiple pages to see what happens after you do multiple Info key presses. You may find that this goes over multiple lines and wrap around at the word boundary.  The quick brown fox jumps over the lazy dog. You will often find multiple pages particularly when you look at the SBS channel.  The ABC is another channel where you have several pages of extended information.  I still need to look at what happens in the routine if we have a zero length string or a really long string that fills the entire line.";
     
     memcpy(myfiles[dir][index]->extInfo,(buf+EXT_INFO_OFFSET+headerOffset), myfiles[dir][index]->extInfoLength);   
@@ -296,7 +298,7 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
     
     myfiles[dir][index]->eventEndMin = buf[EVENT_ENDMIN_OFFSET+headerOffset];
   
-    appendToLogfile("LoadHeaderInfo: Finished.");
+    appendToLogfile("LoadHeaderInfo: Finished.", INFO);
 
 }
 
@@ -358,28 +360,28 @@ void LoadPlaybackInfo( int dir, int index )
    TYPE_TapChInfo  chInfo;
    int durHour, durMin;
 
-   appendToLogfile("LoadPlaybackInfo: Started.");
+   appendToLogfile("LoadPlaybackInfo: Started.", INFO);
 
    // We match the current playback file based on disk startcluster and filename. 
    if ((myfiles[dir][index]->startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[dir][index]->name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
    {
-         appendStringToLogfile("LoadPlaybackInfo: Match on CurrentPlaybackFile.name=%s<<",CurrentPlaybackFile.name);
-         appendStringToLogfile("LoadPlaybackInfo: for myfiles->name=%s<<",myfiles[dir][index]->name);
+         appendStringToLogfile("LoadPlaybackInfo: Match on CurrentPlaybackFile.name=%s<<",CurrentPlaybackFile->name, WARNING);
+         appendStringToLogfile("LoadPlaybackInfo: for myfiles->name=%s<<",myfiles[dir][index]->name, WARNING);
 
          myfiles[dir][index]->recDuration = CurrentPlaybackInfo.duration;
          myfiles[dir][index]->svcNum      = CurrentPlaybackInfo.svcNum;
          myfiles[dir][index]->svcType     = CurrentPlaybackInfo.svcType;
-
+/*
          TAP_Channel_GetInfo( myfiles[dir][index]->svcType, myfiles[dir][index]->svcNum, &chInfo);
          strcpy(myfiles[dir][index]->serviceName,chInfo.chName);
          
          myfiles[dir][index]->parentalRating = CurrentPlaybackEvent.parentalRating;
     
-         strcpy(myfiles[dir][index]->eventName, CurrentPlaybackEvent.eventName);
-         strcpy(myfiles[dir][index]->eventDescName, CurrentPlaybackEvent.description);
+//         strcpy(myfiles[dir][index]->eventName, CurrentPlaybackEvent.eventName);
+//         strcpy(myfiles[dir][index]->eventDescName, CurrentPlaybackEvent.description);
 
-         myfiles[dir][index]->extInfoLength = 0;
-         myfiles[dir][index]->extInfo[0]='\0';
+//         myfiles[dir][index]->extInfoLength = 0;
+//         myfiles[dir][index]->extInfo[0]='\0';
 
          myfiles[dir][index]->eventDuration  = ((CurrentPlaybackEvent.duration>>8)&0xff) + (CurrentPlaybackEvent.duration&0xff);  
 
@@ -390,13 +392,13 @@ void LoadPlaybackInfo( int dir, int index )
          myfiles[dir][index]->eventEndMJD    = ((CurrentPlaybackEvent.endTime>>16)&0xffff);
          myfiles[dir][index]->eventEndHour   = ((CurrentPlaybackEvent.endTime>>8)&0xff);
          myfiles[dir][index]->eventEndMin    = ((CurrentPlaybackEvent.endTime)&0xff);
-         
+*/         
          myfiles[dir][index]->isPlaying      = TRUE;
    }     
    else
          myfiles[dir][index]->isPlaying      = FALSE;
         
-   appendToLogfile("LoadPlaybackInfo: Finished.");
+   appendToLogfile("LoadPlaybackInfo: Finished.", INFO);
 }
 
 
@@ -409,14 +411,14 @@ void LoadRecordingInfo(int dir, int index)
     int i;
     TYPE_TapChInfo  chInfo;
     
-    appendToLogfile("LoadRecordingInfo: Checking recordings.");
+    appendToLogfile("LoadRecordingInfo: Checking recordings.", INFO);
     
     for (i=0; i <= 1; i += 1)
     {
         if (strncmp(myfiles[dir][index]->name, recInfo[i].fileName, TS_FILE_NAME_SIZE)==0) 
         {
-                appendStringToLogfile("LoadRecordingInfo: Match on recInfo.filename=%s<<",recInfo[i].fileName);
-                appendStringToLogfile("LoadRecordingInfo: for myfiles->name=%s<<",myfiles[dir][index]->name);
+                appendStringToLogfile("LoadRecordingInfo: Match on recInfo.filename=%s<<",recInfo[i].fileName, WARNING);
+                appendStringToLogfile("LoadRecordingInfo: for myfiles->name=%s<<",myfiles[dir][index]->name, WARNING);
                 myfiles[dir][index]->isRecording    = TRUE;  
                 myfiles[dir][index]->svcNum         = recInfo[i].svcNum;  
                 myfiles[dir][index]->svcType        = recInfo[i].svcType; 
@@ -439,7 +441,7 @@ void LoadRecordingInfo(int dir, int index)
         else
                 myfiles[dir][index]->isRecording    = FALSE;          
     }   
-    appendToLogfile("LoadRecordingInfo: Finished checking recordings.");
+    appendToLogfile("LoadRecordingInfo: Finished checking recordings.", INFO);
 
 }
 
@@ -448,22 +450,22 @@ void GetRecordingInfo()
     int i;
      
     // Get the names of the recordings that may be running.
-    appendToLogfile("GetRecordingInfo: Started.");
+    appendToLogfile("GetRecordingInfo: Started.", INFO);
     for ( i=0; i <=1 ; i += 1)
     {
         memset (&recInfo[i],0,sizeof (recInfo[i]));
         if (TAP_Hdd_GetRecInfo (i, &recInfo[i]) && ((recInfo[i].recType == RECTYPE_Normal) || (recInfo[i].recType == RECTYPE_Copy)))
         {
             // Keep the recording information as it is.
-            appendIntToLogfile("GetRecordingInfo: Recording slot #%d is running.",i);
+            appendIntToLogfile("GetRecordingInfo: Recording slot #%d is running.",i, WARNING);
         }
         else
         {
-            appendIntToLogfile("GetRecordingInfo: Recording slot #%d is NOT running.",i);
+            appendIntToLogfile("GetRecordingInfo: Recording slot #%d is NOT running.",i, WARNING);
             TAP_SPrint(recInfo[i].fileName,"");   // Blank out the name.
         }
     }    
-    appendToLogfile("GetRecordingInfo: Finished.");
+    appendToLogfile("GetRecordingInfo: Finished.", INFO);
 }
 
 
@@ -920,7 +922,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     TYPE_Dir_List subfolders[MAX_DIRS];
     char subdir[1024];
 
-    appendToLogfile("LoadArchiveInfo: Started.");
+    appendToLogfile("LoadArchiveInfo: Started.", INFO);
   
     // Set the local directory pointers.  If this is the first time through for this directory they will all equal 0, otherwise they will 
     // have the previous local totals.   
@@ -945,15 +947,15 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     // Find all the Files and Folders in the current directory.
     cnt = TAP_Hdd_FindFirst(&file); 
 
-    appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",directory);
-    appendIntToLogfile("LoadArchiveInfo: Count=%d",cnt);
-    appendIntToLogfile("LoadArchiveInfo: ATTR_FOLDER=%d",ATTR_FOLDER);
-    appendIntToLogfile("LoadArchiveInfo: ATTR_TS=%d",ATTR_TS);
+    appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",directory, WARNING);
+    appendIntToLogfile("LoadArchiveInfo: Count=%d",cnt, WARNING);
+    appendIntToLogfile("LoadArchiveInfo: ATTR_FOLDER=%d",ATTR_FOLDER, WARNING);
+    appendIntToLogfile("LoadArchiveInfo: ATTR_TS=%d",ATTR_TS, WARNING);
 
     for ( i=1; i <= cnt ; i += 1 )
 	{
-          appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name);
-          appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr);
+          appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name, WARNING);
+          appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr, WARNING);
       
           //
           // RECORDING
@@ -968,38 +970,38 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
                 AddNewFile(directory, dirNumber, numberOfDirFiles, file);    // Create file entry in the "myfiles" array.
 
                 // If the file is a recording file, we can add additional information.
-                appendToLogfile("LoadArchiveInfo: Checking if this is an active recording.");
+                appendToLogfile("LoadArchiveInfo: Checking if this is an active recording.", WARNING);
                 if (InDataFilesFolder(directory) )
                 {
                    // Check if this file is for a current running recording, if so we need to get the information from different locations.
-                   appendStringToLogfile("LoadArchiveInfo: Calling LoadRecordingInfo for file #%s",file.name);
+                   appendStringToLogfile("LoadArchiveInfo: Calling LoadRecordingInfo for file #%s",file.name, WARNING);
                    LoadRecordingInfo(dirNumber, numberOfDirFiles);
                 }   
              
                 // If the current file is NOT an active recording, we can load the extra information from the header.
-                appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.");
+                appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.", WARNING);
                 if (!myfiles[dirNumber][numberOfDirFiles]->isRecording)
                 {
-                    appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
+                    appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name, WARNING);
                     LoadHeaderInfo( file.name, dirNumber, numberOfDirFiles);
                 }   
              }  
              else   // The file already exists.
              { 
                 // If the file is a recording file, we can add additional information.
-                appendToLogfile("LoadArchiveInfo: Checking if this is an active recording.");
+                appendToLogfile("LoadArchiveInfo: Checking if this is an active recording.", WARNING);
                 if (InDataFilesFolder(directory) )
                 {
                    // Check if this file is for a current running recording, if so we need to get the information from different locations.
-                   appendStringToLogfile("LoadArchiveInfo: Calling LoadRecordingInfo for file #%s",file.name);
+                   appendStringToLogfile("LoadArchiveInfo: Calling LoadRecordingInfo for file #%s",file.name, WARNING);
                    LoadRecordingInfo(dirNumber, foundIndex);
                 }   
              
                 // If the current file is NOT an active recording, AND the header information hasn't already been loaded, read the header.
-                appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.");
+                appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.", WARNING);
                 if ((!myfiles[dirNumber][foundIndex]->isRecording) && (myfiles[dirNumber][foundIndex]->eventNameLength==0))
                 {
-                    appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name);
+                    appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name, WARNING);
                     LoadHeaderInfo( file.name, dirNumber, foundIndex);
                 }   
              }   
@@ -1058,7 +1060,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
        }
     }   
 
-    appendToLogfile("LoadArchiveInfo: Finished.");
+    appendToLogfile("LoadArchiveInfo: Finished.", INFO);
 }
 
 
@@ -1074,7 +1076,7 @@ void LoadPlaybackStatusInfo(void)
 	    {
           if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))  // If we're looking at a recorded show, match up any existing playback status info.
           {
-                appendToLogfile("LoadArchiveInfo: Setting playback status.");
+                appendToLogfile("LoadArchiveInfo: Setting playback status.", WARNING);
                 // Copy any playback status information from the playedFiles array to the matching myFiles entries.
                 SetPlaybackStatus( dirNumber, fileIndex );  // Match any playback status info with these existing files.
                 

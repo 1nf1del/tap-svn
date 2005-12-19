@@ -39,9 +39,9 @@ DIR_LIST;
 void DeletePlayedFileEntry(int entry)
 {
     int i;
-    appendToLogfile("DeletePlayedFileEntry: Started.");
-    appendIntToLogfile("DeletePlayedFileEntry: At start, entry=%d",entry);
-    appendIntToLogfile("DeletePlayedFileEntry: At start, numberOfPlayedFiles=%d",numberOfPlayedFiles);
+    appendToLogfile("DeletePlayedFileEntry: Started.", INFO);
+    appendIntToLogfile("DeletePlayedFileEntry: At start, entry=%d",entry, INFO);
+    appendIntToLogfile("DeletePlayedFileEntry: At start, numberOfPlayedFiles=%d",numberOfPlayedFiles, INFO);
 
     TAP_MemFree( playedFiles[i] );   // Clear the allocated memory for this entry as we will reassign it in the shuffle.
     for (i=entry; i <= numberOfPlayedFiles-1; i += 1)
@@ -51,8 +51,8 @@ void DeletePlayedFileEntry(int entry)
     
     numberOfPlayedFiles--;                                                             // Decrease the count of the entries.
     
-    appendIntToLogfile("DeletePlayedFileEntry: At end, numberOfPlayedFiles=%d",numberOfPlayedFiles);
-    appendToLogfile("DeletePlayedFileEntry: Finished.");
+    appendIntToLogfile("DeletePlayedFileEntry: At end, numberOfPlayedFiles=%d",numberOfPlayedFiles, INFO);
+    appendToLogfile("DeletePlayedFileEntry: Finished.", INFO);
 }
  
 
@@ -64,16 +64,17 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
     bool match;
     char str[TS_FILE_NAME_SIZE];
     
-    appendToLogfile("DeleteProgressInfo: Started.");
+    appendToLogfile("DeleteProgressInfo: Started.", INFO);
     
     match = FALSE;
 
     // Check if the deleted file was set as the last playback file.  If so, remove the last playback information.
     if ((!message) && (myfiles[dirNumbr][index]->startCluster == playedFiles[0]->startCluster) && (strcmp(myfiles[dirNumbr][index]->name,playedFiles[0]->name)==0))
     {
-        appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.");
+        appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.", WARNING);
         memset(playedFiles[0],0,sizeof(*playedFiles[0]));   // Clear out the lastplayback entry.
         playedFiles[0]->startCluster = 0;
+        playedFiles[0]->totalBlock   = 0;
         match = TRUE;
     }
         
@@ -87,7 +88,7 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
               myfiles[dirNumbr][index]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
               myfiles[dirNumbr][index]->currentBlock = 0;
               myfiles[dirNumbr][index]->totalBlock = 0;
-              appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i);
+              appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i, WARNING);
               DeletePlayedFileEntry(i);
               match = TRUE;
               break; // We've found a match, so don't bother checking other playback entries.
@@ -104,7 +105,7 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
         if (message) ShowMessageWin( rgn, "No Progress Info to Clear.", "No playback info found for:", str, 400 );
 
             
-    appendToLogfile("DeleteProgressInfo: Finished.");
+    appendToLogfile("DeleteProgressInfo: Finished.", INFO);
 }
 
 
@@ -164,7 +165,7 @@ void ChangeToParentDir()
      char subFolder[TS_FILE_NAME_SIZE];
      int i;
      
-     appendToLogfile("ChangeToParentDir: Started.");
+     appendToLogfile("ChangeToParentDir: Started.", INFO);
 
      strcpy(subFolder,myfolders[CurrentDirNumber]->name);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
@@ -197,7 +198,7 @@ void ChangeToParentDir()
      DeterminePrintingLine(chosenLine);     // Determine where we will start printing this line.
      
 	 RefreshArchiveList( TRUE );
-     appendToLogfile("ChangeToParentDir: Finished.");
+     appendToLogfile("ChangeToParentDir: Finished.", INFO);
 }	 
 
 
@@ -207,7 +208,9 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
 {
      dword lastPos;
      dword   curPercent;
-char str[80], str2[80];
+     
+     appendIntToLogfile("JumpToLastPosition: currentBlock=%d", currentBlock, WARNING);
+     appendIntToLogfile("JumpToLastPosition: totalBlock=%d", totalBlock, WARNING);
 
      if (currentBlock > totalBlock) currentBlock = 0;  // Check there's no invalid block data.
      
@@ -220,11 +223,9 @@ char str[80], str2[80];
      }
      else  // Start from the start.
            lastPos = 0;
-TAP_SPrint(str,"cb=%d  tb=%d", currentBlock, totalBlock);    
-TAP_SPrint(str2,"curperc=%d  lastPos=%d",curPercent,lastPos);     
      
+     appendIntToLogfile("JumpToLastPosition: jumping to lastPos=%d", lastPos, WARNING);
      TAP_Hdd_ChangePlaybackPos( lastPos );
-//ShowMessageWin( rgn, "After ChangePos", str, str2,400);
 }
 
 
@@ -387,29 +388,45 @@ void ArchiveAction (int line)
           	          break;
           	          
            case ATTR_FOLDER:  // Sub folder
+                      appendStringToLogfile("ArchiveAction: Calling TAP_Hdd_ChangeDir to %s<.",myfiles[CurrentDirNumber][line]->name, WARNING);
           	          TAP_Hdd_ChangeDir(myfiles[CurrentDirNumber][line]->name);
                       TAP_SPrint(newDir, "%s/%s",CurrentDir,myfiles[CurrentDirNumber][line]->name);
+                      
+                      appendStringToLogfile("ArchiveAction: Copying newDir.  newDir=%s<.",newDir, WARNING);
                       strcpy(CurrentDir, newDir);
+                      
+                      appendStringToLogfile("ArchiveAction: Copied to CurrentDir.  CurrentDir=%s<.",CurrentDir, WARNING);
                       // Change the CurrentDirNumber to be the new directory number.
                       CurrentDirNumber = myfiles[CurrentDirNumber][line]->directoryNumber;
                       
 	                  maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
 	                  numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
 
+                      appendIntToLogfile("ArchiveAction: CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
+                      appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
+
                       if (!recursiveLoadOption)
                       {     
+                         appendIntToLogfile("ArchiveAction: Calling SetDirFilesToNotPresent CurrentDirNumber=%d",CurrentDirNumber, WARNING);
                          SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
+                         
+                         appendIntToLogfile("ArchiveAction: Calling LoadArchiveInfo parentDirNumber=%d.",myfolders[CurrentDirNumber]->parentDirNumber, WARNING);
  	                     LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+                         
+                         appendIntToLogfile("ArchiveAction: Calling DeleteDirFilesNotPresent with CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
                          DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
                          // Reload the numberOfFiles/maxshown variables incase any files/folders were deleted.
    	                     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
 	                     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
+                         appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
                       }   
 
+                      appendToLogfile("ArchiveAction: Calling LoadPlaybackStatusInfo.", WARNING);
 	                  LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
 	                  chosenLine = 1;
 	                  printLine = 1;
 
+                      appendToLogfile("ArchiveAction: Calling RefreshArchiveList.", WARNING);
                       RefreshArchiveList(TRUE);
           	          break;
           	          

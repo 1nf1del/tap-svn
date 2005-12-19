@@ -17,7 +17,7 @@ History	: v0.0 kidhazy:
 //
 
 #define NUMBER_OF_LINES numberLinesOption
-#define Y1_OFFSET 36
+#define Y1_OFFSET yOffsetOption
 #define Y1_STEP 42					// was 44
 
 #define LIST_PROGRESS_BAR_WIDTH (column2Width-96)  // Width of the Progress Bar in the display list.  (default is 286-96 = 190)
@@ -254,6 +254,7 @@ void ArchiveHelpKeyHandler( dword key )
 void DeterminePrintingLine(int line)
 {
     // Determine where to start printing the selected line.
+    appendIntToLogfile("DeterminePrintingLine: Called with line=%d", line, WARNING);
 
     if ((line <= maxShown) && (maxShown < NUMBER_OF_LINES)) // Only one page to display, so print on current line.
     {
@@ -279,7 +280,7 @@ void DeterminePrintingLine(int line)
     } 
     
     page = (line-1) / NUMBER_OF_LINES;               // Calculate the starting page.
-
+    appendIntToLogfile("DeterminePrintingLine: Finished with printLine=%d", printLine, WARNING);
 }
 
 
@@ -288,6 +289,7 @@ void DeterminePrintingLine(int line)
 void DetermineStartingLine(int *line)
 {
     int i, numberOfFiles;
+    appendIntToLogfile("DetermineStartingLine: Called with line=%d", *line, WARNING);
     
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
 
@@ -310,6 +312,7 @@ void DetermineStartingLine(int *line)
     }                    
 
     DeterminePrintingLine(*line);
+    appendIntToLogfile("DetermineStartingLine: Finished with line=%d", *line, WARNING);
 }
 
 //------------
@@ -592,7 +595,7 @@ void DrawGraphicBorders(void)
                          #ifdef WIN32
                             TAP_Osd_FillBox( rgn, 0, 0, 720, 576, COLOR_DarkGray );				// clear the screen
                          #else    
-                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );		      		            // clear the screen with transparency colour
+                            TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );		      		        // clear the screen with transparency colour
                             TAP_Osd_FillBox( rgn, INFO_AREA_X-COLUMN_GAP_W, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W+(2*COLUMN_GAP_W), (INFO_AREA_Y+INFO_AREA_H)-(Y1_STEP+Y1_OFFSET-11), FILL_COLOUR );	// Fill the center with black.
                          #endif
                          TAP_Osd_PutGd( rgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
@@ -661,6 +664,12 @@ void DrawColumnGap(int x, int y)
 void DisplayFolderText(int line, int i)
 {
     char	str[80], str2[80], str3[80];
+    appendIntToLogfile("DisplayFolderText: Called with line=%d", line, WARNING);
+    appendIntToLogfile("DisplayFolderText: Called with i=%d", i, WARNING);
+    appendStringToLogfile("DisplayFolderText: Name=%s<", myfiles[CurrentDirNumber][line]->name, WARNING);
+    appendIntToLogfile("DisplayFolderText: directoryNumber=%d", myfiles[CurrentDirNumber][line]->directoryNumber, WARNING);
+    appendIntToLogfile("DisplayFolderText: numberOfFolders=%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfFolders, WARNING);
+    appendIntToLogfile("DisplayFolderText: numberOfRecordings=%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->numberOfRecordings, WARNING);
 
     switch (myfiles[CurrentDirNumber][line]->attr)
     {
@@ -953,12 +962,16 @@ void DisplayFileText(int line, int i)
     char	str[80], str2[80], str3[80];
     dword   curDuration, curPercent;
     int     dateFontSize;
+    appendIntToLogfile("DisplayFileText: Called with line=%d", line, WARNING);
+    appendIntToLogfile("DisplayFileText: Called with i=%d", i, WARNING);
+    appendStringToLogfile("DisplayFileText: Filename=%s", myfiles[CurrentDirNumber][line]->name, WARNING);
     
     /////////////////////////////////////////////////   
     // COLUMN 1 - Print the file number, play or recording indicator.
     /////////////////////////////////////////////////   
     if (myfiles[CurrentDirNumber][line]->isRecording)  // If the file is recording print recording icon.
     {
+         appendToLogfile("DisplayFileText: isRecording TRUE", WARNING);
          TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_redglasscircle25x25Gd, TRUE );
 		 TAP_Osd_PutStringAf1419( listRgn, COLUMN1_START+13, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, "R", MAIN_TEXT_COLOUR, 0 );
          
@@ -977,6 +990,7 @@ void DisplayFileText(int line, int i)
     else
     if (myfiles[CurrentDirNumber][line]->isPlaying)  // If the file is playing print play icon.
     {
+         appendToLogfile("DisplayFileText: isPlaying TRUE", WARNING);
          TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_greenglasscircle25x25Gd, TRUE );
          TAP_Osd_PutStringAf1622( listRgn, COLUMN1_START+15, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, ">", COLOR_Black, 0 );
 
@@ -1009,6 +1023,7 @@ void DisplayFileText(int line, int i)
          // Calculate how many minutes have been watched. (Round up to nearest minute)
          curDuration = (( max(0,myfiles[CurrentDirNumber][line]->currentBlock) * myfiles[CurrentDirNumber][line]->recDuration)  / max(1,myfiles[CurrentDirNumber][line]->totalBlock) );
          curPercent  = (( max(0,myfiles[CurrentDirNumber][line]->currentBlock) * 100)                        / max(1,myfiles[CurrentDirNumber][line]->totalBlock) );
+         appendIntToLogfile("DisplayFileText: hasPlayed TRUE curPercent=%d", curPercent, WARNING);
          if ((curPercent < 95) || (myfiles[CurrentDirNumber][line]->isPlaying)) // If we haven't watched the entire show, or the show is playing, display the progress bar.
          {
             // Print the Filename at the top of the row.
@@ -1049,6 +1064,7 @@ void DisplayFileText(int line, int i)
     {
          // Calculate how many minutes have been recorded. (Round up to nearest minute)
          curDuration = max(0, myfiles[CurrentDirNumber][line]->recordedSec/60);
+         appendIntToLogfile("DisplayFileText: isRecording TRUE curDuration=%d", curDuration, WARNING);
          // Print the Filename at the top of the row.
          FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET-7, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
          // Display the progress bar at the bottom of the row.
@@ -1076,7 +1092,8 @@ void DisplayFileText(int line, int i)
     
     if ((!myfiles[CurrentDirNumber][line]->hasPlayed) && (!myfiles[CurrentDirNumber][line]->isRecording))
     {
-        FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
+         appendToLogfile("DisplayFileText: isRecording FALSE and  hasPlayed FALSE", WARNING);
+         FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
     }
     
     
@@ -1109,7 +1126,7 @@ void DisplayFileText(int line, int i)
                    if (sortOrder == SORT_SIZE_OPTION)  // If we've sorted by Size then override logo option and display the size.
 	                   PrintListFileSize(line, i, 1);     // Display size as xxxMB
                    else
-	                   DisplayLogo( listRgn, COLUMN5_TEXT_START, i*Y1_STEP+Y1_OFFSET-8, myfiles[CurrentDirNumber][line]->svcNum, myfiles[CurrentDirNumber][i]->svcType );
+	                   DisplayLogo( listRgn, COLUMN5_TEXT_START, i*Y1_STEP+Y1_OFFSET-8, myfiles[CurrentDirNumber][line]->svcNum, myfiles[CurrentDirNumber][line]->svcType );
                    break;
                    
            case 1: // Recording size.
@@ -1119,6 +1136,8 @@ void DisplayFileText(int line, int i)
 	               
     }   
     
+    appendToLogfile("DisplayFileText: Finished.", WARNING);
+
 
 }
 
@@ -1152,6 +1171,9 @@ void DisplayArchiveText(int line, int i)
 void DisplayArchiveLine(int line, int i)
 {
 
+    appendIntToLogfile("DisplayArchiveLine: Called with line=%d", line, WARNING);
+    appendIntToLogfile("DisplayArchiveLine: Called with i=%d", i, WARNING);
+
 	if ( line == 0 ) return;											// bounds check
 
 #ifdef WIN32
@@ -1162,7 +1184,7 @@ void DisplayArchiveLine(int line, int i)
 	   TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_highlightGd, TRUE );
 	else
        TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_rowaGd, TRUE );
- 
+
  	if ( line <= maxShown )	DisplayArchiveText(line, i);								// anything to display ?
 
     DrawColumnGap(COLUMN2_START, i*Y1_STEP+Y1_OFFSET-8);
@@ -1208,11 +1230,17 @@ void DrawArchiveList(void)
 //
 void UpdateFileSelectionText(int chosenLine)
 {
-    char	str[500], fileSize[20], dateStr[20];
+    char	str[600], fileSize[30], dateStr[30];
     int     dateFontSize;
     
+    appendIntToLogfile("UpdateFileSelectionText: Called with chosenLine=%d", chosenLine, WARNING);
+    
     // Print Event Name & Description over 2 lines.  
+    appendStringToLogfile("UpdateFileSelectionText: eventName=%s<", myfiles[CurrentDirNumber][chosenLine]->eventName, WARNING);
+    appendStringToLogfile("UpdateFileSelectionText: eventDescName=%s<", myfiles[CurrentDirNumber][chosenLine]->eventDescName, WARNING);
     TAP_SPrint(str,"%s. %s", myfiles[CurrentDirNumber][chosenLine]->eventName, myfiles[CurrentDirNumber][chosenLine]->eventDescName);
+    appendStringToLogfile("UpdateFileSelectionText: str=%s<", str, WARNING);
+    appendIntToLogfile("UpdateFileSelectionText: strlen=%d<", strlen(str), WARNING);
     LastWrapPutStr_Start = 0;  // Reset "first character" pointer to start for Event Name & Description
     LastWrapPutStr_P = 0;      // Reset "last character" pointer to start for Event Name & Description
     LastWrapPutStr_Y = INFO_TEXT_Y + (0*INFO_TEXT_H); // Set the starting y-coordinate for the Event Name & Description
@@ -1232,6 +1260,7 @@ void UpdateFileSelectionText(int chosenLine)
                      PrintLeft( memRgn, INFO_TEXT_X, INFO_TEXT_Y + (1*INFO_TEXT_H), INFO_TEXT_W, str, INFO_COLOUR, 0, FNT_Size_1622 );	
                      break;
     }
+    appendToLogfile("UpdateFileSelectionText: Finished.", WARNING);
 
 }
 
@@ -1244,6 +1273,8 @@ void UpdateRecordingSelectionText(int chosenLine)
 	int 	l;
 
 	dword	recHour, recMin, totalRecSec, curRecHour, curRecMin, curRecSec;
+
+    appendIntToLogfile("UpdateRecordingSelectionText: Called with chosenLine=%d", chosenLine, WARNING);
 
     // Print Recording Tag.
     TAP_SPrint(str,"Recording...");
@@ -1261,6 +1292,8 @@ void UpdateRecordingSelectionText(int chosenLine)
     TAP_SPrint(str,"%02d:%02d:%02d Recorded ", curRecHour, curRecMin, curRecSec);
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X+RECORDING_PROGRESS_BAR_WIDTH+5, INFO_TEXT_Y+21, INFO_TEXT_X+INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
     
+    appendToLogfile("UpdateRecordingSelectionText: Finished.", WARNING);
+    
 }
 
 //------------
@@ -1269,12 +1302,16 @@ void UpdateFolderSelectionText(int chosenLine)
 {
     char	str[500];
 
+    appendIntToLogfile("UpdateFolderSelectionText: Called with chosenLine=%d", chosenLine, WARNING);
+
     // folder name
 	if ((myfiles[CurrentDirNumber][chosenLine]->attr == 240) || (myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR))
 	    TAP_SPrint(str,"Moves back to the previous directory.");
     else
 	    TAP_SPrint(str,"Folder: %s",  myfiles[CurrentDirNumber][chosenLine]->name );
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X, INFO_TEXT_Y, INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
+
+    appendToLogfile("UpdateFolderSelectionText: Finished.", WARNING);
 
 }
 
@@ -1292,7 +1329,7 @@ void UpdateSelectionNumber(void)
 	
 	TYPE_TapChInfo	currentChInfo;
 
-//    appendToLogfile("UpdateSelectionNumber: Started.");
+    appendToLogfile("UpdateSelectionNumber: Called.", WARNING);
 
     TAP_Osd_FillBox( memRgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
 
@@ -1319,7 +1356,9 @@ void UpdateSelectionNumber(void)
                              break;
          }
     }
+    appendToLogfile("UpdateSelectionNumber: Calling DisplayInstructions.", WARNING);
     DisplayInstructions();
+    appendToLogfile("UpdateSelectionNumber: Calling DrawFreeSpaceBar.", WARNING);
     DrawFreeSpaceBar();               // Update the diskspace info.
      
     //
@@ -1327,7 +1366,7 @@ void UpdateSelectionNumber(void)
     //
     TAP_Osd_Copy( memRgn, rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_AREA_X, INFO_AREA_Y, FALSE );
 
-//    appendToLogfile("UpdateSelectionNumber: Finished.");
+    appendToLogfile("UpdateSelectionNumber: Finished.", WARNING);
 }
 
 
@@ -1348,7 +1387,7 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;													// and enter the normal state
 							
 	    case RKEY_PlayList :	exitFlag = TRUE;										// signal exit to top level - will clean up, close window,
-                            appendToLogfile("ArchiveWindowKeyHandler: Playlist pressed.");
+                            appendToLogfile("ArchiveWindowKeyHandler: Playlist pressed.", WARNING);
                             generatedPlayList = TRUE;
 	                        TAP_GenerateEvent( EVT_KEY, RKEY_PlayList, 0 );
 
@@ -1500,7 +1539,11 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;
 
 
-		case RKEY_Blue :	if ( playedFiles[0]->totalBlock <=0 ) break; // If no last playback has been set, ignore Blue.
+		case RKEY_Blue :	if ( playedFiles[0]->totalBlock <=0 ) // If no last playback has been set, ignore Blue.
+                            {
+                                 ShowMessageWin( rgn, "No Last Playback File", "The last playback file was not found.", "(It may have been deleted.)", 350 );
+                                 break; 
+                            }
                             if (RestartLastPlayback() == 0)             // Attempt to restart last playback file.
                                 exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
 							break;
@@ -1558,16 +1601,16 @@ dword ArchiveWindowKeyHandler(dword key)
 //
 void ActivateArchiveWindow( void )
 {
-    appendToLogfile("ActivateArchiveWindow: Started.");
+    appendToLogfile("ActivateArchiveWindow: Started.", INFO);
     CreateArchiveWindow();
-    appendToLogfile("ActivateArchiveWindow: Calling DrawArchiveList.");
+    appendToLogfile("ActivateArchiveWindow: Calling DrawArchiveList.", WARNING);
 	DrawArchiveList();
-    appendToLogfile("ActivateArchiveWindow: Calling UpdateSelectionNumber.");
+    appendToLogfile("ActivateArchiveWindow: Calling UpdateSelectionNumber.", WARNING);
 	UpdateSelectionNumber();
 	UpdateListClock();
-    appendToLogfile("ActivateArchiveWindow: Calling DrawFreeSpaceBar.");
-    DrawFreeSpaceBar();               // Update the diskspace info every second.
-    appendToLogfile("ActivateArchiveWindow: Finished.");
+    appendToLogfile("ActivateArchiveWindow: Calling DrawFreeSpaceBar.", WARNING);
+    DrawFreeSpaceBar();              
+    appendToLogfile("ActivateArchiveWindow: Finished.", INFO);
 
 }
 
@@ -1611,7 +1654,7 @@ void RefreshArchiveWindow( void )
 
 void RefreshArchiveList( bool reposition )
 {
-    appendToLogfile("RefreshArchiveList: Started.");
+    appendToLogfile("RefreshArchiveList: Started.", INFO);
 
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;          // Set the number of files for this directory.
     maxShown      = numberOfFiles;                                      // Set the number of files shown for this directory.
@@ -1630,10 +1673,10 @@ void RefreshArchiveList( bool reposition )
 							
 	if (reposition) DeterminePrintingLine( chosenLine );  // If we have selected to reposition the list, determine where to print from.
 	DrawArchiveList();
-    appendToLogfile("RefreshArchiveList: Calling UpdateSelectionNumber.");
+    appendToLogfile("RefreshArchiveList: Calling UpdateSelectionNumber.", WARNING);
 	UpdateSelectionNumber();
 	UpdateListClock();
-    appendToLogfile("RefreshArchiveList: Finished.");
+    appendToLogfile("RefreshArchiveList: Finished.", INFO);
 }
 
 

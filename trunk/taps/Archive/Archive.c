@@ -28,10 +28,18 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #endif           
                      
 
-#define DEBUG 0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output
+#define DEBUG   0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
+
+// Define the error levels
+#define ERR     1
+#define WARNING 2
+#define INFO    3
+
+// Define the level of info or error message to be displayed.
+#define LOGLEVEL WARNING   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.05b"       
+#define VERSION "0.06a"       
 
 #include "tap.h"
 #include "morekeys.h"
@@ -89,7 +97,7 @@ static byte oldSec;
 //             
 void ActivationRoutine( void )
 {  
-    appendToLogfile("ActivationRoutine: Started.");
+    appendToLogfile("ActivationRoutine: Started.", INFO);
   	TAP_ExitNormal();
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
     memRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
@@ -98,10 +106,10 @@ void ActivationRoutine( void )
     if (recursiveLoadOption)
       ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
        
-    appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.");
+    appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.", INFO);
     if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
     {
-        appendToLogfile("ActivationRoutine: Not in Datafiles or subdir, so moving to DataFiles.");
+        appendToLogfile("ActivationRoutine: Not in Datafiles or subdir, so moving to DataFiles.", WARNING);
         GotoDataFiles();
         strcpy(CurrentDir,"/DataFiles");            // Set the current directory name.
     }    
@@ -143,10 +151,10 @@ void ActivationRoutine( void )
     
     DetermineStartingLine( &chosenLine );           // Determine which line to highlight when we start.
 
-    appendToLogfile("ActivationRoutine: Activating Archive Window.");
+    appendToLogfile("ActivationRoutine: Activating Archive Window.", INFO);
 	ActivateArchiveWindow();
  
-    appendToLogfile("ActivationRoutine: Finished.");
+    appendToLogfile("ActivationRoutine: Finished.", INFO);
 }
      
 
@@ -180,6 +188,12 @@ void TerminateRoutine( void )											// Performs the clean-up and terminate T
     }
     if (TAPIniDir != NULL) TAP_MemFree( TAPIniDir );
               
+    // Free up any memory that may have been allocated during TAP.
+    for (fileIndex=0; fileIndex <= MAX_FILES; fileIndex++)
+    {
+        if (playedFiles[fileIndex] != NULL) TAP_MemFree(playedFiles[fileIndex]);
+    }
+
 	closeLogfile();   // Close logfile if we were in debug mode.
     TAP_Exit();															// exit
 }
@@ -210,6 +224,9 @@ dword My_KeyHandler(dword key, dword param2)
 
 	if (TAP_Channel_IsStarted( 0 )) return key;							// check for PIP
 
+    if ( OsdActive(50, 10, 200, 40) || OsdActive(50, 150, 200, 300)) return key;  //Check if there's anything on the screen between 50,10 and 200,40 or 50,150 and 200,300.
+                                                                                 //Catches the manual channel entry numbers, bug ignores the mute/volume graphics.
+    if ( (mainActivationKey == RKEY_Ok) && (OsdActive(150, 390, 400, 510)) ) return key;  //If OK is the activation key and there is something on the bottom middle of the screen (eg. Info box or Improbox) then don't activate.
     
 	if ( key == mainActivationKey )										// only enter our code from the normal state
 	{
@@ -379,12 +396,11 @@ dword My_IdleHandler(void)
     if (sec != oldSec)
     {
         oldSec = sec;
-        
         // If I've highlighted an active recording, then update it's recording information every second.    
-        if (myfiles[0][chosenLine]->isRecording) // Update the recording information very second.
+        if (myfiles[CurrentDirNumber][chosenLine]->isRecording) // Update the recording information very second.
         {
            GetRecordingInfo();               // Update the recording information.
-           LoadRecordingInfo( 0, chosenLine );  // Update the myfiles array with the updated recording information.
+           LoadRecordingInfo( CurrentDirNumber, chosenLine );  // Update the myfiles array with the updated recording information.
         }   
         UpdateSelectionNumber();             // Update diskspace and recording info every second.
     }      
@@ -446,17 +462,17 @@ int TAP_Main (void)
      
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
 
-    appendToLogfile("Archive TAP Started.");
+    appendToLogfile("Archive TAP Started.", INFO);
 
     if (GetModel() == TF5800t) 
     {
        unitModelType=TF5800t;
-       appendToLogfile("TAP_Main: Detected model TF5800.");
+       appendToLogfile("TAP_Main: Detected model TF5800.", WARNING);
        headerOffset=4;        // The TF5800 has some fields out 4 bytes compared to the TF500.
     }
     else
     {
-       appendToLogfile("TAP_Main: Detected model is NOT TF5800.");
+       appendToLogfile("TAP_Main: Detected model is NOT TF5800.", WARNING);
        unitModelType=TF5000t;
        headerOffset=0;        // Do not apply any offset when reading the header.
     }
@@ -466,31 +482,49 @@ int TAP_Main (void)
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
   
-    appendToLogfile("TAP_Main: Loading configuration data.");
+    appendToLogfile("TAP_Main: Loading configuration data.", INFO);
 	LoadConfiguration();
+
+    appendIntToLogfile("Config Info: infoLineOption=%d",infoLineOption, WARNING);
+    appendIntToLogfile("Config Info: sortOrderOption=%d",sortOrderOption, WARNING);
+    appendIntToLogfile("Config Info: column1Option=%d",column1Option, WARNING);
+    appendIntToLogfile("Config Info: column2Option=%d",column2Option, WARNING);
+    appendIntToLogfile("Config Info: column3Option=%d",column3Option, WARNING);
+    appendIntToLogfile("Config Info: column4Option=%d",column4Option, WARNING);
+    appendIntToLogfile("Config Info: column5Option=%d",column5Option, WARNING);
+    appendIntToLogfile("Config Info: numberLinesOption=%d",numberLinesOption, WARNING);
+    appendIntToLogfile("Config Info: borderOption=%d",borderOption, WARNING);
+    appendIntToLogfile("Config Info: recCheckOption=%d",recCheckOption, WARNING);
+    appendIntToLogfile("Config Info: progressBarOption=%d",progressBarOption, WARNING);
+	
 	sortOrder = sortOrderOption; // Default to sort order specified in the config file. 
     ResetScreenColumns();        // Set column widths according to column options.
 
-    appendToLogfile("TAP_Main: Loading Play Data.");
+    appendToLogfile("TAP_Main: Loading Play Data.", INFO);
+	// Loop through and set all file pointers to NULL.
+    for (fileIndex=0; fileIndex <= MAX_FILES; fileIndex++)
+    {
+        playedFiles[fileIndex] = NULL;
+    }
 	LoadPlayData();  // Load up the playback status information from the dat file.
 
-    appendToLogfile("TAP_Main: Caching logos.");
+    appendToLogfile("TAP_Main: Caching logos.", INFO);
 	CacheLogos();    
   
-    appendToLogfile("TAP_Main: Starting initialisation routines.");
-    appendToLogfile("TAP_Main: Initialising ArchiveWindow.");
+    appendToLogfile("TAP_Main: Starting initialisation routines.", INFO);
+    appendToLogfile("TAP_Main: Initialising ArchiveWindow.", INFO);
 	initialiseArchiveWindow();
      
-    appendToLogfile("TAP_Main: Initialising ArchiveDelete.");
+    appendToLogfile("TAP_Main: Initialising ArchiveDelete.", INFO);
     initialiseArchiveDelete();
 
-    appendToLogfile("TAP_Main: Initialising ArchiveRename.");
+    appendToLogfile("TAP_Main: Initialising ArchiveRename.", INFO);
     initialiseArchiveRename();
 
-    appendToLogfile("TAP_Main: Initialising Menu.");
+    appendToLogfile("TAP_Main: Initialising Menu.", INFO);
 	initialiseMenu();
 
-    appendToLogfile("TAP_Main: Initialising ConfigRoutines.");
+    appendToLogfile("TAP_Main: Initialising ConfigRoutines.", INFO);
 	InitialiseConfigRoutines();
 	  
 	numberOfFiles   = 0;
@@ -540,7 +574,7 @@ int TAP_Main (void)
 	terminateFlag = FALSE;
 	generatedPlayList = FALSE;
 
-    appendToLogfile("TAP_Main: Finished initial TAP_Main routine.");
+    appendToLogfile("TAP_Main: Finished initial TAP_Main routine.", INFO);
 
 #ifdef WIN32
 #else

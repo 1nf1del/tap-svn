@@ -22,9 +22,12 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 #define MAX_SCREEN_X  720
 #define MAX_SCREEN_Y  576
 
+#define COLUMN_GAP_W       3   // Width of gap between columns.
+
 // Dimensions of Information Window
+#define BOTTOM_OF_ROWS ( (NUMBER_OF_LINES*Y1_STEP) + Y1_OFFSET - 8 + 39 )  // 487 or 445
 #define INFO_AREA_X 53
-#define INFO_AREA_Y (490-((10-NUMBER_OF_LINES)*42)) // 490
+#define INFO_AREA_Y (BOTTOM_OF_ROWS + COLUMN_GAP_W) // 490 or 448
 #define INFO_AREA_W 614  // Total width of list window.
 //#define INFO_AREA_H (MAX_SCREEN_Y-INFO_AREA_Y)
 #define INFO_AREA_H 83 //86
@@ -59,8 +62,6 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 #define DATE_END_X 602
 #define LOGO_X 607
 */
-
-#define COLUMN_GAP_W       3   // Width of gap between columns.
 
 #define COLUMN1_START      50
 static  int column1Width=35;
@@ -245,6 +246,7 @@ int StartPlayback(char filename[TS_FILE_NAME_SIZE], int jump);
 void WeekdayToAlpha (byte weekday, char *str);
 void RestartPlayback(int line, int jump);
 void DeleteProgressInfo(int dirNumbr, int index, bool message);
+void ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3);
 
 //*****************
 //global variables
@@ -299,6 +301,9 @@ static int numberLinesOption;
 static bool recursiveLoadOption=FALSE;
 static int borderOption;
 static int recCheckOption;
+static int yOffsetOption=36;
+       
+static char gstr[500];
        
 static bool CalledByTSRCommander=FALSE;
 static bool inPlaybackMode = FALSE;

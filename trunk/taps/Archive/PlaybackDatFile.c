@@ -31,35 +31,35 @@ void WriteDatFile( TYPE_File *writeFile )
 {
     char* currentDir;
      
-    appendToLogfile("WriteDatFile: Started.");
-    appendToLogfile("WriteDatFile: GetCurrentDir called.");
+    appendToLogfile("WriteDatFile: Started.", INFO);
+    appendToLogfile("WriteDatFile: GetCurrentDir called.", WARNING);
     currentDir = GetCurrentDir();  // Store the current  directory.
 
-    appendStringToLogfile("WriteDatFile: GetCurrentDir returned=%s.",currentDir);
-    appendStringToLogfile("WriteDatFile: Moving to=%s.",TAPIniDir);
+    appendStringToLogfile("WriteDatFile: GetCurrentDir returned=%s.",currentDir, WARNING);
+    appendStringToLogfile("WriteDatFile: Moving to=%s.",TAPIniDir, WARNING);
     GotoPath(TAPIniDir);           // Go to the Project Directory.
     
 	if ( TAP_Hdd_Exist( PLAYDATA_FILENAME ) ) TAP_Hdd_Delete( PLAYDATA_FILENAME );	// Just delete any old copies
 
-    appendToLogfile("WriteDatFile: Creating DATA file.");
+    appendToLogfile("WriteDatFile: Creating DATA file.", ERR);
 	TAP_Hdd_Create( PLAYDATA_FILENAME, ATTR_PROGRAM );						// Create the file
 
-    appendToLogfile("WriteDatFile: Opening DATA file.");
+    appendToLogfile("WriteDatFile: Opening DATA file.", ERR);
 	writeFile = TAP_Hdd_Fopen( PLAYDATA_FILENAME );
 	if ( writeFile == NULL ) return; 										// Check we can open it
 
-    appendToLogfile("WriteDatFile: Writing to DATA file.");
+    appendToLogfile("WriteDatFile: Writing to DATA file.", ERR);
 	TAP_Hdd_Fwrite( playDataBuffer_ini, PLAYBACKDATA_BUFFER_SIZE_ini, 1, writeFile );	// dump the whole buffer in one hit
 
-    appendToLogfile("WriteDatFile: Closing DATA file.");
+    appendToLogfile("WriteDatFile: Closing DATA file.", ERR);
 	TAP_Hdd_Fclose( writeFile );
 
-    appendStringToLogfile("WriteDatFile: Returning to=%s.",currentDir);
+    appendStringToLogfile("WriteDatFile: Returning to=%s.",currentDir, WARNING);
 	GotoPath(currentDir);            // Return to the original directory.
 
     TAP_MemFree( currentDir );   // Free allocated memory.
     
-    appendToLogfile("WriteDatFile: Finished.");
+    appendToLogfile("WriteDatFile: Finished.", INFO);
 }
 
 
@@ -85,7 +85,7 @@ void SaveDatToFile( void )
 	int i;
 	char	str[256];
 
-    appendToLogfile("SaveDatToFile: Started.");
+    appendToLogfile("SaveDatToFile: Started.", INFO);
 	playDataBuffer_ini = TAP_MemAlloc( PLAYBACKDATA_BUFFER_SIZE_ini );				// Buffer the write data to memory before writing all in one hit
 	memset( playDataBuffer_ini, '\0', PLAYBACKDATA_BUFFER_SIZE_ini );				// set the whole buffer to the string termination character (null)
 	playDataBufferPtr_ini = 0;
@@ -104,10 +104,10 @@ void SaveDatToFile( void )
 	     WriteStrToDatBuf( str );
     }
 
-    appendToLogfile("SaveDatToFile: WriteDatFile called to write DATA file.");
+    appendToLogfile("SaveDatToFile: WriteDatFile called to write DATA file.", WARNING);
 	WriteDatFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( playDataBuffer_ini );										// must return the memory back to the heap
-    appendToLogfile("SaveDatToFile: Finished.");
+    appendToLogfile("SaveDatToFile: Finished.", INFO);
 }
 
 
@@ -193,13 +193,13 @@ bool ReadDatFile( void )
 	int i;
 	dword fileLength;
 
-    appendToLogfile("ReadDatFile: Started.");
+    appendToLogfile("ReadDatFile: Started.", INFO);
 
 //	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 	GotoPath( TAPIniDir );
 	if ( ! TAP_Hdd_Exist( PLAYDATA_FILENAME ) ) 
     {
-         appendToLogfile("ReadDatFile: no PLAYDATA file found.");
+         appendToLogfile("ReadDatFile: no PLAYDATA file found.", ERR);
          return FALSE;			// check the ini file exits in the current directory
     }     
 	
@@ -222,7 +222,7 @@ bool ReadDatFile( void )
 
 	TAP_MemFree( playDataBuffer_ini );										// must return the memory back to the heap
 
-    appendToLogfile("ReadDatFile: Finished.");
+    appendToLogfile("ReadDatFile: Finished.", INFO);
 
 	return TRUE;
 }
@@ -233,11 +233,11 @@ void LoadPlayData( void )
     int i;
     char str[200];
     
-    appendToLogfile("LoadPlayData: Started.");
+    appendToLogfile("LoadPlayData: Started.", INFO);
      
 	if ( !ReadDatFile() )   // If we can't find/read the data file, create an empty one.
 	{
-        appendToLogfile("LoadPlayData: Call to ReadDatFile returned FALSE.");
+        appendToLogfile("LoadPlayData: Call to ReadDatFile returned FALSE.", ERR);
 		
         numberOfPlayedFiles = 1;
 		
@@ -253,7 +253,7 @@ void LoadPlayData( void )
         playedFiles[1]->totalBlock   = 9999999;   // Store the total block size.
         strcpy(playedFiles[1]->name,"This is a dummy filename.rec");        // Store the file name.
 
-        appendToLogfile("LoadPlayData: Calling SaveDataToFile for new file.");
+        appendToLogfile("LoadPlayData: Calling SaveDataToFile for new file.", ERR);
 		SaveDatToFile();
 	}
 	playbackInfoTick = TAP_GetTick();		// Set timer to indicate when we retrieved the playback information.
@@ -267,7 +267,7 @@ void LoadPlayData( void )
          TAP_Print("%s<<\r\n", playedFiles[i]->name); 
     }
 */
-    appendToLogfile("LoadPlayData: Finished.");
+    appendToLogfile("LoadPlayData: Finished.", INFO);
 
 }
 
@@ -277,21 +277,21 @@ void DeletePlayData( void )
     char* currentDir;
     int i;
      
-    appendToLogfile("DeletePlayData: Started.");
+    appendToLogfile("DeletePlayData: Started.", INFO);
 
-    appendToLogfile("DeletePlayData: GetCurrentDir called.");
+    appendToLogfile("DeletePlayData: GetCurrentDir called.", WARNING);
     currentDir = GetCurrentDir();  // Store the current  directory.
-    appendStringToLogfile("DeletePlayData: GetCurrentDir returned=%s.",currentDir);
-    appendStringToLogfile("DeletePlayData: Moving to=%s.",TAPIniDir);
+    appendStringToLogfile("DeletePlayData: GetCurrentDir returned=%s.",currentDir, WARNING);
+    appendStringToLogfile("DeletePlayData: Moving to=%s.",TAPIniDir, WARNING);
     GotoPath(TAPIniDir);           // Go to the Project Directory.
 
-    appendToLogfile("DeletePlayData: Deleting DATA file.");
+    appendToLogfile("DeletePlayData: Deleting DATA file.", ERR);
 	if ( TAP_Hdd_Exist( PLAYDATA_FILENAME ) ) TAP_Hdd_Delete( PLAYDATA_FILENAME );	// Just delete any old copies
 
-    appendToLogfile("DeletePlayData: Calling LoadPlayData.");
+    appendToLogfile("DeletePlayData: Calling LoadPlayData.", ERR);
     LoadPlayData();  // Recreate and reload the new information.
 
-    appendStringToLogfile("DeletePlayData: Returning to=%s.",currentDir);
+    appendStringToLogfile("DeletePlayData: Returning to=%s.",currentDir, WARNING);
 	GotoPath(currentDir);            // Return to the original directory.
 
     // Got through all of our current files and remove any progress information.
@@ -306,7 +306,7 @@ void DeletePlayData( void )
 
     TAP_MemFree( currentDir );   // Free allocated memory.
 
-    appendToLogfile("DeletePlayData: Finished.");
+    appendToLogfile("DeletePlayData: Finished.", INFO);
 }
      
 

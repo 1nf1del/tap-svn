@@ -329,16 +329,16 @@ char* GetCurrentDir(void)
     TYPE_File file;
     char* temp;
                     
-    appendToLogfile("GetCurrentDir: started.");
+    appendToLogfile("GetCurrentDir: started.", INFO);
 
     path = TAP_MemAlloc (2);
 
     if (path == NULL) 
     {
-             appendToLogfile("GetCurrentDir: TAP_MemAlloc (2) failed.");
+             appendToLogfile("GetCurrentDir: TAP_MemAlloc (2) failed.", ERR);
              return NULL;
     }         
-    appendToLogfile("GetCurrentDir: after memalloc.");
+    appendToLogfile("GetCurrentDir: after memalloc.", INFO);
 
     strcpy (path, "");
     path[0]='\0';
@@ -364,14 +364,14 @@ char* GetCurrentDir(void)
             // no memory - back to starting directory and return NULL
             if (temp == NULL)
             {
-                appendToLogfile("GetCurrentDir: TAP_MemAlloc (strlen path) failed.");
+                appendToLogfile("GetCurrentDir: TAP_MemAlloc (strlen path) failed.", ERR);
                 TAP_Hdd_ChangeDir (file.name);
                 if (strlen (path)) TAP_Hdd_ChangeDir (&path[1]);
                 TAP_MemFree (path);
                 return NULL;
             }
 
-            appendStringToLogfile("GetCurrentDir: Match on file=%s",file.name);
+            appendStringToLogfile("GetCurrentDir: Match on file=%s",file.name, WARNING);
 
             // There's an issue where we may find the "." directory entry instead of the subdir -
             // so for now, let's ignore it.   5 Nov 2005
@@ -382,7 +382,7 @@ char* GetCurrentDir(void)
                strcat (temp, path);
                TAP_MemFree (path);
                path = temp;
-               appendStringToLogfile("GetCurrentDir: Path now=%s",path);
+               appendStringToLogfile("GetCurrentDir: Path now=%s",path, WARNING);
             }
         }
         else
@@ -390,7 +390,7 @@ char* GetCurrentDir(void)
             // directory structure inconsistent, shouldn't get here
             // problem - we can't get back to our starting directory
             TAP_MemFree (path);
-            appendStringToLogfile("GetCurrentDir: Bombed out.",file.name);
+            appendStringToLogfile("GetCurrentDir: Bombed out.",file.name, WARNING);
             return NULL;
         }
     }
@@ -398,15 +398,15 @@ char* GetCurrentDir(void)
     {
         // finally we put ourselves back in our starting directory
         //TAP_Hdd_ChangeDir (&path[1]);
-        appendToLogfile("GetCurrentDir: Found current directory.");
-        appendStringToLogfile("GetCurrentDir: It's %s.",path);
+        appendToLogfile("GetCurrentDir: Found current directory.", WARNING);
+        appendStringToLogfile("GetCurrentDir: It's %s.",path, WARNING);
         GotoPath(path);
     }
     else
     {
         // We're at the root
         strcpy (path, "/");
-        appendStringToLogfile("GetCurrentDir: Found at ROOT.",file.name);
+        appendStringToLogfile("GetCurrentDir: Found at ROOT.",file.name, WARNING);
     }
 
     return (path);
@@ -437,7 +437,7 @@ TYPE_ModelType GetModel()
 #ifdef WIN32
 return TF5000_BP_WP;
 #endif               
-        appendIntToLogfile("GetModel: sysID =%d",*sysID);
+        appendIntToLogfile("GetModel: sysID =%d",*sysID, WARNING);
 
         switch ( *sysID )
         {
@@ -461,6 +461,29 @@ return TF5000_BP_WP;
         }
         return TFOther;
 }
+
+
+bool OsdActive (int startCol, int startRow, int endCol, int endRow)
+{
+    TYPE_OsdBaseInfo osdBaseInfo;
+    dword* wScrn;
+    dword iRow, iCol;
+
+    TAP_Osd_GetBaseInfo( &osdBaseInfo );
+
+    for ( iRow = startRow; iRow < endRow; iRow += 4 )  //every 4th line
+    {
+        wScrn = osdBaseInfo.eAddr + 720 * iRow;
+
+        for ( iCol = startCol; iCol < endCol; iCol += 6 ) //may as well only scan every 6 pixels to save time and resource, stop at 350 as new f/w puts channel details to the right.
+        {
+            if ( (*(wScrn + iCol)) != 0 )
+                return TRUE; // Do not allow Key Action
+        }
+    }
+    return FALSE;
+}
+
 
 /*
 // Finds the location of the INI file.

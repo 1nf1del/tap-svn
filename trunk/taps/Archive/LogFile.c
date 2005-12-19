@@ -26,6 +26,10 @@ TYPE_File* logFD;
 int logByteCount;
 #endif
 
+#if DEBUG == 4
+word logRgn;
+#endif
+
 int screenLogY, screenLogLine;
 
 
@@ -58,12 +62,14 @@ void openLogfile()
 //
 // Write a string to the logfile.
 //
-void appendToLogfile(const char* text)
+void appendToLogfile(const char* text, int logLevel)
 {
     word mjd; byte hour; byte min; byte sec; 
 	word year; byte month; byte day; byte weekday;
     char str[20]; 
     dword tempTick;
+
+    if (logLevel > LOGLEVEL) return;
 	
 	if (logFD != NULL)
 	{
@@ -82,31 +88,31 @@ void appendToLogfile(const char* text)
 //
 // Write an integer to the logfile.
 //
-void appendIntToLogfile(const char* fmt, int i)
+void appendIntToLogfile(const char* fmt, int i, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, i);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a long integer to the logfile.
 //
-void appendLongToLogfile(const char* fmt, long l)
+void appendLongToLogfile(const char* fmt, long l, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, l);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a string to the logfile.
 //
-void appendStringToLogfile(const char* fmt, const char* str)
+void appendStringToLogfile(const char* fmt, const char* str, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, str);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
@@ -117,7 +123,7 @@ void closeLogfile()
 	if (logFD != NULL)
 	{
 		// Make the end of the logfile stop on a 512 byte boundary.
-		appendToLogfile("********** End of logfile **********");
+		appendToLogfile("********** End of logfile **********", INFO);
 		while ((logByteCount % 512) != 510)
 		{
 			TAP_Hdd_Fwrite(" ", 1, 1, logFD);
@@ -131,6 +137,10 @@ void closeLogfile()
 	}	
 }
 #endif
+
+
+
+
 #if DEBUG == 2
 #define closeLogfile()
 //
@@ -145,10 +155,12 @@ void openLogfile()
 //
 // Write a string to the logfile.
 //
-void appendToLogfile(const char* text)
+void appendToLogfile(const char* text, int logLevel)
 {
     char str[400]; 
 	
+    if (logLevel > LOGLEVEL) return;
+
     sprintf(str,"%d: %s",screenLogLine, text);
     TAP_Osd_PutStringAf1926( rgn, 50, screenLogY, 700, str, COLOR_White, COLOR_Black );
     TAP_Delay(SCREEN_DELAY);
@@ -163,34 +175,39 @@ void appendToLogfile(const char* text)
 //
 // Write an integer to the logfile.
 //
-void appendIntToLogfile(const char* fmt, int i)
+void appendIntToLogfile(const char* fmt, int i, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, i);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a long integer to the logfile.
 //
-void appendLongToLogfile(const char* fmt, long l)
+void appendLongToLogfile(const char* fmt, long l, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, l);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a string to the logfile.
 //
-void appendStringToLogfile(const char* fmt, const char* str)
+void appendStringToLogfile(const char* fmt, const char* str, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, str);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 #endif
+
+
+
+
+
 #if DEBUG == 3
 #define closeLogfile()
 #define openLogfile()
@@ -198,8 +215,10 @@ void appendStringToLogfile(const char* fmt, const char* str)
 //
 // Write a string to the logfile.
 //
-void appendToLogfile(const char* text)
+void appendToLogfile(const char* text, int logLevel)
 {
+    if (logLevel > LOGLEVEL) return;
+     
     TAP_Print("%s\r\n",text);
     TAP_Delay(0);
 }
@@ -207,41 +226,113 @@ void appendToLogfile(const char* text)
 //
 // Write an integer to the logfile.
 //
-void appendIntToLogfile(const char* fmt, int i)
+void appendIntToLogfile(const char* fmt, int i, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, i);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a long integer to the logfile.
 //
-void appendLongToLogfile(const char* fmt, long l)
+void appendLongToLogfile(const char* fmt, long l, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, l);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 //
 // Write a string to the logfile.
 //
-void appendStringToLogfile(const char* fmt, const char* str)
+void appendStringToLogfile(const char* fmt, const char* str, int logLevel)
 {
-	char buffer[400];
+	char buffer[600];
 	sprintf(buffer, fmt, str);
-	appendToLogfile(buffer);		
+	appendToLogfile(buffer, logLevel);		
 }
 
 #endif
 
+
+
+
+
+
+
+#if DEBUG == 4
+//
+// Close the logfile.
+//
+void closeLogfile()
+{
+	TAP_Osd_Delete( logRgn );
+}
+
+//
+// Open the logfile.
+//
+void openLogfile()
+{
+	logRgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
+}    
+
+//
+// Write a string to the logfile.
+//
+void appendToLogfile(const char* text, int logLevel)
+{
+    char str[400]; 
+
+    if (logLevel > LOGLEVEL) return;
+
+    sprintf(str,"%s", text);
+    ShowMessageBox( logRgn, "Archive Log", str, "");
+
+}
+
+//
+// Write an integer to the logfile.
+//
+void appendIntToLogfile(const char* fmt, int i, int logLevel)
+{
+	char buffer[600];
+	sprintf(buffer, fmt, i);
+	appendToLogfile(buffer, logLevel);		
+}
+
+//
+// Write a long integer to the logfile.
+//
+void appendLongToLogfile(const char* fmt, long l, int logLevel)
+{
+	char buffer[600];
+	sprintf(buffer, fmt, l);
+	appendToLogfile(buffer, logLevel);		
+}
+
+//
+// Write a string to the logfile.
+//
+void appendStringToLogfile(const char* fmt, const char* str, int logLevel)
+{
+	char buffer[600];
+	sprintf(buffer, fmt, str);
+	appendToLogfile(buffer,  logLevel);		
+}
+
+#endif
+
+
+
+
 #if DEBUG == 0
 #define openLogfile()
 #define closeLogfile()
-#define appendToLogfile(text)
-#define appendIntToLogfile(fmt, i)
-#define appendLongToLogfile(fmt, l)
-#define appendStringToLogfile(fmt,str)
+#define appendToLogfile(text, logLevel)
+#define appendIntToLogfile(fmt, i, logLevel)
+#define appendLongToLogfile(fmt, l, logLevel)
+#define appendStringToLogfile(fmt,str, logLevel)
 
 #endif
