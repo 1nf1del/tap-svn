@@ -50,7 +50,7 @@ public:
 bool TestTap::Start()
 {
 	TAP_Print("TestTap::Start\n");
-	
+
 	TAP_Osd_FillBox( screenRgn, 0,0, 720,576, RGB(31,31,31) );
 	TAP_Osd_PutGd( screenRgn, (720-_bigkeyblueGd.width)/2 , (576-_bigkeyblueGd.height)/2, &_bigkeyblueGd, TRUE );
 
@@ -112,13 +112,3 @@ TAP_ETCINFO(__DATE__);
 
 #endif
 
-void * __builtin_new(size_t size)
-{
-	return TAP_MemAlloc(size);
-}
-
-void __builtin_delete(void * mem)
-{
-	if (mem)
-		TAP_MemFree(mem);
-}

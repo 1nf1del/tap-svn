@@ -28,6 +28,7 @@ include ../../tools/build/tap.mk
 all: libc++utils.a
 
 libc++utils.a: taparray.o tapstring.o vtable.o
+	$(AR) cr $@ $^
 
 # A target for removing generated files.
 clean:

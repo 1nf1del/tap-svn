@@ -19,15 +19,26 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+all: TestFramework.tap 
+
 include ../../../tools/build/tap.mk
 include ../../libc++utils/tap++.mk
 
-OBJECTS+=TestFramework.o YesNoBox.o BitmapScreen.o TextTools.o
+../../libutils/libutils.a::
+	$(MAKE) -C ../../libutils
+
+../../libc++utils/libc++utils.a::
+	$(MAKE) -C ../../libc++utils
+	
+../libframework.a::
+	$(MAKE) -C ../
+
+
+OBJECTS=TestFramework.o YesNoBox.o BitmapScreen.o TextTools.o
+LIBRARIES=../libFramework.a ../../libc++utils/libc++utils.a ../../libutils/libutils.a 
 
 CXXFLAGS+= -I ../../libc++utils -I ../
-LDFLAGS+= -L ../../libc++utils -L../ -l c++utils -l framework
-
-all: TestFramework.tap
+LDFLAGS+= -L../../libc++utils -L../ -lFramework -lc++utils 
 
 # Copy files to the Toppy using tfcopy
 copy: all
@@ -36,10 +47,11 @@ copy: all
 
 # A target for removing generated files.
 clean:
-	-rm -f *.tap *.o *.elf *.map
+	-rm -f *.tap *.o *.elf *.map VTableFix.cpp
 
-TestFramework.elf:		$(OBJECTS)
+TestFramework.tap:		TestFramework.elf
+TestFramework.elf:		$(OBJECTS) $(VTABLEFIX) $(LIBRARIES)
 TestFramework.o:		TestFramework.cpp graphics.c
-YesNoBox.o:				YesNoBox.cpp YesNoBox.h graphics.c
+YesNoBox.o:			YesNoBox.cpp YesNoBox.h graphics.c
 TextTools.o:			TextTools.cpp TextTools.h
 BitmapScreen.o:			BitmapScreen.cpp BitmapScreen.h
