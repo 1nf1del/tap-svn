@@ -18,8 +18,10 @@
 #  along with this software; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+LIBRARIES=../libFramework.a ../../libc++utils/libc++utils.a ../../libutils/libutils.a 
+OBJECTS=TestFramework.o YesNoBox.o BitmapScreen.o TextTools.o
 
-all: TestFramework.tap 
+all: $(LIBRARIES) TestFramework.tap 
 
 include ../../../tools/build/tap.mk
 include ../../libc++utils/tap++.mk
@@ -30,16 +32,13 @@ include ../../libc++utils/tap++.mk
 ../../libc++utils/libc++utils.a::
 	$(MAKE) -C ../../libc++utils
 	
-../libframework.a::
+../libFramework.a::
 	$(MAKE) -C ../
 
 
-OBJECTS=TestFramework.o YesNoBox.o BitmapScreen.o TextTools.o
-LIBRARIES=../libFramework.a ../../libc++utils/libc++utils.a ../../libutils/libutils.a 
 
 CXXFLAGS+= -I ../../libc++utils -I ../
-LDFLAGS+= -L../../libc++utils -L../ -lFramework -lc++utils 
-
+LDFLAGS+= -L../../libc++utils -L../ -L../../libutils -lFramework -lc++utils -lutils -lc
 # Copy files to the Toppy using tfcopy
 copy: all
 	tfcopy *.tap '#:\ProgramFiles\'

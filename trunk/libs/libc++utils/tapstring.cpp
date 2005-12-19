@@ -114,6 +114,11 @@ string::operator const char*() const
 	return getstr();
 }
 
+const char* string::c_str() const
+{
+	return getstr();
+}
+
 string string::operator+(const string& right)
 {
 	string result = *this;

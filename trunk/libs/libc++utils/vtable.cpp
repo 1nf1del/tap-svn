@@ -33,9 +33,19 @@ void FixupVTable( vtable& vtbl )
 
 		item.fnPtr += _tap_startAddr;
 	}
+#else
+	(vtbl);
 #endif
+
 }
 
+#ifdef WIN32
+
+	void FixupVTables()
+	{
+
+	}
+#endif
 
 void * __builtin_new(size_t size)
 {
@@ -45,4 +55,14 @@ void __builtin_delete(void * mem)
 {
 	if (mem)
 		TAP_MemFree(mem);
+}
+
+void* operator new[](size_t size)
+{
+	return malloc(size);
+}
+
+void operator delete[](void* pMem)
+{
+	free(pMem);
 }

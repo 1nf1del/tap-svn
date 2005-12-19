@@ -27,7 +27,9 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: libc++utils.a
 
-libc++utils.a: taparray.o tapstring.o vtable.o
+CXXFLAGS+=-I../libutils
+
+libc++utils.a: taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o
 	$(AR) cr $@ $^
 
 # A target for removing generated files.

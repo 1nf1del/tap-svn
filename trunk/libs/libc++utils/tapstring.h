@@ -62,6 +62,7 @@ public:
 	int size() const;
 	void resize(unsigned int newSize);
 	void format(const char* format, ...);
+	const char* c_str() const;
 
 private:
 
