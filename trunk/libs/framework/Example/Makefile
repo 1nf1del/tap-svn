@@ -37,7 +37,7 @@ include ../../libc++utils/tap++.mk
 
 
 
-CXXFLAGS+= -I ../../libc++utils -I ../
+CXXFLAGS+= -I ../../libc++utils -I ../ -D _TAP
 LDFLAGS+= -L../../libc++utils -L../ -L../../libutils -lFramework -lc++utils -lutils -lc
 # Copy files to the Toppy using tfcopy
 copy: all
