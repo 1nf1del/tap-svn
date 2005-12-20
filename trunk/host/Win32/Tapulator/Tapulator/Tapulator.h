@@ -36,7 +36,7 @@ class CTapulatorApp : public CWinApp
 {
 public:
 	CTapulatorApp();
-
+	~CTapulatorApp();
 
 // Overrides
 public:
