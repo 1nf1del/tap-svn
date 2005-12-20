@@ -35,10 +35,12 @@ include ../../libc++utils/tap++.mk
 ../libFramework.a::
 	$(MAKE) -C ../
 
+CXXFLAGS+= -I ../../libc++utils -I ../
 
+# The -u TAP_Main forces the linker to include that function when it encounters it, rather than
+# waiting for libtap.a to reference it which could otherwise require you to list some modules/libs twice
 
-CXXFLAGS+= -I ../../libc++utils -I ../ -D _TAP
-LDFLAGS+= -L../../libc++utils -L../ -L../../libutils -lFramework -lc++utils -lutils -lc
+LDFLAGS:= -u TAP_Main -L../../libc++utils -L../ -L../../libutils -lFramework -lc++utils -lutils $(LDFLAGS)
 # Copy files to the Toppy using tfcopy
 copy: all
 	tfcopy *.tap '#:\ProgramFiles\'
@@ -49,7 +51,7 @@ clean:
 	-rm -f *.tap *.o *.elf *.map VTableFix.cpp
 
 TestFramework.tap:		TestFramework.elf
-TestFramework.elf:		$(OBJECTS) $(VTABLEFIX) $(LIBRARIES)
+TestFramework.elf:		$(OBJECTS) $(VTABLEFIX)
 TestFramework.o:		TestFramework.cpp graphics.c
 YesNoBox.o:			YesNoBox.cpp YesNoBox.h graphics.c
 TextTools.o:			TextTools.cpp TextTools.h

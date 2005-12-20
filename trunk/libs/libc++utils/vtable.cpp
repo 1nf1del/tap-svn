@@ -1,5 +1,6 @@
 #include <tap.h>
 #include "vtable.h"
+#include "Logger.h"
 
 
 void FixupVTable( vtable& vtbl )
@@ -8,17 +9,17 @@ void FixupVTable( vtable& vtbl )
 	// preamble has always been zero (so far), so if it doesn't look right, we give up
 	if (vtbl.preamble.offs1 != 0)
 	{
-		TAP_Print("Not fixing: preamble.offs1 %08X\n" , vtbl.preamble.offs1 );
+		TRACE1("Not fixing: preamble.offs1 %08X\n" , vtbl.preamble.offs1 );
 		return;
 	}
 	if (vtbl.preamble.offs2 != 0)
 	{
-		TAP_Print("Not fixing: preamble.offs2 %08X\n" , vtbl.preamble.offs2 );
+		TRACE1("Not fixing: preamble.offs2 %08X\n" , vtbl.preamble.offs2 );
 		return;
 	}
 	if (vtbl.preamble.fnPtr != 0)
 	{
-		TAP_Print("Not fixing: preamble.fnPtr %08X\n" , vtbl.preamble.fnPtr );
+		TRACE1("Not fixing: preamble.fnPtr %08X\n" , vtbl.preamble.fnPtr );
 		return;
 	}
 
@@ -33,6 +34,8 @@ void FixupVTable( vtable& vtbl )
 
 		item.fnPtr += _tap_startAddr;
 	}
+
+	TRACE1("Fixed vtable at address 0x%08X\n", vtbl);
 #else
 	(vtbl);
 #endif

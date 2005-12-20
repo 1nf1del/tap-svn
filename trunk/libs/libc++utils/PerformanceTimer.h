@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _performancetimer_libcpputils
+#define _performancetimer_libcpputils
 #include "tap.h"
 #include "tapstring.h"
 class PerformanceTimer
@@ -11,3 +12,4 @@ private:
 	string m_sTitle;
 	dword m_dwStartTick;
 };
+#endif
