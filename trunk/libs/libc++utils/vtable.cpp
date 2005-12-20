@@ -6,12 +6,13 @@
 void FixupVTable( vtable& vtbl )
 {
 #ifdef _TAP
-	// preamble has always been zero (so far), so if it doesn't look right, we give up
-	if (vtbl.preamble.offs1 != 0)
+	// offset1 is zero for single inheritance, -ve for multiple
+	if (vtbl.preamble.offs1 > 0)
 	{
 		TRACE1("Not fixing: preamble.offs1 %08X\n" , vtbl.preamble.offs1 );
 		return;
 	}
+	// offset2 allways seen as zero so far
 	if (vtbl.preamble.offs2 != 0)
 	{
 		TRACE1("Not fixing: preamble.offs2 %08X\n" , vtbl.preamble.offs2 );

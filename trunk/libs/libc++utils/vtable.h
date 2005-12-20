@@ -7,8 +7,8 @@
 #else
 struct vtableItem
 {
-   unsigned short offs1;
-   unsigned short offs2;
+   short offs1;
+   short offs2;
    unsigned long fnPtr;
 };
 

@@ -9,6 +9,7 @@ VTableFix.cpp:		prelink.elf
 	@echo "#include <vtable.h>" >> VTableFix.cpp
 	@echo "" >> VTableFix.cpp
 	nm $^ | grep -o -G 'D _vt.*' | sed 's/D \(.*\)/extern vtable \1;/g' >> VTableFix.cpp
+	nm $^ | grep -o -G 'd _vt.*' | sed 's/d \(.*\)/#error "Local vtable \1 cannot be fixed - all classes with virtual functions must be global (declared in a .h, defined in a .cpp)"/g' >> VTableFix.cpp
 	@echo "" >> VTableFix.cpp
 	@echo "void FixupVTables()" >> VTableFix.cpp
 	@echo "{" >> VTableFix.cpp
