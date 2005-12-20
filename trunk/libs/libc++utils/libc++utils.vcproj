@@ -45,6 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\libutils"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -86,6 +87,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\inifile.cpp">
+			</File>
+			<File
 				RelativePath=".\taparray.cpp">
 			</File>
 			<File
@@ -103,7 +107,7 @@
 				RelativePath=".\fastdelegate.h">
 			</File>
 			<File
-				RelativePath=".\tap++.h">
+				RelativePath=".\inifile.h">
 			</File>
 			<File
 				RelativePath=".\taparray.h">
@@ -118,7 +122,17 @@
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			ParseFiles="FALSE">
+			<File
+				RelativePath=".\Makefile">
+				<FileConfiguration
+					Name="Tapulator|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt">

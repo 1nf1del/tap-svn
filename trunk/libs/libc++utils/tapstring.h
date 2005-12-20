@@ -22,6 +22,8 @@
 #ifndef __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 #define __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 
+template<typename T> class array;
+
 class string
 {
 public:
@@ -42,6 +44,9 @@ public:
 	string& operator+=(char c);
 
 	operator const char*() const;
+	const char* string::c_str() const;
+	char* getbuffer(int size);
+	int releasebuffer();
 
 	string operator+(const string& right);
 	string operator+(const char* pRight);
@@ -56,13 +61,15 @@ public:
 	int find(const string& toFind, int iStartAfterChar = -1) const;
 	int find(const char* pToFind, int iStartAfterChar = -1) const;
 	int find(char c, int iStartAfterChar = -1) const;
+	int findfirstof(const string& toFind, int iStartAfterChar = -1) const;
+	int findfirstof(const char* pToFind, int iStartAfterChar = -1) const;
 
 	bool empty() const;
 	void clear();
 	int size() const;
 	void resize(unsigned int newSize);
 	void format(const char* format, ...);
-	const char* c_str() const;
+	int split( const char* delimiter, array<string>& result);
 
 private:
 

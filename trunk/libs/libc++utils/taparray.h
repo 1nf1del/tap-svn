@@ -23,6 +23,10 @@
 #define __array_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 #include "tap.h"
 
+#ifndef _TAP
+#include <memory.h>
+#endif
+
 inline void* operator new (size_t s, void* _where)
 {
 	s;

@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "taparray.h"
 #include "tap.h"
 #include ".\tapstring.h"
 
@@ -119,6 +120,18 @@ const char* string::c_str() const
 	return getstr();
 }
 
+char* string::getbuffer( int size )
+{
+	resize( size );
+	return getstr();
+}
+
+int string::releasebuffer()
+{
+	m_iLen = strlen( getstr() );
+	return m_iLen;
+}
+
 string string::operator+(const string& right)
 {
 	string result = *this;
@@ -169,6 +182,16 @@ int string::compareNoCase(const string& other) const
 int string::find(const string& toFind, int iStartAfterChar) const
 {
 	return indexof(toFind, iStartAfterChar);
+}
+
+int string::findfirstof(const string& toFind, int iStartAfterChar) const
+{
+	return findfirstof(getstr(), iStartAfterChar);
+}
+
+int string::findfirstof(const char* pToFind, int iStartAfterChar) const
+{
+	return strcspn(getstr() + iStartAfterChar + 1, pToFind);
 }
 	
 int string::find(const char* pToFind, int iStartAfterChar) const
@@ -352,4 +375,42 @@ void string::format(const char* format, ...)
 	assign(buf);
 }
 
+int string::split( const char* delimiter, array<string>& result )
+{
+	int start = 0;
+	int delim = find(delimiter);
+	int delimLen = strlen(delimiter);
+	int elemCnt = 1; // the ACTUAL number of items, there'll be at least 1
 
+	// counting the elements, setting the size and then filling the array
+	// is much faster than doing .Add for each new element
+	while (delim > -1)
+	{
+		elemCnt++;
+		start = delim + delimLen;
+		delim = find(delimiter, start);
+	}
+
+	// manually going through and finding each delimiter again is faster than
+	// keeping track of the positions from the last loop because doing .Add over and over
+	// to the position array would be such a bottleneck
+	start = 0;
+	delim = find(delimiter);
+	result.resize(elemCnt); // now we don't have to use .Add, saving tons of cpu cycles
+	elemCnt = -1;
+
+	while (delim > -1)
+	{
+		elemCnt++;
+		result[elemCnt] = substr(start, delim-start);
+		start = delim + delimLen;
+		delim = find(delimiter, start);
+	}
+
+	if (start < size())
+		result[elemCnt+1] = substr(start);
+	else
+		result[elemCnt+1] = "";
+
+	return elemCnt+1;
+}

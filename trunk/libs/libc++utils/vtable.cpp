@@ -53,7 +53,7 @@ void FixupVTable( vtable& vtbl )
 
 void * __builtin_new(size_t size)
 {
-	return TAP_MemAlloc(size);
+	return TAP_MemAlloc( (dword) size);
 }
 void __builtin_delete(void * mem)
 {

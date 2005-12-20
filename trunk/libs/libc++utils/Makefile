@@ -29,7 +29,7 @@ all: libc++utils.a
 
 CXXFLAGS+=-I../libutils -D_TAP
 
-libc++utils.a: taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o
+libc++utils.a: taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o IniFile.o
 	$(AR) cr $@ $^
 
 # A target for removing generated files.
