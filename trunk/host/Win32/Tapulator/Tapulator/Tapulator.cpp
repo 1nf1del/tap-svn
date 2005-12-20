@@ -24,7 +24,7 @@
 #include "Tapulator.h"
 #include "MainFrm.h"
 #include ".\tapulator.h"
-
+#include "Heap.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -56,6 +56,7 @@ CTapulatorApp::CTapulatorApp()
 CTapulatorApp::~CTapulatorApp()
 {
 	delete m_pRecentFileList;
+	Heap::DoneWithHeap();
 	
 }
 
