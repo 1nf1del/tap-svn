@@ -23,9 +23,9 @@
 #include <vtable.h>
 #include "Tapplication.h"
 #include "Page.h"
+#include "logger.h"
 
-Tapplication* tap;
-word screenRgn;
+Tapplication* Tapplication::tap = NULL;
 
 Tapplication::Tapplication()
 {
@@ -59,6 +59,19 @@ bool Tapplication::Start()
 	return false;
 }
 
+dword Tapplication::EventHandler( word event, dword param1, dword param2 )
+{
+    switch ( event )
+	{
+	case EVT_IDLE:
+		OnIdle();
+		return 0;
+	case EVT_KEY:
+		return OnKey( param1, param2 );
+	}
+
+	return param1;
+}
 
 void Tapplication::OnIdle()
 {
@@ -112,4 +125,48 @@ Page* Tapplication::PopPage()
 	return NULL;
 }
 
+// accessors
+Tapplication* Tapplication::GetTheApplication()
+{
+	return tap;
+}
+
+void Tapplication::SetTheApplication(Tapplication* theApp)
+{
+	tap = theApp;
+}
+
+word Tapplication::GetScreenRegion()
+{
+	return screenRgn;
+}
+
+word GetTAPScreenRegion()
+{
+	return Tapplication::GetTheApplication()->GetScreenRegion();
+}
+
+int Tapplication::CreateTheApplication()
+{
+	SetTheApplication(CreateTapplication());
+	if ( !GetTheApplication() )
+	{
+		TRACE("Failed to create application object\n");
+		return 0;
+	}
+
+	TRACE("Created Application Object OK\n");
+
+	// If start returns false then this is not a TSR
+	if ( !GetTheApplication()->Start() )
+	{
+		delete GetTheApplication();
+		SetTheApplication(NULL);
+		TRACE("Exiting TAP - no TSR requested\n");
+		return 0;
+	}
+
+	TRACE("TAP running in TSR mode\n");
+	return 1;
+}
 

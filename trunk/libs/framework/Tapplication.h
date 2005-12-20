@@ -36,23 +36,34 @@ public:
 	virtual bool Start();
 	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );
+	dword EventHandler( word event, dword param1, dword param2 );
 
 	// Operations
 	void PushPage( Page* page );
 	Page* PopPage();
 
 	// Application creation
-	static Tapplication* CreateTapplication();
+	static Tapplication* GetTheApplication();
+	static int CreateTheApplication();
+
+	// Accessors
+	word GetScreenRegion();
 
 protected:
 	dword Close();
-
 	int pageCount;
+	word screenRgn;
+
 private:
+	static Tapplication* CreateTapplication();
+	static void SetTheApplication(Tapplication*);
+
 	Page* pageStack[10];
+
+	static Tapplication* tap;
 };
 
-extern Tapplication* tap;
+word GetTAPScreenRegion();
 
 // Screen declarations
 const int MAX_SCREEN_X = 720;
@@ -64,8 +75,6 @@ const word HEADING_TEXT_COLOUR = RGB8888(0,152,192);
 const word INFO_FILL_COLOUR = COLOR_User3;
 const word TITLE_COLOUR = RGB(18,18,18);
 const word INFO_COLOUR = COLOR_White;
-
-extern word screenRgn;
 
 // Constructor on globals are not called, so application object needs to be created on the heap
 #define DEFINE_APPLICATION(T) Tapplication* Tapplication::CreateTapplication() { return new T; }

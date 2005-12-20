@@ -34,7 +34,7 @@ Page::~Page()
 
 void Page::Open()
 {
-	tap->PushPage( this );
+	Tapplication::GetTheApplication()->PushPage( this );
 	OnOpen();
 }
 
@@ -42,7 +42,7 @@ void Page::Open()
 void Page::Close()
 {
 	OnClose();
-	tap->PopPage();
+	Tapplication::GetTheApplication()->PopPage();
 	delete this;
 }
 

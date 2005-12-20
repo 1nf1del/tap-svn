@@ -28,41 +28,21 @@ extern "C"
 dword TAP_Main()
 {
 //	Logger::SetDestination( Logger::Screen | Logger::Serial);
-	TRACE("Starting Main");
+	TRACE("Starting Main\n");
+
 	// Call the auto generated vtable fixer
 	FixupVTables();
-	TRACE("Fixed VTables");
+    TRACE("Fixed VTables\n");
 
-	tap = Tapplication::CreateTapplication();
-	if ( !tap )
-	{
-		return 0;
-	}
-	TRACE("Created Application Object");
-
-	// If start returns false then this is not a TSR
-	if ( !tap->Start() )
-	{
-		delete tap;
-		return 0;
-	}
-
-	TRACE("Exited Main");
-	return 1;
+	return Tapplication::CreateTheApplication();
 }
 
 
 extern "C"
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
-    switch ( event )
-	{
-	case EVT_IDLE:
-		tap->OnIdle();
-		return 0;
-	case EVT_KEY:
-		return tap->OnKey( param1, param2 );
-	}
+	if (Tapplication::GetTheApplication())
+		return Tapplication::GetTheApplication()->EventHandler(event, param1, param2);
 
 	return param1;
 }

@@ -66,12 +66,12 @@ void BitmapScreen::OnOpen()
 	int y = (MAX_SCREEN_Y - height) / 2;
 
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
-	windowCopy = TAP_Osd_SaveBox(screenRgn, x,y, width, height);
+	windowCopy = TAP_Osd_SaveBox(GetTAPScreenRegion(), x,y, width, height);
 	// Display the pop-up window.
 	if ( gd )
-		TAP_Osd_PutGd( screenRgn, x,y, gd, TRUE );
+		TAP_Osd_PutGd( GetTAPScreenRegion(), x,y, gd, TRUE );
 	else if ( pixmapData )
-		TAP_Osd_DrawPixmap( screenRgn, x,y, width,height, pixmapData, TRUE, OSD_1555 );
+		TAP_Osd_DrawPixmap( GetTAPScreenRegion(), x,y, width,height, pixmapData, TRUE, OSD_1555 );
 }
 
 
@@ -82,19 +82,19 @@ void BitmapScreen::OnClose()
 	int x = (MAX_SCREEN_X - width) / 2;
 	int y = (MAX_SCREEN_Y - height) / 2;
 
-	TAP_Osd_RestoreBox(screenRgn, x,y, width,height, windowCopy);
+	TAP_Osd_RestoreBox(GetTAPScreenRegion(), x,y, width,height, windowCopy);
 	TAP_MemFree(windowCopy);
 }
-                                       
-                                           
+
+
 //------------
 //
 dword BitmapScreen::OnKey( dword key, dword extKey )
 {
 	switch ( key )
 	{
-	case RKEY_Ok:		
-	case RKEY_Exit: 	
+	case RKEY_Ok:
+	case RKEY_Exit:
 		Close();		    // Close the yes/no window
 		break;
 

@@ -61,15 +61,15 @@ YesNoBox::~YesNoBox()
 void YesNoBox::OnOpen()
 {
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
-    windowCopy = TAP_Osd_SaveBox(screenRgn, YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H);
+    windowCopy = TAP_Osd_SaveBox(GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H);
 
     // Display the pop-up window.
-    TAP_Osd_PutGd( screenRgn, YESNO_WINDOW_X, YESNO_WINDOW_Y, &_popup360x180Gd, TRUE );
+    TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, &_popup360x180Gd, TRUE );
 
     // Display Title and information in pop-up window
-	PrintCenter( screenRgn, YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  13, YESNO_WINDOW_X+YESNO_WINDOW_W-5, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
-	PrintCenter( screenRgn, YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  56, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line1, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-	PrintCenter( screenRgn, YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  89, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line2, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  13, YESNO_WINDOW_X+YESNO_WINDOW_W-5, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  56, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line1, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  89, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line2, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
     DisplayLine();
 }
@@ -79,7 +79,7 @@ void YesNoBox::OnOpen()
 //
 void YesNoBox::OnClose()
 {
-	TAP_Osd_RestoreBox(screenRgn, YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H, windowCopy);
+	TAP_Osd_RestoreBox(GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H, windowCopy);
 	TAP_MemFree(windowCopy);
 
 	if ( _callback && result )
@@ -94,29 +94,29 @@ void YesNoBox::OnClose()
 //
 void YesNoBox::DisplayLine()
 {
-	TAP_Osd_PutGd( screenRgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
-    PrintCenter(screenRgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button1, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+	TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
+    PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button1, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( screenRgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
-	PrintCenter(screenRgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+	TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
 	switch ( option )
 	{
 
 		case 0 :
-					TAP_Osd_PutGd( screenRgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
-				    PrintCenter(screenRgn, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button1, COLOR_Yellow, 0, FNT_Size_1926 );
+					TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
+				    PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button1, COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
-					
+
 		case 1 :
-					TAP_Osd_PutGd( screenRgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
-					PrintCenter(screenRgn, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, COLOR_Yellow, 0, FNT_Size_1926 );
+					TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
-					
+
 	}
 }
-                                       
-                                           
+
+
 //------------
 //
 dword YesNoBox::OnKey( dword key, dword extKey )
@@ -133,7 +133,7 @@ dword YesNoBox::OnKey( dword key, dword extKey )
 							DisplayLine();
 							break;
 
-		case RKEY_Ok :		
+		case RKEY_Ok :
                             switch ( option )
 							{
 								case 0 :   result = true;
@@ -148,7 +148,7 @@ dword YesNoBox::OnKey( dword key, dword extKey )
 							Close();		    // Close the yes/no window
 							break;
 
-		case RKEY_Exit : 	
+		case RKEY_Exit :
 							result = false;
                             Close();					// Close the edit window
 							break;
