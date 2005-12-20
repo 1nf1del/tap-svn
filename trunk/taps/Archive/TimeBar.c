@@ -18,7 +18,7 @@ History	: v0.0 Darkmatter: 27-07-05	Split from TimerDisplay.c
 //
 void UpdateListClock(void)
 {
-	char	str[80], str2[20], str3[20];
+	char	str[80], str2[20], str3[20], str4[15];
 	byte 	hour, min, sec, month, day, weekDay;
 	word 	year, mjd;
 	dword	width;
@@ -59,12 +59,19 @@ void UpdateListClock(void)
 
 //	TAP_SPrint( str, "%s %d %s %02d:%02d:%02d", str2, day, str3, hour, min, sec);		// includes seconds - not normally shown
 //	TAP_SPrint( str, "%s %d %s %02d:%02d", str2, day, str3, hour, min);
-	TAP_SPrint( str, "%s %d %s %d:%02d%cm", str2, day, str3, (hour+23)%12 + 1, min, hour >= 12 ? 'p':'a'); //Display a 12 hour clock with am/pm indicator
+    TAP_SPrint( str4, "(%d/%d)", chosenLine, myfolders[CurrentDirNumber]->numberOfFiles);
+	TAP_SPrint( str, "%s %s %d %s %d:%02d%cm", str4, str2, day, str3, (hour+23)%12 + 1, min, hour >= 12 ? 'p':'a'); //Display a 12 hour clock with am/pm indicator
 	width = TAP_Osd_GetW( str, 0, FNT_Size_1622 );
+	width = min( width, CLOCK_W);
 
 //	TAP_Osd_PutGd( rgn, 494, 34, &_timebarGd, TRUE );
-	TAP_Osd_PutGd( rgn, 494, 34, &_timebar_blackGd, TRUE );
-	TAP_Osd_PutStringAf1622( rgn, 581-(width/2), 39, 660, str, TIME_COLOUR, 0 );
+//  TAP_Osd_PutGd( rgn, 494, 34, &_timebar_blackGd, TRUE );
+//	TAP_Osd_PutGd( rgn, CLOCK_X, CLOCK_Y, &_lineandtimebar250x35Gd, TRUE );
+//	TAP_Osd_PutStringAf1622( rgn, CLOCK_X+((CLOCK_W-width)/2), CLOCK_Y+7, CLOCK_X+CLOCK_W, str, TIME_COLOUR, 0 );
+	TAP_Osd_PutGd( clockRgn, CLOCK_X, 0, &_lineandtimebar250x35Gd, TRUE );
+	TAP_Osd_PutStringAf1622( clockRgn, CLOCK_X+((CLOCK_W-width)/2), 0+7, CLOCK_X+CLOCK_W, str, TIME_COLOUR, 0 );
+    TAP_Osd_Copy( clockRgn, rgn, CLOCK_X, 0, CLOCK_W, CLOCK_H, CLOCK_X, CLOCK_Y, FALSE );
+	
 }
 
 

@@ -17,6 +17,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.03 kidhazy    11-05 
           v0.04 kidhazy    11-05
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
+          V0.06 kidhazy 20-12-05   Fixes and added line number display.   
 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -102,6 +103,7 @@ void ActivationRoutine( void )
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
     memRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
     listRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
+    clockRgn = TAP_Osd_Create( 0, 0, 720, TOP_H, 0, OSD_Flag_MemRgn );	// In MEMORY define the a region for us to draw on
 
     if (recursiveLoadOption)
       ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
@@ -125,13 +127,9 @@ void ActivationRoutine( void )
     else  
     {
       GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
-//ShowMessageBox( rgn, "GetRecordingInfo", "", "");
       GetRecordingInfo();
-//ShowMessageBox( rgn, "SetAllFilesToNotPresent", "", "");
       SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
-//ShowMessageBox( rgn, "LoadArchiveInfo", "", "");
       LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
-//ShowMessageBox( rgn, "DeleteDirFilesNotPresent", "", "");
       DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
     }
     
@@ -140,12 +138,9 @@ void ActivationRoutine( void )
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
     maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
 
-//ShowMessageBox( rgn, "GetPlaybackInfo", "", "");
     GetPlaybackInfo();                              // Get info about any active playback.
-//ShowMessageBox( rgn, "LoadPlaybackStatusInfo", "", "");
     LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
 
-//ShowMessageBox( rgn, "SortList", "", "");
 	sortOrder = sortOrderOption;                    // Default to default sort order.
 	SortList(sortOrder);		                    // Sort the list.
     
@@ -377,12 +372,12 @@ dword My_IdleHandler(void)
             GetRecordingInfo();                                                       // Get the latest information from the recordings.
             if (recordingOnScreenEntry1 > 0)                                          // Is it the 1st recording?
             {
-               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry1 );                          // Load the latest information into the list.
+               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry1 );        // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry1, recordingOnScreenLine1 ); // Update the playback line.
             } 
             if (recordingOnScreenEntry2 > 0)                                          // Is it the 2nd recording?
             {
-               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry2 );                          // Load the latest information into the list.
+               LoadRecordingInfo( CurrentDirNumber, recordingOnScreenEntry2 );        // Load the latest information into the list.
                DisplayArchiveLine( recordingOnScreenEntry2, recordingOnScreenLine2 ); // Update the playback line.
             } 
         }

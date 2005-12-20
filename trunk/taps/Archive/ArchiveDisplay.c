@@ -43,7 +43,6 @@ static TYPE_Window Win;
 
 
 static bool windowShowing;
-static int chosenLine, printLine;
 static int page;
 static byte* archiveHelpWindowCopy;
 
@@ -475,23 +474,6 @@ void SortList(int sortOrder)
 	} 
 	while ( swaps > 1 );
 
-/*
-    //	Finally, always sort files in the array by directory 
-	do { 
-		for ( i = swaps = 1 ; ( i < numberOfFiles ) ; i += 1)
-		{
-			if ( strcmp(myfiles[CurrentDirNumber][i]->directory,myfiles[CurrentDirNumber][i+1]->directory)>0 ) SwapEntries();
-		}
-	} 
-	while ( swaps > 1 );
-	for ( i=1; i<= numberOfFiles; i++)
-	{
-    TAP_Print("dir %d %s=%s %d<<\r\n",i, myfiles[CurrentDirNumber][i]->directory,myfiles[CurrentDirNumber][i]->name,myfiles[CurrentDirNumber][i]->attr);
-    TAP_Delay(40);
-    }
-
-*/
-
 }
 
 //------------
@@ -586,6 +568,7 @@ void DrawGraphicBorders(void)
                          #endif
                          //TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );				    // Clear the entire screen with black.
                          TAP_Osd_PutGd( rgn, 0, 0, &_topGd, TRUE );							    // draw top graphics
+                         TAP_Osd_PutGd( clockRgn, 0, 0, &_topGd, TRUE );							    // draw top graphics
                          TAP_Osd_PutGd( rgn, 0, 0, &_sideGd, TRUE );					        // draw left side graphics
 	                     TAP_Osd_PutGd( rgn, 672, 0, &_sideGd, TRUE );						    // draw right side graphics
 	                     if (numberLinesOption == 9)           
@@ -599,6 +582,7 @@ void DrawGraphicBorders(void)
                             TAP_Osd_FillBox( rgn, INFO_AREA_X-COLUMN_GAP_W, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W+(2*COLUMN_GAP_W), (INFO_AREA_Y+INFO_AREA_H)-(Y1_STEP+Y1_OFFSET-11), FILL_COLOUR );	// Fill the center with black.
                          #endif
                          TAP_Osd_PutGd( rgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
+                         TAP_Osd_PutGd( clockRgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
                          TAP_Osd_PutGd( rgn, 0, 0, &_side_blackGd, TRUE );						// draw left side graphics
 	                     TAP_Osd_PutGd( rgn, 672, 0, &_side_blackGd, TRUE );					// draw right side graphics
 	                     if (numberLinesOption == 9)           
@@ -615,8 +599,9 @@ void CreateArchiveWindow(void)
 {
 	windowShowing = TRUE;
 	archiveHelpWindowShowing = FALSE;
-	TAP_Osd_FillBox( memRgn, 0, 0, 720, 576, 0 );					// clear the memory region
-	TAP_Osd_FillBox( listRgn, 0, 0, 720, 576, FILL_COLOUR );		// clear the memory region
+	TAP_Osd_FillBox( memRgn, 0, 0, 720, 576, 0 );					// clear the memory region with transparency colour
+	TAP_Osd_FillBox( clockRgn, 0, 0, CLOCK_W, CLOCK_H, 0 );			// clear the memory region with transparency colour
+	TAP_Osd_FillBox( listRgn, 0, 0, 720, 576, FILL_COLOUR );		// clear the memory region with FILL COLOUR
 	DrawGraphicBorders();
 }
 
@@ -627,6 +612,7 @@ void CloseArchiveWindow( void )
 	archiveHelpWindowShowing = FALSE;
 	TAP_Osd_Delete( memRgn );
 	TAP_Osd_Delete( listRgn );
+	TAP_Osd_Delete( clockRgn );
 	TAP_Osd_Delete( rgn );
 }
 
@@ -642,7 +628,7 @@ void DrawBackground(void)
 	else strcpy(str,myfolders[CurrentDirNumber]->name);
     TAP_SPrint( str, "%s %s",str, sortTitle ); 
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
-
+                                 
 }
 
 
@@ -1418,6 +1404,7 @@ dword ArchiveWindowKeyHandler(dword key)
 								DisplayArchiveLine(chosenLine,printLine);
 							}
 							else DrawArchiveList();
+                            UpdateListClock();
 							UpdateSelectionNumber();
 							break;
 
@@ -1449,6 +1436,7 @@ dword ArchiveWindowKeyHandler(dword key)
 					      		DisplayArchiveLine(chosenLine, printLine);
 							}
 
+                            UpdateListClock();
 							UpdateSelectionNumber();
 							break;
 
@@ -1478,6 +1466,7 @@ dword ArchiveWindowKeyHandler(dword key)
                                  else printLine = NUMBER_OF_LINES;
                             }      
                             
+                            UpdateListClock();
                             DrawArchiveList();
 							UpdateSelectionNumber();
 							break;
@@ -1504,6 +1493,7 @@ dword ArchiveWindowKeyHandler(dword key)
                             }
                             // Unhighlight the old selection.  Otherwise you may see 2 highlighted selections as the new page redraws from top to bottom.
                             if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine,oldPrintLine);
+                            UpdateListClock();
 							DrawArchiveList();
 							UpdateSelectionNumber();
 							break;
@@ -1647,9 +1637,9 @@ void RefreshArchiveWindow( void )
 	DrawGraphicBorders();
 	
 	DeterminePrintingLine( chosenLine );
+	UpdateListClock();
 	DrawArchiveList();
 	UpdateSelectionNumber();
-	UpdateListClock();
 }
 
 void RefreshArchiveList( bool reposition )
@@ -1672,10 +1662,10 @@ void RefreshArchiveList( bool reposition )
 	page = (chosenLine-1) / NUMBER_OF_LINES;
 							
 	if (reposition) DeterminePrintingLine( chosenLine );  // If we have selected to reposition the list, determine where to print from.
+	UpdateListClock();
 	DrawArchiveList();
     appendToLogfile("RefreshArchiveList: Calling UpdateSelectionNumber.", WARNING);
 	UpdateSelectionNumber();
-	UpdateListClock();
     appendToLogfile("RefreshArchiveList: Finished.", INFO);
 }
 

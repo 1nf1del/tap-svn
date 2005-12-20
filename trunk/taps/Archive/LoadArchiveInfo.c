@@ -684,7 +684,7 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
-
+        myfiles[dirNumber][index]->size = 0;
         strcpy(myfiles[dirNumber][index]->sortName,file.name);
 
         myfiles[dirNumber][index]->directoryNumber = newFolderNumber;  // Give each new directory a new number.

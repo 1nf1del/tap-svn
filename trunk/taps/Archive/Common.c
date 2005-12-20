@@ -50,6 +50,15 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 #define COLUMN3_X 496
 #define COLUMN4_X 604
 
+// Coordinates for line and time bar
+#define CLOCK_X 420
+#define CLOCK_Y 31
+#define CLOCK_W 250
+#define CLOCK_H 35
+
+// Define the height of the top graphic component.
+#define TOP_H 71
+
 /*
 // x-Coordinates of the column field contents
 #define FILE_ICON_X 50
@@ -106,7 +115,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 
 // Coordindates for the disk information bar and text
 #define DISK_INFO_X INFO_TEXT_X
-#define DISK_INFO_Y (INFO_AREA_Y+50)
+#define DISK_INFO_Y (INFO_AREA_Y+55)
 #define DISK_PROGRESS_BAR_WIDTH 200  // Width of the Progress Bar for the disk space.
 
 #define MAX_FULL_DIR_NAME_LENGTH 200 // Define the maximum length of the full directory name.
@@ -152,6 +161,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/side.GD"
 #include "graphics/bottom.GD"
 #include "graphics/timeBar.GD"
+#include "graphics/LineAndTimeBar250x35.GD"
 #include "graphics/top_black.GD"
 #include "graphics/side_black.GD"
 #include "graphics/bottom_black.GD"
@@ -200,6 +210,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #define INFO_COLOUR COLOR_White
 
 #define TIME_COLOUR RGB(4,4,4)
+//#define TIME_COLOUR RGB(29,29,29)
 #define CALENDAR_BACKGROUND_COLOUR COLOR_User9
 #define CALENDAR_DAY_TEXT TIME_COLOUR
 //#define COLOR_White RGB(31,31,31)
@@ -260,7 +271,10 @@ static bool exitFlag;
 static bool terminateFlag;
 static word rgn;														// one region used for all our graphics
 static word memRgn;														// one memory region used for all our graphics
-static word listRgn;												// a memory region used for all our graphics
+static word listRgn;												    // a memory region used for all our graphics
+static word clockRgn;												    // a memory region used for the line count and clock.
+
+static int chosenLine, printLine;
 
 static bool editWindowShowing;
 static bool deleteWindowShowing;
