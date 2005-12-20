@@ -41,16 +41,17 @@ public:
 	// Operations
 	void PushPage( Page* page );
 	Page* PopPage();
+	dword Close();
 
 	// Application creation
 	static Tapplication* GetTheApplication();
 	static int CreateTheApplication();
+	static void DiscardTheApplication();
 
 	// Accessors
 	word GetScreenRegion();
 
 protected:
-	dword Close();
 	int pageCount;
 	word screenRgn;
 

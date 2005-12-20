@@ -30,10 +30,10 @@ public:
 
 	static void SetDestination(int destination);
 	static void Log(const char* format, ...);
+	static void DoneWithLogger();
 
 private:
 	static Logger* GetLogger();
-	static void DoneWithLogger();
 
 	void Log(const char* format, const va_list& arglist);
 	void SetDest(LogDests destination);

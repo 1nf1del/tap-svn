@@ -35,7 +35,7 @@ void FixupVTable( vtable& vtbl )
 		item.fnPtr += _tap_startAddr;
 	}
 
-	TRACE1("Fixed vtable at address 0x%08X\n", vtbl);
+	TRACE1("Fixed vtable at address 0x%08X\n", &vtbl);
 #else
 	(vtbl);
 #endif

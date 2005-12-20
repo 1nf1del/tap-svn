@@ -24,6 +24,29 @@
 #include "Tapplication.h"
 #include "Logger.h"
 
+void (*_cached_TAP_Exit)() = NULL;
+
+extern "C" void dummy_TAP_Exit()
+{
+
+}
+
+extern "C" void cpp_TAP_Exit()
+{
+	if (_cached_TAP_Exit)
+	{
+		TAP_Exit = &dummy_TAP_Exit; // prevent any calls to TAP_Exit in the cleanup from going recursive
+		if (Tapplication::GetTheApplication())
+		{
+			Tapplication::GetTheApplication()->Close();
+			Tapplication::DiscardTheApplication();
+		}
+		TRACE("Exiting TAP due to TAP_Exit call\n");
+		Logger::DoneWithLogger();
+		_cached_TAP_Exit();	
+	}
+}
+
 extern "C" 
 dword TAP_Main()
 {
@@ -33,6 +56,9 @@ dword TAP_Main()
 	// Call the auto generated vtable fixer
 	FixupVTables();
     TRACE("Fixed VTables\n");
+
+	_cached_TAP_Exit = TAP_Exit;
+	TAP_Exit = &cpp_TAP_Exit;
 
 	return Tapplication::CreateTheApplication();
 }
@@ -46,3 +72,4 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 	return param1;
 }
+

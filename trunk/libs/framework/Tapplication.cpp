@@ -100,8 +100,8 @@ dword Tapplication::Close()
 	if ( pageCount > 0 )
 		TAP_ExitNormal();
 
-	TAP_Exit();
-	delete this;
+	DiscardTheApplication();
+	TAP_Exit(); // this won't return - I think...
 	return 0;
 }
 
@@ -146,6 +146,12 @@ word GetTAPScreenRegion()
 	return Tapplication::GetTheApplication()->GetScreenRegion();
 }
 
+void Tapplication::DiscardTheApplication()
+{
+	delete GetTheApplication();
+	SetTheApplication(NULL);
+}
+
 int Tapplication::CreateTheApplication()
 {
 	SetTheApplication(CreateTapplication());
@@ -160,8 +166,7 @@ int Tapplication::CreateTheApplication()
 	// If start returns false then this is not a TSR
 	if ( !GetTheApplication()->Start() )
 	{
-		delete GetTheApplication();
-		SetTheApplication(NULL);
+		DiscardTheApplication();
 		TRACE("Exiting TAP - no TSR requested\n");
 		return 0;
 	}
