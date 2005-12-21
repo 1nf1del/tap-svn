@@ -24,7 +24,7 @@ CXXFLAGS=-I../libc++utils
 
 all: libFramework.a
 
-libFramework.a: Page.o Tapplication.o Main.o
+libFramework.a: Page.o Tapplication.o Main.o Region.o
 	$(AR) cr $@ $^
 
 clean:
