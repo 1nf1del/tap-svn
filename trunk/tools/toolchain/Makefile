@@ -108,7 +108,7 @@ build-bootstrapgcc/.built: gcc-2.95.2/.unpacked build-binutils/.built build-ld/.
 		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
 			--without-headers --with-newlib --with-gnu-as --with-gnu-ld \
 			--with-local-prefix=$(PREFIX)/local \
-			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
+			--enable-haifa --enable-languages=c,c++ --disable-texinfo --verbose && \
 		make all-gcc install-gcc; \
 	)
 	touch $@
@@ -122,7 +122,7 @@ build-gcc/.built: gcc-2.95.2/.unpacked build-newlib/.built
 		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
 			--with-newlib --with-gnu-as --with-gnu-ld \
 			--with-local-prefix=$(PREFIX)/local \
-			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
+			--enable-haifa --enable-languages=c,c++ --disable-texinfo --verbose && \
 		make && make install; \
 	)
 	touch $@
