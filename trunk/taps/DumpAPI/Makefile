@@ -16,7 +16,7 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this software; if not, write to the Free Software
+#  along with puppy; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
@@ -25,6 +25,10 @@ include ../../tools/build/tap.mk
 
 # The first target is the default target.
 all: DumpAPI.tap
+
+# Copy files to the Toppy using tfcopy
+copy: all
+	tfcopy *.tap '#:\ProgramFiles\'
 
 # A target for removing generated files.
 clean:
