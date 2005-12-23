@@ -28,7 +28,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender 0.3");
+TAP_PROGRAM_NAME("Remote Extender 0.4");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -202,51 +202,51 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	// Capture the reassigned remote keypress event
 	if ( event == EVT_KEY-1 )
 	{
-		static bool incall = FALSE;
+		int i;
 
-		if ( !incall ) // prevent re-entrance
+		// lastkey must NOT be referenced within the for loop due to possible re-entrancy
+		// e.g. another TAP calling TAP_SystemProc from their TAP_EventHandler
+		param2 = lastKey ? 0x100 | (lastKey & 0xff) : 0;
+
+		//TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
+
+		for ( i = 0 ; i < TAP_MAX; ++i )
 		{
-			int i;
-
-			incall = TRUE;
-			param2 = lastKey ? 0x100 | (lastKey & 0xff) : 0;
-
-			//TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
-
-			for ( i = 0 ; i < TAP_MAX; ++i )
+			if ( i != *currentTAPIndex )	// don't call ourselves
 			{
-				if ( i != *currentTAPIndex )	// don't call ourselves
+				dword tempParam1 = param1;
+				/* Example code to send a specific key translation to a specific TAP
+					In this case Jag's EPG
+				if ( lastKey && tapProcess[i].header && tapProcess[i].header->id == 0x80000102 )
 				{
-					dword tempParam1 = param1;
-					/* Example code to send a specific key translation to a specific TAP
-					   In this case Jag's EPG
-					if ( lastKey && tapProcess[i].header && tapProcess[i].header->id == 0x80000102 )
-					{
-						tempParam1 = keys5000[param2 & 0xff];
-					}
-					*/
-					// TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, tempParam1, param2 );
-					tempParam1 = TAP_SendEvent( i, EVT_KEY, tempParam1, param2 );
+					tempParam1 = keys5000[param2 & 0xff];
+				}
+				*/
+				// TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, tempParam1, param2 );
+				tempParam1 = TAP_SendEvent( i, EVT_KEY, tempParam1, param2 );
 
-					// Zero return value should mean don't pass the value on to other TAPs
-					// The firmware actually does, so make sure param2 is also zero in this case
-					if ( tempParam1 == 0 )
-					{
-						param1 = 0;
-						param2 = 0;
-					}
+				// Zero return value should mean don't pass the value on to other TAPs
+				// The firmware actually does, so make sure param2 is also zero in this case
+				if ( tempParam1 == 0 )
+				{
+					param1 = 0;
+					param2 = 0;
 				}
 			}
+
 			// Clear the keypress
 			lastKey = 0;
-			incall = FALSE;
 		}
-		if ( param1 >= RKEY_Cmd_0 && param1 <= RKEY_Cmd_f )
+
+		// Check keypresses that originate from a programmable remote rather than TAP_GenerateEvent 
+		// for potentially disk formatting Topfield test codes
+		if ( param2 != 0 && param1 >= RKEY_Cmd_0 && param1 <= RKEY_Cmd_f )
 		{
 			ShowMessage(
 				"Test key detected. It is advisable to avoid\n"
 				"this keycode as it may cause disk corruption\n"
 				"when RemoteExtender is not running.", 500 );
+			// We definately don't want the firmware to receive these keypresses!
 			return 0;
 		}
 		return param1;
