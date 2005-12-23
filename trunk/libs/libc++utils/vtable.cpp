@@ -1,7 +1,7 @@
 #include <tap.h>
 #include "vtable.h"
 #include "Logger.h"
-
+#include "dlmalloc.h"
 
 void FixupVTable( vtable& vtbl )
 {
@@ -51,22 +51,26 @@ void FixupVTable( vtable& vtbl )
 	}
 #endif
 
-void * __builtin_new(size_t size)
+void * operator new(size_t size)
 {
-	return TAP_MemAlloc( (dword) size);
+	return dlmalloc( (dword) size);
 }
-void __builtin_delete(void * mem)
+void operator delete(void * mem)
 {
 	if (mem)
-		TAP_MemFree(mem);
+		dlfree(mem);
+
+	dlmalloc_trim(0);
 }
 
 void* operator new[](size_t size)
 {
-	return malloc(size);
+	return dlmalloc(size);
 }
 
 void operator delete[](void* pMem)
 {
-	free(pMem);
+	dlfree(pMem);
+
+	dlmalloc_trim(0);
 }

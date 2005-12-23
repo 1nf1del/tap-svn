@@ -27,7 +27,7 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: libutils.a
 
-libutils.a: ini.o keymap.o file.o Utils.o vsprintf.o strtok.o messagewin.o tapapifix.o osd.o
+libutils.a: ini.o keymap.o file.o Utils.o vsprintf.o strtok.o messagewin.o tapapifix.o osd.o dlmalloc.o
 	$(AR) cr $@ $^
 
 

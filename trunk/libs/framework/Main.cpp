@@ -23,8 +23,10 @@
 #include <vtable.h>
 #include "Tapplication.h"
 #include "Logger.h"
+#include "../libutils/dlmalloc.h"
 
 void (*_cached_TAP_Exit)() = NULL;
+
 
 extern "C" void dummy_TAP_Exit()
 {
@@ -43,6 +45,7 @@ extern "C" void cpp_TAP_Exit()
 		}
 		TRACE("Exiting TAP due to TAP_Exit call\n");
 		Logger::DoneWithLogger();
+		dlmalloc_exit();
 		_cached_TAP_Exit();	
 	}
 }

@@ -186,7 +186,7 @@ int string::find(const string& toFind, int iStartAfterChar) const
 
 int string::findfirstof(const string& toFind, int iStartAfterChar) const
 {
-	return findfirstof(getstr(), iStartAfterChar);
+	return findfirstof(toFind.c_str(), iStartAfterChar);
 }
 
 int string::findfirstof(const char* pToFind, int iStartAfterChar) const
@@ -305,11 +305,11 @@ char* string::getstr()
 
 void string::copyToPtr(unsigned int iNewSize)
 {
-	char* pNewData = (char*) malloc(iNewSize);
+	char* pNewData = new char[iNewSize];
 
 	memcpy(pNewData, getstr(), m_iLen+1);
 	if (usingPtr())
-		free(m_data.ptr);
+		delete [](m_data.ptr);
 
 	m_data.ptr = pNewData;
 	m_iReserved = iNewSize;
@@ -338,7 +338,7 @@ void string::shrink(unsigned int iNewSize)
 			char* pSrc = getstr();
 			memcpy(m_data.buf, pSrc, _bufferSize);
 			m_iReserved = _bufferSize;
-			free(pSrc);
+			delete [] pSrc ;
 		}
 		else if (iNewSize < m_iReserved / 2)
 		{
@@ -352,7 +352,7 @@ void string::shrink(unsigned int iNewSize)
 void string::clear()
 {
 	if (usingPtr())
-		free(m_data.ptr);
+		delete [] m_data.ptr;
 	m_iLen = 0;
 	m_data.ptr = 0;
 	m_iReserved = _bufferSize;

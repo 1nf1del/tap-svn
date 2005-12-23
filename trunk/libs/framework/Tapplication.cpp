@@ -120,6 +120,8 @@ Page* Tapplication::PopPage()
 	{
 		if ( pageCount == 1 )
 			TAP_EnterNormal();
+
+		TAP_Osd_FillBox(screenRgn, 0, 0, MAX_SCREEN_X, MAX_SCREEN_Y, COLOR_None);
 		return pageStack[ --pageCount ];
 	}
 	return NULL;

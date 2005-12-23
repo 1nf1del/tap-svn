@@ -64,7 +64,7 @@ public:
 	~array(void)
 	{
 		destroy(0,m_iLen);
-		free(m_pArray);
+		delete [] (char*) m_pArray;
 	}
 
 	T& operator[](unsigned int i)
@@ -160,9 +160,9 @@ private:
 	void copyToSize(unsigned int iNewLen)
 	{
 		T* pOldData = m_pArray;
-		m_pArray = (T*) malloc(iNewLen*sizeof(T));
+		m_pArray = (T*) new char[iNewLen*sizeof(T)];
 		assign(0, min(m_iReserved, iNewLen), pOldData);
-		free(pOldData); 
+		delete [] (char*)pOldData; 
 		m_iReserved = iNewLen;
 	}
 

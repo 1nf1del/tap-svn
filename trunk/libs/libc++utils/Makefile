@@ -27,7 +27,7 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: libc++utils.a
 
-CXXFLAGS+=-I../libutils -D_TAP
+CXXFLAGS+=-I../libutils
 
 libc++utils.a: taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o IniFile.o
 	$(AR) cr $@ $^
