@@ -123,6 +123,9 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (recCheckOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (okPlayOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -206,6 +209,7 @@ void SetConfigurationVariables( void )
 	numberLinesOption   = ReadIniDecimal();
 	borderOption        = ReadIniDecimal();
 	recCheckOption      = ReadIniDecimal();
+	okPlayOption        = ReadIniDecimal();
 }
 
 
@@ -266,8 +270,9 @@ void LoadConfiguration( void )
 		column4Option     = 0;
 		column5Option     = 0;
 		numberLinesOption = 9;
-		borderOption      = 0;
+		borderOption      = 1;
 		recCheckOption    = 0;
+		okPlayOption      = 0;
 
 		SaveConfigurationToFile();
 	}

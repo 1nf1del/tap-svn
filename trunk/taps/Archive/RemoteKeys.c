@@ -213,7 +213,7 @@ void CreateTF5000Keys( keyCodes_Struct *keyCodes )
 	KeyDestory( keyCodes );												// clear out any old keycodes, and allocated memory
     
     KeyAdd( keyCodes, RKEY_Mute, "Mute" );
-    KeyAdd( keyCodes, RKEY_Mute, "UHF" );
+    KeyAdd( keyCodes, RKEY_Uhf, "UHF" );
     KeyAdd( keyCodes, RKEY_TvSat, "TV/Sat" );
     KeyAdd( keyCodes, RKEY_Sleep, "Sleep" );
 

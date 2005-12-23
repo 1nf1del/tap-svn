@@ -17,15 +17,16 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.03 kidhazy    11-05 
           v0.04 kidhazy    11-05
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
-          V0.06 kidhazy 20-12-05   Fixes and added line number display.   
+          V0.06 kidhazy 20-12-05   Fixes and added line number display.  
+          V0.07 kidhazy 
 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
 #ifdef WIN32
 #include "c:\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h"
 #undef RGB
-//#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
-#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
+#define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
+//#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
                      
 
@@ -37,10 +38,10 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define INFO    3
 
 // Define the level of info or error message to be displayed.
-#define LOGLEVEL WARNING   // 1 = errors         2 = warnings      3 = information
+#define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.06a"       
+#define VERSION "0.07a"       
 
 #include "tap.h"
 #include "morekeys.h"

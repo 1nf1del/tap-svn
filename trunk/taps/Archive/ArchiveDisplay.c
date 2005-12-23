@@ -294,13 +294,28 @@ void DetermineStartingLine(int *line)
 
     *line = numberOfFiles;                            // Select the last file when we start in the "DataFiles" directory.	
 
+    // If the user has chosen to sort by NAME, then we start by pointing to the first file entry.
+    if (sortOrder == SORT_NAME_OPTION)
+    {
+        *line = 1;                            // Select the first folder/file.
+        // Scan through the files in the current directory to find the first file.
+        for (i=1; i<=numberOfFiles; i++)
+        {
+            if (myfiles[CurrentDirNumber][i]->attr == ATTR_TS) 
+            {   // We've found a match, so allocate line number.
+                *line = i;
+                break;
+            }
+        }
+    }                    
+
     printLine = NUMBER_OF_LINES;                      // And move to the last line.
     
     GetPlaybackInfo();                                // Get the current playback info (if any)
     if (inPlaybackMode)
     {
         // Scan through the files in the current directory to see if we have a match.
-        for (i=1; i<numberOfFiles; i++)
+        for (i=1; i<=numberOfFiles; i++)
         {
             if ((myfiles[CurrentDirNumber][i]->startCluster == CurrentPlaybackFile->startCluster) && (strncmp(myfiles[CurrentDirNumber][i]->name,CurrentPlaybackFile->name, TS_FILE_NAME_SIZE)==0))
             {   // We've found a match, so allocate line number.
@@ -859,7 +874,7 @@ void FormatDate(int line, char* str, int option, int *fontSize)
                     break;
 
            default:  // Previous month's weekday.
-                    TAP_SPrint(str4,"%0.3s %dmths ago", str2, mjdDiff/4);
+                    TAP_SPrint(str4,"%0.3s %dmth%s ago", str2, mjdDiff/4, (mjdDiff/4) > 1 ? "s":"");
                     break;
     }
            
@@ -1538,11 +1553,28 @@ dword ArchiveWindowKeyHandler(dword key)
                                 exitFlag = TRUE;						// signal exit to top level - will clean up, close window,                      
 							break;
 							
-		case RKEY_Ok :		if ( chosenLine > 0 ) ArchiveAction(chosenLine);
+		case RKEY_Ok :		switch (okPlayOption)
+                            {
+                                   case 0: ArchiveAction(chosenLine);   // Normal "OK" action - open folder or resume playback.
+                                           break;
+                                           
+                                   case 1: if (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_TS)
+                                                RestartPlayback( chosenLine, 0);   // Start playback from the start, without jumping.
+                                           else
+                                                ArchiveAction(chosenLine);         // Handle opening of folders.
+                                           break;
+                            }
 							break;
 							
-		case RKEY_Play :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_TS))
-                               RestartPlayback( chosenLine, 0);   // Start playback from the start, without jumping.
+		case RKEY_Play :	if (myfiles[CurrentDirNumber][chosenLine]->attr != ATTR_TS) break;   // 'Play' key is only valid for recording files.
+                            switch (okPlayOption)
+                            {
+                                   case 0: RestartPlayback( chosenLine, 0);   // Start playback from the start, without jumping.
+                                           break;
+                                           
+                                   case 1: RestartPlayback( chosenLine, 1);   // Resume playback from last playback position.
+                                           break; 
+                            }               
 							break;
 
 		case RKEY_Pause:    // Cycle through the sort order (date, name, channel, size)

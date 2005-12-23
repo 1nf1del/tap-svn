@@ -62,6 +62,7 @@ static int currentInfoLineOption;
 static int currentNumberLinesOption;
 static int currentBorderOption;
 static int currentRecCheckOption;
+static int currentOkPlayOption;
 
 
 
@@ -336,6 +337,22 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
+		case 17 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "OK / Play keys", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentOkPlayOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "OK=Resume  Play=Play from start" );
+								break;
+								
+					case 1 : 	sprintf( str, "Play=Resume  OK=Play from start" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
 		case 10 :		
 		case 20 :
 				TAP_Osd_PutGd( rgn, 53, lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
@@ -393,6 +410,7 @@ void CopyConfiguration( void )
 	currentNumberLinesOption   = numberLinesOption;
     currentBorderOption        = borderOption;
     currentRecCheckOption      = recCheckOption;
+    currentOkPlayOption        = okPlayOption;
 }
 
 void SaveConfiguration( void )
@@ -412,6 +430,7 @@ void SaveConfiguration( void )
     numberLinesOption   = currentNumberLinesOption;
     borderOption        = currentBorderOption;
     recCheckOption      = currentRecCheckOption;
+    okPlayOption        = currentOkPlayOption;
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -426,6 +445,10 @@ void CreateConfigWindow(void)
 {
 	configWindowShowing = TRUE;
 	returnFromConfig = FALSE;
+    if ( currentModelType == TF5800t )
+       CreateTF5800Keys( &localKeyCodes );
+	else
+   	   CreateTF5000Keys( &localKeyCodes );
 	DrawGraphicBorders();
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Configuration", TITLE_COLOUR, COLOR_Black );
 }
@@ -454,6 +477,9 @@ void RedrawConfigPage(int lineNumber)
     oldPage     = (oldLineNumber-1) / LINES_PER_PAGE;   // Calculate page #.  Lines 1-10=page 0   11-20= page 1, etc.
     if ( currentPage != oldPage )  // We're on a new page so redraw all lines.
     {
+    #ifdef WIN32
+    CreateConfigWindow();
+    #endif
 	    for ( i=1+(currentPage*LINES_PER_PAGE); i<=((currentPage+1)*LINES_PER_PAGE) ; i++)
 	    {
 	        DisplayConfigLine(i);
@@ -793,6 +819,23 @@ void ConfigActionHandler(dword key)
 					}
 					break;
 
+		case 17 :	switch ( key )										// OK / Play keys
+					{
+		            	case RKEY_VolUp:	if (currentOkPlayOption == 0 ) currentOkPlayOption++;
+		            	                    else currentOkPlayOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentOkPlayOption == 1 ) currentOkPlayOption--;
+		            	                    else currentOkPlayOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
 		case 10 :														// bottom line commands : Save, or Cancel
 		case 20 :
 						switch ( key )
@@ -941,8 +984,10 @@ void InitialiseConfigRoutines(void)
 	keyStage            = 0;
 	returnFromConfig    = FALSE;
 
-//	CreateTF5800Keys( &localKeyCodes );
-	CreateTF5000Keys( &localKeyCodes );
+    if ( currentModelType == TF5800t )
+       CreateTF5800Keys( &localKeyCodes );
+	else
+   	   CreateTF5000Keys( &localKeyCodes );
 }
 
 

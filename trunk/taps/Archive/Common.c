@@ -316,6 +316,7 @@ static bool recursiveLoadOption=FALSE;
 static int borderOption;
 static int recCheckOption;
 static int yOffsetOption=36;
+static int okPlayOption;
        
 static char gstr[500];
        
