@@ -460,8 +460,10 @@ void CloseConfigWindow(void)
     if (CalledByTSRCommander)   // If the Config Window was called by TSR Commander, then we need to do some extra cleanup.
     {
        CalledByTSRCommander=FALSE;
-	   TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );							// clear the screen.  Added for TSR Commander support.
-	   TAP_EnterNormal();                                                  // Added for TSR Commander support.  Needed to return to normal.
+	   TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );			 // clear the screen.  Added for TSR Commander support.
+   	   TAP_Osd_Delete( rgn );                                // Delete the clock display region.
+   	   TAP_Osd_Delete( clockRgn );                           // Delete the clock display region.
+	   TAP_EnterNormal();                                    // Added for TSR Commander support.  Needed to return to normal.
     }
     else
         returnFromConfig = TRUE;					// will cause a redraw of archive list

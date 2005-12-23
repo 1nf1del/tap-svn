@@ -18,7 +18,8 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.04 kidhazy    11-05
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
-          V0.07 kidhazy 
+          V0.07 kidhazy 23-12-05
+          V0.08 kidhazy 
 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -41,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.07a"       
+#define VERSION "0.08a"       
 
 #include "tap.h"
 #include "morekeys.h"
@@ -433,6 +434,8 @@ void TSRCommanderConfigDialog()
 
 	TAP_ExitNormal();
     CalledByTSRCommander=TRUE;
+	rgn      = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
+    clockRgn = TAP_Osd_Create( 0, 0, 720, TOP_H, 0, OSD_Flag_MemRgn );	// In MEMORY define the a region for us to draw on
     DisplayConfigWindow();
 	return;
 }
