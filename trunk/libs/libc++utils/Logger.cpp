@@ -51,7 +51,7 @@ void Logger::SetDest(Logger::LogDests destination)
 	if (destination & Screen)
 	{
 		if (m_OSDRegion == 0)
-			m_OSDRegion = TAP_Osd_Create(100,100,520,376,0,0);
+			m_OSDRegion = (word) TAP_Osd_Create(100,100,520,376,0,0);
 		m_yOffs = 0;
 	}
 	else

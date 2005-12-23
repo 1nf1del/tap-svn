@@ -335,7 +335,7 @@ int OSDRegion::PutPixel(DWORD x, DWORD y, DWORD pix )
 
 int OSDRegion::Osd_PutS(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE bDot, BYTE align)
 {
-	CRect rect(CPoint(x,y), CSize(maxX, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DWORD dwFlags = DT_TOP;
 	switch(align)
@@ -359,7 +359,7 @@ int OSDRegion::Osd_PutS(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fco
 
 int OSDRegion::Osd_PutString(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE nextLine)
 {
-	CRect rect(CPoint(x,y), CSize(maxX, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawSomeText(rect, str, fcolor, bcolor, fntType, fntSize, DT_LEFT|DT_TOP, bcolor == 0x00);
 	return 1;
@@ -367,7 +367,7 @@ int OSDRegion::Osd_PutString(DWORD x, DWORD y, DWORD maxX, const char * str, WOR
 
 int OSDRegion::Osd_PutStringAf(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE nextLine)
 {
-	CRect rect(CPoint(x,y), CSize(maxX, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawSomeText(rect, str, fcolor, bcolor, fntType, fntSize, DT_LEFT|DT_TOP, bcolor == 0x00);
 	return 1;
