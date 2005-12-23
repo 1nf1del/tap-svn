@@ -26,6 +26,9 @@
 
 COLORREF ConvertRGB(DWORD dwToppyColor)
 {
+	if (dwToppyColor == COLOR_None)
+		return TRANSPARENT_COLOUR;
+
 	int r = (dwToppyColor & 0x00007c00) >> 10;
 	int g = (dwToppyColor & 0x000003E0) >> 5;
 	int b = (dwToppyColor & 0x0000001F);

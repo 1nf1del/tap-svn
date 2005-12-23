@@ -236,7 +236,7 @@ void CRemoteDialog::OnBnClickedUp()
 
 void CRemoteDialog::OnBnClickedMenu()
 {
-	RaiseKeyEvent(RKEY_Menu, RAWKEY_Down);
+	RaiseKeyEvent(RKEY_Menu, RAWKEY_Menu);
 }
 
 
