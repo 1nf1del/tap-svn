@@ -26,6 +26,7 @@
 #ifndef _TAP
 #include <memory.h>
 #endif
+#include "quicksort.h"
 
 inline void* operator new (size_t s, void* _where)
 {
@@ -37,6 +38,7 @@ inline void* operator new (size_t s, void* _where)
 
 template <typename T> class array
 {
+	typedef SimpleComparitor<T> default_comparitor;
 public:
 	array(int iInitialSize = 0) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
 	{
@@ -148,6 +150,19 @@ public:
 	{
 		return size() == 0;
 	}
+
+	template <class Comparitor> void sort()
+	{
+		Comparitor comp;
+		QuickSort(m_pArray, m_iLen, comp);
+	}
+
+	void sort()
+	{
+		default_comparitor comp;
+		QuickSort(m_pArray, m_iLen, comp);
+	}
+
 
 private:
 

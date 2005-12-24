@@ -129,6 +129,9 @@
 				RelativePath=".\PerformanceTimer.h">
 			</File>
 			<File
+				RelativePath=".\quicksort.h">
+			</File>
+			<File
 				RelativePath=".\taparray.h">
 			</File>
 			<File

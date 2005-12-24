@@ -1,1 +1,1 @@
-Note that these classes are (as yet) only tested under emulation.
+Note that the array class tested properly only for pointer types so far
