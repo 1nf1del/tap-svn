@@ -20,11 +20,11 @@
 
 include ../../tools/build/tap.mk
 
-CXXFLAGS=-I../libc++utils
+CXXFLAGS+= -I../libc++utils
 
 all: libFramework.a
 
-libFramework.a: Page.o Tapplication.o Main.o Region.o
+libFramework.a: Main.o Region.o Tapplication.o Page.o BitmapPage.o
 	$(AR) cr $@ $^
 
 clean:
