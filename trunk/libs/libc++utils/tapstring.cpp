@@ -65,6 +65,17 @@ bool string::operator==(const char* pRight) const
 	return (compare(pRight) == 0);
 }
 
+bool string::operator!=(const string& right) const
+{
+	return !(*this == right);
+}
+
+bool string::operator!=(const char* pRight) const
+{
+	return !(*this == pRight);
+}
+
+
 string& string::operator=(const string& right)
 {
 	if (this != &right)

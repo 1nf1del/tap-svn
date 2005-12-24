@@ -36,6 +36,8 @@ public:
 
 	bool operator==(const string& right) const ;
 	bool operator==(const char* pRight) const ;
+	bool operator!=(const string& right) const ;
+	bool operator!=(const char* pRight) const ;
 	string& operator=(const string& right);
 	string& operator=(const char* pData);
 	string& operator=(char c);

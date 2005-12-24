@@ -55,8 +55,8 @@ public:
 		if (&right != this)
 		{
 			clear();
-			resize(right.m_iLen);
-			assign(0, right.m_iLen, right.m_pArray);
+			grow(right.m_iLen);
+			copy(right.m_iLen, right.m_pArray);
 			m_iLen = right.m_iLen;
 		}
 
@@ -171,6 +171,18 @@ private:
 		if (iCount > 0)
 			memcpy(m_pArray + iOffs, pSrcData, iCount * sizeof(T));
 	}
+
+	void copy(unsigned int iCount, T* pSrcData)
+	{
+		if (iCount > 0)
+		{
+			for (unsigned int i=0; i<iCount; i++)
+			{
+				construct(i, i+1, pSrcData[i]);
+			}
+		}
+	}
+
 
 	void copyToSize(unsigned int iNewLen)
 	{
