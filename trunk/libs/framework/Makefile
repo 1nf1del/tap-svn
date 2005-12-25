@@ -24,7 +24,7 @@ CXXFLAGS+= -I../libc++utils
 
 all: libFramework.a
 
-libFramework.a: Main.o Region.o Tapplication.o Page.o BitmapPage.o
+libFramework.a: Main.o Region.o Tapplication.o Page.o BitmapPage.o Dialog.o TextTools.o Dialog.o graphics.o YesNoBox.o
 	$(AR) cr $@ $^
 
 clean:

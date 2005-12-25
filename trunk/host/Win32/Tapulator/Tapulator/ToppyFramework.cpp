@@ -206,6 +206,7 @@ void ToppyFramework::Win_SetDrawItemFunc( TYPE_Window *win, TYPE_DrawItemFunc fu
 
 void ToppyFramework::SystemProc()
 {
+	Sleep(1);
 	GetMainFrame()->RepaintIfNeeded();
 	MSG msg;
 	BOOL bRet = false;

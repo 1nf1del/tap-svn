@@ -49,7 +49,8 @@ void FixupVTable( vtable& vtbl )
 	{
 
 	}
-#endif
+
+#else
 
 void * operator new(size_t size)
 {
@@ -74,3 +75,5 @@ void operator delete[](void* pMem)
 
 	dlmalloc_trim(0);
 }
+
+#endif

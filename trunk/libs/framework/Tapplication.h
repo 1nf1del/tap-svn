@@ -24,7 +24,7 @@
 
 
 class Page;
-
+class Dialog;
 
 class Tapplication
 {
@@ -42,6 +42,7 @@ public:
 	void PushPage( Page* page );
 	Page* PopPage();
 	dword Close();
+	void SetActiveDialog(Dialog* pDialog);
 
 	// Application creation
 	static Tapplication* GetTheApplication();
@@ -60,6 +61,7 @@ private:
 	static void SetTheApplication(Tapplication*);
 
 	Page* pageStack[10];
+	Dialog* m_activeDialog;
 
 	static Tapplication* tap;
 };

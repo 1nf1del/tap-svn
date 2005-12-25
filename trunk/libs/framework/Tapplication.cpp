@@ -24,6 +24,7 @@
 #include "Tapplication.h"
 #include "Page.h"
 #include "logger.h"
+#include "dialog.h"
 
 Tapplication* Tapplication::tap = NULL;
 
@@ -38,6 +39,7 @@ Tapplication::Tapplication()
 	pageCount = 0;
 
 	screenRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
+	m_activeDialog = NULL;
 }
 
 
@@ -83,6 +85,9 @@ void Tapplication::OnIdle()
 
 dword Tapplication::OnKey( dword key, dword extKey )
 {
+	if (m_activeDialog != NULL)
+		return m_activeDialog->OnKey(key,extKey);
+
 	if ( pageCount == 0 )
 		return key;
 
@@ -177,3 +182,11 @@ int Tapplication::CreateTheApplication()
 	return 1;
 }
 
+void Tapplication::SetActiveDialog(Dialog* pDialog)
+{
+	if (pDialog && m_activeDialog)
+	{
+		TRACE("Ooops - not allowed more than 1 active dialog");
+	}
+	m_activeDialog = pDialog;
+}
