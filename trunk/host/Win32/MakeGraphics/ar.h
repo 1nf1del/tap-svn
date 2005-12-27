@@ -3,12 +3,13 @@
 ***********************************************************/
 #include <stdio.h>
 #include <limits.h>
-typedef unsigned char  uchar;   /*  8 bits or more */
+#ifdef WIN32
 typedef unsigned short uint;    /* 16 bits or more */
 typedef unsigned short ushort;  /* 16 bits or more */
-typedef unsigned long  ulong;   /* 32 bits or more */
-
+#endif
 /* ar.c */
+typedef unsigned long  ulong;   /* 32 bits or more */
+typedef unsigned char  uchar;   /*  8 bits or more */
 
 extern int unpackable;
 extern ulong origsize, compsize, bytesleft;

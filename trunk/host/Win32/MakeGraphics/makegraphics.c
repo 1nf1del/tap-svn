@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <io.h>
 #include <errno.h>
-#include "FreeImage.h"
+#include "FreeImage\Source\FreeImage.h"
 #include "tfdcompress.h"
 
 
@@ -341,6 +341,7 @@ int main(int argc, char* argv[])
 	{
 		if ( argv[i][0] != '-' && argv[i][0] != '/' )
 		{
+			#ifdef WIN32
 			struct _finddata_t fd;
 			intptr_t fh = _findfirst( argv[i], &fd );
 			if ( fh == -1 )
@@ -365,6 +366,10 @@ int main(int argc, char* argv[])
 				}
 				_findclose( fh );
 			}
+			#else
+			if (ProcessImage(argv[i]))
+				++fileCount;
+			#endif
 		}
 	}
 
