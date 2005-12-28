@@ -1,4 +1,4 @@
-#include ".\dialog.h"
+#include "dialog.h"
 #include "Tapplication.h"
 
 Dialog::Dialog(void)
