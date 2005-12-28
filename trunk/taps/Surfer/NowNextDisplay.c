@@ -25,8 +25,8 @@ History	: v0.0 kidhazy: 26-08-05	Inception Date
 //#define PBHEIGHT 19     // Height of the progressbar.
  
 
-#include "graphics/NarrowHighlight170x22.gd"  // Used as the green header bar at the top of the Guide window.
-#include "graphics/Row170x39.gd"              // Used as the background for each row of the Guide window.
+#include "graphics/NarrowHighlight170x22.GD"  // Used as the green header bar at the top of the Guide window.
+#include "graphics/row170x39.GD"              // Used as the background for each row of the Guide window.
 
 
 

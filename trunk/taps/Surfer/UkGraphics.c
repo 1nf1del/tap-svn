@@ -14,20 +14,20 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 	Last change:  USE   4 Aug 105    3:59 pm
 **************************************************************/
 
-#include "graphics/top.gd"
-#include "graphics/side.gd"
+#include "graphics/top.GD"
+#include "graphics/side.GD"
 
-#include "graphics/highlight.gd"
-#include "graphics/rowA.gd"
+#include "graphics/Highlight.GD"
+#include "graphics/rowA.GD"
 
-#include "graphics/MenuRow.gd"
-#include "graphics/MenuRow_Highlight.gd"
-#include "graphics/Menu_Title.gd"
+#include "graphics/MenuRow.GD"
+#include "graphics/MenuRow_Highlight.GD"
+#include "graphics/Menu_Title.GD"
 
-#include "graphics/smallGreenBar.gd"
-#include "graphics/NotAvailableBar.gd"
-#include "graphics/RadioServiceBar.gd"
-#include "graphics/PlainRedBar.gd"
+#include "graphics/smallGreenBar.GD"
+#include "graphics/NotAvailableBar.GD"
+#include "graphics/RadioServiceBar.GD"
+#include "graphics/PlainRedBar.GD"
 
 #include "graphics/Highlight448x34.GD"
 #include "graphics/NarrowHighlight.GD"

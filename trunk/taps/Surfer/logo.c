@@ -35,7 +35,7 @@ History	: v0.0 Darkmatter: 06-06-05	Inception date
 #define LOGO_DATA_SIZE	LOGO_W * LOGO_H * NUM_BYTES						// number of bytes per logo (bitmap, so nice, fixed size)
 #define CHANNEL_NAME_SIZE MAX_SvcName									// bytes allocated the the channel's name
 
-#include "graphics/NarrowHighlight80x22.gd"
+#include "graphics/NarrowHighlight80x22.GD"
 
 typedef struct															// how we store the logo data
 {

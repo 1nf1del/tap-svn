@@ -21,18 +21,18 @@ static int oldRadioService;
 static int oldTvService;
 
 #include "logo.c"
-#include "graphics/Row80.gd"
+#include "graphics/Row80.GD"
 //#include "graphics/Highlight80.gd"
 //#include "graphics/NarrowHighlight.GD"
 //#include "graphics/NarrowHighlight80x22.GD"  // Included in logo.c
-#include "graphics/SmallHighlight1.gd"
-#include "graphics/SmallYellowBar.gd"
-#include "graphics/SmallYellowArrows.gd"
-#include "graphics/SmallHighlight4.gd"
-#include "graphics/SmallHighlight5.gd"
-#include "graphics/SmallHighlight1s80x39.gd"
-#include "graphics/SmallHighlight4s80x39.gd"
-#include "graphics/SmallHighlight5s80x39.gd"
+#include "graphics/SmallHighlight1.GD"
+#include "graphics/SmallYellowBar.GD"
+#include "graphics/SmallYellowArrows.GD"
+#include "graphics/SmallHighlight4.GD"
+#include "graphics/SmallHighlight5.GD"
+#include "graphics/SmallHighlight1s80x39.GD"
+#include "graphics/SmallHighlight4s80x39.GD"
+#include "graphics/SmallHighlight5s80x39.GD"
 
 //----------------------------------------------
 // test code - will be remove once test complete

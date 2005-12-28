@@ -25,7 +25,7 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 #define MSG_TITLE_COLOUR RGB(29,29,29)
 #define MSG_TEXT_COLOUR RGB8888(90,104,213)
 
-#include "graphics/msgpopup360x130.gd"
+#include "graphics/msgpopup360x130.GD"
 
 
 

@@ -45,7 +45,8 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 #define DEBUG 0  // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen.  
             
 #include "tap.h"
-         
+#include "morekeys.h"
+
   
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
