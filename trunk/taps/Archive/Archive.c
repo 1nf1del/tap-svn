@@ -77,7 +77,7 @@ char* TAPIniDir;
 #include "Tools.c"
 #include "LoadArchiveInfo.c"
 #include "PlaybackDatFile.c"
-#include "logo.c"
+#include "logo.C"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
 #include "ArchiveDelete.c"
