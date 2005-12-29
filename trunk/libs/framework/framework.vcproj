@@ -103,6 +103,9 @@
 				RelativePath=".\Dialog.cpp">
 			</File>
 			<File
+				RelativePath=".\DialogBox.cpp">
+			</File>
+			<File
 				RelativePath=".\graphics.c">
 			</File>
 			<File
@@ -110,6 +113,9 @@
 			</File>
 			<File
 				RelativePath=".\Page.cpp">
+			</File>
+			<File
+				RelativePath=".\ProgressBox.cpp">
 			</File>
 			<File
 				RelativePath=".\Tapplication.cpp">
@@ -129,7 +135,13 @@
 				RelativePath=".\Dialog.h">
 			</File>
 			<File
+				RelativePath=".\DialogBox.h">
+			</File>
+			<File
 				RelativePath=".\Page.h">
+			</File>
+			<File
+				RelativePath=".\ProgressBox.h">
 			</File>
 			<File
 				RelativePath=".\Tapplication.h">

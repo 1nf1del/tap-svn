@@ -26,24 +26,11 @@
 #include "TextTools.h"
 #include "graphics.c"
 
-// Position of the Delete Confirmation Screen
-#define YESNO_WINDOW_W 360
-#define YESNO_WINDOW_H 180
-#define YESNO_WINDOW_X ((MAX_SCREEN_X-YESNO_WINDOW_W)/2)   // Centre the yes/no window
-#define YESNO_WINDOW_Y ((MAX_SCREEN_Y-YESNO_WINDOW_H)/2)   // Centre the yes/no window
-
-#define YESNO_OPTION_W 102                                  // Width  of yes/no Options Buttons
-#define YESNO_OPTION_H 43                                   // Height of yes/no Options Buttons
-#define YESNO_OPTION_X  (YESNO_WINDOW_X + 52)              // Starting x-position for first Option button
-#define YESNO_OPTION_Y  (YESNO_WINDOW_Y + YESNO_WINDOW_H - YESNO_OPTION_H - 15)             // Starting y-position for Option buttons.
-#define YESNO_OPTION_X_SPACE   (YESNO_OPTION_W+50)         // Space between options on yes/no window.
 
 
 YesNoBox::YesNoBox(char* title, char* line1, char* line2, char* button1, char* button2, int defaultOption) 
+: DialogBox(title, line1, line2)
 {
-	this->title		= title;
-	this->line1		= line1;
-	this->line2		= line2;
     option		= defaultOption;
     result		= false;
     strcpy(this->button1, button1);
@@ -58,29 +45,9 @@ YesNoBox::~YesNoBox()
 
 void YesNoBox::CreateDialog()
 {
-	// Store the currently displayed screen area where we're about to put our pop-up window on.
-    windowCopy = TAP_Osd_SaveBox(GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H);
-
-    // Display the pop-up window.
-    TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, &_popup360x180Gd, TRUE );
-
-    // Display Title and information in pop-up window
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  13, YESNO_WINDOW_X+YESNO_WINDOW_W-5, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  56, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line1, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  89, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line2, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-
+	DialogBox::CreateDialog();
     DisplayLine();
 }
-
-
-//-----------------------------------------------------------------------
-//
-void YesNoBox::DestroyDialog()
-{
-	TAP_Osd_RestoreBox(GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H, windowCopy);
-	TAP_MemFree(windowCopy);
-}
-
 
 //------------------------------------------------------------------
 //

@@ -23,9 +23,9 @@
 #define __YESNOBOX_H
 
 #include "tap.h"
-#include "../../../trunk/libs/framework/Dialog.h"
+#include "DialogBox.h"
 
-class YesNoBox : public Dialog
+class YesNoBox : public DialogBox
 {
 public:
 	YesNoBox(char* title, char* line1, char* line2, char* button1, char* button2, int defaultOption);
@@ -33,21 +33,15 @@ public:
 
 	virtual dword OnKey( dword key, dword extKey );
 	virtual void CreateDialog();
-	virtual void DestroyDialog();
 
 private:
 	void DisplayLine();
 
 private:
-	byte* windowCopy;
-	char* title;
-	char* line1;
-	char* line2;
 	char  option;
 	bool  result;
 	char  button1[10];
 	char  button2[10];
-//	YesNoCallback _callback;
 };
 
 
