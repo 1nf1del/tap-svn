@@ -121,6 +121,12 @@ string& string::operator+=(char c)
 	return *this;
 }
 
+bool string::operator<(const string& right) const
+{
+	return strcmp(getstr(), right.getstr()) < 0;
+}
+
+
 string::operator const char*() const
 {
 	return getstr();
@@ -255,6 +261,12 @@ void string::resize(unsigned int newSize)
 
 void string::assign(const char* pData, int iLen)
 {
+	if (pData == 0 || iLen == 0)
+	{
+		shrink(0);
+		return;
+	}
+
 	if (iLen == -1)
 		iLen = strlen(pData);
 	grow(iLen);

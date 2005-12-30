@@ -44,6 +44,7 @@ public:
 	string& operator+=(const string& right);
 	string& operator+=(const char* pData);
 	string& operator+=(char c);
+	bool operator<(const string& right) const;
 
 	operator const char*() const;
 	const char* string::c_str() const;
