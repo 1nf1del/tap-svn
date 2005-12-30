@@ -36,6 +36,7 @@ public:
 	virtual dword OnKey( dword key, dword extKey );
 	virtual void OnOpen();
 	virtual void OnClose();
+	virtual void Redraw();
 };
 
 

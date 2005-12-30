@@ -65,3 +65,7 @@ void Page::OnOpen()
 void Page::OnClose()
 {
 }
+
+void Page::Redraw()
+{
+}
