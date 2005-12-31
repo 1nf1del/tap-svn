@@ -22,6 +22,19 @@
 #ifndef __PAGE_H
 #define __PAGE_H
 
+#define HandleKey(keyCode, action)\
+	if (key == keyCode) \
+	{\
+		action;\
+		return 0;\
+	}
+
+#define HandleExtKey(keyCode, rawKeyCode, action)\
+	if (((extKey == 0) && (key == keyCode)) || (extKey == rawKeyCode)) \
+	{\
+		action;\
+		return 0;\
+	}
 
 class Page
 {

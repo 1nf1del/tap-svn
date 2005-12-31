@@ -173,6 +173,10 @@ public:
 		return false;
 	}
 
+	const T& nullObject() const
+	{
+		return m_nullObject;
+	}
 
 private:
 
