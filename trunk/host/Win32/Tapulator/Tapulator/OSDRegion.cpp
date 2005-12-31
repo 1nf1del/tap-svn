@@ -458,7 +458,9 @@ void OSDRegion::DrawSomeText(CRect rect, const CString& txt, DWORD color, DWORD 
 	pDC->SetBkMode(bTransparent ? TRANSPARENT : OPAQUE);
 	pDC->SetBkColor(ConvertRGB(backcolor));
 	pDC->SetTextColor(ConvertRGB(color));
-	pDC->DrawText(txt, rect, dwFlags);
+	CString text = txt;
+	text.Replace("&", "&&");
+	pDC->DrawText(text, rect, dwFlags);
 	pDC->SelectObject(oldFont);
 
 	delete theFont;
