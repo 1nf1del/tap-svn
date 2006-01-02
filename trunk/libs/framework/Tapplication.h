@@ -43,6 +43,7 @@ public:
 	Page* PopPage();
 	dword Close();
 	void SetActiveDialog(Dialog* pDialog);
+	bool IsTopPage( Page* page);
 
 	// Application creation
 	static Tapplication* GetTheApplication();

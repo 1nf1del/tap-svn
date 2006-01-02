@@ -135,6 +135,15 @@ Page* Tapplication::PopPage()
 	return NULL;
 }
 
+bool Tapplication::IsTopPage( Page* page)
+{
+	if (pageCount == 0)
+		return false;
+
+	return page == pageStack[pageCount-1];
+}
+
+
 // accessors
 Tapplication* Tapplication::GetTheApplication()
 {
