@@ -5,9 +5,9 @@ class ProgressBox :
 	public DialogBox
 {
 public:
-	ProgressBox(char* title, char* line1, char* line2);
+	ProgressBox(const char* title, const char* line1, const char* line2);
 	virtual ~ProgressBox(void);
 	virtual void CreateDialog();
 
-	void UpdateProgress(int percent);
+	void UpdateProgress(int percent, const string& sStep = "");
 };

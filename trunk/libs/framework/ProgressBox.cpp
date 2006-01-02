@@ -1,7 +1,7 @@
 #include ".\progressbox.h"
 #include "Tapplication.h"
 
-ProgressBox::ProgressBox(char* title, char* line1, char* line2)
+ProgressBox::ProgressBox(const char* title, const char* line1, const char* line2)
 : DialogBox(title, line1, line2)
 {
 }
@@ -17,8 +17,14 @@ void ProgressBox::CreateDialog()
 
 }
 
-void ProgressBox::UpdateProgress(int percent)
+void ProgressBox::UpdateProgress(int percent, const string& sStep)
 {
+	if (!sStep.empty())
+	{
+		line1=sStep;
+		Draw();
+	}
+
 	if (percent>100)
 		percent = 100;
 
@@ -30,4 +36,7 @@ void ProgressBox::UpdateProgress(int percent)
 	TAP_Osd_FillBox ( GetTAPScreenRegion(), YESNO_WINDOW_X + 30 + percent * 3, YESNO_WINDOW_Y + 130,
 		(100-percent)*3, 15,  TITLE_COLOUR);
 
+#ifdef WIN32
+	TAP_SystemProc(); // repaint on emulator so we can see what we have
+#endif
 }

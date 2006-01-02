@@ -42,20 +42,23 @@
 class DialogBox : public Dialog
 {
 public:
-	DialogBox(char* title, char* line1, char* line2);
+	DialogBox(const char* title, const char* line1, const char* line2);
 	virtual ~DialogBox();
 
 	virtual void CreateDialog();
 	virtual void DestroyDialog();
 
-private:
+protected:
+	void Draw();
 	void DisplayLine();
 
-private:
-	byte* windowCopy;
+protected:
 	string title;
 	string line1;
 	string line2;
+
+private:
+	byte* windowCopy;
 };
 
 #endif

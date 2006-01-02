@@ -44,11 +44,35 @@ void FixupVTable( vtable& vtbl )
 }
 
 #ifdef WIN32
+//
+// emulator build on win32 needs no fixup of v-tables
+// but does need operator new/delete redef to ensure memory leak tracking works
+//
 
-	void FixupVTables()
-	{
+void FixupVTables()
+{
 
-	}
+}
+
+void * operator new(size_t size)
+{
+	return TAP_MemAlloc( (dword) size);
+}
+void operator delete(void * mem)
+{
+	if (mem)
+		TAP_MemFree(mem);
+}
+
+void* operator new[](size_t size)
+{
+	return TAP_MemAlloc(size);
+}
+
+void operator delete[](void* pMem)
+{
+	TAP_MemFree(pMem);
+}
 
 #else
 
