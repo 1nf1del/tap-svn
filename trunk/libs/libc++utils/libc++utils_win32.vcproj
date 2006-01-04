@@ -135,6 +135,9 @@
 				RelativePath=".\taparray.h">
 			</File>
 			<File
+				RelativePath=".\tapmap.h">
+			</File>
+			<File
 				RelativePath=".\tapstring.h">
 			</File>
 			<File
