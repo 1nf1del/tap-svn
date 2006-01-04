@@ -400,11 +400,11 @@ void OSDRegion::DrawRectangle(CRect rect, DWORD dwColor, int thickness)
 	COLORREF crBorder = ConvertRGB(dwColor);
 	CPen pen(PS_SOLID, thickness, crBorder);
 	CPen* pOldPen = pDC->SelectObject(&pen);
-	pDC->MoveTo(rect.left,rect.top);
-	pDC->LineTo(rect.right-1,rect.top);
+	pDC->MoveTo(rect.left,rect.top + thickness/2);
+	pDC->LineTo(rect.right-1,rect.top + thickness/2);
 	pDC->LineTo(rect.right-1,rect.bottom-1);
-	pDC->LineTo(rect.left,rect.bottom-1);
-	pDC->LineTo(rect.left,rect.top);
+	pDC->LineTo(rect.left + thickness/2,rect.bottom-1);
+	pDC->LineTo(rect.left + thickness/2,rect.top);
 	pDC->SelectObject(pOldPen);
 	ReleaseDC();
 }
