@@ -100,7 +100,10 @@ dword Tapplication::Close()
 {
 	// Notify open pages that the TAP is closing
 	for ( int i = 0; i < pageCount; ++i )
+	{
 		pageStack[i]->OnClose();
+		delete pageStack[i];
+	}
 
 	if ( pageCount > 0 )
 		TAP_ExitNormal();
