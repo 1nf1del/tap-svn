@@ -38,7 +38,7 @@ ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), 
 
 	if (GetConfig()->GetStartInAutoStart() == 1)
 	{
-		m_sCurrentFolder = "ProgramFiles\\Auto Start";
+		m_sCurrentFolder = "ProgramFiles/Auto Start";
 	}
 	else
 	{
