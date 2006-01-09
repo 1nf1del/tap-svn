@@ -158,6 +158,7 @@ long TapModule::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 	}
 	catch (...)
 	{
+		throw;
 		AfxMessageBox("Exception thrown from Event Handler");
 	}
 	return 0;

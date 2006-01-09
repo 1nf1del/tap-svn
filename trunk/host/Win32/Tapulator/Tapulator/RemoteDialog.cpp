@@ -111,6 +111,7 @@ void CRemoteDialog::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 {
 	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
 	pFrame->GetTapModule()->RaiseKeyEvent(keyCode, hardwareKeyCode);
+	pFrame->SetFocus();
 
 }
 // CRemoteDialog message handlers
@@ -224,7 +225,7 @@ void CRemoteDialog::OnBnClickedGuide()
 
 void CRemoteDialog::OnBnClickedList()
 {
-	RaiseKeyEvent(RKEY_Ok,  RAWKEY_Ok); //??
+	RaiseKeyEvent(RKEY_TvRadio,  RAWKEY_List_TVRad); //??
 }
 
 

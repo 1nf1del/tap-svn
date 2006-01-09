@@ -93,6 +93,7 @@ public:
 	afx_msg void OnFileOptions();
 	afx_msg void OnViewInfo();
 	afx_msg void OnUpdateViewInfo(CCmdUI *pCmdUI);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
 

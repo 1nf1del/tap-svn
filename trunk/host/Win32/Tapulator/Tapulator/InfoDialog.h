@@ -51,4 +51,6 @@ public:
 	CString m_sTotalAllocs;
 	CString m_sOpenAllocs;
 	CString m_sLargestAlloc;
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
 };

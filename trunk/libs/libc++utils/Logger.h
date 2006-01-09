@@ -14,6 +14,7 @@ extern "C"
 #define TRACE2(str,x,y) Logger::Log(str,x,y)
 #define TRACE3(str,x,y,z) Logger::Log(str,x,z)
 #define TRACE4(str,x,y,z,t) Logger::Log(str,x,y,z,t)
+#define TRACE_MEMORY() Logger::LogMemStats()
 
 class Logger
 {
@@ -31,6 +32,7 @@ public:
 	static void SetDestination(int destination);
 	static void Log(const char* format, ...);
 	static void DoneWithLogger();
+	static void LogMemStats();
 
 private:
 	static Logger* GetLogger();

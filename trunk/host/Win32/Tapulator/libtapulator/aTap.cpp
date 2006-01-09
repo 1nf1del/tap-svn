@@ -30,3 +30,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     return TRUE;
 }
 
+extern "C" int strcasecmp(const char* left, const char* right)
+{
+	return stricmp(left, right);
+}

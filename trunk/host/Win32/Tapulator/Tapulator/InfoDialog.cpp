@@ -25,7 +25,7 @@
 #include "InfoDialog.h"
 #include ".\infodialog.h"
 #include "Heap.h"
-
+#include "MainFrm.H"
 // CInfoDialog dialog
 
 IMPLEMENT_DYNAMIC(CInfoDialog, CDialog)
@@ -57,6 +57,8 @@ void CInfoDialog::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CInfoDialog, CDialog)
 	ON_EN_CHANGE(IDC_EDIT1, OnEnChangeEdit1)
+	ON_WM_KEYDOWN()
+	ON_WM_SETFOCUS()
 END_MESSAGE_MAP()
 
 
@@ -113,4 +115,18 @@ void CInfoDialog::UpdateHeapInfo()
 	m_sLargestAlloc.Format("%d", pHeap->m_iLargestAlloc);
 
 	UpdateData(false);
+}
+void CInfoDialog::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialog::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+void CInfoDialog::OnSetFocus(CWnd* pOldWnd)
+{
+	pOldWnd->SetFocus();
+//	CDialog::OnSetFocus(pOldWnd);
+
+	// TODO: Add your message handler code here
 }

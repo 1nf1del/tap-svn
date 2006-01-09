@@ -73,6 +73,13 @@ void Logger::SetDest(Logger::LogDests destination)
 	m_Destination = destination;
 }
 
+void Logger::LogMemStats()
+{
+	dword heapSize, freeSize, availSize;
+	TAP_MemInfo(&heapSize, &freeSize, &availSize);
+	Log("AvailableMemory Stats : %d Total, %d Free, %d Avail\n", heapSize, freeSize, availSize);
+}
+
 void Logger::Log(const char* format, const va_list &arglist)
 {
 	if (m_Destination == 0)

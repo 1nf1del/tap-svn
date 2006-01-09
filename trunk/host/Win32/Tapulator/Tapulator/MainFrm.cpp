@@ -22,6 +22,7 @@
 
 #include "stdafx.h"
 #include "Tapulator.h"
+#include "RawKey.h"
 
 #include "MainFrm.h"
 
@@ -51,6 +52,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_FILE_OPTIONS, OnFileOptions)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_INFO, OnUpdateViewInfo)
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -121,6 +123,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	SetTimer(123, 10, NULL);
 
+	m_wndView.SetFocus();
 
 	return 0;
 }
@@ -316,4 +319,13 @@ void CMainFrame::OnViewInfo()
 void CMainFrame::OnUpdateViewInfo(CCmdUI *pCmdUI)
 {
 	pCmdUI->SetCheck( m_pInfoDialog->IsWindowVisible() );
+}
+#include <winuser.h>
+
+void CMainFrame::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+	m_wndView.OnKeyDown(nChar, nRepCnt, nFlags);	
+
+	CFrameWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
