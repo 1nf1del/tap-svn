@@ -137,12 +137,12 @@ long TapModule::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
 	try
 	{
-		int iResult = EVT_KEY;
+		int iResult = keyCode;
 		if (m_pEventHandler)
 			iResult = TAP_Event(EVT_KEY, keyCode, hardwareKeyCode);
 
-		if (iResult == EVT_KEY)
-			pFrame->GetFramework()->RaiseEventToFirmware(EVT_KEY, keyCode, hardwareKeyCode);
+		if (iResult != 0)
+			pFrame->GetFramework()->RaiseEventToFirmware(EVT_KEY, iResult, hardwareKeyCode);
 
 		pFrame->RepaintIfNeeded();;
 		return iResult;

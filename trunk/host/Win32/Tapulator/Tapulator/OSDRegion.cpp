@@ -102,6 +102,10 @@ int OSDRegion::Move(DWORD x, DWORD y)
 
 int OSDRegion::FillBox(DWORD x, DWORD y, DWORD w, DWORD h, DWORD color)
 {
+	ASSERT(x<=m_w);
+	ASSERT(y<=m_h);
+	ASSERT(x+w<=m_w);
+	ASSERT(y+h<=m_h);
 	CRect rect(CPoint(x,y), CSize(w,h));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawFilledBox(rect,color, color);
@@ -204,6 +208,12 @@ int OSDRegion::Draw3dBoxFill(DWORD x, DWORD y, DWORD w, DWORD h, DWORD c1, DWORD
 
 int OSDRegion::DrawRectangle(DWORD x, DWORD y, DWORD w, DWORD h, DWORD t, DWORD color)
 {
+	ASSERT(x<=m_w);
+	ASSERT(y<=m_h);
+	ASSERT(x+w<=m_w);
+	ASSERT(y+h<=m_h);
+	ASSERT(w!=0);
+	ASSERT(h!=0);
 	CRect rect(CPoint(x,y), CSize(w,h));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawRectangle(rect,color,t);

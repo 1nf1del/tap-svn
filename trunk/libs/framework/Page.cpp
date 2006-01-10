@@ -22,6 +22,7 @@
 #include <tap.h>
 #include "Tapplication.h"
 #include "Page.h"
+#include "logger.h"
 
 
 Page::Page()
@@ -42,8 +43,11 @@ void Page::Open()
 void Page::Close()
 {
 	OnClose();
-	Tapplication::GetTheApplication()->PopPage();
+	if (Tapplication::GetTheApplication()->PopPage() != this)
+		TRACE("Ooops, the page closing isn't the top page - this'll crash!\n");
+	TRACE("About to delete popped page\n");
 	delete this;
+	TRACE("Page deleted\n");
 }
 
 

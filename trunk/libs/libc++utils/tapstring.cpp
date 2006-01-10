@@ -149,21 +149,21 @@ int string::releasebuffer()
 	return m_iLen;
 }
 
-string string::operator+(const string& right)
+string string::operator+(const string& right) const
 {
 	string result = *this;
 	result += right;
 	return result;
 }
 
-string string::operator+(const char* pRight)
+string string::operator+(const char* pRight) const
 {
 	string result = *this;
 	result += pRight;
 	return result;
 }
 
-string string::operator+(char c)
+string string::operator+(char c) const
 {
 	string result = *this;
 	result += c;

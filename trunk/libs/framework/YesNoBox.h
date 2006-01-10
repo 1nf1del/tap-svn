@@ -28,7 +28,7 @@
 class YesNoBox : public DialogBox
 {
 public:
-	YesNoBox(char* title, char* line1, char* line2, char* button1, char* button2, int defaultOption);
+	YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption);
 	virtual ~YesNoBox();
 
 	virtual dword OnKey( dword key, dword extKey );
@@ -40,8 +40,8 @@ private:
 private:
 	char  option;
 	bool  result;
-	char  button1[10];
-	char  button2[10];
+	string  button1;
+	string  button2;
 };
 
 

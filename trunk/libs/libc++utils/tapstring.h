@@ -51,9 +51,9 @@ public:
 	char* getbuffer(int size);
 	int releasebuffer();
 
-	string operator+(const string& right);
-	string operator+(const char* pRight);
-	string operator+(char c);
+	string operator+(const string& right) const;
+	string operator+(const char* pRight) const;
+	string operator+(char c) const;
 
 	string substr(int offs = 0, int count = -1) const;
 	int compare(const char* pOther) const;
