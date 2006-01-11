@@ -18,28 +18,37 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
+#ifndef _listitem_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
+#define _listitem_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
+
+#include <stdlib.h>
 #include "tap.h"
+#include "Rect.h"
+#include "tapstring.h"
+#define LIST_MAX_COLUMNS 5
 
-#define Dialog_Running -1
-#define Dialog_Exited 0
-#define Dialog_Ok 1
-#define Dialog_Cancel 2
 
-class Dialog
+class ListPage;
+class ListItem;
+class string;
+
+class ListItem
 {
 public:
-	Dialog(void);
-	virtual ~Dialog(void);
+	ListItem(ListPage* pParentList, dword dwFlags); 
+	virtual ~ListItem();
 
-	int DoModal();
-	virtual void CreateDialog();
 	virtual dword OnKey( dword key, dword extKey );
-	virtual void DestroyDialog();
+	virtual int MeasureSubItem(int iColumn, Rect rcBounds);
+	virtual void DrawSubItem(int iColumn, Rect rcBounds);
+	virtual string GetFooterText();
 
 protected:
-	void EndDialog(unsigned int iResult);
+	void DrawSubItemString(int iColumn, Rect rcBounds, const char* text);
+	ListPage* m_theList;
 
 private:
-	int m_iModalResult;
+	dword m_dwFlags;
 };
+
+#endif

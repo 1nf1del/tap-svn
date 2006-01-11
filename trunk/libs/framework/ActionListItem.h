@@ -18,28 +18,21 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
-#include "tap.h"
+#ifndef ActionListItem_h
+#define ActionListItem_h
+#include "SimpleTextListItem.h"
+class ListPage;
 
-#define Dialog_Running -1
-#define Dialog_Exited 0
-#define Dialog_Ok 1
-#define Dialog_Cancel 2
+typedef dword (* KeyHandlerFnPtr)(ListPage*, ListItem*, dword, dword);
 
-class Dialog
+class ActionListItem :
+	public SimpleTextListItem
 {
 public:
-	Dialog(void);
-	virtual ~Dialog(void);
-
-	int DoModal();
-	virtual void CreateDialog();
+	ActionListItem(ListPage* pParentList, KeyHandlerFnPtr action, dword dwFlags, const char* pszCol1, const char* pszCol2 = 0, const char* pszCol3 = 0, const char* pszCol4 = 0, const char* pszCol5 = 0);
+	virtual ~ActionListItem(void);
 	virtual dword OnKey( dword key, dword extKey );
-	virtual void DestroyDialog();
-
-protected:
-	void EndDialog(unsigned int iResult);
-
 private:
-	int m_iModalResult;
+	KeyHandlerFnPtr m_action;
 };
+#endif

@@ -23,7 +23,7 @@
 #define __DIALOGBOX_H
 
 #include "tap.h"
-#include "../../../trunk/libs/framework/Dialog.h"
+#include "Dialog.h"
 #include "tapstring.h"
 
 // Position of the Delete Confirmation Screen

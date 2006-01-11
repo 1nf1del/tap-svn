@@ -18,28 +18,36 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
+#ifndef _listcolumn_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
+#define _listcolumn_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
+
+#include <stdlib.h>
 #include "tap.h"
+#include "Rect.h"
+#include "tapstring.h"
+#include "colors.h"
 
-#define Dialog_Running -1
-#define Dialog_Exited 0
-#define Dialog_Ok 1
-#define Dialog_Cancel 2
+class ListPage;
 
-class Dialog
+#define LCF_CENTER_TEXT			0x00000001
+#define LCF_CENTER_HEADER_TEXT	0x00000002
+
+class ListColumn
 {
 public:
-	Dialog(void);
-	virtual ~Dialog(void);
+	ListColumn(ListPage* pParentList, int percentWidth, dword dwFlags, const char* pHeaderText);
+	int DrawBackground(Rect rcBounds, colorSets whatColors);
 
-	int DoModal();
-	virtual void CreateDialog();
-	virtual dword OnKey( dword key, dword extKey );
-	virtual void DestroyDialog();
-
-protected:
-	void EndDialog(unsigned int iResult);
+	const string& GetText() const;
+	dword GetFlags() const;
+	short int GetWidth();
+	void SetWidth(short int iWidth);
 
 private:
-	int m_iModalResult;
+	ListPage* m_theList;
+	short int m_width;
+	dword m_dwFlags;
+	string m_text;
 };
+
+#endif

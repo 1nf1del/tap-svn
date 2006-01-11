@@ -18,28 +18,23 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
-#include "tap.h"
+#include ".\simpletextlistitem.h"
 
-#define Dialog_Running -1
-#define Dialog_Exited 0
-#define Dialog_Ok 1
-#define Dialog_Cancel 2
-
-class Dialog
+SimpleTextListItem::SimpleTextListItem(ListPage* pParentList, dword dwFlags, const char* pszCol1, const char* pszCol2, const char* pszCol3, const char* pszCol4, const char* pszCol5) 
+: ListItem(pParentList, dwFlags)
 {
-public:
-	Dialog(void);
-	virtual ~Dialog(void);
+	m_asItemText[0] = pszCol1;
+	m_asItemText[1] = pszCol2;
+	m_asItemText[2] = pszCol3;
+	m_asItemText[3] = pszCol4;
+	m_asItemText[4] = pszCol5;
+}
 
-	int DoModal();
-	virtual void CreateDialog();
-	virtual dword OnKey( dword key, dword extKey );
-	virtual void DestroyDialog();
+SimpleTextListItem::~SimpleTextListItem(void)
+{
+}
 
-protected:
-	void EndDialog(unsigned int iResult);
-
-private:
-	int m_iModalResult;
-};
+void SimpleTextListItem::DrawSubItem(int iColumn, Rect rcBounds)
+{
+	DrawSubItemString(iColumn, rcBounds, m_asItemText[iColumn]);
+}

@@ -21,10 +21,12 @@
 include ../../tools/build/tap.mk
 
 CXXFLAGS+= -I../libc++utils
+OBJECTS=Main.o Region.o Tapplication.o Page.o BitmapPage.o Dialog.o TextTools.o Dialog.o graphics.o YesNoBox.o DialogBox.o ProgressBox.o
+OBJECTS+=ListPage.o Rect.o ListItem.o ListColumn.o SimpleTextListItem.o ActionListItem.o
 
 all: libFramework.a
 
-libFramework.a: Main.o Region.o Tapplication.o Page.o BitmapPage.o Dialog.o TextTools.o Dialog.o graphics.o YesNoBox.o DialogBox.o ProgressBox.o
+libFramework.a:  $(OBJECTS)
 	$(AR) cr $@ $^
 
 clean:

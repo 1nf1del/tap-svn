@@ -18,28 +18,22 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
-#include "tap.h"
+#ifndef _colors_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
+#define _colors_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 
-#define Dialog_Running -1
-#define Dialog_Exited 0
-#define Dialog_Ok 1
-#define Dialog_Cancel 2
-
-class Dialog
+enum colorSets
 {
-public:
-	Dialog(void);
-	virtual ~Dialog(void);
-
-	int DoModal();
-	virtual void CreateDialog();
-	virtual dword OnKey( dword key, dword extKey );
-	virtual void DestroyDialog();
-
-protected:
-	void EndDialog(unsigned int iResult);
-
-private:
-	int m_iModalResult;
+	normalColors,
+	highlightColors,
+	headerColors,
+	footerColors
 };
+
+typedef struct _ListColors
+{
+	word bgColor;
+	word textColor;
+	word frameColor;
+} ListColors;
+
+#endif

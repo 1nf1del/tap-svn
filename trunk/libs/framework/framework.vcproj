@@ -26,7 +26,7 @@
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -100,6 +100,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\ActionListItem.cpp">
+			</File>
+			<File
 				RelativePath=".\Dialog.cpp">
 			</File>
 			<File
@@ -109,6 +112,15 @@
 				RelativePath=".\graphics.c">
 			</File>
 			<File
+				RelativePath=".\ListColumn.cpp">
+			</File>
+			<File
+				RelativePath=".\ListItem.cpp">
+			</File>
+			<File
+				RelativePath=".\ListPage.cpp">
+			</File>
+			<File
 				RelativePath=".\Main.cpp">
 			</File>
 			<File
@@ -116,6 +128,12 @@
 			</File>
 			<File
 				RelativePath=".\ProgressBox.cpp">
+			</File>
+			<File
+				RelativePath=".\Rect.cpp">
+			</File>
+			<File
+				RelativePath=".\SimpleTextListItem.cpp">
 			</File>
 			<File
 				RelativePath=".\Tapplication.cpp">
@@ -132,16 +150,37 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath=".\ActionListItem.h">
+			</File>
+			<File
+				RelativePath=".\colors.h">
+			</File>
+			<File
 				RelativePath=".\Dialog.h">
 			</File>
 			<File
 				RelativePath=".\DialogBox.h">
 			</File>
 			<File
+				RelativePath=".\ListColumn.h">
+			</File>
+			<File
+				RelativePath=".\ListItem.h">
+			</File>
+			<File
+				RelativePath=".\ListPage.h">
+			</File>
+			<File
 				RelativePath=".\Page.h">
 			</File>
 			<File
 				RelativePath=".\ProgressBox.h">
+			</File>
+			<File
+				RelativePath=".\Rect.h">
+			</File>
+			<File
+				RelativePath=".\SimpleTextListItem.h">
 			</File>
 			<File
 				RelativePath=".\Tapplication.h">
