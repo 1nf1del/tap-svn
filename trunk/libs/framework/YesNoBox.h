@@ -28,6 +28,8 @@
 class YesNoBox : public DialogBox
 {
 public:
+	static int Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2 = 0, int defaultOption = 0);
+
 	YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption);
 	virtual ~YesNoBox();
 

@@ -136,3 +136,9 @@ dword YesNoBox::OnKey( dword key, dword extKey )
 
 	return 0;
 }
+
+int YesNoBox::Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption)
+{
+	YesNoBox theBox(title, line1, line2, button1, button2, defaultOption);
+	return theBox.DoModal();
+}
