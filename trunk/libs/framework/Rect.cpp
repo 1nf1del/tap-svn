@@ -88,16 +88,16 @@ void Rect::PutString(word regionIndex, const char* text, word foreground, word b
 	}
 	else
 	{
-		TAP_Osd_PutString(regionIndex, x, y + (h - GetHeightForFontSize(fntSize)) / 2,
-			w + x -1, 
+		TAP_Osd_PutString(regionIndex, x+2, y + (h - GetHeightForFontSize(fntSize)) / 2,
+			w + x -3, 
 			text, foreground, background, 0, fntSize, 0);
 	}
 }
 
 void Rect::PutStringCenter(word regionIndex, const char* text, word foreground, word background, byte fntSize) const
 {
-	PrintCenter(regionIndex, x, y+ (h - GetHeightForFontSize(fntSize)) / 2
-		, w, text, foreground, background, fntSize);
+	PrintCenter(regionIndex, x+2, y+ (h - GetHeightForFontSize(fntSize)) / 2
+		, w-2, text, foreground, background, fntSize);
 }
 
 int StringBreakPoint(char* pStr, int width, byte fntSize)

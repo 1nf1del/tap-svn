@@ -22,6 +22,7 @@
 #ifndef __TAPPLICATION_H
 #define __TAPPLICATION_H
 
+#include "colors.h"
 
 class Page;
 class Dialog;
@@ -45,6 +46,10 @@ public:
 	void SetActiveDialog(Dialog* pDialog);
 	bool IsTopPage( Page* page);
 
+	// Skinning support
+	bool LoadSkin( const char* filename );
+	ListColors GetColorDef( colorSets whichSet ) const		{ return m_colors[whichSet]; }
+
 	// Application creation
 	static Tapplication* GetTheApplication();
 	static int CreateTheApplication();
@@ -63,6 +68,9 @@ private:
 
 	Page* pageStack[10];
 	Dialog* m_activeDialog;
+
+	// colours
+	ListColors m_colors[4];
 
 	static Tapplication* tap;
 };

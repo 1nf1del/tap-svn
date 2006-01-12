@@ -93,7 +93,7 @@ void ListPage::DrawHeaderItem(int iColumn, Rect drawRect)
 	if (m_osdRegionIndex == 0)
 		return;
 
-	ListColors theColors = GetColorDef(normalColors);
+	ListColors theColors = GetColorDef(headerColors);
 
 	drawRect.PutString(m_osdRegionIndex, m_columnInfo[iColumn]->GetText(), theColors.textColor, theColors.bgColor,
 		m_fsHeader, (m_columnInfo[iColumn]->GetFlags() & LCF_CENTER_HEADER_TEXT)!=0);
@@ -124,21 +124,7 @@ void ListPage::DrawFooter()
 
 ListColors ListPage::GetColorDef(enum colorSets whichSet)
 {
-	ListColors outColors;
-	switch(whichSet)
-	{
-	case highlightColors:
-		outColors.frameColor = COLOR_Yellow;
-		outColors.bgColor = COLOR_Blue;
-		outColors.textColor = COLOR_Yellow;
-		break;
-	default:
-		outColors.frameColor = COLOR_Yellow;
-		outColors.bgColor = COLOR_DarkBlue;
-		outColors.textColor = COLOR_Yellow;
-		break;
-	}
-	return outColors;
+	return Tapplication::GetTheApplication()->GetColorDef(whichSet);
 }
 
 
@@ -257,7 +243,6 @@ void ListPage::DrawVisibleItems()
 void ListPage::DrawHeader()
 {
 	Rect r = HeaderRect();
-	ListColors theColors = GetColorDef(headerColors);
 	int iFrameWidth = DrawHeaderFrame(r);
 	r.Shrink(iFrameWidth);
 	if (m_dwFlags & LF_COLUMNS_IN_HEADER)
@@ -492,7 +477,15 @@ void ListPage::SetFontSizes(byte fsHeader, byte fsBody, byte fsFooter)
 
 int ListPage::DrawHeaderFrame(Rect drawRect)
 {
-	return DrawFrame(drawRect);
+	if (m_osdRegionIndex == 0)
+		return 0;
+
+	ListColors theColors = GetColorDef(headerColors);
+
+	drawRect.Fill(m_osdRegionIndex, theColors.bgColor);
+	drawRect.DrawBox(m_osdRegionIndex, 2, theColors.frameColor);
+
+	return 2;
 }
 
 int ListPage::DrawFooterFrame(Rect drawRect)
@@ -546,7 +539,7 @@ void ListPage::DrawScrollBar()
 	r.x += 2;
 	r.w = SCROLLBAR_WIDTH - 4;
 
-	r.Fill(m_osdRegionIndex, COLOR_Yellow);
+	r.Fill(m_osdRegionIndex, GetColorDef(headerColors).bgColor);
 }
 
 void ListPage::PartialDraw(int iOldSel, int iOldFirstInView)

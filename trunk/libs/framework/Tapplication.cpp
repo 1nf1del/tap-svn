@@ -19,8 +19,10 @@
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <stdlib.h>
 #include <tap.h>
 #include <vtable.h>
+#include <inifile.h>
 #include "Tapplication.h"
 #include "Page.h"
 #include "logger.h"
@@ -30,6 +32,23 @@ Tapplication* Tapplication::tap = NULL;
 
 Tapplication::Tapplication()
 {
+	// Setup skin colours
+	m_colors[normalColors].frameColor = RGB8888(8,8,8);
+	m_colors[normalColors].bgColor = RGB8888(81,90,195);
+	m_colors[normalColors].textColor = RGB8888(240,240,240);
+
+	m_colors[highlightColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[highlightColors].bgColor = RGB8888(8,176,8);
+	m_colors[highlightColors].textColor = RGB8888(240,240,8);
+
+	m_colors[headerColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[headerColors].bgColor = RGB8888(8,8,8);
+	m_colors[headerColors].textColor = RGB8888(240,240,240);
+
+	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
+	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
+
 	TAP_Print("Tapplication\n");
 #ifdef DEBUG
 	if ( tap != 0 )
@@ -210,4 +229,45 @@ void Tapplication::SetActiveDialog(Dialog* pDialog)
 		TRACE("Ooops - not allowed more than 1 active dialog");
 	}
 	m_activeDialog = pDialog;
+}
+
+
+// Skin management
+// This could do with being moved into IniFile, but we could do with a Color type first
+void GetColour( IniFile& file, const char* key, word& color )
+{
+	string value;
+	if ( file.GetValue(key, value) )
+	{
+		array<string> rgb;
+		value.split( ",", rgb );
+		if ( rgb.size() == 3 )
+			color = RGB8888( atoi(rgb[0]), atoi(rgb[1]), atoi(rgb[2]) );
+	}
+}
+
+
+bool Tapplication::LoadSkin( const char* filename )
+{
+	IniFile file;
+	if ( !file.Load( "Dark.mcf" ) )
+		return false;
+
+	GetColour( file, "Frame", m_colors[normalColors].frameColor );
+	GetColour( file, "Background", m_colors[normalColors].bgColor );
+	GetColour( file, "TextForeground", m_colors[normalColors].textColor );
+
+	m_colors[highlightColors].frameColor = m_colors[normalColors].frameColor;
+	GetColour( file, "Highlight", m_colors[highlightColors].bgColor );
+	GetColour( file, "TextHighlightedForeground", m_colors[highlightColors].textColor );
+
+	m_colors[headerColors].frameColor = m_colors[normalColors].frameColor;
+	GetColour( file, "TitleBackground", m_colors[headerColors].bgColor );
+	GetColour( file, "TitleForeground", m_colors[headerColors].textColor);
+
+	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
+	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
+
+	return true;
 }
