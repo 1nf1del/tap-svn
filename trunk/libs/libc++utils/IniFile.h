@@ -30,12 +30,19 @@
 class IniFile
 {
 public:
+	IniFile();
 	IniFile( const char* filename );
 	virtual ~IniFile();
 
 	bool Load( const char* filename );
 	bool Save( const char* filename ) const;
 
+	// Get a key returning success
+	bool GetValue( const char* key, string& value ) const				{ return FindKey( key, value ); }
+	bool GetValue( const char* key, int& value ) const;
+	bool GetValue( const char* key, bool& value ) const;
+
+	// Get a key returning the value or defaultValue if key was not found
 	string GetValue( const char* key, const char* defaultValue ) const;
 	int GetValue( const char* key, int defaultValue ) const;
 	bool GetValue( const char* key, bool defaultValue ) const;

@@ -27,6 +27,12 @@
 
 const int maxIniLength = 2048;
 
+IniFile::IniFile()
+{
+	// default to unix style line endings
+	strcpy( eol, "\n" );
+}
+
 IniFile::IniFile( const char* filename )
 {
 	// default to unix style line endings
@@ -109,6 +115,15 @@ string IniFile::GetValue( const char* key, const char* defaultValue ) const
 
 
 // Get an integer value
+bool IniFile::GetValue( const char* key, int& value ) const
+{
+	string result;
+	if ( !FindKey( key, result ) )
+		return false;
+	value = atoi(result);
+	return true;
+}
+
 int IniFile::GetValue( const char* key, int defaultValue ) const
 {
 	string result;
@@ -119,6 +134,15 @@ int IniFile::GetValue( const char* key, int defaultValue ) const
 
 
 // Get a boolean value
+bool IniFile::GetValue( const char* key, bool& value ) const
+{
+	string result;
+	if ( !FindKey( key, result ) )
+		return false;
+	value = result == "1" ? 1 : 0;
+	return true;
+}
+
 bool IniFile::GetValue( const char* key, bool defaultValue ) const
 {
 	string result;
