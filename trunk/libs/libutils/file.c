@@ -133,8 +133,9 @@ int fputs(char *s, UFILE *iop)
 {
 
 	int c;
-
+#ifdef DEBUG
 	TAP_Print("fputs: Adding string '%s'\r\n", s);
+#endif
 	while (c = *s++)
 		putc(c, iop);
 

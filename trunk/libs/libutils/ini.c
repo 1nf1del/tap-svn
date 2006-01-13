@@ -145,7 +145,7 @@ int WritePrivateProfileString (char* AppName, char* KeyName, char* String, char*
 				fileflag=1;
 			}
 			fputs(buffer, tmpfile);
-		} else if (buffer[0] == '\n'){
+		} else if (buffer[0] == '\n'||buffer[0]=='\r'){
 			//We handle CRLF ourselves
 		} else {
 			strcpy(tmpstr, buffer);

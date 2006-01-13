@@ -163,14 +163,19 @@ public:
 		QuickSort(m_pArray, m_iLen, comp);
 	}
 
-	bool contains(const T& item) const
+	int find(const T& item) const
 	{
 		for (unsigned int i=0; i<m_iLen; i++)
 		{
 			if (m_pArray[i]==item)
-				return true;
+				return i;
 		}
-		return false;
+		return -1;
+	}
+
+	bool contains(const T& item) const
+	{
+		return find(item)!=-1;
 	}
 
 	const T& nullObject() const

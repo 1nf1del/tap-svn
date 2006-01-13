@@ -396,6 +396,9 @@ void ListPage::CalcFirstInView(int iOffset)
 
 dword ListPage::MoveSelection(int iOffset, bool bWrap)
 {
+	if (m_items.size() == 0)
+		return 0;
+
 	int iOldSel = m_selectedItem;
 	int iOldFirst = m_firstItemInView;
 
