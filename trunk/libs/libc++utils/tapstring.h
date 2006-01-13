@@ -45,6 +45,10 @@ public:
 	string& operator+=(const char* pData);
 	string& operator+=(char c);
 	bool operator<(const string& right) const;
+	const char& operator[](int i) const;
+	char& operator[](int i);
+	const char& operator[](unsigned int i) const;
+	char& operator[](unsigned int i);
 
 	operator const char*() const;
 	const char* string::c_str() const;
@@ -73,6 +77,8 @@ public:
 	void resize(unsigned int newSize);
 	void format(const char* format, ...);
 	int split( const char* delimiter, array<string>& result);
+	int replace(char replace, char with);
+	string trim() const;
 
 private:
 

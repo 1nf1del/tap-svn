@@ -49,6 +49,10 @@ Tapplication::Tapplication()
 	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
 	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
 
+	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
+	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
+	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
+
 	TAP_Print("Tapplication\n");
 #ifdef DEBUG
 	if ( tap != 0 )
@@ -268,6 +272,10 @@ bool Tapplication::LoadSkin( const char* filename )
 	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
 	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
 	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
+
+	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
+	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
+	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
 
 	return true;
 }

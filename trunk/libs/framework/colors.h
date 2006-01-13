@@ -26,7 +26,8 @@ enum colorSets
 	normalColors,
 	highlightColors,
 	headerColors,
-	footerColors
+	footerColors,
+	scrollBarColors
 };
 
 typedef struct _ListColors

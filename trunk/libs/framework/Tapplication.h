@@ -70,7 +70,7 @@ private:
 	Dialog* m_activeDialog;
 
 	// colours
-	ListColors m_colors[4];
+	ListColors m_colors[5];
 
 	static Tapplication* tap;
 };

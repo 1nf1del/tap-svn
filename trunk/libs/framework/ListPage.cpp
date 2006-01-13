@@ -75,12 +75,12 @@ ListPage::~ListPage()
 	TRACE("Finished destroying list page\n");
 }
 
-int ListPage::DrawFrame(Rect drawRect)
+int ListPage::DrawFrame(Rect drawRect, colorSets whichColors)
 {
 	if (m_osdRegionIndex == 0)
 		return 0;
 
-	ListColors theColors = GetColorDef(normalColors);
+	ListColors theColors = GetColorDef(whichColors);
 
 	drawRect.Fill(m_osdRegionIndex, theColors.bgColor);
 	drawRect.DrawBox(m_osdRegionIndex, 2, theColors.frameColor);
@@ -525,7 +525,7 @@ void ListPage::Redraw()
 void ListPage::DrawScrollBar()
 {
 	Rect r = ScrollBarRect();
-	DrawFrame(r);
+	DrawFrame(r, scrollBarColors);
 
 	int iItemCount = m_items.size() ? m_items.size() : 1;
 	int iBarHeight = r.h;
@@ -539,7 +539,7 @@ void ListPage::DrawScrollBar()
 	r.x += 2;
 	r.w = SCROLLBAR_WIDTH - 4;
 
-	r.Fill(m_osdRegionIndex, GetColorDef(headerColors).bgColor);
+	r.Fill(m_osdRegionIndex, GetColorDef(scrollBarColors).textColor);
 }
 
 void ListPage::PartialDraw(int iOldSel, int iOldFirstInView)

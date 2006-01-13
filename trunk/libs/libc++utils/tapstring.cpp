@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 #include "taparray.h"
 #include "tap.h"
 #include ".\tapstring.h"
@@ -131,6 +132,27 @@ string::operator const char*() const
 {
 	return getstr();
 }
+	
+const char& string::operator[](int i) const
+{
+	return getstr()[i];
+}
+
+char& string::operator[](int i)
+{
+	return getstr()[i];
+}
+
+const char& string::operator[](unsigned int i) const
+{
+	return getstr()[i];
+}
+
+char& string::operator[](unsigned int i)
+{
+	return getstr()[i];
+}
+
 
 const char* string::c_str() const
 {
@@ -208,7 +230,8 @@ int string::findfirstof(const string& toFind, int iStartAfterChar) const
 
 int string::findfirstof(const char* pToFind, int iStartAfterChar) const
 {
-	return strcspn(getstr() + iStartAfterChar + 1, pToFind);
+	int result = strcspn(getstr() + iStartAfterChar + 1, pToFind) + iStartAfterChar + 1;
+	return result >= size() ? -1 : result;
 }
 	
 int string::find(const char* pToFind, int iStartAfterChar) const
@@ -258,6 +281,34 @@ void string::resize(unsigned int newSize)
 	}
 }
 
+int string::replace(char replace, char with)
+{
+	int iCount = 0;
+	int iPos = -1;
+	while ((iPos = indexof(replace, iPos))!=-1)
+	{
+		getstr()[iPos]=with;
+		iCount++;
+	}
+
+	return iCount;
+}
+
+string string::trim() const
+{
+	int iCut1 = 0;
+	int iCut2 = size();
+	const char* buf = getstr();
+
+	while (iCut1<iCut2 && isspace(buf[iCut1]))
+		iCut1++;
+
+	while (iCut2>iCut1 && isspace(buf[iCut2-1]))
+		iCut2--;
+
+	return string(buf+iCut1, iCut2-iCut1);
+
+}
 
 void string::assign(const char* pData, int iLen)
 {
@@ -437,3 +488,4 @@ int string::split( const char* delimiter, array<string>& result )
 
 	return elemCnt+1;
 }
+

@@ -78,7 +78,7 @@ private:
 	dword MoveSelection(int iOffset, bool bWrap = true);
 	int CountItemsInView();
 
-	int DrawFrame(Rect drawRect);
+	int DrawFrame(Rect drawRect, colorSets whichColors = normalColors);
 	int DrawHeaderFrame(Rect drawRect);
 	int DrawFooterFrame(Rect drawRect);
 	int DrawBodyFrame(Rect drawRect);
