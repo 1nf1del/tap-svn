@@ -492,7 +492,7 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #define FOOTERS 0
 #endif  /* FOOTERS */
 #ifndef ABORT
-#define ABORT  abort()
+#define ABORT  TAP_Print("abort() is unsupported on Topfield\n");
 #endif  /* ABORT */
 #ifndef ABORT_ON_ASSERT_FAILURE
 #define ABORT_ON_ASSERT_FAILURE 1
