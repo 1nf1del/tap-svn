@@ -169,7 +169,7 @@ void Rect::PutMultiLineString(word regionIndex, const char* text, word foregroun
 		_ASSERT(iThisLine + iDone<=iChars);
 		char cBackup = pText[iThisLine + iDone];
 		pText[iThisLine + iDone] = 0;
-		TAP_Osd_PutString(regionIndex, x, y+hUsed, w+x-1, isspace(buf[0]) ? buf+1 : buf,
+		TAP_Osd_PutString(regionIndex, x+2, y+hUsed, w+x-3, isspace(buf[0]) ? buf+1 : buf,
 			foreground, background, 0, fntSize, 0);
 		pText[iThisLine + iDone] = cBackup;
 		iDone += iThisLine;

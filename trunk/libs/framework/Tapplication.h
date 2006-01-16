@@ -43,6 +43,7 @@ public:
 	void PushPage( Page* page );
 	Page* PopPage();
 	dword Close();
+	bool IsClosing() const;
 	void SetActiveDialog(Dialog* pDialog);
 	bool IsTopPage( Page* page);
 
@@ -73,6 +74,7 @@ private:
 	int m_screenOffsetX, m_screenOffsetY;
 	ListColors m_colors[5];
 
+	bool m_isClosing;
 	static Tapplication* tap;
 };
 
@@ -91,6 +93,11 @@ inline void Tapplication::DiscardTheApplication()
 {
 	delete tap;
 	tap = NULL;
+}
+
+inline bool Tapplication::IsClosing() const
+{
+	return m_isClosing;
 }
 
 inline word GetTAPScreenRegion()

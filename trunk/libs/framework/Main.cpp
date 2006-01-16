@@ -48,7 +48,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	{
 		param1 = tap->EventHandler(event, param1, param2);
 		// Check the global application object. If null then we're to exit the TAP
-		if ( Tapplication::GetTheApplication() == NULL )
+		if ( tap->IsClosing() )
 		{
 			delete tap;
 			Logger::DoneWithLogger();

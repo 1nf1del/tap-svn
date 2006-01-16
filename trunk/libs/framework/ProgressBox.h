@@ -18,7 +18,11 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma once
+
+#ifndef __PROGRESSBOX_H
+#define __PROGRESSBOX_H
+
+
 #include "dialogbox.h"
 
 class ProgressBox :
@@ -31,3 +35,6 @@ public:
 
 	void UpdateProgress(int percent, const string& sStep = "");
 };
+
+
+#endif

@@ -32,7 +32,8 @@ Tapplication* Tapplication::tap = NULL;
 
 Tapplication::Tapplication() :
 	m_screenOffsetX(0),
-	m_screenOffsetY(0)
+	m_screenOffsetY(0),
+	m_isClosing(false)
 {
 	// Setup skin colours
 	m_colors[normalColors].frameColor = RGB8888(8,8,8);
@@ -141,7 +142,7 @@ dword Tapplication::Close()
 	}
 
 	// flag that we're exiting
-	tap = NULL;
+	m_isClosing = true;
 
 	return 0;
 }
