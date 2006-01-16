@@ -92,25 +92,19 @@ bool IniFile::Save( const char* filename ) const
 	int length = 0;
 	for ( unsigned int u = 0; u < line.size(); ++u )
 		length += line[u].size() + 2;
+	// pad to 512 bytes to prevent the TAP API writing garbage to the file
+	length += 512-length%512;
 
 	string buffer;
 	buffer.resize( length );
 	for ( unsigned int u = 0; u < line.size(); ++u )
 		buffer += line[u] + eol;
+	while ( buffer.size() < length-1 )
+		buffer += " ";
 	TAP_Hdd_Fwrite( (void*)(const char*)buffer, 1, buffer.size(), file );
 	TAP_Hdd_Fclose( file );
 
 	return true;
-}
-
-
-// Get a string value
-string IniFile::GetValue( const char* key, const char* defaultValue ) const
-{
-	string result;
-	if ( FindKey( key, result ) )
-		return result;
-	return defaultValue;
 }
 
 
@@ -124,14 +118,6 @@ bool IniFile::GetValue( const char* key, int& value ) const
 	return true;
 }
 
-int IniFile::GetValue( const char* key, int defaultValue ) const
-{
-	string result;
-	if ( FindKey( key, result ) )
-		return atoi(result);
-	return defaultValue;
-}
-
 
 // Get a boolean value
 bool IniFile::GetValue( const char* key, bool& value ) const
@@ -141,14 +127,6 @@ bool IniFile::GetValue( const char* key, bool& value ) const
 		return false;
 	value = result == "1" ? 1 : 0;
 	return true;
-}
-
-bool IniFile::GetValue( const char* key, bool defaultValue ) const
-{
-	string result;
-	if ( FindKey( key, result ) )
-		return result == "1" ? 1 : 0;
-	return defaultValue;
 }
 
 
@@ -232,6 +210,3 @@ bool IniFile::FindKey( const char* key, string& value ) const
 	}
 	return false;
 }
-
-
-

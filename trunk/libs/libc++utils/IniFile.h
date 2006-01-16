@@ -42,11 +42,6 @@ public:
 	bool GetValue( const char* key, int& value ) const;
 	bool GetValue( const char* key, bool& value ) const;
 
-	// Get a key returning the value or defaultValue if key was not found
-	string GetValue( const char* key, const char* defaultValue ) const;
-	int GetValue( const char* key, int defaultValue ) const;
-	bool GetValue( const char* key, bool defaultValue ) const;
-
 	void SetValue( const char* key, const char* value );
 	void SetValue( const char* key, int value );
 	void SetValue( const char* key, bool value );

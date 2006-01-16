@@ -14,6 +14,32 @@
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
+			ConfigurationType="0"
+			CharacterSet="2">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make DEBUG=1"
+				ReBuildCommandLine="make -B DEBUG=1"
+				CleanCommandLine="make clean"
+				Output="libc++utils.a"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="0"
+			CharacterSet="0">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make"
+				ReBuildCommandLine="make -B"
+				CleanCommandLine="make clean"
+				Output="libc++utils.a"/>
+		</Configuration>
+		<Configuration
+			Name="Tapulator|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -52,45 +78,6 @@
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
-			ConfigurationType="4"
-			CharacterSet="0">
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;..\libutils"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/libc++utils.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -101,21 +88,57 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
 				RelativePath=".\IniFile.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Logger.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\PerformanceTimer.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\taparray.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tapstring.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\vtable.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -124,30 +147,84 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
 				RelativePath=".\fastdelegate.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\IniFile.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Logger.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\PerformanceTimer.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\quicksort.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\taparray.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tapmap.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tapstring.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\vtable.h">
+				<FileConfiguration
+					Name="Debug|Win32">
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -157,9 +234,21 @@
 		</Filter>
 		<File
 			RelativePath=".\Makefile">
+			<FileConfiguration
+				Name="Debug|Win32">
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32">
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt">
+			<FileConfiguration
+				Name="Debug|Win32">
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32">
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>
