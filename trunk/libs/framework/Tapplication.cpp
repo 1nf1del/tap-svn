@@ -30,7 +30,9 @@
 
 Tapplication* Tapplication::tap = NULL;
 
-Tapplication::Tapplication()
+Tapplication::Tapplication() :
+	m_screenOffsetX(0),
+	m_screenOffsetY(0)
 {
 	// Setup skin colours
 	m_colors[normalColors].frameColor = RGB8888(8,8,8);
@@ -53,7 +55,6 @@ Tapplication::Tapplication()
 	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
 	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
 
-	TAP_Print("Tapplication\n");
 #ifdef DEBUG
 	if ( tap != 0 )
 		TAP_Print( "Tapplication already exists\n" );
@@ -81,6 +82,17 @@ Tapplication::~Tapplication()
 bool Tapplication::Start()
 {
 	TAP_Print("Tapplication::Start\n");
+
+	// Load application defaults
+	IniFile file;
+	if ( file.Load("default.ini") )
+	{
+		string skinName;
+		if ( file.GetValue( "Skin", skinName ) )
+			LoadSkin( skinName );
+		file.GetValue( "ScreenOffsetX", m_screenOffsetX );
+		file.GetValue( "ScreenOffsetY", m_screenOffsetY );
+	}
 	return false;
 }
 
@@ -121,18 +133,16 @@ dword Tapplication::OnKey( dword key, dword extKey )
 
 dword Tapplication::Close()
 {
-	// Notify open pages that the TAP is closing
-	for ( int i = 0; i < pageCount; ++i )
+	// Close all open pages starting from the topmost
+	while ( pageCount )
 	{
-		pageStack[i]->OnClose();
-		delete pageStack[i];
+		Page* page = pageStack[pageCount-1];
+		page->Close();
 	}
 
-	if ( pageCount > 0 )
-		TAP_ExitNormal();
+	// flag that we're exiting
+	tap = NULL;
 
-	DiscardTheApplication();
-	TAP_Exit(); // this won't return - I think...
 	return 0;
 }
 
@@ -175,47 +185,17 @@ bool Tapplication::IsTopPage( Page* page)
 	return page == pageStack[pageCount-1];
 }
 
-
-// accessors
-Tapplication* Tapplication::GetTheApplication()
-{
-	return tap;
-}
-
-void Tapplication::SetTheApplication(Tapplication* theApp)
-{
-	tap = theApp;
-}
-
-word Tapplication::GetScreenRegion()
-{
-	return screenRgn;
-}
-
-word GetTAPScreenRegion()
-{
-	return Tapplication::GetTheApplication()->GetScreenRegion();
-}
-
-void Tapplication::DiscardTheApplication()
-{
-	delete GetTheApplication();
-	SetTheApplication(NULL);
-}
-
 int Tapplication::CreateTheApplication()
 {
-	SetTheApplication(CreateTapplication());
-	if ( !GetTheApplication() )
+	tap = CreateTapplication();
+	if ( !tap )
 	{
 		TRACE("Failed to create application object\n");
 		return 0;
 	}
 
-	TRACE("Created Application Object OK\n");
-
 	// If start returns false then this is not a TSR
-	if ( !GetTheApplication()->Start() )
+	if ( !tap->Start() )
 	{
 		DiscardTheApplication();
 		TRACE("Exiting TAP - no TSR requested\n");
@@ -254,7 +234,7 @@ void GetColour( IniFile& file, const char* key, word& color )
 bool Tapplication::LoadSkin( const char* filename )
 {
 	IniFile file;
-	if ( !file.Load( "Dark.mcf" ) )
+	if ( !file.Load( filename ) )
 		return false;
 
 	GetColour( file, "Frame", m_colors[normalColors].frameColor );
@@ -269,9 +249,12 @@ bool Tapplication::LoadSkin( const char* filename )
 	GetColour( file, "TitleBackground", m_colors[headerColors].bgColor );
 	GetColour( file, "TitleForeground", m_colors[headerColors].textColor);
 
+	// default footer colours to the normal colours in case the ini file doesn't contain them
 	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
 	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
 	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
+	GetColour( file, "FooterBackground", m_colors[headerColors].bgColor );
+	GetColour( file, "FooterForeground", m_colors[headerColors].textColor);
 
 	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
 	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;

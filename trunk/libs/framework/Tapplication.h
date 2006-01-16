@@ -70,12 +70,33 @@ private:
 	Dialog* m_activeDialog;
 
 	// colours
+	int m_screenOffsetX, m_screenOffsetY;
 	ListColors m_colors[5];
 
 	static Tapplication* tap;
 };
 
-word GetTAPScreenRegion();
+// inline accessors
+inline Tapplication* Tapplication::GetTheApplication()
+{
+	return tap;
+}
+
+inline word Tapplication::GetScreenRegion()
+{
+	return screenRgn;
+}
+
+inline void Tapplication::DiscardTheApplication()
+{
+	delete tap;
+	tap = NULL;
+}
+
+inline word GetTAPScreenRegion()
+{
+	return Tapplication::GetTheApplication()->GetScreenRegion();
+}
 
 // Screen declarations
 const int MAX_SCREEN_X = 720;

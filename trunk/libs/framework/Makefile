@@ -20,7 +20,7 @@
 
 include ../../tools/build/tap.mk
 
-CXXFLAGS+= -I../libc++utils
+CXXFLAGS+= -I../libc++utils -I../libutils
 OBJECTS=Main.o Region.o Tapplication.o Page.o BitmapPage.o Dialog.o TextTools.o Dialog.o graphics.o YesNoBox.o DialogBox.o ProgressBox.o
 OBJECTS+=ListPage.o Rect.o ListItem.o ListColumn.o SimpleTextListItem.o ActionListItem.o
 

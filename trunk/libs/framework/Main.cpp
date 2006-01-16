@@ -21,34 +21,10 @@
 
 #include <tap.h>
 #include <vtable.h>
+#include <dlmalloc.h>
 #include "Tapplication.h"
 #include "Logger.h"
-#include "../libutils/dlmalloc.h"
 
-void (*_cached_TAP_Exit)() = NULL;
-
-
-extern "C" void dummy_TAP_Exit()
-{
-
-}
-
-extern "C" void cpp_TAP_Exit()
-{
-	if (_cached_TAP_Exit)
-	{
-		TAP_Exit = &dummy_TAP_Exit; // prevent any calls to TAP_Exit in the cleanup from going recursive
-		if (Tapplication::GetTheApplication())
-		{
-			Tapplication::GetTheApplication()->Close();
-			Tapplication::DiscardTheApplication();
-		}
-		TRACE("Exiting TAP due to TAP_Exit call\n");
-		Logger::DoneWithLogger();
-		dlmalloc_exit();
-		_cached_TAP_Exit();	
-	}
-}
 
 extern "C" 
 dword TAP_Main()
@@ -60,9 +36,6 @@ dword TAP_Main()
 	FixupVTables();
     TRACE("Fixed VTables\n");
 
-	_cached_TAP_Exit = TAP_Exit;
-	TAP_Exit = &cpp_TAP_Exit;
-
 	return Tapplication::CreateTheApplication();
 }
 
@@ -70,9 +43,20 @@ dword TAP_Main()
 extern "C"
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
-	if (Tapplication::GetTheApplication())
-		return Tapplication::GetTheApplication()->EventHandler(event, param1, param2);
+	Tapplication* tap = Tapplication::GetTheApplication();
+	if (tap)
+	{
+		param1 = tap->EventHandler(event, param1, param2);
+		// Check the global application object. If null then we're to exit the TAP
+		if ( Tapplication::GetTheApplication() == NULL )
+		{
+			delete tap;
+			Logger::DoneWithLogger();
+			dlmalloc_exit();
+			TAP_Exit();
+			return 0;
+		}
+	}
 
 	return param1;
 }
-
