@@ -3333,7 +3333,7 @@ static size_t release_all_segments(mstate m) {
       /* Can unmap if first chunk holds entire segment and not pinned */
       if (1) {
         tchunkptr tp = (tchunkptr)p;
-        assert(segment_holds(sp, (char*)sp));
+        //assert(segment_holds(sp, (char*)sp));
         if (CALL_MUNMAP(base, size) == 0) {
           released += size;
           /* unlink obsoleted record */

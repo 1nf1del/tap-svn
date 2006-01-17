@@ -443,7 +443,8 @@ dword ListPage::OnKey( dword key, dword extKey )
 	if (pSelItem)
 	{
 		dword dwRet = pSelItem->OnKey(key, extKey);
-		if ((dwRet == 0) && Tapplication::GetTheApplication()->IsTopPage(this))
+		if ((dwRet == 0) && Tapplication::GetTheApplication()
+			&& Tapplication::GetTheApplication()->IsTopPage(this))
 			Draw();
 		return dwRet;
 	}

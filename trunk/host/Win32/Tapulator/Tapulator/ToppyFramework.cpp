@@ -32,6 +32,7 @@
 
 ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), m_TheState(&m_ChannelList, &m_EPGImpl), m_Timers(&m_ChannelList)
 {
+	m_bExitFlag = false;
 	m_pMod = pModule;
 	m_hCurrentFind = 0;
 	m_iFirstTick = GetTickCount();
@@ -248,7 +249,8 @@ void ToppyFramework::EnterNormal(void )
 void ToppyFramework::Exit(void)
 {
 	Heap::GetTheHeap()->DumpLeaks();
-	throw std::exception("TAP_Exit");
+	m_bExitFlag = true;
+//	throw std::exception("TAP_Exit");
 }
 
 
@@ -639,6 +641,7 @@ DWORD ToppyFramework::Hdd_FindFirst(TYPE_File *file )
 	if (m_hCurrentFind == NULL)
 		return 0;
 	PopulateTYPE_File(file, findData);
+	m_iFindCount = 0;
 	return CountFilesInCurrentFolder();
 }
 
@@ -647,11 +650,11 @@ DWORD ToppyFramework::Hdd_FindNext(TYPE_File *file )
 {
 	WIN32_FIND_DATA findData;
 	if (!FindNextFile(m_hCurrentFind, &findData))
-		return 0;
+		return ++m_iFindCount;
 	
 	PopulateTYPE_File(file, findData);
 
-	return 1;
+	return ++m_iFindCount;
 }
 
 DWORD ToppyFramework::Hdd_Fseek(TYPE_File *file, long pos, long where )
@@ -1097,4 +1100,9 @@ int ToppyFramework::CountFilesInCurrentFolder()
 void ToppyFramework::RaiseEventToFirmware(unsigned short event, unsigned long param1, unsigned long param2 )
 {
 	m_TheState.Event(event, param1, param2);
+}
+
+bool ToppyFramework::IsTapExited()
+{
+	return m_bExitFlag;
 }

@@ -464,6 +464,13 @@ void string::format(const char* format, ...)
 	assign(buf);
 }
 
+array<string> string::split(const char* delimiter) const
+{
+	array<string> result;
+	split(delimiter, result);
+	return result;
+}
+
 int string::split( const char* delimiter, array<string>& result ) const
 {
 	int start = 0;

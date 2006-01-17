@@ -37,10 +37,11 @@ public:
 private:
 	static Logger* GetLogger();
 
-	void Log(const char* format, const va_list& arglist);
+	void Logv(const char* format, const va_list& arglist);
 	void SetDest(LogDests destination);
 
 	static Logger* m_pTheLogger;
+	static bool m_bLogNoMore;
 
 	LogDests m_Destination;
 	word m_OSDRegion;

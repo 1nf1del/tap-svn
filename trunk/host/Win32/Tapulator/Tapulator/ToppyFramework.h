@@ -222,6 +222,7 @@ public:
 	virtual void Vfd_Control(bool underTapCtrl );
 	virtual void Vfd_SendData(BYTE *data, BYTE dataLen );
 
+	bool IsTapExited();
 private:
 	bool NeedsRepaint();
 	CString MakePath(CString sName);
@@ -239,4 +240,6 @@ private:
 	JagFileReader m_EPGImpl;
 	ToppyState m_TheState;
 	DWORD m_iFirstTick;
+	bool m_bExitFlag;
+	int m_iFindCount;
 };

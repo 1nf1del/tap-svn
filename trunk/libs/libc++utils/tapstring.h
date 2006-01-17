@@ -77,6 +77,7 @@ public:
 	void resize(unsigned int newSize);
 	void format(const char* format, ...);
 	int split( const char* delimiter, array<string>& result) const;
+	array<string> split(const char* delimiter) const;
 	int replace(char replace, char with);
 	string trim() const;
 	string tolower() const;

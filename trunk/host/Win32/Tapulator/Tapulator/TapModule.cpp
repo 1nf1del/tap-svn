@@ -145,6 +145,12 @@ long TapModule::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 			pFrame->GetFramework()->RaiseEventToFirmware(EVT_KEY, iResult, hardwareKeyCode);
 
 		pFrame->RepaintIfNeeded();;
+		if (pFrame->GetFramework()->IsTapExited())
+		{
+			AfxMessageBox("TAP Exited");
+			UnloadExistingTap();
+			pFrame->RefreshFramework();
+		}
 		return iResult;
 	}
 	catch (std::exception& e)
@@ -161,6 +167,7 @@ long TapModule::RaiseKeyEvent(int keyCode, int hardwareKeyCode)
 		throw;
 		AfxMessageBox("Exception thrown from Event Handler");
 	}
+
 	return 0;
 }
 

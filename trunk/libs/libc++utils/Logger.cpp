@@ -2,6 +2,7 @@
 #include <file.h>
 
 Logger* Logger::m_pTheLogger = NULL;
+bool Logger::m_bLogNoMore = false;
 
 Logger::Logger(void)
 {
@@ -21,15 +22,18 @@ Logger::~Logger(void)
 
 void Logger::Log(const char* format, ...)
 {
-	va_list arglist;
-	va_start(arglist, format);
-	GetLogger()->Log(format, arglist);
-	va_end(arglist);
+	if (GetLogger())
+	{
+		va_list arglist;
+		va_start(arglist, format);
+		GetLogger()->Logv(format, arglist);
+		va_end(arglist);
+	}
 }
 
 Logger* Logger::GetLogger()
 {
-	if (m_pTheLogger == NULL)
+	if ((m_pTheLogger == NULL) && !m_bLogNoMore)
 		m_pTheLogger = new Logger();
 
 	return m_pTheLogger;
@@ -40,6 +44,7 @@ void Logger::DoneWithLogger()
 	TRACE("About to discard logger\n");
 	delete m_pTheLogger;
 	m_pTheLogger = NULL;
+	m_bLogNoMore = true;
 }
 
 void Logger::SetDestination(int destination)
@@ -81,7 +86,7 @@ void Logger::LogMemStats()
 	Log("AvailableMemory Stats : %d Total, %d Free, %d Avail\n", heapSize, freeSize, availSize);
 }
 
-void Logger::Log(const char* format, const va_list &arglist)
+void Logger::Logv(const char* format, const va_list &arglist)
 {
 	if (m_Destination == 0)
 		return;
