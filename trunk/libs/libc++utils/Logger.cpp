@@ -37,6 +37,7 @@ Logger* Logger::GetLogger()
 
 void Logger::DoneWithLogger()
 {
+	TRACE("About to discard logger\n");
 	delete m_pTheLogger;
 	m_pTheLogger = NULL;
 }

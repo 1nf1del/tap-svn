@@ -79,6 +79,8 @@ public:
 	int split( const char* delimiter, array<string>& result);
 	int replace(char replace, char with);
 	string trim() const;
+	string tolower() const;
+	string toupper() const;
 
 private:
 

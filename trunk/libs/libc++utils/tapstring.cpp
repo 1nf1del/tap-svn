@@ -310,6 +310,20 @@ string string::trim() const
 
 }
 
+string string::tolower() const
+{
+	string result = *this;
+	strlwr(result.getstr());
+	return result;
+}
+
+string string::toupper() const
+{
+	string result = *this;
+	strupr(result.getstr());
+	return result;
+}
+
 void string::assign(const char* pData, int iLen)
 {
 	if (pData == 0 || iLen == 0)

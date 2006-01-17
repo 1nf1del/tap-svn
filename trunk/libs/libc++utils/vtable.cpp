@@ -3,6 +3,13 @@
 #include "Logger.h"
 #include "dlmalloc.h"
 
+#ifndef WIN32
+#define USE_DLMALLOC
+#else
+// for debugging dlmalloc
+//#define USE_DLMALLOC
+#endif
+
 void FixupVTable( vtable& vtbl )
 {
 #ifdef _TAP
@@ -53,28 +60,9 @@ void FixupVTables()
 {
 
 }
+#endif
 
-void * operator new(size_t size)
-{
-	return TAP_MemAlloc( (dword) size);
-}
-void operator delete(void * mem)
-{
-	if (mem)
-		TAP_MemFree(mem);
-}
-
-void* operator new[](size_t size)
-{
-	return TAP_MemAlloc(size);
-}
-
-void operator delete[](void* pMem)
-{
-	TAP_MemFree(pMem);
-}
-
-#else
+#ifdef USE_DLMALLOC
 
 void * operator new(size_t size)
 {
@@ -99,5 +87,29 @@ void operator delete[](void* pMem)
 
 	dlmalloc_trim(0);
 }
+
+#else
+
+void * operator new(size_t size)
+{
+	return TAP_MemAlloc( (dword) size);
+}
+void operator delete(void * mem)
+{
+	if (mem)
+		TAP_MemFree(mem);
+}
+
+void* operator new[](size_t size)
+{
+	return TAP_MemAlloc(size);
+}
+
+void operator delete[](void* pMem)
+{
+	TAP_MemFree(pMem);
+}
+
+
 
 #endif
