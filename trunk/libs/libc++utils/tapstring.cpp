@@ -167,6 +167,7 @@ char* string::getbuffer( int size )
 
 int string::releasebuffer()
 {
+	getstr()[m_iReserved-1] = 0; // null terminate the data at the maximum length requested
 	m_iLen = strlen( getstr() );
 	return m_iLen;
 }
@@ -463,7 +464,7 @@ void string::format(const char* format, ...)
 	assign(buf);
 }
 
-int string::split( const char* delimiter, array<string>& result )
+int string::split( const char* delimiter, array<string>& result ) const
 {
 	int start = 0;
 	int delim = find(delimiter);
