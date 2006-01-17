@@ -170,7 +170,10 @@ int ProcessImage( char* filename )
 	// Swap words for MIPs big endian format
 	p = (WORD*)buffer;
 	for ( i = 0; i < bufferSize; i+=2 )
-		*p++ = swap(*p | 0x8000);
+	{
+		if (*p!=0) *p=0x8000|*p;
+		*p++ = swap(*p);
+	}
 
 	if ( !outputHeader )
 	{
