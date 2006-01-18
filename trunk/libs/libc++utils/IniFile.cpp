@@ -119,6 +119,17 @@ bool IniFile::GetValue( const char* key, int& value ) const
 }
 
 
+// Get a short integer value
+bool IniFile::GetValue( const char* key, short& value ) const
+{
+	string result;
+	if ( !FindKey( key, result ) )
+		return false;
+	value = (short)atoi(result);
+	return true;
+}
+
+
 // Get a boolean value
 bool IniFile::GetValue( const char* key, bool& value ) const
 {

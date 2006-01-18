@@ -40,6 +40,7 @@ public:
 	// Get a key returning success
 	bool GetValue( const char* key, string& value ) const				{ return FindKey( key, value ); }
 	bool GetValue( const char* key, int& value ) const;
+	bool GetValue( const char* key, short& value ) const;
 	bool GetValue( const char* key, bool& value ) const;
 
 	void SetValue( const char* key, const char* value );
