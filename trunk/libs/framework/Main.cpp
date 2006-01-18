@@ -21,9 +21,26 @@
 
 #include <tap.h>
 #include <vtable.h>
-#include <dlmalloc.h>
+#include "dlmalloc.h"
 #include "Tapplication.h"
 #include "Logger.h"
+
+void (*_cached_TAP_Exit)() = NULL;
+extern "C" void dummy_TAP_Exit()
+{
+
+}
+
+extern "C" void cpp_TAP_Exit()
+{
+	TRACE("Flagging for exit of TAP due to TAP_Exit call\n");
+	Tapplication* tap = Tapplication::GetTheApplication();
+	if (tap)
+	{
+		TAP_Exit = &dummy_TAP_Exit; // prevent any calls to TAP_Exit in the cleanup from calling us again
+		tap->m_isClosing = true;
+	}
+}
 
 
 extern "C" 
@@ -35,7 +52,8 @@ dword TAP_Main()
 	// Call the auto generated vtable fixer
 	FixupVTables();
     TRACE("Fixed VTables\n");
-
+	_cached_TAP_Exit = TAP_Exit;
+	TAP_Exit = &cpp_TAP_Exit;
 	return Tapplication::CreateTheApplication();
 }
 
@@ -50,13 +68,16 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		// Check the global application object. If null then we're to exit the TAP
 		if ( tap->IsClosing() )
 		{
-			delete tap;
+			Tapplication::DiscardTheApplication();
 			Logger::DoneWithLogger();
 			dlmalloc_exit();
-			TAP_Exit();
+			_cached_TAP_Exit();
 			return 0;
 		}
 	}
 
 	return param1;
 }
+
+
+

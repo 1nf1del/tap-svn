@@ -127,7 +127,7 @@ int StringBreakPoint(char* pStr, int width, byte fntSize)
 			return iResult;
 		}
 
-		int iNewGuess = iGuess + (width - wUsed) / avgWidth;
+		int iNewGuess = iGuess + (width - wUsed) / avgWidth - 1;
 
 		if (abs(iGuess - iNewGuess)<=1)
 		{	

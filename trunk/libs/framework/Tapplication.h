@@ -28,9 +28,10 @@ class Page;
 class Dialog;
 
 extern "C" const dword  __tap_ud__;
-
+extern "C" void cpp_TAP_Exit();
 class Tapplication
 {
+	friend void cpp_TAP_Exit();
 public:
 	Tapplication();
 	virtual ~Tapplication();
@@ -65,6 +66,8 @@ public:
 protected:
 	int pageCount;
 	word screenRgn;
+	// colours - protected so a tap can override the defaults
+	ListColors m_colors[5];
 
 private:
 	static Tapplication* CreateTapplication();
@@ -75,7 +78,6 @@ private:
 
 	// colours
 	int m_screenOffsetX, m_screenOffsetY;
-	ListColors m_colors[5];
 
 	bool m_isClosing;
 	static Tapplication* tap;

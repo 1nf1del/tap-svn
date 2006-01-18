@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;&quot;C:\cygwin\home\robin\projects\tap\trunk\libs\libc++utils&quot;"
+				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;&quot;C:\cygwin\home\robin\projects\tap\trunk\libs\libc++utils&quot;;..\libutils"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"

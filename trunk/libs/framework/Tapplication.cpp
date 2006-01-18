@@ -71,19 +71,22 @@ Tapplication::Tapplication() :
 
 Tapplication::~Tapplication()
 {
-	TAP_Print("~Tapplication\n");
+	TRACE("~Tapplication\n");
+
+	Close(); // clean up any outstanding pages
 
 	TAP_Osd_Delete( screenRgn );
 	screenRgn = 0;
 
 	// Clear the global TAP object pointer
 	tap = 0;
+	TRACE("~Tapplication finished\n");
 }
 
 
 bool Tapplication::Start()
 {
-	TAP_Print("Tapplication::Start\n");
+	TRACE("Tapplication::Start\n");
 
 	// Load application defaults
 	IniFile file;
