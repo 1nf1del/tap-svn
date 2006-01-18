@@ -27,6 +27,8 @@
 class Page;
 class Dialog;
 
+extern "C" const dword  __tap_ud__;
+
 class Tapplication
 {
 public:
@@ -58,6 +60,7 @@ public:
 
 	// Accessors
 	word GetScreenRegion();
+	dword GetID() const;
 
 protected:
 	int pageCount;
@@ -104,6 +107,13 @@ inline word GetTAPScreenRegion()
 {
 	return Tapplication::GetTheApplication()->GetScreenRegion();
 }
+
+
+inline dword Tapplication::GetID() const
+{
+	return __tap_ud__;
+}
+
 
 // Screen declarations
 const int MAX_SCREEN_X = 720;

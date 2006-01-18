@@ -25,6 +25,7 @@
 #include <inifile.h>
 #include "Tapplication.h"
 #include "Page.h"
+#include "Rect.h"
 #include "logger.h"
 #include "dialog.h"
 
@@ -63,7 +64,7 @@ Tapplication::Tapplication() :
 
 	pageCount = 0;
 
-	screenRgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
+	screenRgn = (word)TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 	m_activeDialog = NULL;
 }
 
@@ -91,8 +92,10 @@ bool Tapplication::Start()
 		string skinName;
 		if ( file.GetValue( "Skin", skinName ) )
 			LoadSkin( skinName );
-		file.GetValue( "ScreenOffsetX", m_screenOffsetX );
-		file.GetValue( "ScreenOffsetY", m_screenOffsetY );
+		short screenOffsetX, screenOffsetY;
+		file.GetValue( "ScreenOffsetX", screenOffsetX );
+		file.GetValue( "ScreenOffsetY", screenOffsetY );
+		Rect::SetOffset( screenOffsetX, screenOffsetY );
 	}
 	return false;
 }
@@ -227,7 +230,7 @@ void GetColour( IniFile& file, const char* key, word& color )
 		array<string> rgb;
 		value.split( ",", rgb );
 		if ( rgb.size() == 3 )
-			color = RGB8888( atoi(rgb[0]), atoi(rgb[1]), atoi(rgb[2]) );
+			color = (short)RGB8888( atoi(rgb[0]), atoi(rgb[1]), atoi(rgb[2]) );
 	}
 }
 

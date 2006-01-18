@@ -30,10 +30,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <crtdbg.h>
 #include <math.h>
 #endif
+
+// Screen offsets to deal with variations in screen position on different TV sets
+short Rect::offsetX;
+short Rect::offsetY;
+
+
 Rect::Rect(short x, short y, short w, short h)
 {
-	this->x = x;
-	this->y = y;
+	this->x = x+offsetX;
+	this->y = y+offsetY;
 	this->w = w;
 	this->h = h;
 }
@@ -157,7 +163,6 @@ int StringBreakPoint(char* pStr, int width, byte fntSize)
 void Rect::PutMultiLineString(word regionIndex, const char* text, word foreground, word background, byte fntSize) const
 {
 	char* pText = (char*) text; // we need to change it, but promise to put it back :-)
-	int avgWidth = GetWidthForFontSize(fntSize);
 	int avgHeight = GetHeightForFontSize(fntSize);
 	int hUsed = 0;
 	int iChars = strlen(text);
@@ -192,7 +197,7 @@ void Rect::DrawBox(word regionIndex, short int thickness, word color) const
 
 word Rect::CreateRegion(bool bMemRegion)
 {
-	return TAP_Osd_Create(bMemRegion ? 0 : x, bMemRegion ? 0 : y, w, h, 0, bMemRegion ? OSD_Flag_MemRgn : 0);
+	return (word)TAP_Osd_Create(bMemRegion ? 0 : x, bMemRegion ? 0 : y, w, h, 0, bMemRegion ? OSD_Flag_MemRgn : 0);
 }
 
 void Rect::DrawLowerBorder(word regionIndex, short int thickness, word color) const

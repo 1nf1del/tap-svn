@@ -40,11 +40,25 @@ public:
 	void DrawLowerBorder(word regionIndex, short int thickness, word color) const;
 	void DrawRightBorder(word regionIndex, short int thickness, word color) const;
 
+	static void SetOffset(short x, short y);
+
 	short int  x;
 	short int y;
 	short int w;
 	short int h;
 
+	
+private:
+	// screen offset
+	static short offsetX, offsetY;
 };
+
+
+inline void Rect::SetOffset(short x, short y)
+{
+	offsetX = x;
+	offsetY = y;
+}
+
 
 #endif
