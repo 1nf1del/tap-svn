@@ -72,6 +72,8 @@ bool IniFile::Load( const char* filename )
 	else
 		strcpy( eol, "\n" );
 
+	// remove the spaces we added last time it was saved
+	buffer = buffer.trim();
 	buffer.split( eol, line );
 
 	return true;
@@ -93,7 +95,8 @@ bool IniFile::Save( const char* filename ) const
 	for ( unsigned int u = 0; u < line.size(); ++u )
 		length += line[u].size() + 2;
 	// pad to 512 bytes to prevent the TAP API writing garbage to the file
-	length += 512-length%512;
+	if (length%512 != 0)
+		length += 512-length%512;
 
 	string buffer;
 	buffer.resize( length );

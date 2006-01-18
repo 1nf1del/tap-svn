@@ -65,6 +65,7 @@ public:
 	void SetFontSizes(byte fsHeader, byte fsBody, byte fsFooter);
 	virtual void Redraw();
 	dword GetColumnFlags(int i) const;
+	void DiscardItems();
 
 private:
 	void CalcRealColumnWidths();

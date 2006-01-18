@@ -112,9 +112,6 @@
 				RelativePath=".\taparray.cpp">
 			</File>
 			<File
-				RelativePath=".\tapstring.cpp">
-			</File>
-			<File
 				RelativePath=".\vtable.cpp">
 			</File>
 		</Filter>
@@ -160,6 +157,9 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt">
+		</File>
+		<File
+			RelativePath=".\tapstring.cpp">
 		</File>
 	</Files>
 	<Globals>

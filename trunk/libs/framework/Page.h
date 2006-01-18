@@ -36,6 +36,13 @@
 		return 0;\
 	}
 
+#define HandleExtKeyDef(keyDef, action)\
+	if (((extKey == 0) && (key == keyDef.key)) || (extKey == keyDef.extKey)) \
+	{\
+		action;\
+		return 0;\
+	}
+
 class Page
 {
 public:

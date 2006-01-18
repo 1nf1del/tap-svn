@@ -54,10 +54,7 @@ ListPage::ListPage(dword dwFlags, Rect rcPosition, int itemHeight,  int headerHe
 ListPage::~ListPage()
 {
 	TRACE("Started destroying list page\n");
-	for (unsigned int i = 0; i<m_items.size(); i++)
-		delete m_items[i];
-
-	TRACE("Deleted items\n");
+	DiscardItems();
 
 	for (unsigned int i = 0; i<m_columnCount; i++)
 		delete m_columnInfo[i];
@@ -443,7 +440,7 @@ dword ListPage::OnKey( dword key, dword extKey )
 	if (pSelItem)
 	{
 		dword dwRet = pSelItem->OnKey(key, extKey);
-		if ((dwRet == 0) && Tapplication::GetTheApplication()
+		if ((dwRet == 0) && Tapplication::GetTheApplication() && !Tapplication::GetTheApplication()->IsClosing()
 			&& Tapplication::GetTheApplication()->IsTopPage(this))
 			Draw();
 		return dwRet;
@@ -587,4 +584,13 @@ dword ListPage::GetColumnFlags(int i) const
 		return 0;
 
 	return m_columnInfo[i]->GetFlags();
+}
+
+void ListPage::DiscardItems()
+{
+	for (unsigned int i = 0; i<m_items.size(); i++)
+		delete m_items[i];
+
+	m_items.clear();
+	TRACE("Deleted items\n");
 }
