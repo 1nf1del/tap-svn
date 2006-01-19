@@ -22,6 +22,9 @@
 
 # The next line pulls in the rule sets for building TAPs.
 include ../../tools/build/tap.mk
+OBJECTS=taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o IniFile.o
+OBJECTS+=Channels.o EPGchannel.o EPGdata.o EPGevent.o Globals.o Timers.o Timer.o 
+OBJECTS+=MEIReader.o EPGVisitor.o TimeSlot.o PackedDateTime.o ProgressNotification.o
 
 
 # The first target is the default target.
@@ -29,7 +32,7 @@ all: libc++utils.a
 
 CXXFLAGS+=-I../libutils
 
-libc++utils.a: taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o IniFile.o
+libc++utils.a: $(OBJECTS)
 	$(AR) cr $@ $^
 
 # A target for removing generated files.

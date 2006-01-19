@@ -14,6 +14,32 @@
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
+			ConfigurationType="0"
+			CharacterSet="2">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make DEBUG=1"
+				ReBuildCommandLine="make -B DEBUG=1"
+				CleanCommandLine="make clean"
+				Output="libc++utils.a"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="0"
+			CharacterSet="0">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make"
+				ReBuildCommandLine="make -B"
+				CleanCommandLine="make clean"
+				Output="libc++utils.a"/>
+		</Configuration>
+		<Configuration
+			Name="Tapulator Debug|Win32"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -53,19 +79,23 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
+			Name="Tapulator Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="4"
-			CharacterSet="0">
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;..\libutils"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				MinimalRebuild="FALSE"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="TRUE"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				WarningLevel="4"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -100,16 +130,55 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\Channels.cpp">
+			</File>
+			<File
+				RelativePath=".\EPGchannel.cpp">
+			</File>
+			<File
+				RelativePath=".\EPGdata.cpp">
+			</File>
+			<File
+				RelativePath=".\EPGevent.cpp">
+			</File>
+			<File
+				RelativePath=".\EPGVisitor.cpp">
+			</File>
+			<File
+				RelativePath=".\Globals.cpp">
+			</File>
+			<File
 				RelativePath=".\IniFile.cpp">
 			</File>
 			<File
 				RelativePath=".\Logger.cpp">
 			</File>
 			<File
+				RelativePath=".\MEIReader.cpp">
+			</File>
+			<File
+				RelativePath=".\PackedDateTime.cpp">
+			</File>
+			<File
 				RelativePath=".\PerformanceTimer.cpp">
 			</File>
 			<File
+				RelativePath=".\ProgressNotification.cpp">
+			</File>
+			<File
 				RelativePath=".\taparray.cpp">
+			</File>
+			<File
+				RelativePath=".\tapstring.cpp">
+			</File>
+			<File
+				RelativePath=".\Timer.cpp">
+			</File>
+			<File
+				RelativePath=".\Timers.cpp">
+			</File>
+			<File
+				RelativePath=".\TimeSlot.cpp">
 			</File>
 			<File
 				RelativePath=".\vtable.cpp">
@@ -120,7 +189,25 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath=".\Channels.h">
+			</File>
+			<File
+				RelativePath=".\EPGchannel.h">
+			</File>
+			<File
+				RelativePath=".\EPGdata.h">
+			</File>
+			<File
+				RelativePath=".\EPGevent.h">
+			</File>
+			<File
+				RelativePath=".\EPGVisitor.h">
+			</File>
+			<File
 				RelativePath=".\fastdelegate.h">
+			</File>
+			<File
+				RelativePath=".\Globals.h">
 			</File>
 			<File
 				RelativePath=".\IniFile.h">
@@ -129,7 +216,16 @@
 				RelativePath=".\Logger.h">
 			</File>
 			<File
+				RelativePath=".\MEIReader.h">
+			</File>
+			<File
+				RelativePath=".\PackedDateTime.h">
+			</File>
+			<File
 				RelativePath=".\PerformanceTimer.h">
+			</File>
+			<File
+				RelativePath=".\ProgressNotification.h">
 			</File>
 			<File
 				RelativePath=".\quicksort.h">
@@ -142,6 +238,15 @@
 			</File>
 			<File
 				RelativePath=".\tapstring.h">
+			</File>
+			<File
+				RelativePath=".\Timer.h">
+			</File>
+			<File
+				RelativePath=".\Timers.h">
+			</File>
+			<File
+				RelativePath=".\TimeSlot.h">
 			</File>
 			<File
 				RelativePath=".\vtable.h">
@@ -157,9 +262,6 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt">
-		</File>
-		<File
-			RelativePath=".\tapstring.cpp">
 		</File>
 	</Files>
 	<Globals>
