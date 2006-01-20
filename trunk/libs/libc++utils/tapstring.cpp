@@ -361,6 +361,9 @@ void string::append(const char* pData, int iLen)
 
 int string::indexof(const char* pToFind, int iStartAfterChar) const
 {
+	if (iStartAfterChar>=size())
+		return -1;
+
 	char* result = strstr(getstr() + iStartAfterChar + 1, pToFind);
 	if (result == 0)
 		return -1;
@@ -370,6 +373,9 @@ int string::indexof(const char* pToFind, int iStartAfterChar) const
 
 int string::indexof(char c, int iStartAfterChar) const
 {
+	if (iStartAfterChar>=size())
+		return -1;
+
 	char* result = strchr(getstr() + iStartAfterChar + 1, c);
 	if (result == 0)
 		return -1;

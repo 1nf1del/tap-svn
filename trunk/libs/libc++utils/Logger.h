@@ -12,7 +12,7 @@ extern "C"
 #define TRACE(str) Logger::Log(str)
 #define TRACE1(str,x) Logger::Log(str,x)
 #define TRACE2(str,x,y) Logger::Log(str,x,y)
-#define TRACE3(str,x,y,z) Logger::Log(str,x,z)
+#define TRACE3(str,x,y,z) Logger::Log(str,x,y,z)
 #define TRACE4(str,x,y,z,t) Logger::Log(str,x,y,z,t)
 #define TRACE_MEMORY() Logger::LogMemStats()
 

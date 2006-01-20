@@ -3404,7 +3404,9 @@ static int sys_trim(mstate m, size_t pad) {
   if (pad < MAX_REQUEST && is_initialized(m)) {
     pad += TOP_FOOT_SIZE; /* ensure enough room for segment overhead */
 
-    if (m->topsize > pad) {
+	// The underlying firmware calls to the toppy don't support this operation
+	// (shrinking an allocated block
+    if (0 && (m->topsize > pad)) { 
       /* Shrink top space in granularity-size units, keeping at least one */
       size_t unit = mparams.granularity;
       size_t extra = ((m->topsize - pad + (unit - SIZE_T_ONE)) / unit -
