@@ -227,6 +227,7 @@ private:
 	bool NeedsRepaint();
 	CString MakePath(CString sName);
 	int CountFilesInCurrentFolder();
+	void PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData);
 
 	Regions m_OSDregions;
 	Windows m_Windows;
@@ -241,5 +242,6 @@ private:
 	ToppyState m_TheState;
 	DWORD m_iFirstTick;
 	bool m_bExitFlag;
+	bool m_bFindFinished;
 	int m_iFindCount;
 };

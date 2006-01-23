@@ -32,6 +32,7 @@
 
 ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), m_TheState(&m_ChannelList, &m_EPGImpl), m_Timers(&m_ChannelList)
 {
+	m_bFindFinished = true;
 	m_bExitFlag = false;
 	m_pMod = pModule;
 	m_hCurrentFind = 0;
@@ -131,7 +132,7 @@ CConfiguration* ToppyFramework::GetConfig()
 
 CString ToppyFramework::MakePath(CString sName)
 {
-	return GetConfig()->GetRootFolderPath() + "\\" + m_sCurrentFolder + "\\" + sName;
+	return GetConfig()->GetRootFolderPath() + (m_sCurrentFolder.GetLength() ? "\\" : "") + m_sCurrentFolder + "\\" + sName;
 }
 
 CString ToppyFramework::MakeRootPath(CString sPath)
@@ -560,6 +561,13 @@ int ToppyFramework::Osd_PutPixel(WORD rgn, DWORD x, DWORD y, DWORD pix )
 
 TYPE_File* ToppyFramework::Hdd_Fopen(char *name )
 {
+	CString sName(name);
+	if ((sName.Find("/")!=-1) || (sName.Find("\\")!=-1))
+	{
+		LogError("Tried to open a file with a path in the name - %s", name);
+        return 0;
+	}
+
 	FILE* handle = fopen(MakePath(name), "rb+"); // open for update
 	if (handle == NULL)
 	{
@@ -623,12 +631,27 @@ void ToppyFramework::Hdd_Fclose(TYPE_File *file )
 }
 
 
-void PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData)
+void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData)
 {
 	strncpy(file->name, findData.cFileName, 100);
 	file->size = findData.nFileSizeLow;
 	file->attr = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ATTR_FOLDER : ATTR_NORMAL;
-	//TODO: more initialization, particularly a 'cluster' value (hash file name?)
+	CString sName = MakePath(findData.cFileName);
+	sName.Replace("\\", "/");
+	if (sName.Right(2) == "/.")
+		sName = sName.Left(sName.GetLength()-2);
+	if (sName.Right(3) == "/..")
+	{
+		sName = sName.Left(sName.GetLength()-3);
+		int iIndex = sName.ReverseFind('/');
+		sName = sName.Left(iIndex);
+	}
+
+	file->startCluster = 0;
+	for (int i=0; i<sName.GetLength(); i++)
+	{
+		file->startCluster= _rotl(file->startCluster,1) ^ sName[i];
+	}
 }
 
 DWORD ToppyFramework::Hdd_FindFirst(TYPE_File *file )
@@ -641,18 +664,46 @@ DWORD ToppyFramework::Hdd_FindFirst(TYPE_File *file )
 	if (m_hCurrentFind == NULL)
 		return 0;
 	PopulateTYPE_File(file, findData);
+	int iCount = CountFilesInCurrentFolder();
+	m_bFindFinished = false;
+
+	if (m_sCurrentFolder.IsEmpty())
+	{
+		iCount -=2;
+		CString name = file->name;
+		if (name == ".." || name == ".")
+			Hdd_FindNext(file);
+	}
 	m_iFindCount = 0;
-	return CountFilesInCurrentFolder();
+	return iCount;
 }
 
 
 DWORD ToppyFramework::Hdd_FindNext(TYPE_File *file )
 {
-	WIN32_FIND_DATA findData;
-	if (!FindNextFile(m_hCurrentFind, &findData))
-		return ++m_iFindCount;
-	
-	PopulateTYPE_File(file, findData);
+	if (m_bFindFinished)
+		return 0;
+
+	bool bResult = false;
+
+	do
+	{
+		bResult = true;
+		WIN32_FIND_DATA findData;
+		if (!FindNextFile(m_hCurrentFind, &findData))
+		{
+			m_bFindFinished = true;
+			return ++m_iFindCount;
+		}
+		
+		PopulateTYPE_File(file, findData);
+		if (m_sCurrentFolder.IsEmpty())
+		{
+			CString name = file->name;
+			if (name == ".." || name == ".")
+				bResult = false;
+		}
+	} while (!bResult);
 
 	return ++m_iFindCount;
 }
@@ -718,6 +769,13 @@ bool ToppyFramework::Hdd_Exist(char *name )
 
 DWORD ToppyFramework::Hdd_Create(char *name, BYTE attr )
 {
+	CString sName(name);
+	if ((sName.Find("/")!=-1) || (sName.Find("\\")!=-1))
+	{
+		LogError("Tried to create a file with a path in the name - %s", name);
+        return 0;
+	}
+
 	if (attr == ATTR_FOLDER)
 	{
 		return ::CreateDirectory(MakePath(name), 0);//TODO: correct return value?
