@@ -133,6 +133,9 @@
 				RelativePath=".\Channels.cpp">
 			</File>
 			<File
+				RelativePath=".\DirectoryUtils.cpp">
+			</File>
+			<File
 				RelativePath=".\EPGchannel.cpp">
 			</File>
 			<File
@@ -190,6 +193,9 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
 				RelativePath=".\Channels.h">
+			</File>
+			<File
+				RelativePath=".\DirectoryUtils.h">
 			</File>
 			<File
 				RelativePath=".\EPGchannel.h">

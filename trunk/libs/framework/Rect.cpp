@@ -103,7 +103,7 @@ void Rect::PutString(word regionIndex, const char* text, word foreground, word b
 void Rect::PutStringCenter(word regionIndex, const char* text, word foreground, word background, byte fntSize) const
 {
 	PrintCenter(regionIndex, x+2, y+ (h - GetHeightForFontSize(fntSize)) / 2
-		, w-2, text, foreground, background, fntSize);
+		, x+w-2, text, foreground, background, fntSize);
 }
 
 int StringBreakPoint(char* pStr, int width, byte fntSize)
