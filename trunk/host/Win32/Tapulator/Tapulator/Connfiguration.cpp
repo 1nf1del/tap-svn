@@ -61,6 +61,9 @@ void CConfiguration::Load()
 
 CString CConfiguration::GetRootFolderPath()
 {
+	if (m_sRootFolder.GetLength() && m_sRootFolder.Right(1) == "\\")
+		m_sRootFolder = m_sRootFolder.Left(m_sRootFolder.GetLength()-1);
+
 	return m_sRootFolder;
 }
 

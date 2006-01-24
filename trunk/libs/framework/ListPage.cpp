@@ -431,10 +431,13 @@ void ListPage::OnIdle()
 dword ListPage::OnKey( dword key, dword extKey )
 {
 	HandleKey(RKEY_Exit, Close());
-	HandleExtKey(RKEY_ChUp, RAWKEY_Up, MoveSelection(-1));
-	HandleExtKey(RKEY_ChDown, RAWKEY_Down, MoveSelection(1));
-	HandleKey(RKEY_Forward, MoveSelection(CountItemsInView(), false));
-	HandleKey(RKEY_Rewind, MoveSelection(-CountItemsInView(), false));
+	if ((m_dwFlags & LF_ONE_ITEM_ONLY) == 0)
+	{
+		HandleExtKey(RKEY_ChUp, RAWKEY_Up, MoveSelection(-1));
+		HandleExtKey(RKEY_ChDown, RAWKEY_Down, MoveSelection(1));
+		HandleKey(RKEY_Forward, MoveSelection(CountItemsInView(), false));
+		HandleKey(RKEY_Rewind, MoveSelection(-CountItemsInView(), false));
+	}
 
 	ListItem* pSelItem = ListPage::GetSelectedItem();
 	if (pSelItem)

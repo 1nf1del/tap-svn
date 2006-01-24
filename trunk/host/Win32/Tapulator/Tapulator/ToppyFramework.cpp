@@ -40,11 +40,11 @@ ToppyFramework::ToppyFramework(TapModule* pModule) : m_EPGImpl(&m_ChannelList), 
 
 	if (GetConfig()->GetStartInAutoStart() == 1)
 	{
-		m_sCurrentFolder = "ProgramFiles/Auto Start";
+		m_sCurrentFolder = "/ProgramFiles/Auto Start";
 	}
 	else
 	{
-		m_sCurrentFolder = "ProgramFiles";
+		m_sCurrentFolder = "/ProgramFiles";
 	}
 
 	CString sRequiredFolder = MakePath("");
@@ -638,6 +638,7 @@ void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findDat
 	file->attr = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ATTR_FOLDER : ATTR_NORMAL;
 	CString sName = MakePath(findData.cFileName);
 	sName.Replace("\\", "/");
+	sName.Replace("//", "/");
 	if (sName.Right(2) == "/.")
 		sName = sName.Left(sName.GetLength()-2);
 	if (sName.Right(3) == "/..")
@@ -796,25 +797,35 @@ WORD ToppyFramework::Hdd_ChangeDir(char *dir )
 	CString sChange = dir;
 	if (sChange == ".")
 		return 1;
-	//TODO: correct behaviour on cd to ..?
+
 	if (sChange == "..")
+		sChange = "../";
+
+	while (sChange.Left(3) == "../")
 	{
-		if (m_sCurrentFolder.IsEmpty())
+		if (m_sCurrentFolder == "/")
 			return 1;
 
 		int iTrim = m_sCurrentFolder.ReverseFind('/');
-		m_sCurrentFolder = m_sCurrentFolder.Left(iTrim);
-		return 1;
+		if (iTrim >= 0)
+			m_sCurrentFolder = m_sCurrentFolder.Left(iTrim);
+
+		sChange = sChange.Mid(3);		
 	}
 
-	CString sNewDir = MakePath(dir);
+	if (sChange.IsEmpty())
+		return 1;
+
+
+	CString sNewDir = MakePath(sChange);
 	if (_access(sNewDir, 00) != 0)
 	{
 		return 0;
 	}
 
+
 	m_sCurrentFolder += "/";
-	m_sCurrentFolder += dir;
+	m_sCurrentFolder += sChange;
 	return 1;
 }
 

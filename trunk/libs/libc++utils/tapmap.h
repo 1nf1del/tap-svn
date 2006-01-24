@@ -111,7 +111,7 @@ public:
 
 	const ValueType& GetValue() const         { return mValue; }
 	ValueType& GetValue()         { return mValue; }
-	KeyType GetKey() const             { return mKey; }
+	const KeyType& GetKey() const             { return mKey; }
 
 	// Some more or less useful queries
 	bool IsRoot() const           { return mParent==0; }
@@ -883,7 +883,7 @@ public:
 
 		while(pNode!=0)
 		{
-			KeyType key(pNode->GetKey());
+			const KeyType& key(pNode->GetKey());
 
 			if (keyToFind == key)
 			{
@@ -983,10 +983,10 @@ private:
 		else
 		{
 			Node* pNode = mRoot;
-			KeyType keyNew = newNode->GetKey();
+			const KeyType& keyNew = newNode->GetKey();
 			while (pNode)
 			{
-				KeyType key(pNode->GetKey());
+				const KeyType& key(pNode->GetKey());
 
 				if (keyNew == key)
 				{

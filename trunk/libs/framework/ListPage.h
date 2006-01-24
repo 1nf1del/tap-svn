@@ -36,6 +36,7 @@ class ListColumn;
 #define LF_ROW_SEPARATORS		0x00000010
 #define LF_SCROLLBAR			0x00000020
 #define LF_COLUMN_SEPARATORS	0x00000040
+#define LF_ONE_ITEM_ONLY		0x00000080 // pass up/down keys to item
 
 #define SCROLLBAR_WIDTH 8
 

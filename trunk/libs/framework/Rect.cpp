@@ -209,3 +209,8 @@ void Rect::DrawRightBorder(word regionIndex, short int thickness, word color) co
 {
 	TAP_Osd_DrawRectangle(regionIndex, x + w -2, y , 2, h,  1, color);
 }
+
+int Rect::GetWidth(const char* text, byte fntSize) const
+{
+	return TAP_Osd_GetW(text, 0, fntSize);
+}
