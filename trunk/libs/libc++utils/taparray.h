@@ -40,9 +40,10 @@ template <typename T> class array
 {
 	typedef SimpleComparitor<T> default_comparitor;
 public:
-	array(int iInitialSize = 0) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
+	array(int iInitialSize = 0, int iInitialReserved = 0) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
 	{
 		resize(iInitialSize);
+		grow(iInitialReserved);
 	}
 
 	array(const array<T>& other) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())

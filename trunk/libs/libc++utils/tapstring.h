@@ -70,6 +70,7 @@ public:
 	int find(char c, int iStartAfterChar = -1) const;
 	int findfirstof(const string& toFind, int iStartAfterChar = -1) const;
 	int findfirstof(const char* pToFind, int iStartAfterChar = -1) const;
+	int reverseFind(char c) const;
 
 	bool empty() const;
 	void clear();
@@ -83,6 +84,7 @@ public:
 	string tolower() const;
 	string toupper() const;
 
+	unsigned int getHashCode() const;
 private:
 
 	void assign(const char* pData, int iLen = -1);

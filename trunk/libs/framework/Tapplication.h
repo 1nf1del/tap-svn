@@ -33,8 +33,6 @@ class Tapplication
 {
 	friend void cpp_TAP_Exit();
 public:
-	Tapplication();
-	virtual ~Tapplication();
 
 	// Overridable events
 	virtual bool Start();
@@ -64,6 +62,8 @@ public:
 	dword GetID() const;
 
 protected:
+	Tapplication();
+	virtual ~Tapplication();
 	int pageCount;
 	word screenRgn;
 	// colours - protected so a tap can override the defaults
@@ -96,6 +96,7 @@ inline word Tapplication::GetScreenRegion()
 
 inline void Tapplication::DiscardTheApplication()
 {
+	tap->Close();
 	delete tap;
 	tap = NULL;
 }

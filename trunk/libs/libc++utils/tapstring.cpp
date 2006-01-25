@@ -218,6 +218,15 @@ int string::compareNoCase(const string& other) const
 	return strnicmp(getstr(), other, max(m_iLen, other.m_iLen));
 }
 
+int string::reverseFind(char c) const
+{
+	char* result = strrchr(getstr(), c);
+	if (result == NULL)
+		return -1;
+
+	return result-getstr();
+
+}
 
 int string::find(const string& toFind, int iStartAfterChar) const
 {
@@ -517,3 +526,26 @@ int string::split( const char* delimiter, array<string>& result ) const
 	return elemCnt+1;
 }
 
+// 431647th prime
+#define LargeNumber 6293809
+
+
+unsigned int string::getHashCode() const
+{
+	int iSize = size();
+
+	unsigned int  dwMultiple = LargeNumber; 
+	unsigned int  dwHash = 0;
+
+	const char* ptr = getstr();
+
+	for(int i = 0; i < iSize;)
+	{
+		char c = *ptr;
+		dwHash += dwMultiple * ++i * c; 
+		dwMultiple *= LargeNumber; 
+		++ptr;
+	}
+
+	return dwHash;
+}

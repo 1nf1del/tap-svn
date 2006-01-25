@@ -73,7 +73,10 @@ Tapplication::~Tapplication()
 {
 	TRACE("~Tapplication\n");
 
-	Close(); // clean up any outstanding pages
+	// do not clean up any outstanding pages
+	// they may have references to the application,
+	// which is no longer fully alive
+	// DiscardTheApplication has done this
 
 	TAP_Osd_Delete( screenRgn );
 	screenRgn = 0;
