@@ -186,7 +186,7 @@ string IniFile::GetKey( int index ) const
 string IniFile::GetValue( int index ) const
 {
 	int pos = line[index].findfirstof( "=" );
-	return index ? line[index].substr( pos+1 ) : string();
+	return pos ? line[index].substr( pos+1 ) : string();
 }
 
 
