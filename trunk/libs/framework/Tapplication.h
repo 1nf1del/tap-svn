@@ -42,7 +42,7 @@ public:
 
 	// Operations
 	void PushPage( Page* page );
-	Page* PopPage();
+	Page* PopPage(bool bRedrawUnerlying = true);
 	dword Close();
 	bool IsClosing() const;
 	void SetActiveDialog(Dialog* pDialog);

@@ -43,7 +43,12 @@ void ListItem::DrawSubItemString(int iColumn, Rect rcBounds, const char* text)
 		m_theList->GetSelectedItem() == this ? highlightColors : normalColors);
 	rcBounds.y-=1;
 	rcBounds.PutString(m_theList->GetRegionIndex(), text, theColors.textColor, theColors.bgColor
-		, m_theList->GetBodyFontSize(), m_theList->GetColumnFlags(iColumn) & LCF_CENTER_TEXT);
+		, GetFontSize(iColumn), m_theList->GetColumnFlags(iColumn) & LCF_CENTER_TEXT);
+}
+
+int ListItem::GetFontSize(int iColumn)
+{
+	return m_theList->GetBodyFontSize();
 }
 
 dword ListItem::OnKey( dword key, dword extKey )

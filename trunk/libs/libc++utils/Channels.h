@@ -33,11 +33,11 @@ public:
 	int ToppyToLogical(int iToppyChannelNum);
 	int LogicalToToppy(int iLogicalChannelNum);
 	const string& NameForLCN(int iLogicalChannelNum);
+	int GetCount();
 
 private:
+
 	array<string> m_names;
 	array<int> m_lcns;
-
-
 };
 #endif

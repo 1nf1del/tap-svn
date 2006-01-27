@@ -345,7 +345,7 @@ int OSDRegion::PutPixel(DWORD x, DWORD y, DWORD pix )
 
 int OSDRegion::Osd_PutS(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE bDot, BYTE align)
 {
-	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX-x, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DWORD dwFlags = DT_TOP;
 	switch(align)
@@ -369,7 +369,7 @@ int OSDRegion::Osd_PutS(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fco
 
 int OSDRegion::Osd_PutString(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE nextLine)
 {
-	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX-x, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawSomeText(rect, str, fcolor, bcolor, fntType, fntSize, DT_LEFT|DT_TOP, bcolor == 0x00);
 	return 1;
@@ -377,7 +377,7 @@ int OSDRegion::Osd_PutString(DWORD x, DWORD y, DWORD maxX, const char * str, WOR
 
 int OSDRegion::Osd_PutStringAf(DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE nextLine)
 {
-	CRect rect(CPoint(x,y), CSize(maxX+x-1, 1000));
+	CRect rect(CPoint(x,y), CSize(maxX-x, 1000));
 	rect.OffsetRect(CPoint(GetXOffs(), GetYOffs()));
 	DrawSomeText(rect, str, fcolor, bcolor, fntType, fntSize, DT_LEFT|DT_TOP, bcolor == 0x00);
 	return 1;
@@ -434,6 +434,7 @@ CFont* OSDRegion::CreateFont(int iFont, int iFontSize)
 {
 	CDC* pDC = GetDC();
 	int iFontPoints = iFontSize == 0 ? -120 : iFontSize == 1 ? -140 : -180;
+	int iFontWidth = iFontSize == 0 ? 14 : iFontSize == 1 ? 16 : 19;
 
 	CFont* thefont  = new CFont();
 
@@ -442,6 +443,7 @@ CFont* OSDRegion::CreateFont(int iFont, int iFontSize)
 	logFont.lfCharSet = DEFAULT_CHARSET;
 	logFont.lfWeight = FW_BOLD;
 	logFont.lfHeight = iFontPoints;
+	logFont.lfWidth = -iFontPoints/16;
 	strcpy(logFont.lfFaceName, "Arial Narrow" );
 
 	thefont->CreatePointFontIndirect(&logFont, pDC);
@@ -462,8 +464,11 @@ void OSDRegion::DrawSomeText(CRect rect, const CString& txt, DWORD color, DWORD 
 	if (!bTransparent)
 	{
 		CSize sz = pDC->GetTextExtent(txt);
+		sz.cx = min(sz.cx,rect.Width());
 		DrawFilledBox(CRect(rect.TopLeft(), sz), backcolor, backcolor);
 	}
+
+	dwFlags|= DT_END_ELLIPSIS;
 
 	pDC->SetBkMode(bTransparent ? TRANSPARENT : OPAQUE);
 	pDC->SetBkColor(ConvertRGB(backcolor));

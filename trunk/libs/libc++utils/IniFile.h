@@ -51,6 +51,7 @@ public:
 	string GetValue( int index ) const;
 
 	int FindKey( const char* key ) const;
+	int GetKeyCount() const; 
 
 private:
 	bool FindKey( const char* key, string& value ) const;

@@ -42,6 +42,7 @@ public:
 	virtual int MeasureSubItem(int iColumn, Rect rcBounds);
 	virtual void DrawSubItem(int iColumn, Rect rcBounds);
 	virtual string GetFooterText();
+	virtual int GetFontSize(int iColumn);
 
 protected:
 	void DrawSubItemString(int iColumn, Rect rcBounds, const char* text);

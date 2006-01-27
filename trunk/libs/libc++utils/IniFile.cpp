@@ -224,3 +224,8 @@ bool IniFile::FindKey( const char* key, string& value ) const
 	}
 	return false;
 }
+
+int IniFile::GetKeyCount() const
+{
+	return line.size();
+}

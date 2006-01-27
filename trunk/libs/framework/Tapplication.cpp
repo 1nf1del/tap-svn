@@ -165,7 +165,7 @@ void Tapplication::PushPage( Page* page )
 	pageStack[ pageCount++ ] = page;
 }
 
-Page* Tapplication::PopPage()
+Page* Tapplication::PopPage(bool bRedrawUnderlying)
 {
 	TRACE("Popping Page \n");
 	if ( pageCount > 0 )
@@ -173,13 +173,16 @@ Page* Tapplication::PopPage()
 		if ( pageCount == 1 )
 			TAP_EnterNormal();
 
-		TRACE("Blanking screen\n");
-		TAP_Osd_FillBox(screenRgn, 0, 0, MAX_SCREEN_X, MAX_SCREEN_Y, COLOR_None);
-		if (pageCount>1)
+		if (bRedrawUnderlying)
 		{
-			TRACE("Redrawing underlying page\n");
-			pageStack[pageCount-2]->Redraw();
-			TRACE("Redraw done\n");
+			TRACE("Blanking screen\n");
+			TAP_Osd_FillBox(screenRgn, 0, 0, MAX_SCREEN_X, MAX_SCREEN_Y, COLOR_None);
+			if (pageCount>1)
+			{
+				TRACE("Redrawing underlying page\n");
+				pageStack[pageCount-2]->Redraw();
+				TRACE("Redraw done\n");
+			}
 		}
 
 		return pageStack[ --pageCount ];

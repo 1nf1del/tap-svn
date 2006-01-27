@@ -50,7 +50,7 @@ public:
 	virtual ~Page();
 
 	void Open();
-	void Close();
+	void Close(bool bRedrawUnderlyingPage = true);
 
 	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );

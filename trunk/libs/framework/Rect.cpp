@@ -127,11 +127,20 @@ int StringBreakPoint(char* pStr, int width, byte fntSize)
 			return iResult;
 		}
 
-		int iNewGuess = iGuess + (width - wUsed) / avgWidth - 1;
+		int deficit = wUsed-width;
+		int iNewGuess = iGuess;
+		if (deficit>0)
+		{
+			iNewGuess -= ((deficit-1)/avgWidth + 1);
+		}
+		else if (deficit<0)
+		{
+			iNewGuess -= (deficit)/avgWidth;
+		}
 
 		if (abs(iGuess - iNewGuess)<=1)
 		{	
-			iGuess = min(iGuess, iNewGuess);
+			iGuess = max(min(iGuess, iNewGuess)-1,0);
 			break;
 		}
 		iGuess = min(iNewGuess,iLen);
@@ -170,7 +179,7 @@ void Rect::PutMultiLineString(word regionIndex, const char* text, word foregroun
 	while (((hUsed+avgHeight)<this->h) && (iDone < iChars))
 	{
 		char* buf = pText + iDone;
-		int iThisLine = StringBreakPoint(buf, w, fntSize);
+		int iThisLine = StringBreakPoint(buf, w-3, fntSize);
 		_ASSERT(iThisLine + iDone<=iChars);
 		char cBackup = pText[iThisLine + iDone];
 		pText[iThisLine + iDone] = 0;

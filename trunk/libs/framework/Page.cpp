@@ -40,10 +40,10 @@ void Page::Open()
 }
 
 
-void Page::Close()
+void Page::Close(bool bRedrawUnderlyingPage)
 {
 	OnClose();
-	if (Tapplication::GetTheApplication()->PopPage() != this)
+	if (Tapplication::GetTheApplication()->PopPage(bRedrawUnderlyingPage) != this)
 		TRACE("Ooops, the page closing isn't the top page - this'll crash!\n");
 	TRACE("About to delete popped page\n");
 	delete this;
