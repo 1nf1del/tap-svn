@@ -18,30 +18,15 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef libcpputils_directoryutils
-#define libcpputils_directoryutils
-#include <string.h>
-#include <stdlib.h>
-#include "tap.h"
-#include "tapstring.h"
-#include "file.h"
+#ifndef libcpputils_yesnooption_h
+#define libcpputils_yesnooption_h
+#include "option.h"
 
-class DirectoryRestorer
+class YesNoOption :
+	public Option
 {
 public:
-	DirectoryRestorer(const string& sChangeToDirectory);
-	~DirectoryRestorer();
-	bool WasSuccesful();
-
-private:
-	bool m_bWorked;
-	string m_sSavedDir;
-
+	YesNoOption(Options* pContainer, const string& key, bool defaultValue, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL);
+	~YesNoOption(void);
 };
-
-string GetCurrentDirectory();
-bool ChangeDirectory(const string& newDirectory);
-UFILE* OpenFile(char* szFileName, char* szMode);
-
-
 #endif

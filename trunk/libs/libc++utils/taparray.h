@@ -130,7 +130,7 @@ public:
 
 		if (iSize>m_iLen)
 		{
-			construct(m_iLen, iSize-m_iLen, T());
+			construct(m_iLen, iSize, T());
 			m_iLen = iSize;
 		}
 		else if (iSize<m_iLen)

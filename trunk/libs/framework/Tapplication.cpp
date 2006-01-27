@@ -89,6 +89,9 @@ bool Tapplication::Start()
 
 dword Tapplication::EventHandler( word event, dword param1, dword param2 )
 {
+	if (IsClosing())
+		return param1;
+
     switch ( event )
 	{
 	case EVT_IDLE:
@@ -103,6 +106,8 @@ dword Tapplication::EventHandler( word event, dword param1, dword param2 )
 
 void Tapplication::OnIdle()
 {
+	if (IsClosing())
+		return;
 	// Dispatch idle messages to all pages
 	for ( int i = 0; i < pageCount; ++i )
 		pageStack[i]->OnIdle();

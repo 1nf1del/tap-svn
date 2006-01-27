@@ -141,6 +141,20 @@ UFILE* OpenFile(const string& sFileName, char* szMode)
 }
 
 
+DirectoryRestorer::DirectoryRestorer(const string& sChangeToDir)
+{
+	m_sSavedDir = GetCurrentDirectory();
+	m_bWorked = ChangeDirectory(sChangeToDir);
+}
 
+DirectoryRestorer::~DirectoryRestorer()
+{
+	ChangeDirectory(m_sSavedDir);
+}
+
+bool DirectoryRestorer::WasSuccesful()
+{
+	return m_bWorked;
+}
 
 
