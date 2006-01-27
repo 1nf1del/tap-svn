@@ -205,6 +205,15 @@
 				RelativePath=".\Main.cpp">
 			</File>
 			<File
+				RelativePath=".\MultiLineListItem.cpp">
+			</File>
+			<File
+				RelativePath=".\OptionListItem.cpp">
+			</File>
+			<File
+				RelativePath=".\OptionsPage.cpp">
+			</File>
+			<File
 				RelativePath=".\Page.cpp">
 			</File>
 			<File
@@ -215,6 +224,9 @@
 			</File>
 			<File
 				RelativePath=".\SimpleTextListItem.cpp">
+			</File>
+			<File
+				RelativePath=".\SkinOption.cpp">
 			</File>
 			<File
 				RelativePath=".\Tapplication.cpp">
@@ -252,6 +264,15 @@
 				RelativePath=".\ListPage.h">
 			</File>
 			<File
+				RelativePath=".\MultiLineListItem.h">
+			</File>
+			<File
+				RelativePath=".\OptionListItem.h">
+			</File>
+			<File
+				RelativePath=".\OptionsPage.h">
+			</File>
+			<File
 				RelativePath=".\Page.h">
 			</File>
 			<File
@@ -262,6 +283,9 @@
 			</File>
 			<File
 				RelativePath=".\SimpleTextListItem.h">
+			</File>
+			<File
+				RelativePath=".\SkinOption.h">
 			</File>
 			<File
 				RelativePath=".\Tapplication.h">

@@ -411,7 +411,7 @@ dword ListPage::MoveSelection(int iOffset, bool bWrap)
 
 	CalcFirstInView(iOffset);
 
-	if (abs(iOffset) == 1)
+	if (abs(iOffset) == 1 && abs(m_selectedItem - iOldSel) == 1)
 	{
 		PartialDraw(iOldSel, iOldFirst);
 	}

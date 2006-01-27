@@ -25,7 +25,8 @@ include ../../tools/build/tap.mk
 OBJECTS=taparray.o tapstring.o vtable.o Logger.o PerformanceTimer.o IniFile.o
 OBJECTS+=Channels.o EPGchannel.o EPGdata.o EPGevent.o Globals.o Timers.o Timer.o 
 OBJECTS+=MEIReader.o EPGVisitor.o TimeSlot.o PackedDateTime.o ProgressNotification.o
-OBJECTS+=DirectoryUtils.o
+OBJECTS+=DirectoryUtils.o Option.o Options.o KeyDef.o
+OBJECTS+=YesNoOption.o NumericOption.o KeyOption.o OptionUpdateNotifier.o
 
 
 # The first target is the default target.

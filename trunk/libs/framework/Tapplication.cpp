@@ -36,26 +36,6 @@ Tapplication::Tapplication() :
 	m_screenOffsetY(0),
 	m_isClosing(false)
 {
-	// Setup skin colours
-	m_colors[normalColors].frameColor = RGB8888(8,8,8);
-	m_colors[normalColors].bgColor = RGB8888(81,90,195);
-	m_colors[normalColors].textColor = RGB8888(240,240,240);
-
-	m_colors[highlightColors].frameColor = m_colors[normalColors].frameColor;
-	m_colors[highlightColors].bgColor = RGB8888(8,176,8);
-	m_colors[highlightColors].textColor = RGB8888(240,240,8);
-
-	m_colors[headerColors].frameColor = m_colors[normalColors].frameColor;
-	m_colors[headerColors].bgColor = RGB8888(8,8,8);
-	m_colors[headerColors].textColor = RGB8888(240,240,240);
-
-	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
-	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
-	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
-
-	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
-	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
-	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
 
 #ifdef DEBUG
 	if ( tap != 0 )
@@ -91,6 +71,7 @@ bool Tapplication::Start()
 {
 	TRACE("Tapplication::Start\n");
 
+	SetDefaultColors();
 	// Load application defaults
 	IniFile file;
 	if ( file.Load("default.ini") )
@@ -274,4 +255,28 @@ bool Tapplication::LoadSkin( const char* filename )
 	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
 
 	return true;
+}
+
+void Tapplication::SetDefaultColors()
+{
+		// Setup skin colours
+	m_colors[normalColors].frameColor = RGB8888(8,8,8);
+	m_colors[normalColors].bgColor = RGB8888(81,90,195);
+	m_colors[normalColors].textColor = RGB8888(240,240,240);
+
+	m_colors[highlightColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[highlightColors].bgColor = RGB8888(8,176,8);
+	m_colors[highlightColors].textColor = RGB8888(240,240,8);
+
+	m_colors[headerColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[headerColors].bgColor = RGB8888(8,8,8);
+	m_colors[headerColors].textColor = RGB8888(240,240,240);
+
+	m_colors[footerColors].frameColor = m_colors[normalColors].frameColor;
+	m_colors[footerColors].bgColor = m_colors[normalColors].bgColor;
+	m_colors[footerColors].textColor = m_colors[normalColors].textColor;
+
+	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
+	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
+	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
 }

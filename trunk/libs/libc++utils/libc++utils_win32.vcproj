@@ -154,10 +154,28 @@
 				RelativePath=".\IniFile.cpp">
 			</File>
 			<File
+				RelativePath=".\KeyDef.cpp">
+			</File>
+			<File
+				RelativePath=".\KeyOption.cpp">
+			</File>
+			<File
 				RelativePath=".\Logger.cpp">
 			</File>
 			<File
 				RelativePath=".\MEIReader.cpp">
+			</File>
+			<File
+				RelativePath=".\NumericOption.cpp">
+			</File>
+			<File
+				RelativePath=".\Option.cpp">
+			</File>
+			<File
+				RelativePath=".\Options.cpp">
+			</File>
+			<File
+				RelativePath=".\OptionUpdateNotifier.cpp">
 			</File>
 			<File
 				RelativePath=".\PackedDateTime.cpp">
@@ -185,6 +203,9 @@
 			</File>
 			<File
 				RelativePath=".\vtable.cpp">
+			</File>
+			<File
+				RelativePath=".\YesNoOption.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -219,10 +240,28 @@
 				RelativePath=".\IniFile.h">
 			</File>
 			<File
+				RelativePath=".\KeyDef.h">
+			</File>
+			<File
+				RelativePath=".\KeyOption.h">
+			</File>
+			<File
 				RelativePath=".\Logger.h">
 			</File>
 			<File
 				RelativePath=".\MEIReader.h">
+			</File>
+			<File
+				RelativePath=".\NumericOption.h">
+			</File>
+			<File
+				RelativePath=".\Option.h">
+			</File>
+			<File
+				RelativePath=".\Options.h">
+			</File>
+			<File
+				RelativePath=".\OptionUpdateNotifier.h">
 			</File>
 			<File
 				RelativePath=".\PackedDateTime.h">
@@ -256,6 +295,9 @@
 			</File>
 			<File
 				RelativePath=".\vtable.h">
+			</File>
+			<File
+				RelativePath=".\YesNoOption.h">
 			</File>
 		</Filter>
 		<Filter

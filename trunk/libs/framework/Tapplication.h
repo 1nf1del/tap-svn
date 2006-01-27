@@ -51,6 +51,8 @@ public:
 	// Skinning support
 	bool LoadSkin( const char* filename );
 	ListColors GetColorDef( colorSets whichSet ) const		{ return m_colors[whichSet]; }
+	virtual void SetDefaultColors();
+
 
 	// Application creation
 	static Tapplication* GetTheApplication();
