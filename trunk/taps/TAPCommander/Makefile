@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2005 Simon Capewell. All Rights Reserved.
+# Copyright (c) 2005 Simon Capewell. All Rights Reserved.
 #
 #  This file is part of the TAPs for Topfield PVRs project.
 #      http://tap.berlios.de/
@@ -19,26 +19,29 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-include ../../tools/build/tap.mk
+LIBRARIES=../../libs/Framework/libFramework.a ../../libs/libc++utils/libc++utils.a ../../libs/libutils/libutils.a 
+OBJECTS=tap.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o
 
-all: TAPCommander.tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+include ../../tools/build/tap.mk
+include ../../libs/libc++utils/tap++.mk
+
+all: TAPCommander.tap
 
 # Copy files to the Toppy using tfcopy
 copy: all
 	tfcopy *.tap '#:\ProgramFiles\'
-	disasmips -A TAPCommander.tap > TAPCommander.asm
 
 # A target for removing generated files.
 clean:
-	-rm -f *.tap *.o *.elf *.map
+	-rm -f *.tap *.o *.elf *.map VTableFix.cpp
 
-TAPCommander.elf::	TAPCommander.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-TAPCommander.o:		TAPCommander.c
+CXXFLAGS+=-I../../libs/libutils -I../../libs/libc++utils -I../../libs/Firmware -I../../libs/Framework
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware
+LDFLAGS:= -u TAP_Main -L../../libs/Framework -L../../libs/libc++utils -L../ -L../../libs/libutils -L../../libs/Firmware -lframework -lc++utils -lutils -lfirmware $(LDFLAGS)
 
-../../libs/libutils/libutils.a::
-	$(MAKE) -C ../../libs/libutils
-
-../../libs/Firmware/libfirmware.a::
-	$(MAKE) -C ../../libs/Firmware
+TAPCommander.tap:	TAPCommander.elf
+TAPCommander.elf:	$(OBJECTS) $(VTABLEFIX)
+tap.o:				tap.c
+TAPCommander.o:		TAPCommander.cpp
+LoadedTAPPage.o:	LoadedTAPPage.cpp LoadedTAPPage.h
+AutoStartPage.o:	AutoStartPage.cpp AutoStartPage.h
