@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "listpage.h"
 #include "ListColumn.h"
 #include "Tapplication.h"
-#include "../Firmware/RawKey.h"
+#include "morekeys.h"
 #include "YesNoBox.h"
 #include "Logger.h"
 
@@ -355,7 +355,7 @@ bool ListPage::Draw()
 	return true;
 }
 
-ListItem* ListPage::GetSelectedItem()
+ListItem* ListPage::GetSelectedItem() const
 {
 	if (m_selectedItem >= (int)m_items.size())
 		return 0;
@@ -422,6 +422,21 @@ dword ListPage::MoveSelection(int iOffset, bool bWrap)
 
 	return 0;
 }
+
+// Move the item at index up or down by an element
+bool ListPage::MoveItem(int index, bool down)
+{
+	int offset = down ? 1 : -1;
+	if ( (index > 0 && !down) || (index < m_items.size()-1 && down) )
+	{
+		ListItem* temp = m_items[index];
+		m_items[index] = m_items[index+offset];
+		m_items[index+offset] = temp;
+		return true;
+	}
+	return false;
+}
+
 
 void ListPage::OnIdle()
 {

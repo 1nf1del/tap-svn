@@ -57,7 +57,8 @@ public:
 	bool AddColumn(ListColumn* pNewColumn);
 	void AddItem(ListItem* pNewItem); 
 	bool Show();
-	ListItem* GetSelectedItem();
+	ListItem* GetSelectedItem() const;
+	int GetSelectedIndex() const;
 	virtual ListColors GetColorDef(enum colorSets whichSet);
 	word GetRegionIndex();
 	byte GetBodyFontSize();
@@ -68,6 +69,12 @@ public:
 	dword GetColumnFlags(int i) const;
 	void DiscardItems();
 
+	dword MoveSelection(int iOffset, bool bWrap = true);
+	bool MoveItem(int index, bool down);
+
+protected:
+	array<ListItem*> m_items;
+
 private:
 	void CalcRealColumnWidths();
 	void IncreaseItemArraySize();
@@ -77,7 +84,6 @@ private:
 	void DrawHeader();
 	void DrawFooter();
 	void PartialDraw(int iOldSel, int iOldFirstInView);
-	dword MoveSelection(int iOffset, bool bWrap = true);
 	int CountItemsInView();
 
 	int DrawFrame(Rect drawRect, colorSets whichColors = normalColors);
@@ -100,7 +106,6 @@ private:
 	unsigned short int m_itemHeight;
 	int m_selectedItem;
 	int m_firstItemInView;
-	array<ListItem*> m_items;
 	byte m_columnCount;
 	unsigned short m_headerHeight;
 	unsigned short m_footerHeight;
@@ -113,6 +118,12 @@ private:
 	byte m_fsFooter;
 	bool m_bWidthsCalculated;
 };
+
+
+inline int ListPage::GetSelectedIndex() const
+{
+	return m_selectedItem;
+}
 
 
 #endif

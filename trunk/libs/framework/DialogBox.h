@@ -48,6 +48,9 @@ public:
 	virtual void CreateDialog();
 	virtual void DestroyDialog();
 
+	void SetLine1( const string& line ) { line1 = line; }
+	void SetLine2( const string& line ) { line2 = line; }
+
 protected:
 	void Draw();
 	void DisplayLine();

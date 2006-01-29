@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2006 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -19,57 +19,16 @@
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <tap.h>
-#include "Tapplication.h"
-#include "Page.h"
-#include "logger.h"
+#include "FooterListItem.h"
 
 
-Page::Page()
+string FooterTextListItem::GetFooterText()
 {
-}
-
-Page::~Page()
-{
-}
-
-void Page::Open()
-{
-	Tapplication::GetTheApplication()->PushPage( this );
-	OnOpen();
+	return m_footerText;
 }
 
 
-void Page::Close(bool bRedrawUnderlyingPage)
+dword FooterActionListItem::OnKey( dword key, dword extKey )
 {
-	OnClose();
-	if (Tapplication::GetTheApplication()->PopPage(bRedrawUnderlyingPage) != this)
-		TRACE("Ooops, the page closing isn't the top page - this'll crash!\n");
-	TRACE("About to delete popped page\n");
-	delete this;
-	TRACE("Page deleted\n");
-}
-
-
-void Page::OnIdle()
-{
-}
-
-
-dword Page::OnKey( dword key, dword extKey )
-{
-	return key;
-}
-
-
-void Page::OnOpen()
-{
-}
-
-void Page::OnClose()
-{
-}
-
-void Page::Redraw()
-{
+	return (m_action)(m_theList, this, key, extKey);
 }

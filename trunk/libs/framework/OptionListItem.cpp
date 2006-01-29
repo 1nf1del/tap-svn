@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include ".\optionlistitem.h"
 #include "option.h"
-#include "..\..\..\trunk\libs\Firmware\RawKey.h"
-#include "../../../trunk/libs/framework/Page.h"
+#include "morekeys.h"
+#include "Page.h"
 
 OptionListItem::OptionListItem(ListPage* pParentList, Option* pOption) : m_option(pOption), ListItem(pParentList, 0)
 {

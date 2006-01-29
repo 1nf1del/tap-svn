@@ -38,11 +38,14 @@ void ProgressBox::CreateDialog()
 
 }
 
-void ProgressBox::UpdateProgress(int percent, const string& sStep)
+void ProgressBox::UpdateProgress(int percent, const char* step1, const char* step2 )
 {
-	if (!sStep.empty())
+	if (step1 || step2)
 	{
-		line1=sStep;
+		if (step1)
+			line1 = step1;
+		if (step2)
+			line2 = step2;
 		Draw();
 	}
 

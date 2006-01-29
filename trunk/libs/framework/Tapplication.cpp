@@ -79,7 +79,7 @@ bool Tapplication::Start()
 		string skinName;
 		if ( file.GetValue( "Skin", skinName ) )
 			LoadSkin( skinName );
-		short screenOffsetX, screenOffsetY;
+		short screenOffsetX = 0, screenOffsetY = 0;
 		file.GetValue( "ScreenOffsetX", screenOffsetX );
 		file.GetValue( "ScreenOffsetY", screenOffsetY );
 		Rect::SetOffset( screenOffsetX, screenOffsetY );
