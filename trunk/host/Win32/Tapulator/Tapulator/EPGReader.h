@@ -1,5 +1,5 @@
 //Tapulator - An emulator for the Topfield PVR TAP API
-//Copyright (C) 2005  Robin Glover
+//Copyright (C) 2006  Robin Glover
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,32 +16,26 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // You can contact the author via email at robin.w.glover@gmail.com
-
 #pragma once
-#include "EPGReader.h"
+
 class CChannelList;
-
-struct JagData
-{
-	WORD startDate;
-	WORD startTime;
-	WORD endDate;
-	WORD endTime;
-	WORD duration;
-	char buffer[128];
-} ;
-
-class JagFileReader : public EPGImpl
+class EPGImpl
 {
 public:
-	JagFileReader(CChannelList* pChannelList);
-	~JagFileReader(void);
+	virtual ~EPGImpl() {}
+	virtual TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum ) = 0;
+};
+
+
+class EPGReader
+{
+public:
+	EPGReader(CChannelList* pChannelList);
+	~EPGReader(void);
 
 	TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum );
-
+	TYPE_TapEvent* GetCurrentEvent(int svcType, int svcNum);
 private:
-	char* LoadJagFile();
-	JagData* FindChannelData(int svcType, int iChannelNum, char* pData);
 
-	CChannelList* m_pChannelList;
+	EPGImpl* m_pImpl;
 };

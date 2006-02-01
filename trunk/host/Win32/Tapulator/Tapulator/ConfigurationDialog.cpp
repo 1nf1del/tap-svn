@@ -125,7 +125,7 @@ void CConfigurationDialog::OnBnClickedButtonBrowseEpg()
 {
 	CString cs;
 	m_EPGEdit.GetWindowText(cs);
-	CFileDialog fd(true, ".DAT", cs, OFN_HIDEREADONLY, "EPG Data Files (*.dat)|*.dat|All Files (*.*)|*.*||", this, 0);
+	CFileDialog fd(true, ".DAT", cs, OFN_HIDEREADONLY, "EPG Data Files (*.dat, *.csv, *.mei)|*.dat;*.csv;*.mei|All Files (*.*)|*.*||", this, 0);
 	if (fd.DoModal() == IDOK)
 	{
 		m_EPGEdit.SetWindowText(fd.GetPathName());

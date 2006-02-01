@@ -20,11 +20,11 @@
 #include "StdAfx.h"
 #include ".\toppystate.h"
 #include "ChannelList.h"
-#include "JagFileReader.h"
+#include "EPGReader.h"
 #include <io.h>
 #include "MJDUtil.h"
 
-ToppyState::ToppyState(CChannelList* pChannelList, JagFileReader* pEPGSource)
+ToppyState::ToppyState(CChannelList* pChannelList, EPGReader* pEPGSource)
 {
 	m_pChannelList = pChannelList;
 	m_pEPGSource = pEPGSource;

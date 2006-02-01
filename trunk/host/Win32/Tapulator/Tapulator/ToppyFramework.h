@@ -26,7 +26,7 @@
 class TapModule;
 #include "InfoLogger.h"
 #include "ChannelList.h"
-#include "JagFileReader.h"
+#include "EPGReader.h"
 #include "ToppyState.h"
 #include "Timers.h"
 class CMainFrame;
@@ -238,7 +238,7 @@ private:
 	HANDLE m_hCurrentFind;
 	CChannelList m_ChannelList;
 	Timers m_Timers;
-	JagFileReader m_EPGImpl;
+	EPGReader m_EPGImpl;
 	ToppyState m_TheState;
 	DWORD m_iFirstTick;
 	bool m_bExitFlag;

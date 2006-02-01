@@ -146,6 +146,9 @@
 				RelativePath=".\Connfiguration.cpp">
 			</File>
 			<File
+				RelativePath=".\EPGReader.cpp">
+			</File>
+			<File
 				RelativePath=".\FrameBuffer.cpp">
 			</File>
 			<File
@@ -165,6 +168,9 @@
 			</File>
 			<File
 				RelativePath=".\MainFrm.cpp">
+			</File>
+			<File
+				RelativePath=".\MEIFileReader.cpp">
 			</File>
 			<File
 				RelativePath=".\MJDUtil.cpp">
@@ -244,6 +250,9 @@
 				RelativePath=".\Connfiguration.h">
 			</File>
 			<File
+				RelativePath=".\EPGReader.h">
+			</File>
+			<File
 				RelativePath=".\FrameBuffer.h">
 			</File>
 			<File
@@ -263,6 +272,9 @@
 			</File>
 			<File
 				RelativePath=".\MainFrm.h">
+			</File>
+			<File
+				RelativePath=".\MEIFileReader.h">
 			</File>
 			<File
 				RelativePath=".\MJDUtil.h">

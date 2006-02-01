@@ -157,20 +157,3 @@ TYPE_TapEvent* JagFileReader::GetEvent(int svcType, int svcNum, int *eventNum )
 	return pEvents;
 }
 
-TYPE_TapEvent* JagFileReader::GetCurrentEvent(int svcType, int svcNum)
-{
-	static TYPE_TapEvent eventInfo;
-	int iCountEvents;
-	TYPE_TapEvent* pData = GetEvent(svcType, svcNum, &iCountEvents);
-	if (iCountEvents == 0)
-	{
-		ZeroMemory(&eventInfo, sizeof(TYPE_TapEvent));
-	}
-	else
-	{
-		memcpy(&eventInfo, pData, sizeof(TYPE_TapEvent));
-	}
-	Heap::GetTheHeap()->Release(pData);
-
-	return &eventInfo;
-}

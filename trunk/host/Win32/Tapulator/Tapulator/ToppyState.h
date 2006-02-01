@@ -21,13 +21,13 @@
 #include "infologger.h"
 
 class CChannelList;
-class JagFileReader;
+class EPGReader;
 
 class ToppyState :
 	public InfoLogger
 {
 public:
-	ToppyState(CChannelList* pChannelList, JagFileReader* pEPGSource);
+	ToppyState(CChannelList* pChannelList, EPGReader* pEPGSource);
 	~ToppyState(void);
 
 	void Draw(CDC* pDC);
@@ -60,7 +60,7 @@ private:
 
 
 	CChannelList* m_pChannelList;
-	JagFileReader* m_pEPGSource;
+	EPGReader* m_pEPGSource;
 	DWORD m_State;
 	DWORD m_SubState;
 	bool m_SysOSDCtl[SYSOSD_ServiceStatus+1];
