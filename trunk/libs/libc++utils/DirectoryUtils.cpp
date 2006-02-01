@@ -111,7 +111,7 @@ bool ChangeDirectory(const string& newDirectory)
 	return (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
 }
 
-UFILE* OpenFile(const string& sFileName, char* szMode)
+UFILE* OpenFile(const string& sFileName, const char* szMode)
 {
 	int iSlashPos = -1;
 	int iLastPos = -1;
@@ -121,7 +121,7 @@ UFILE* OpenFile(const string& sFileName, char* szMode)
 	}
 
 	string sCurrentDir;
-	if (iLastPos != -1)
+	if (iSlashPos != -1)
 	{
 		sCurrentDir = GetCurrentDirectory();
 		string sDir = sFileName.substr(0, iSlashPos);
@@ -132,9 +132,9 @@ UFILE* OpenFile(const string& sFileName, char* szMode)
 		}
 	}
 
-	UFILE* result = fopen((char*)&sFileName[iLastPos+1], szMode);
+	UFILE* result = fopen((char*)&sFileName[iSlashPos+1], (char*) szMode);
 
-	if (iLastPos != -1)
+	if (iSlashPos != -1)
 		ChangeDirectory(sCurrentDir);
 
 	return result;

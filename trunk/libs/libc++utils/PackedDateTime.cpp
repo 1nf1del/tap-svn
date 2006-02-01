@@ -70,7 +70,7 @@ string PackedDateTime::ShortDisplayRange(const PackedDateTime& end) const
 	TAP_ExtractMjd(m_wMJD, &year, &month, &day, &dofy);
 
 	string sResult;
-	sResult.format("%s %d %02d:%02d+%d", DayOfWeek(true).c_str(), day, m_wTime>>8, m_wTime & 0xFF, 
+	sResult.format("%s%d %02d:%02d+%d", DayOfWeek(true).c_str(), day, m_wTime>>8, m_wTime & 0xFF, 
 		end-*this);
 
 	return sResult;

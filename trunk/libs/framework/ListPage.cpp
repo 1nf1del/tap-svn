@@ -427,7 +427,7 @@ dword ListPage::MoveSelection(int iOffset, bool bWrap)
 bool ListPage::MoveItem(int index, bool down)
 {
 	int offset = down ? 1 : -1;
-	if ( (index > 0 && !down) || (index < m_items.size()-1 && down) )
+	if ( (index > 0 && !down) || (index < ((int)m_items.size()-1) && down) )
 	{
 		ListItem* temp = m_items[index];
 		m_items[index] = m_items[index+offset];

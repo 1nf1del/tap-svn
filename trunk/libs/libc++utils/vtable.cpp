@@ -7,7 +7,7 @@
 #define USE_DLMALLOC
 #else
 // for debugging dlmalloc
-//#define USE_DLMALLOC
+#define USE_DLMALLOC
 #endif
 
 void FixupVTable( vtable& vtbl )

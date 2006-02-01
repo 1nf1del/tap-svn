@@ -40,8 +40,8 @@ public:
 	const string& GetDescription() const;
 	bool SetValue(const string& value);
 	virtual void OnUpdate() const;
-	int ValueAsInteger() const;
-	bool ValueAsBoolean() const;
+	virtual int ValueAsInteger() const;
+	virtual bool ValueAsBoolean() const;
 	virtual KeyDef ValueAsKeyDef() const;
 	const array<string>& GetChoices() const;
 	string GetUniqueId() const;

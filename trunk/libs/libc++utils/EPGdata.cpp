@@ -1,28 +1,33 @@
 /*
-	Copyright (C) 2006 Robin Glover
+Copyright (C) 2006 Robin Glover
 
-	This file is part of the TAPs for Topfield PVRs project.
-		http://tap.berlios.de/
+This file is part of the TAPs for Topfield PVRs project.
+http://tap.berlios.de/
 
-	This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either
-	version 2 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Lesser General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public
-	License along with this library; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include ".\epgdata.h"
 #include "epgchannel.h"
 #include "epgevent.h"
 #include "Globals.h"
 #include "Channels.h"
+#include "MEIReader.h"
+#include "EPGReader.h"
+#include "ProgressNotification.h"
+#include "Logger.h"
+#include "JagCSVReader.h"
 
 EPGdata::EPGdata(void)
 {
@@ -127,4 +132,72 @@ bool EPGdata::Visit(EPGVisitor* pVisitor) const
 			return false;
 	}
 	return true;
+}
+
+bool EPGdata::ReadData(IEPGReader& reader, ProgressNotification* pProgress)
+{
+	if (reader.CanRead())
+	{
+		if (pProgress)
+			pProgress->Start();
+
+		while (reader.Read(*this, 250))
+		{
+			if (pProgress)
+				pProgress->Step(reader.GetPercentDone());
+		}
+
+		CheckForContinuedPrograms();
+
+		if (pProgress)
+			pProgress->Finish();
+
+		TRACE("Loaded EPG data\n");
+		TRACE_MEMORY();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool EPGdata::TryReadingBuiltin(ProgressNotification* pProgress)
+{
+	EPGReader reader;
+	return ReadData(reader, pProgress);
+}
+
+bool EPGdata::TryReadingMei(ProgressNotification* pProgress)
+{
+	MEIReader reader;
+	return ReadData(reader, pProgress);
+}
+
+bool EPGdata::TryReadingJagsCSV(ProgressNotification* pProgress)
+{
+	JagCSVReader reader;
+	return ReadData(reader, pProgress);
+}
+
+
+bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress)
+{
+	switch (dataSource)
+	{
+	case BuiltinEPG:
+		return TryReadingBuiltin(pProgress);
+	case Mei:
+		return TryReadingMei(pProgress);
+	case JagsCSV:
+		return TryReadingJagsCSV(pProgress);
+	case Auto:
+	default:
+		if (TryReadingMei(pProgress))
+			return true;
+		if (TryReadingJagsCSV(pProgress))
+			return true;
+		if (TryReadingBuiltin(pProgress))
+			return true;
+	}
+	return false;
 }

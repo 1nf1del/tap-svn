@@ -145,6 +145,12 @@
 				RelativePath=".\EPGevent.cpp">
 			</File>
 			<File
+				RelativePath=".\EPGReader.cpp">
+			</File>
+			<File
+				RelativePath=".\EPGSourceOption.cpp">
+			</File>
+			<File
 				RelativePath=".\EPGVisitor.cpp">
 			</File>
 			<File
@@ -152,6 +158,9 @@
 			</File>
 			<File
 				RelativePath=".\IniFile.cpp">
+			</File>
+			<File
+				RelativePath=".\JagCSVReader.cpp">
 			</File>
 			<File
 				RelativePath=".\KeyDef.cpp">
@@ -228,6 +237,12 @@
 				RelativePath=".\EPGevent.h">
 			</File>
 			<File
+				RelativePath=".\EPGReader.h">
+			</File>
+			<File
+				RelativePath=".\EPGSourceOption.h">
+			</File>
+			<File
 				RelativePath=".\EPGVisitor.h">
 			</File>
 			<File
@@ -238,6 +253,9 @@
 			</File>
 			<File
 				RelativePath=".\IniFile.h">
+			</File>
+			<File
+				RelativePath=".\JagCSVReader.h">
 			</File>
 			<File
 				RelativePath=".\KeyDef.h">

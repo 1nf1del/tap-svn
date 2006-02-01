@@ -31,6 +31,8 @@ class EPGevent
 {
 public:
 	EPGevent(const string& sMEIdata);
+	EPGevent(const string& sJagData, bool bJags);
+	EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan);
 	~EPGevent(void);
 
 	enum subtitleType
@@ -65,7 +67,27 @@ public:
 	string GetFileName() const;
 		
 private:
+	
 	void Parse(const string& sMEIdata);
+	void ParseJags(const string& sJagData);
+	void Init();
+	void SetGenre();
+
+	enum jagfieldIndex
+	{
+		JCSVchanName,
+		JCSVstartTime,
+		JCSVendTime,
+		JCSVtimeOffset,
+		JCSVtitle,
+		JCSVshortDescription,
+		JCSVlongDescription,
+		JCSVcategory,
+		JCSVserviceNumber,
+		JCSVserviceName,
+		JCSVserviceId,
+		JAGCSVend_of_fields
+	};
 
 	enum fieldIndex
 	{

@@ -23,10 +23,13 @@
 #include <stdlib.h>
 #include "tap.h"
 #include "file.h"
+#include "EPGReader.h"
+#include "tapstring.h"
 
 class EPGdata;
+class EPGevent;
 
-class MEIReader
+class MEIReader : public IEPGReader
 {
 public:
 	MEIReader(void);
@@ -36,6 +39,9 @@ public:
 	int GetPercentDone();
 	bool CanRead();
 private:
+	bool Init();
+	virtual string GetFileName();
+	virtual EPGevent* ConstructEvent(const string& sdata);
 
 	UFILE* m_pFile;
 };

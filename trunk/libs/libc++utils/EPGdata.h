@@ -25,9 +25,19 @@
 #include "taparray.h"
 #include "tapstring.h"
 
+class IEPGReader;
 class EPGevent;
 class EPGchannel;
 class EPGVisitor;
+class ProgressNotification;
+
+enum DataSources
+{
+	Auto,
+	Mei,
+	BuiltinEPG,
+	JagsCSV
+};
 
 class EPGdata
 {
@@ -43,8 +53,14 @@ public:
 	const EPGchannel* GetChannel(int channelNum) const;
 	const array<EPGchannel*> GetChannels() const;
 	bool Visit(EPGVisitor* pVisitor) const;
-
+	bool ReadData(DataSources dataSource, ProgressNotification* pProgress);
+		
 private:
+	bool ReadData(IEPGReader& reader, ProgressNotification* pProgress); 
+	bool TryReadingMei(ProgressNotification* pProgress);
+	bool TryReadingBuiltin(ProgressNotification* pProgress);
+	bool TryReadingJagsCSV(ProgressNotification* pProgress);
+
 	EPGchannel* FindChannelByNum(word channelNum);
 	array<EPGchannel*> m_channels;
 	array<EPGevent*> m_emptyData;

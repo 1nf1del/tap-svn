@@ -18,30 +18,20 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef libcpputils_directoryutils
-#define libcpputils_directoryutils
-#include <string.h>
-#include <stdlib.h>
-#include "tap.h"
-#include "tapstring.h"
-#include "file.h"
+#ifndef libcpputils_epgsourceoption_h
+#define libcpputils_epgsourceoption_h
+#include "option.h"
 
-class DirectoryRestorer
+class EPGSourceOption :
+	public Option
 {
 public:
-	DirectoryRestorer(const string& sChangeToDirectory);
-	~DirectoryRestorer();
-	bool WasSuccesful();
+	EPGSourceOption(Options* pContainer, const string& key, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL);
+	~EPGSourceOption(void);
 
-private:
-	bool m_bWorked;
-	string m_sSavedDir;
+	virtual int ValueAsInteger() const;
+	virtual bool ImmediateUpdateNeeded() const;
 
 };
-
-string GetCurrentDirectory();
-bool ChangeDirectory(const string& newDirectory);
-UFILE* OpenFile(const string& sFileName, const char* szMode);
-
 
 #endif

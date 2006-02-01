@@ -57,7 +57,6 @@ private:
 	bool FindKey( const char* key, string& value ) const;
 
 	array<string> line;
-	char eol[3];
 };
 
 

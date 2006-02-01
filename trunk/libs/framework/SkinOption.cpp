@@ -56,9 +56,12 @@ void SkinOption::OnUpdate() const
 	string value = GetValue();
 	Tapplication* pTap = Tapplication::GetTheApplication();
 
+	// load the default colors first, so that a failure to load the skin will
+	// leave the system viewable at least...
+	pTap->SetDefaultColors();
 	if (value == "Default")
 	{
-		pTap->SetDefaultColors();
+//		pTap->SetDefaultColors();
 	}
 	else
 	{

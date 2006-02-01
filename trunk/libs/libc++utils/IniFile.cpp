@@ -29,14 +29,11 @@ const int maxIniLength = 2048;
 
 IniFile::IniFile()
 {
-	// default to unix style line endings
-	strcpy( eol, "\n" );
 }
 
 IniFile::IniFile( const char* filename )
 {
 	// default to unix style line endings
-	strcpy( eol, "\n" );
 	Load( filename );
 }
 
@@ -61,20 +58,21 @@ bool IniFile::Load( const char* filename )
 	TAP_Hdd_Fread( buffer.getbuffer(length), 1, length , file );
 	buffer.releasebuffer();
 	TAP_Hdd_Fclose( file );
-	// work out the default line ending
-	int i = buffer.findfirstof( "\r\n" );
-	if ( i > -1 )
-	{
-		eol[0] = buffer[i];
-		eol[1] = buffer[i+1] == '\n' ? '\n' : '\0';
-		eol[2] = '\0';
-	}
-	else
-		strcpy( eol, "\n" );
-
 	// remove the spaces we added last time it was saved
 	buffer = buffer.trim();
-	buffer.split( eol, line );
+
+	// in case of mixed line endings, always split on \r
+	// and then remove the possible \r from the end of each line
+	buffer.split( "\n", line );
+	for (unsigned int i=0; i<line.size(); i++)
+	{
+		int isize = line[i].size();
+		if (isize)
+		{
+			if (line[i][isize-1] == '\r')
+				line[i].resize(isize-1);
+		}
+	}
 
 	return true;
 }
@@ -101,7 +99,7 @@ bool IniFile::Save( const char* filename ) const
 	string buffer;
 	buffer.resize( length );
 	for ( unsigned int u = 0; u < line.size(); ++u )
-		buffer += line[u] + eol;
+		buffer += line[u] + "\r\n";
 	while ( buffer.size() < length-1 )
 		buffer += " ";
 	TAP_Hdd_Fwrite( (void*)(const char*)buffer, 1, buffer.size(), file );

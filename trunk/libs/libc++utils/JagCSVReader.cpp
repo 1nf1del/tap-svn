@@ -18,32 +18,25 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef cpputils_globals_h
-#define cpputils_globals_h
+#include "JagCSVreader.h"
+#include "EPGevent.h"
 
-class Timers;
-class EPGdata;
-class Channels;
-class ProgressNotification;
-#include "EPGdata.h"
-
-class Globals
+JagCSVReader::JagCSVReader()
 {
-public:
-	Globals(void);
-	~Globals(void);
 
-	static void Cleanup();
-	static Timers* GetTimers();
-	static EPGdata* GetEPGdata();
-	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0);
-	
-private:
+}
 
-	static Timers* m_pTheTimers;
-	static EPGdata* m_pEPGdata;
-	static Channels* m_pChannels;
+JagCSVReader::~JagCSVReader()
+{
 
-};
-#endif
+}
+
+string JagCSVReader::GetFileName()
+{
+	return "/ProgramFiles/Jags_EPG.Export.CSV";
+}
+
+EPGevent* JagCSVReader::ConstructEvent(const string& sdata)
+{
+	return new EPGevent(sdata, true);
+}

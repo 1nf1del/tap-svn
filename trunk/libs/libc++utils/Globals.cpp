@@ -21,10 +21,7 @@
 #include ".\globals.h"
 #include "Timers.h"
 #include "EPGData.h"
-#include "MEIReader.h"
 #include "Channels.h"
-#include "Logger.h"
-#include "ProgressNotification.h"
 
 Timers* Globals::m_pTheTimers = NULL;
 EPGdata* Globals::m_pEPGdata = NULL;
@@ -55,35 +52,20 @@ Channels* Globals::GetChannels()
 	return m_pChannels;
 }
 
-EPGdata* Globals::GetEPGdata(ProgressNotification* pProgress)
+bool Globals::LoadEPGData(DataSources dataSource, ProgressNotification* pProgress)
 {
-	if (m_pEPGdata == 0)
-	{
+	delete m_pEPGdata;
+	m_pEPGdata = new EPGdata();
+	return	m_pEPGdata->ReadData(dataSource, pProgress);
+}
+
+EPGdata* Globals::GetEPGdata()
+{
+	if (m_pEPGdata == NULL)
 		m_pEPGdata = new EPGdata();
 
-		MEIReader mei;
-		if (mei.CanRead())
-		{
-			if (pProgress)
-				pProgress->Start();
-
-			while (mei.Read(*m_pEPGdata, 250))
-			{
-				if (pProgress)
-					pProgress->Step(mei.GetPercentDone());
-			}
-
-			m_pEPGdata->CheckForContinuedPrograms();
-
-			if (pProgress)
-				pProgress->Finish();
-
-			TRACE("Loaded EPG data\n");
-			TRACE_MEMORY();
-		}
-	}
-
 	return m_pEPGdata;
+
 }
 
 void Globals::Cleanup()

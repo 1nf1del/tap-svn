@@ -20,19 +20,120 @@
 */
 #include ".\epgevent.h"
 #include "globals.h"
+#include "Channels.h"
 #include "timers.h"
-
+#include <ctype.h>
 #ifdef WIN32
 #include <crtdbg.h>
 #endif
 
-EPGevent::EPGevent(const string& sMEIdata) : m_pContinuesAs(NULL), m_bContinuation(false)
+EPGevent::EPGevent(const string& sMEIdata) 
 {
+	Init();
 	Parse(sMEIdata);
+}
+
+EPGevent::EPGevent(const string& sJagData, bool bJags)
+{
+	Init();
+	bJags;
+	ParseJags(sJagData);
+
+}
+
+
+EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan) 
+{
+	Init();
+	m_sTitle = pEventData->eventName;
+	m_sDescription = pEventData->description;
+	m_TimeSlot.SetStart(pEventData->startTime);
+	m_TimeSlot.SetEnd(pEventData->endTime);
+	m_wChannelNum = (short)iLogicalChan;
+	SetGenre();
+}
+
+void EPGevent::Init()
+{
+	m_pContinuesAs = NULL;
+	m_bContinuation = false;
+	m_wChannelNum = -1;
+	m_wYear = -1;
+	m_wRunningTime = 0;
+	m_Subtitles = noSubtitles;
+	m_bBlackAndWhite = false;
+	m_bFilmPremiere = false;
+	m_bRepeat = false;
+	m_bWideScreen = false;
+	m_iStars = 0;
 }
 
 EPGevent::~EPGevent(void)
 {
+}
+
+void EPGevent::ParseJags(const string& sJagData)
+{
+	int iField = 0;
+	int iPos = -1;
+	int iNextPos = -1;
+	bool bDone = false;
+	while (!bDone)
+	{
+		bool bLast = false;
+		iNextPos = sJagData.find('|', iPos);
+		if (iNextPos == -1)
+		{
+			iNextPos = sJagData.find('\r', iPos);
+			if (iNextPos == -1)
+				iNextPos = sJagData.size();
+			bLast = true;
+		}
+		
+		string sSub = sJagData.substr(iPos + 1, iNextPos - iPos - 1);
+		switch (iField)
+		{
+		case JCSVchanName:
+			break;
+		case JCSVstartTime:
+			m_TimeSlot.SetStart(PackedDateTime(sSub));
+			break;
+		case JCSVendTime:
+			m_TimeSlot.SetEnd(PackedDateTime(sSub));
+			if (m_TimeSlot.End().IsInPast())
+				return;
+			break;
+		case JCSVtimeOffset:
+			break;
+		case JCSVtitle:
+			m_sTitle = sSub;
+			break;
+		case JCSVshortDescription:
+			m_sDescription = sSub;
+			break;
+		case JCSVlongDescription:
+			break;
+		case JCSVcategory:
+			break;
+		case JCSVserviceNumber:
+			m_wChannelNum = (word)Globals::GetChannels()->ToppyToLogical(atoi(sSub)-1);
+			break;
+		case JCSVserviceName:
+			break;
+		case JCSVserviceId:
+			break;
+		}
+
+		iPos = iNextPos;
+		iField++;
+		if (bLast)
+			break;
+	}
+#ifdef WIN32
+	_ASSERT(iField == JAGCSVend_of_fields);
+#endif
+
+	m_sGenre = "No Genre";
 }
 
 void EPGevent::Parse(const string& sMEIdata)
@@ -40,10 +141,6 @@ void EPGevent::Parse(const string& sMEIdata)
 	int iField = 0;
 	int iPos = -1;
 	int iNextPos = -1;
-	m_wChannelNum = -1;
-	m_wYear = -1;
-	m_wRunningTime = 0;
-	m_Subtitles = noSubtitles;
 	bool bDone = false;
 	while (!bDone)
 	{
@@ -298,4 +395,18 @@ string EPGevent::GetFileName() const
 	sResult.replace(':', ' ');
 	sResult.replace('*', ' ');
 	return sResult.trim();
+}
+
+void EPGevent::SetGenre()
+{
+	m_sGenre = "No Genre";
+	int iPos1 = m_sDescription.find('[');
+	int iPos2 = m_sDescription.find(']',iPos1);
+	if (iPos1 > -1 && iPos2 > -1)
+	{
+		string sPosGenre = m_sDescription.substr(iPos1+1, iPos2-iPos1-1);
+		if (sPosGenre.size() && isalpha(sPosGenre[0]))
+			m_sGenre = sPosGenre;
+
+	}
 }

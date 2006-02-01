@@ -18,30 +18,46 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef libcpputils_directoryutils
-#define libcpputils_directoryutils
-#include <string.h>
-#include <stdlib.h>
-#include "tap.h"
-#include "tapstring.h"
-#include "file.h"
+#include ".\epgsourceoption.h"
+#include "EPGdata.h"
 
-class DirectoryRestorer
+EPGSourceOption::EPGSourceOption(Options* pContainer, const string& key, const string& name, const string& description, OptionUpdateNotifier* pNotifier) :
+Option(pContainer, key, "MEI", name, description, pNotifier)
 {
-public:
-	DirectoryRestorer(const string& sChangeToDirectory);
-	~DirectoryRestorer();
-	bool WasSuccesful();
+	m_choices.push_back("MEI");
+	m_choices.push_back("Jags CSV");
+	m_choices.push_back("Builtin");
+	m_choices.push_back("Auto");
+}
 
-private:
-	bool m_bWorked;
-	string m_sSavedDir;
+EPGSourceOption::~EPGSourceOption()
+{
 
-};
-
-string GetCurrentDirectory();
-bool ChangeDirectory(const string& newDirectory);
-UFILE* OpenFile(const string& sFileName, const char* szMode);
+}
 
 
-#endif
+int EPGSourceOption::ValueAsInteger() const
+{
+	const string& value = GetValue();
+
+	if (value == "MEI")
+		return Mei;
+
+	if (value == "Builtin")
+		return BuiltinEPG;
+
+	if (value == "Jags CSV")
+		return JagsCSV;
+
+	if (value == "Auto")
+		return Auto;
+
+	return Mei;
+
+
+}
+
+bool EPGSourceOption::ImmediateUpdateNeeded() const
+{
+	return true;
+}

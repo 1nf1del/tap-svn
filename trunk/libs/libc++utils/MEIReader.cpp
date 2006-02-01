@@ -23,16 +23,11 @@
 #include "tapstring.h"
 #include "taparray.h"
 #include "EPGdata.h"
+#include "DirectoryUtils.h"
 
 MEIReader::MEIReader(void)
 {
-	m_pFile = fopen("MyStuff.mei", "r");
-	if (m_pFile == NULL)
-	{
-		TAP_Hdd_ChangeDir("..");
-		m_pFile = fopen("MyStuff.mei", "r");	
-		TAP_Hdd_ChangeDir("Auto Start");
-	}
+	m_pFile = 0;
 }
 
 MEIReader::~MEIReader(void)
@@ -40,14 +35,32 @@ MEIReader::~MEIReader(void)
 	fclose(m_pFile);
 }
 
+bool MEIReader::Init()
+{
+	if (m_pFile)
+		return true;
+
+	m_pFile = OpenFile(GetFileName(), "r");
+
+	//m_pFile = fopen("MyStuff.mei", "r");
+	//if (m_pFile == NULL)
+	//{
+	//	TAP_Hdd_ChangeDir("..");
+	//	m_pFile = fopen("MyStuff.mei", "r");	
+	//	TAP_Hdd_ChangeDir("Auto Start");
+	//}
+
+	return (m_pFile != 0);
+}
+
 bool MEIReader::CanRead()
 {
-	return m_pFile != 0;
+	return Init();
 }
 
 bool MEIReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 {
-	if (m_pFile == NULL)
+	if (!Init())
 		return false;
 
 	char buf[2048];
@@ -59,7 +72,7 @@ bool MEIReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 		s = buf;
 		if (!s.empty())
 		{
-			EPGevent* pNewEvent = new EPGevent(s);
+			EPGevent* pNewEvent = ConstructEvent(s);
 			if (pNewEvent->GetEnd().IsInPast())
 			{
 				delete pNewEvent;
@@ -86,4 +99,14 @@ int MEIReader::GetPercentDone()
 	int fsize = m_pFile->size / 1024;
 
 	return (fpos * 100) / fsize;
+}
+
+string MEIReader::GetFileName()
+{
+	return "/ProgramFiles/MyStuff.mei";
+}
+
+EPGevent* MEIReader::ConstructEvent(const string& sdata)
+{
+	return new EPGevent(sdata);
 }
