@@ -24,6 +24,7 @@ class EPGImpl
 public:
 	virtual ~EPGImpl() {}
 	virtual TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum ) = 0;
+	virtual byte* GetExtInfo(TYPE_TapEvent *tapEvtInfo ) = 0;
 };
 
 
@@ -35,6 +36,7 @@ public:
 
 	TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum );
 	TYPE_TapEvent* GetCurrentEvent(int svcType, int svcNum);
+	byte* GetExtInfo(TYPE_TapEvent *tapEvtInfo);
 private:
 
 	EPGImpl* m_pImpl;

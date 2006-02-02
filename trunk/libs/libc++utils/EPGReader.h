@@ -24,6 +24,7 @@
 #include "tap.h"
 
 class EPGdata;
+class EPGevent;
 
 class IEPGReader
 {
@@ -37,16 +38,19 @@ public:
 class EPGReader : public IEPGReader
 {
 public:
-	EPGReader(void);
+	EPGReader(bool bUseExtendedInfo = false, dword dwFlags = 0);
 	~EPGReader(void);
 
 	bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
 	int GetPercentDone();
 	bool CanRead();
 private:
+	EPGevent* BuildEvent(TYPE_TapEvent* pTapEvent, int iLogicalChan);
 
 	int m_iCurrentChan;
 	int m_iTotalChan;
+	bool m_bUseExtendedInfo;
+	dword m_dwFlags;
 };
 
 

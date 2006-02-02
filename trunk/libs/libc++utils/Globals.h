@@ -37,7 +37,7 @@ public:
 	static Timers* GetTimers();
 	static EPGdata* GetEPGdata();
 	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0);
+	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
 	
 private:
 

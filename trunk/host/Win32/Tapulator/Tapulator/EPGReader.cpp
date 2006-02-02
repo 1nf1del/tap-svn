@@ -70,3 +70,7 @@ TYPE_TapEvent* EPGReader::GetCurrentEvent(int svcType, int svcNum)
 	return &eventInfo;
 }
 
+byte* EPGReader::GetExtInfo(TYPE_TapEvent* tapEvtInfo)
+{
+	return m_pImpl->GetExtInfo(tapEvtInfo);
+}

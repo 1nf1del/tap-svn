@@ -27,6 +27,7 @@ Option(pContainer, key, "MEI", name, description, pNotifier)
 	m_choices.push_back("MEI");
 	m_choices.push_back("Jags CSV");
 	m_choices.push_back("Builtin");
+	m_choices.push_back("Builtin+");
 	m_choices.push_back("Auto");
 }
 
@@ -51,6 +52,9 @@ int EPGSourceOption::ValueAsInteger() const
 
 	if (value == "Auto")
 		return Auto;
+
+	if (value == "Builtin+")
+		return BuiltinExtendedEPG;
 
 	return Mei;
 

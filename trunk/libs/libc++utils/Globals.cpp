@@ -52,11 +52,11 @@ Channels* Globals::GetChannels()
 	return m_pChannels;
 }
 
-bool Globals::LoadEPGData(DataSources dataSource, ProgressNotification* pProgress)
+bool Globals::LoadEPGData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags)
 {
 	delete m_pEPGdata;
 	m_pEPGdata = new EPGdata();
-	return	m_pEPGdata->ReadData(dataSource, pProgress);
+	return	m_pEPGdata->ReadData(dataSource, pProgress, dwFlags);
 }
 
 EPGdata* Globals::GetEPGdata()

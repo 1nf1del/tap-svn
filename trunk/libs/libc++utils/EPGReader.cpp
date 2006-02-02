@@ -32,6 +32,8 @@ IEPGReader::~IEPGReader()
 }
 bool IEPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 {
+	epgdata;
+	maxRowsThisChunk;
 	return false;
 }
 int IEPGReader::GetPercentDone()
@@ -44,10 +46,12 @@ bool IEPGReader::CanRead()
 }
 
 
-EPGReader::EPGReader(void)
+EPGReader::EPGReader(bool bUseExtendedInfo, dword dwFlags)
 {
 	m_iTotalChan = Globals::GetChannels()->GetCount();
 	m_iCurrentChan = 0;
+	m_bUseExtendedInfo = bUseExtendedInfo;
+	m_dwFlags = dwFlags;
 }
 
 EPGReader::~EPGReader(void)
@@ -59,6 +63,15 @@ bool EPGReader::CanRead()
 	return true;
 }
 
+EPGevent* EPGReader::BuildEvent(TYPE_TapEvent* pTapEvent, int iLogicalChan)
+{
+	char* pExtData = (char*) (m_bUseExtendedInfo ? TAP_EPG_GetExtInfo(pTapEvent) : 0);
+	EPGevent* pNewEvent = new EPGevent(pTapEvent, iLogicalChan, pExtData);
+	if (pExtData)
+		TAP_MemFree(pExtData);
+	return pNewEvent;
+}
+
 bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 {
 	int iCount = 0;
@@ -68,7 +81,7 @@ bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 
 	for (int i=0; i<iCount; i++)
 	{
-		EPGevent* pNewEvent = new EPGevent(&pEvents[i], iLogicalChan);
+		EPGevent* pNewEvent = BuildEvent(&pEvents[i], iLogicalChan);
 		if (pNewEvent->GetEnd().IsInPast())
 		{
 			delete pNewEvent;

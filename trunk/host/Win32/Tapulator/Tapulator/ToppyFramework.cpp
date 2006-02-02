@@ -1057,8 +1057,7 @@ bool ToppyFramework::EPG_DeleteEvent( int svcType, int svcNum, DWORD evtid )
 
 BYTE* ToppyFramework::EPG_GetExtInfo(TYPE_TapEvent *tapEvtInfo )
 {
-	LogUnimplemented(__FUNCTION__ "(" __FUNCSIG__ ")");
-	return 0;
+	return m_EPGImpl.GetExtInfo(tapEvtInfo);
 }
 
 

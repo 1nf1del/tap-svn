@@ -8,6 +8,7 @@
 
 MEIFileReader::MEIFileReader(CChannelList* pChannelList) : m_pChannelList(pChannelList)
 {
+	m_iEventCount = 0;
 	ReadAllData();
 }
 
@@ -201,8 +202,24 @@ int MEIFileReader::BuildEvent(CString sMEIdata, TYPE_TapEvent& result )
 	_ASSERT(iField == end_of_fields);
 #endif
 
+	result.evtId = m_iEventCount++;
+	m_vecExtInfo.push_back(sDesc);
 	sDesc = "[" + sGenre + "]" + sDesc;
 	strncpy(result.description, sDesc, 128);
 
 	return iChannelNum;
+}
+
+byte* MEIFileReader::GetExtInfo(TYPE_TapEvent *tapEvtInfo )
+{
+	if (!tapEvtInfo)
+		return 0;
+
+	if (tapEvtInfo->evtId<0 || tapEvtInfo->evtId>=m_vecExtInfo.size())
+		return 0;
+
+	CString& data = m_vecExtInfo[tapEvtInfo->evtId];
+	char* result = (char*)Heap::GetTheHeap()->Allocate(data.GetLength()+1);
+	strcpy(result, data);
+	return (byte*)result;
 }

@@ -23,9 +23,12 @@
 #include "Channels.h"
 #include "timers.h"
 #include <ctype.h>
+#include <string.h>
 #ifdef WIN32
 #include <crtdbg.h>
 #endif
+
+dword EPGevent::sm_dwFlags = 0;
 
 EPGevent::EPGevent(const string& sMEIdata) 
 {
@@ -38,11 +41,10 @@ EPGevent::EPGevent(const string& sJagData, bool bJags)
 	Init();
 	bJags;
 	ParseJags(sJagData);
-
 }
 
 
-EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan) 
+EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan, char* pExtData) 
 {
 	Init();
 	m_sTitle = pEventData->eventName;
@@ -51,6 +53,18 @@ EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan)
 	m_TimeSlot.SetEnd(pEventData->endTime);
 	m_wChannelNum = (short)iLogicalChan;
 	SetGenre();
+	if (pExtData)
+	{
+		if (strncmp(pExtData, m_sDescription, m_sDescription.size()) == 0)
+		{
+			m_sDescription = pExtData;
+		}
+		else
+		{
+			m_sDescription += "\n";
+			m_sDescription += pExtData;
+		}
+	}
 }
 
 void EPGevent::Init()
@@ -400,6 +414,9 @@ string EPGevent::GetFileName() const
 void EPGevent::SetGenre()
 {
 	m_sGenre = "No Genre";
+	if ((sm_dwFlags & EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS)==0)
+		return;
+
 	int iPos1 = m_sDescription.find('[');
 	int iPos2 = m_sDescription.find(']',iPos1);
 	if (iPos1 > -1 && iPos2 > -1)
@@ -408,5 +425,11 @@ void EPGevent::SetGenre()
 		if (sPosGenre.size() && isalpha(sPosGenre[0]))
 			m_sGenre = sPosGenre;
 
+		m_sDescription = m_sDescription.substr(0, iPos1) + m_sDescription.substr(iPos2+1);
 	}
+}
+
+void EPGevent::SetFlags(dword dwNewFlags)
+{
+	sm_dwFlags = dwNewFlags;
 }

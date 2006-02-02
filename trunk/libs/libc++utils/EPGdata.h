@@ -36,8 +36,11 @@ enum DataSources
 	Auto,
 	Mei,
 	BuiltinEPG,
-	JagsCSV
+	JagsCSV,
+	BuiltinExtendedEPG,
 };
+
+#define EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS 0x00000001
 
 class EPGdata
 {
@@ -53,13 +56,15 @@ public:
 	const EPGchannel* GetChannel(int channelNum) const;
 	const array<EPGchannel*> GetChannels() const;
 	bool Visit(EPGVisitor* pVisitor) const;
-	bool ReadData(DataSources dataSource, ProgressNotification* pProgress);
-		
+	bool ReadData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags);
+	bool HasData() const;	
+
 private:
 	bool ReadData(IEPGReader& reader, ProgressNotification* pProgress); 
 	bool TryReadingMei(ProgressNotification* pProgress);
 	bool TryReadingBuiltin(ProgressNotification* pProgress);
 	bool TryReadingJagsCSV(ProgressNotification* pProgress);
+	bool TryReadingExtendedBuiltin(ProgressNotification* pProgress);
 
 	EPGchannel* FindChannelByNum(word channelNum);
 	array<EPGchannel*> m_channels;

@@ -157,3 +157,7 @@ TYPE_TapEvent* JagFileReader::GetEvent(int svcType, int svcNum, int *eventNum )
 	return pEvents;
 }
 
+byte* JagFileReader::GetExtInfo(TYPE_TapEvent *tapEvtInfo )
+{
+	return 0;
+}

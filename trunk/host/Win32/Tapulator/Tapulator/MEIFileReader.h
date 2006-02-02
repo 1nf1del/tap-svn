@@ -9,6 +9,7 @@ public:
 	~MEIFileReader(void);
 
 	TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum );
+	virtual byte* GetExtInfo(TYPE_TapEvent *tapEvtInfo );
 
 private:
 	CChannelList* m_pChannelList;
@@ -17,6 +18,8 @@ private:
 
 	int ToppyToLogical(int svcType, int svcNum);
 	std::map<int, std::vector<TYPE_TapEvent> > m_AllEPGInfo;
+	int m_iEventCount;
+	std::vector<CString> m_vecExtInfo;
 
 	enum fieldIndex
 	{

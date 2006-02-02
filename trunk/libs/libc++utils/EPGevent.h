@@ -32,7 +32,7 @@ class EPGevent
 public:
 	EPGevent(const string& sMEIdata);
 	EPGevent(const string& sJagData, bool bJags);
-	EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan);
+	EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan, char* pExtData);
 	~EPGevent(void);
 
 	enum subtitleType
@@ -66,6 +66,7 @@ public:
 	int Recordability() const;
 	string GetFileName() const;
 		
+	static void SetFlags(dword dwNewFlags);
 private:
 	
 	void Parse(const string& sMEIdata);
@@ -140,6 +141,8 @@ private:
 
 	EPGevent* m_pContinuesAs;
 	bool m_bContinuation;
+
+	static dword sm_dwFlags;
 };
 
 #endif

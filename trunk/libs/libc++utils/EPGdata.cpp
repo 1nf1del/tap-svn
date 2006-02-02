@@ -134,6 +134,11 @@ bool EPGdata::Visit(EPGVisitor* pVisitor) const
 	return true;
 }
 
+bool EPGdata::HasData() const
+{
+	return m_channels.size()>0;
+}
+
 bool EPGdata::ReadData(IEPGReader& reader, ProgressNotification* pProgress)
 {
 	if (reader.CanRead())
@@ -163,7 +168,13 @@ bool EPGdata::ReadData(IEPGReader& reader, ProgressNotification* pProgress)
 
 bool EPGdata::TryReadingBuiltin(ProgressNotification* pProgress)
 {
-	EPGReader reader;
+	EPGReader reader(false);
+	return ReadData(reader, pProgress);
+}
+
+bool EPGdata::TryReadingExtendedBuiltin(ProgressNotification* pProgress)
+{
+	EPGReader reader(true);
 	return ReadData(reader, pProgress);
 }
 
@@ -180,8 +191,9 @@ bool EPGdata::TryReadingJagsCSV(ProgressNotification* pProgress)
 }
 
 
-bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress)
+bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags)
 {
+	EPGevent::SetFlags(dwFlags);
 	switch (dataSource)
 	{
 	case BuiltinEPG:
@@ -190,6 +202,8 @@ bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress)
 		return TryReadingMei(pProgress);
 	case JagsCSV:
 		return TryReadingJagsCSV(pProgress);
+	case BuiltinExtendedEPG:
+		return TryReadingExtendedBuiltin(pProgress);
 	case Auto:
 	default:
 		if (TryReadingMei(pProgress))

@@ -38,6 +38,7 @@ public:
 	~JagFileReader(void);
 
 	TYPE_TapEvent* GetEvent(int svcType, int svcNum, int *eventNum );
+	virtual byte* GetExtInfo(TYPE_TapEvent *tapEvtInfo );
 
 private:
 	char* LoadJagFile();
