@@ -27,21 +27,41 @@ class EPGevent;
 
 class Timer
 {
+	friend class Timers;
 public:
-	Timer();
-	Timer(int iIndex, TYPE_TimerInfo* pInfo);
-	~Timer(void);
-
+	// these public methods for anyone to access
+	// do not add/remove timers using this class, use the methods on Timers instead
 	bool SchedulesEvent(const EPGevent* pEvent) const;
 	bool SchedulesOtherEventsToo(const EPGevent* pEvent) const;
 	const TimeSlot& GetTimeSlot() const;
 	int GetLogicalChannelNum() const;
-	bool ShrinkToRemoveEvent(const EPGevent* pEvent);
-	bool ExtendToCoverEvent(const EPGevent* pEvent);
-	static bool ScheduleEvent(const EPGevent* pEvent);
 	string Description() const;
+	bool IsRecording() const;
 
 private:
+	// these are public for the Timers class
+	Timer();
+	Timer(int iIndex, TYPE_TimerInfo* pInfo);
+	~Timer(void);
+	bool Merge(Timer* pOtherTimer);
+	bool ShrinkToRemoveEvent(const EPGevent* pEvent);
+	bool ExtendToCoverEvent(const EPGevent* pEvent);
+	static bool ScheduleEvent(const EPGevent* pEvent, bool bPadStart, bool bPadEnd);
+	bool UnSchedule();
+	bool TrimToExclude(const TimeSlot& timeSlot);
+
+	// these are private for internal use
+	bool ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad);
+	bool UpdateFileName();
+	static string GetFileName(const EPGevent* pEvent);
+	EPGevent* GetFirstScheduledEvent() const;
+	void UpdateTimerInfoTimes();
+	bool SplitTimer(const TimeSlot& slotToRemove);
+	static bool Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd);
+	static bool Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot);
+	static EPGevent* GetFirstScheduledEvent(const TimeSlot& timeSlot, int iLogicalChannelNum);
+	bool ReSchedule();
+	bool Update();
 
 	TYPE_TimerInfo m_TimerInfo;
 	int m_iLogicalChannelNum;

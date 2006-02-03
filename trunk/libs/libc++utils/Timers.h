@@ -26,6 +26,7 @@ class Timer;
 #include "tap.h"
 #include "taparray.h"
 class EPGevent;
+class TimeSlot;
 
 class Timers
 {
@@ -48,8 +49,11 @@ public:
 	static bool m_bTreatVCRAsRecord;
 
 private:
+	array<Timer*> GetOverlappingTimersOnSameChannel(const EPGevent* pEvent) const;
+	array<Timer*> GetOverlappingTimers(const EPGevent* pEvent, bool bIncludeVCR) const;
+	array<Timer*> GetOverlappingTimersNotOnSameChannel(const EPGevent* pEvent) const;
+	bool MakeAdjacent(const TimeSlot& targetTimeSlot, array<Timer*> timers);
 
-	array<Timer*> GetOverlappingTimers(const EPGevent* pEvent) const;
 	void Cleanup();
 	static bool ShouldMergePrograms();
 	array<Timer*> m_timers;

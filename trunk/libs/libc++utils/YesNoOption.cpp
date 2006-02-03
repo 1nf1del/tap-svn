@@ -20,13 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include ".\yesnooption.h"
 
-YesNoOption::YesNoOption(Options* pContainer, const string& key, bool defaultValue, const string& name, const string& description,OptionUpdateNotifier* pNotifier)
+YesNoOption::YesNoOption(Options* pContainer, const string& key, bool defaultValue, const string& name, const string& description,OptionUpdateNotifier* pNotifier, bool bImmediateUpdate)
 : Option(pContainer, key, defaultValue? "Yes" : "No", name, description, pNotifier)
 {
+	m_bImmediateUpdate = bImmediateUpdate;
 	m_choices.push_back("Yes");
 	m_choices.push_back("No");
 }
 
 YesNoOption::~YesNoOption(void)
 {
+}
+
+bool YesNoOption::ImmediateUpdateNeeded()
+{
+	return m_bImmediateUpdate;
 }

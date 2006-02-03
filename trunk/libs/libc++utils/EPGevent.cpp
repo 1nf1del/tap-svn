@@ -224,7 +224,7 @@ void EPGevent::Parse(const string& sMEIdata)
 			else if (sSub == "teletext")
 				m_Subtitles = teletextSubtitles;
 			else if (sSub == "onscreen")
-				m_sSubtitle = onscreenSubtitles;
+				m_Subtitles = onscreenSubtitles;
 			else
 				m_Subtitles = noSubtitles;
 			break;

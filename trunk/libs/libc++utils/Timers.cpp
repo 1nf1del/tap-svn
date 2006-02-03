@@ -23,6 +23,7 @@
 #include "EPGevent.h"
 #include "Channels.h"
 #include "Globals.h"
+#include "Logger.h"
 
 bool Timers::m_mergeFlag = false;
 int Timers::m_prePadding = 0;
@@ -76,35 +77,110 @@ bool Timers::IsScheduled(const EPGevent* pEvent)
 	return false;
 }
 
+bool Timers::MakeAdjacent(const TimeSlot& targetTimeSlot, array<Timer*> timers)
+{
+	bool bResult = true;
+	for (unsigned int i=0; i<timers.size(); i++)
+	{
+		if (!timers[i]->TrimToExclude(targetTimeSlot))
+			bResult = false;
+
+	}
+
+	return bResult;
+}
+
 bool Timers::ScheduleEvent(const EPGevent* pEvent)
 {
-	array<Timer*> overlaps = GetOverlappingTimers(pEvent);
-	for (unsigned int i=0; i<overlaps.size(); i++)
+	// TODO: deal with timers on other channels that are overlapping only in terms of padding
+
+	array<Timer*> overlaps = GetOverlappingTimersOnSameChannel(pEvent);
+	if (!MakeAdjacent(pEvent->GetTimeSlot(), overlaps))
 	{
-		if ((overlaps[i]->GetLogicalChannelNum() == pEvent->GetChannelNum()) && ShouldMergePrograms())
+		TRACE("Failed to trim overlapping timers on same channel\n");
+	}
+
+	// by this point any 'overlaps' should be adjacent instead
+	if (ShouldMergePrograms())
+	{
+		for (unsigned int i=0; i<overlaps.size(); i++)
 		{
 			if (overlaps[i]->ExtendToCoverEvent(pEvent))
 			{
+				// we have scheduled the event by extending an existing timer
+				// now see if the new timer overlaps with any other timers that overlapped the event we wanted
+				// to schedule
+				// if so, merge the timers
+				for (unsigned int j=i+1; j<overlaps.size(); j++)
+				{
+					if (overlaps[i]->GetTimeSlot().OverlapsWith(overlaps[j]->GetTimeSlot()))
+					{
+						if (overlaps[i]->Merge(overlaps[j]))
+							break;
+
+						TRACE("Failed to merge timers\n");
+					}
+				}
 				Refresh();
 				return true;
 			}
 		}
 	}
+
+	bool bPadStart = true;
+	bool bPadEnd = true;
+	for (unsigned int i=0; i<overlaps.size(); i++)
+	{
+		if (overlaps[i]->GetTimeSlot().End() == pEvent->GetTimeSlot().Start())
+			bPadStart = false;
+		if (overlaps[i]->GetTimeSlot().Start() == pEvent->GetTimeSlot().End())
+			bPadStart = false;
+	}
+
 #ifdef WIN32
 	if (GetClashingTimers(pEvent).size()>=2)
 		return false; // emulator will not return error on clash
 #endif
 
-	if (Timer::ScheduleEvent(pEvent))
+	if (Timer::ScheduleEvent(pEvent, bPadStart, bPadEnd))
 	{
 		Refresh();
 		return true;
 	}
 
+	Refresh();
 	return false;
 }
 
-array<Timer*> Timers::GetOverlappingTimers(const EPGevent* pEvent) const
+array<Timer*> Timers::GetOverlappingTimersOnSameChannel(const EPGevent* pEvent) const
+{
+	array<Timer*> overlappingTimers = GetOverlappingTimers(pEvent, m_bTreatVCRAsRecord);
+	array<Timer*> results;
+
+	for (unsigned int i=0; i<overlappingTimers.size(); i++)
+	{
+		if (overlappingTimers[i]->GetLogicalChannelNum() == pEvent->GetChannelNum())
+			results.push_back(overlappingTimers[i]);
+	}
+
+	return results;
+}
+
+array<Timer*> Timers::GetOverlappingTimersNotOnSameChannel(const EPGevent* pEvent) const
+{
+	array<Timer*> overlappingTimers = GetOverlappingTimers(pEvent, true);
+	array<Timer*> results;
+
+	for (unsigned int i=0; i<overlappingTimers.size(); i++)
+	{
+		if (overlappingTimers[i]->GetLogicalChannelNum() != pEvent->GetChannelNum())
+			results.push_back(overlappingTimers[i]);
+	}
+
+	return results;
+}
+
+array<Timer*> Timers::GetOverlappingTimers(const EPGevent* pEvent, bool bIncludeVCR) const
 {
 	array<Timer*> clashingTimers;
 
@@ -114,8 +190,9 @@ array<Timer*> Timers::GetOverlappingTimers(const EPGevent* pEvent) const
 	for (unsigned int i=0; i<m_timers.size(); i++)
 	{
 		if (m_timers[i]->GetTimeSlot().OverlapsWith(paddedEventTimeSlot))
-		{
-			clashingTimers.push_back(m_timers[i]);
+		{ 
+			if (bIncludeVCR || m_timers[i]->IsRecording())
+				clashingTimers.push_back(m_timers[i]);
 		}
 	}
 
@@ -132,13 +209,12 @@ bool Timers::CancelEvent(const EPGevent* pEvent)
 			if (m_timers[i]->SchedulesOtherEventsToo(pEvent))
 				bResult = m_timers[i]->ShrinkToRemoveEvent(pEvent);
 			else
-				bResult = TAP_Timer_Delete(i);
+				bResult = m_timers[i]->UnSchedule();
 			Refresh();
 			return bResult;
 		}
 	}
 	return false;
-
 }
 
 bool Timers::CanRecord(const EPGevent* pEvent) const
@@ -162,7 +238,7 @@ bool Timers::CanRecord(const EPGevent* pEvent) const
 
 array<Timer*> Timers::GetClashingTimers(const EPGevent* pEvent) const
 {
-	array<Timer*> overlaps = GetOverlappingTimers(pEvent);
+	array<Timer*> overlaps = GetOverlappingTimersNotOnSameChannel(pEvent);
 
 	// if we have 0 or 1 overlaps, just return that - 
 	// 0 means both tuners are free the whole period

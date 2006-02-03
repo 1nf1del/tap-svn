@@ -26,7 +26,11 @@ class YesNoOption :
 	public Option
 {
 public:
-	YesNoOption(Options* pContainer, const string& key, bool defaultValue, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL);
+	YesNoOption(Options* pContainer, const string& key, bool defaultValue, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL, bool bImmediateUpdate = false);
 	~YesNoOption(void);
+
+	virtual bool ImmediateUpdateNeeded();
+private:
+	bool m_bImmediateUpdate;
 };
 #endif

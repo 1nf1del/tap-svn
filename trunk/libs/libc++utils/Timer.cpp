@@ -87,32 +87,40 @@ bool Timer::SchedulesOtherEventsToo(const EPGevent* pEvent) const
 		|| (iEndPadding>(GetDefaultEndPadding()+GetMinProgramLength()));
 }
 
+bool Timer::ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad)
+{
+	if (timeSlot.End()>m_time.End())
+	{
+		// we need to extend the timer at the end
+		// assume overlap to get here
+		m_time.SetEnd( timeSlot.End() + (bPad ? GetDefaultEndPadding() : 0));
+		return Update();
+	}
+	else if (timeSlot.Start()<m_time.Start())
+	{
+		// we need to extend the timer at the start
+		// assume overlap to get here
+		m_time.SetStart(timeSlot.Start() - (bPad ? GetDefaultStartPadding() : 0));
+		return Update();
+	}
+	else
+		return false; // now we're confused
+}
+
+
 bool Timer::ExtendToCoverEvent(const EPGevent* pEvent)
 {
 	if (m_iLogicalChannelNum != pEvent->GetChannelNum())
 		return false;
 
-	if (pEvent->GetEnd()>m_time.End())
-	{
-		// we need to extend the timer at the end
-		// assume overlap to get here
-		PackedDateTime newEnd = pEvent->GetEnd() + GetDefaultEndPadding();
-		m_TimerInfo.duration = (word) (newEnd - m_time.Start());
-		return (TAP_Timer_Modify(m_iIndex, &m_TimerInfo) == 0);
-	}
-	else if (pEvent->GetStart()<m_time.Start())
-	{
-		// we need to extend the timer at the start
-		// assume overlap to get here
-		PackedDateTime newStart = pEvent->GetStart() - GetDefaultStartPadding();
-		m_TimerInfo.startTime = newStart.AsDateTime();
-		m_TimerInfo.duration = (word)( m_time.End() - newStart);
-		return (TAP_Timer_Modify(m_iIndex, &m_TimerInfo) == 0);
-	}
-	else
-		return false; // now we're confused
+	return ExtendToCoverTime(pEvent->GetTimeSlot(), true);
+}
 
-
+bool Timer::Update()
+{
+	UpdateTimerInfoTimes();
+	UpdateFileName();
+	return (TAP_Timer_Modify(m_iIndex, &m_TimerInfo) == 0);
 }
 
 bool Timer::ShrinkToRemoveEvent(const EPGevent* pEvent)
@@ -126,20 +134,19 @@ bool Timer::ShrinkToRemoveEvent(const EPGevent* pEvent)
 	if (iStartPadding<GetDefaultStartPadding())
 	{
 		// cut off beginning from timer
-		PackedDateTime newStart = pEvent->GetEnd()-GetDefaultStartPadding();
-		m_TimerInfo.startTime = newStart.AsDateTime();
-		m_TimerInfo.duration = (word) (m_time.End() - newStart);
-		return (TAP_Timer_Modify(m_iIndex, &m_TimerInfo) == 0);
+		m_time.SetStart( pEvent->GetEnd()-GetDefaultStartPadding());
+		return Update();
 	}
 	else if (iEndPadding<GetDefaultEndPadding())
 	{
 		// cut end beginning from timer
-		PackedDateTime newEnd = pEvent->GetStart()+GetDefaultEndPadding();
-		m_TimerInfo.duration = (word) (newEnd - m_time.Start());
-		return (TAP_Timer_Modify(m_iIndex, &m_TimerInfo) == 0);
+		m_time.SetEnd(pEvent->GetStart()+GetDefaultEndPadding());
+		return Update();
 	}
 	else
-		return false; // we'd have to cut a section out of the middle.
+	{
+		return SplitTimer(pEvent->GetTimeSlot());
+	}
 }
 
 short int Timer::GetDefaultEndPadding()
@@ -157,20 +164,34 @@ short int Timer::GetMinProgramLength()
 	return 4;
 }
 
+EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iLogicalChannelNum)
+{
+	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(iLogicalChannelNum);
+	if (pChannel)
+	{
+		EPGevent* pEvent = pChannel->FindEvent(timeSlot.Start() + GetDefaultStartPadding());
+		return pEvent;
+	}
+	return NULL;
+}
+
+
+EPGevent* Timer::GetFirstScheduledEvent() const
+{
+	return GetFirstScheduledEvent(m_time, m_iLogicalChannelNum);
+}
+
 
 string Timer::Description() const
 {
 	string result;
-	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(m_iLogicalChannelNum);
-	if (pChannel)
-	{
-		EPGevent* pEvent = pChannel->FindEvent(m_time.Start() + GetDefaultStartPadding());
-		if (pEvent != NULL)
-			result = pEvent->GetTitle();
+	EPGevent* pEvent = GetFirstScheduledEvent();
 
-		if (result.size()>25)
-			result = result.substr(0,20) + "...";
-	}
+	if (pEvent != NULL)
+		result = pEvent->GetTitle();
+
+	if (result.size()>25)
+		result = result.substr(0,20) + "...";
 
 	result+= "(";
 	result+= (m_iLogicalChannelNum == -1 ? string("????") : Globals::GetChannels()->NameForLCN(m_iLogicalChannelNum));
@@ -179,21 +200,161 @@ string Timer::Description() const
 	return result;
 }
 
-bool Timer::ScheduleEvent(const EPGevent* pEvent)
+bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot)
+{
+	string name;
+	EPGevent* pEvent = GetFirstScheduledEvent(timeSlot, iLogicalChannelNum);
+	if (pEvent)
+	{
+		name = GetFileName(pEvent);
+	}
+	else
+	{
+		name = "Unknown Program.rec";
+	}
+	return Schedule(iLogicalChannelNum, timeSlot, name, false, false);
+}
+
+bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd)
 {
 	TYPE_TimerInfo info;
 	memset(&info, 0, sizeof(TYPE_TimerInfo));
-	info.duration = (word) (pEvent->Duration() + GetDefaultEndPadding() + GetDefaultStartPadding());
-	info.startTime = (pEvent->GetStart() - GetDefaultStartPadding()).AsDateTime();
+	info.duration = (word) (timeSlot.Duration());
+	info.duration += (bPadEnd ? GetDefaultEndPadding() : 0) + (bPadStart ? GetDefaultStartPadding() : 0);
+	info.startTime = (timeSlot.Start() - (bPadStart ? GetDefaultStartPadding() : 0)).AsDateTime();
 	info.isRec = 1;
 	info.reservationType = RESERVE_TYPE_Onetime;
 	info.svcNum = SVC_TYPE_Tv;
 	info.tuner = 3;
-	info.svcNum = (word) (Globals::GetChannels()->LogicalToToppy(pEvent->GetChannelNum()));
+	info.svcNum = (word) (Globals::GetChannels()->LogicalToToppy(iLogicalChannelNum));
 	info.nameFix = 1;
-	strncpy(info.fileName, pEvent->GetFileName(), 95);
-	strcat(info.fileName, ".rec");
+	strcpy(info.fileName, sFileName);
 
 	int iResult = TAP_Timer_Add(&info);
 	return iResult == 0;
+}
+
+
+bool Timer::ScheduleEvent(const EPGevent* pEvent, bool bPadStart, bool bPadEnd)
+{
+	return Schedule(pEvent->GetChannelNum(), pEvent->GetTimeSlot(), GetFileName(pEvent), bPadStart, bPadEnd);
+}
+
+string Timer::GetFileName(const EPGevent* pEvent)
+{
+	string result = pEvent->GetFileName().substr(0,95);
+	result += ".rec";
+	return result;
+}
+
+
+bool Timer::UpdateFileName()
+{
+	EPGevent* pEvent = GetFirstScheduledEvent();
+	if (pEvent)
+	{
+		strcpy(m_TimerInfo.fileName, GetFileName(pEvent));
+		return true;
+	}
+	return false;
+}
+
+void Timer::UpdateTimerInfoTimes()
+{
+	m_TimerInfo.startTime = m_time.Start().AsDateTime();
+	m_TimerInfo.duration = m_time.Duration();
+
+}
+
+bool Timer::SplitTimer(const TimeSlot& slotToRemove)
+{
+	if (!TAP_Timer_Delete(m_iIndex))
+		return false;
+
+	TimeSlot slot1 = m_time;
+	slot1.SetEnd(slotToRemove.Start() + GetDefaultEndPadding());
+
+	TimeSlot slot2 = m_time;
+	slot2.SetStart(slotToRemove.End() - GetDefaultStartPadding());
+
+	if (!Schedule(m_iLogicalChannelNum, slot1))
+	{
+		ReSchedule();
+		return false;
+	}
+
+	if (!Schedule(m_iLogicalChannelNum, slot2))
+	{
+		// TODO: - find and remove slot 1
+		// Remove Slot 1;
+		ReSchedule();
+		return false;
+	}
+
+	return true;
+}
+
+bool Timer::ReSchedule()
+{
+	// assumes m_timerinfo is valid, but has been deleted
+	int iResult = TAP_Timer_Add(&m_TimerInfo);
+	return iResult == 0;
+
+}
+
+bool Timer::UnSchedule()
+{
+	// assumes m_timerinfo is valid, but has been deleted
+	return TAP_Timer_Delete(m_iIndex);
+}
+
+
+bool Timer::Merge(Timer* pOtherTimer)
+{
+	if (m_iLogicalChannelNum != pOtherTimer->GetLogicalChannelNum())
+		return false;
+
+	if (!m_time.OverlapsWith(pOtherTimer->GetTimeSlot()))
+		return false;
+
+	if (m_time.Start() > pOtherTimer->GetTimeSlot().Start())
+		return pOtherTimer->Merge(this);
+
+	// now we are sure that this timer has the earlier start point;
+
+	if (!pOtherTimer->UnSchedule())
+		return false;
+
+	return ExtendToCoverTime(pOtherTimer->GetTimeSlot(), false);
+
+}
+
+bool Timer::TrimToExclude(const TimeSlot& timeSlot)
+{
+	if (!timeSlot.OverlapsWith(m_time))
+		return false;
+
+	if (timeSlot.Start()>m_time.Start())
+	{
+// we need to trim our end point to match the timeslots start
+		m_time.SetEnd(timeSlot.Start());
+		return Update();
+	}
+
+	if (timeSlot.End() <m_time.End())
+	{
+// we need to trim our start point to match the timeslots end
+		m_time.SetStart(timeSlot.End());
+		return Update();
+	}
+
+	// ouch the timeslot starts before we do and ends after us
+	// I suppose we should go away
+
+	return UnSchedule();
+}
+
+bool Timer::IsRecording() const
+{
+	return m_TimerInfo.isRec != 0;
 }
