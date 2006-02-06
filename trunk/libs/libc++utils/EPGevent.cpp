@@ -44,14 +44,14 @@ EPGevent::EPGevent(const string& sJagData, bool bJags)
 }
 
 
-EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan, char* pExtData) 
+EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData) 
 {
 	Init();
 	m_sTitle = pEventData->eventName;
 	m_sDescription = pEventData->description;
 	m_TimeSlot.SetStart(pEventData->startTime);
 	m_TimeSlot.SetEnd(pEventData->endTime);
-	m_wChannelNum = (short)iLogicalChan;
+	m_wChannelNum = (short)iChannelNum;
 	SetGenre();
 	if (pExtData)
 	{
@@ -130,7 +130,7 @@ void EPGevent::ParseJags(const string& sJagData)
 		case JCSVcategory:
 			break;
 		case JCSVserviceNumber:
-			m_wChannelNum = (word)Globals::GetChannels()->ToppyToLogical(atoi(sSub)-1);
+			m_wChannelNum = (word)(atoi(sSub)-1);
 			break;
 		case JCSVserviceName:
 			break;
@@ -182,7 +182,7 @@ void EPGevent::Parse(const string& sMEIdata)
 				return;
 			break;
 		case channelNum:
-			m_wChannelNum = (word) atoi(sSub);
+			m_wChannelNum = (word) Globals::GetChannels()->LogicalToToppy(atoi(sSub));
 			break;
 		case title:
 			m_sTitle = sSub;
@@ -289,8 +289,8 @@ bool EPGevent::IsContinuationOf(const EPGevent* other) const
 	if (m_bContinuation)
 		return false;
 
-	if (m_wChannelNum >=80)
-		return false;
+	//if (m_wChannelNum >=80)
+	//	return false;
 
 	if (m_sTitle != other->m_sTitle)
 		return false;

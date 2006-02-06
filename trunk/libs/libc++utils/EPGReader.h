@@ -45,7 +45,7 @@ public:
 	int GetPercentDone();
 	bool CanRead();
 private:
-	EPGevent* BuildEvent(TYPE_TapEvent* pTapEvent, int iLogicalChan);
+	EPGevent* BuildEvent(TYPE_TapEvent* pTapEvent, int iChannelNum);
 
 	int m_iCurrentChan;
 	int m_iTotalChan;

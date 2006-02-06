@@ -31,7 +31,6 @@ Timer::Timer()
 {
 	memset(&m_TimerInfo, 0, sizeof(TYPE_TimerInfo));
 	m_iIndex = 0;
-	m_iLogicalChannelNum = 0;
 }
 
 Timer::Timer(int iIndex, TYPE_TimerInfo* pInfo)
@@ -39,7 +38,6 @@ Timer::Timer(int iIndex, TYPE_TimerInfo* pInfo)
 	m_TimerInfo = *pInfo;
 	m_time = TimeSlot(m_TimerInfo.startTime, m_TimerInfo.duration);
 	m_time.SetRepeat(m_TimerInfo.reservationType);
-	m_iLogicalChannelNum = Globals::GetChannels()->ToppyToLogical(m_TimerInfo.svcNum);
 	m_iIndex = iIndex;
 }
 
@@ -55,7 +53,7 @@ bool Timer::SchedulesEvent(const EPGevent* pEvent) const
 	if (!Timers::m_bTreatVCRAsRecord && (m_TimerInfo.isRec == 0))
 		return false;
 
-	if (pEvent->GetChannelNum() != m_iLogicalChannelNum)
+	if (pEvent->GetChannelNum() != GetChannelNum())
 		return false;
 
 	if (m_time.Contains(pEvent->GetTimeSlot()))
@@ -70,9 +68,9 @@ const TimeSlot& Timer::GetTimeSlot() const
 	return m_time;
 }
 
-int Timer::GetLogicalChannelNum() const
+int Timer::GetChannelNum() const
 {
-	return m_iLogicalChannelNum;
+	return m_TimerInfo.svcNum;
 }
 
 bool Timer::SchedulesOtherEventsToo(const EPGevent* pEvent) const
@@ -110,7 +108,7 @@ bool Timer::ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad)
 
 bool Timer::ExtendToCoverEvent(const EPGevent* pEvent)
 {
-	if (m_iLogicalChannelNum != pEvent->GetChannelNum())
+	if (GetChannelNum() != pEvent->GetChannelNum())
 		return false;
 
 	return ExtendToCoverTime(pEvent->GetTimeSlot(), true);
@@ -164,9 +162,9 @@ short int Timer::GetMinProgramLength()
 	return 4;
 }
 
-EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iLogicalChannelNum)
+EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iChannelNum)
 {
-	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(iLogicalChannelNum);
+	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(iChannelNum);
 	if (pChannel)
 	{
 		EPGevent* pEvent = pChannel->FindEvent(timeSlot.Start() + GetDefaultStartPadding());
@@ -178,7 +176,7 @@ EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iLogicalCh
 
 EPGevent* Timer::GetFirstScheduledEvent() const
 {
-	return GetFirstScheduledEvent(m_time, m_iLogicalChannelNum);
+	return GetFirstScheduledEvent(m_time, GetChannelNum());
 }
 
 
@@ -194,16 +192,16 @@ string Timer::Description() const
 		result = result.substr(0,20) + "...";
 
 	result+= "(";
-	result+= (m_iLogicalChannelNum == -1 ? string("????") : Globals::GetChannels()->NameForLCN(m_iLogicalChannelNum));
+	result+= (GetChannelNum() == -1 ? string("????") : Globals::GetChannels()->NameForChannel(GetChannelNum()));
 	result += ":" + m_time.Description() + ")";
 
 	return result;
 }
 
-bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot)
+bool Timer::Schedule(int iChannelNum, const TimeSlot& timeSlot)
 {
 	string name;
-	EPGevent* pEvent = GetFirstScheduledEvent(timeSlot, iLogicalChannelNum);
+	EPGevent* pEvent = GetFirstScheduledEvent(timeSlot, iChannelNum);
 	if (pEvent)
 	{
 		name = GetFileName(pEvent);
@@ -212,10 +210,10 @@ bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot)
 	{
 		name = "Unknown Program.rec";
 	}
-	return Schedule(iLogicalChannelNum, timeSlot, name, false, false);
+	return Schedule(iChannelNum, timeSlot, name, false, false);
 }
 
-bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd)
+bool Timer::Schedule(int iChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd)
 {
 	TYPE_TimerInfo info;
 	memset(&info, 0, sizeof(TYPE_TimerInfo));
@@ -226,7 +224,7 @@ bool Timer::Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot, const str
 	info.reservationType = RESERVE_TYPE_Onetime;
 	info.svcNum = SVC_TYPE_Tv;
 	info.tuner = 3;
-	info.svcNum = (word) (Globals::GetChannels()->LogicalToToppy(iLogicalChannelNum));
+	info.svcNum = (word) iChannelNum;
 	info.nameFix = 1;
 	strcpy(info.fileName, sFileName);
 
@@ -277,13 +275,13 @@ bool Timer::SplitTimer(const TimeSlot& slotToRemove)
 	TimeSlot slot2 = m_time;
 	slot2.SetStart(slotToRemove.End() - GetDefaultStartPadding());
 
-	if (!Schedule(m_iLogicalChannelNum, slot1))
+	if (!Schedule(GetChannelNum(), slot1))
 	{
 		ReSchedule();
 		return false;
 	}
 
-	if (!Schedule(m_iLogicalChannelNum, slot2))
+	if (!Schedule(GetChannelNum(), slot2))
 	{
 		// TODO: - find and remove slot 1
 		// Remove Slot 1;
@@ -311,7 +309,7 @@ bool Timer::UnSchedule()
 
 bool Timer::Merge(Timer* pOtherTimer)
 {
-	if (m_iLogicalChannelNum != pOtherTimer->GetLogicalChannelNum())
+	if (GetChannelNum() != pOtherTimer->GetChannelNum())
 		return false;
 
 	if (!m_time.OverlapsWith(pOtherTimer->GetTimeSlot()))

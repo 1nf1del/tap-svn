@@ -32,7 +32,7 @@ class EPGevent
 public:
 	EPGevent(const string& sMEIdata);
 	EPGevent(const string& sJagData, bool bJags);
-	EPGevent(TYPE_TapEvent* pEventData, int iLogicalChan, char* pExtData);
+	EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData);
 	~EPGevent(void);
 
 	enum subtitleType

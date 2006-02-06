@@ -30,9 +30,8 @@ public:
 	Channels(void);
 	~Channels(void);
 
-	int ToppyToLogical(int iToppyChannelNum);
 	int LogicalToToppy(int iLogicalChannelNum);
-	const string& NameForLCN(int iLogicalChannelNum);
+	const string& NameForChannel(int iChannelNum);
 	int GetCount();
 
 private:

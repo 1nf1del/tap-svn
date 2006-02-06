@@ -159,7 +159,7 @@ array<Timer*> Timers::GetOverlappingTimersOnSameChannel(const EPGevent* pEvent) 
 
 	for (unsigned int i=0; i<overlappingTimers.size(); i++)
 	{
-		if (overlappingTimers[i]->GetLogicalChannelNum() == pEvent->GetChannelNum())
+		if (overlappingTimers[i]->GetChannelNum() == pEvent->GetChannelNum())
 			results.push_back(overlappingTimers[i]);
 	}
 
@@ -173,7 +173,7 @@ array<Timer*> Timers::GetOverlappingTimersNotOnSameChannel(const EPGevent* pEven
 
 	for (unsigned int i=0; i<overlappingTimers.size(); i++)
 	{
-		if (overlappingTimers[i]->GetLogicalChannelNum() != pEvent->GetChannelNum())
+		if (overlappingTimers[i]->GetChannelNum() != pEvent->GetChannelNum())
 			results.push_back(overlappingTimers[i]);
 	}
 
@@ -227,10 +227,10 @@ bool Timers::CanRecord(const EPGevent* pEvent) const
 	if (overlaps.size()>2)
 		return false;
 
-	if ((overlaps[0]->GetLogicalChannelNum() == pEvent->GetChannelNum()) && ShouldMergePrograms())
+	if ((overlaps[0]->GetChannelNum() == pEvent->GetChannelNum()) && ShouldMergePrograms())
 		return true;
 
-	if ((overlaps[1]->GetLogicalChannelNum() == pEvent->GetChannelNum()) && ShouldMergePrograms())
+	if ((overlaps[1]->GetChannelNum() == pEvent->GetChannelNum()) && ShouldMergePrograms())
 		return true;
 
 	return false;

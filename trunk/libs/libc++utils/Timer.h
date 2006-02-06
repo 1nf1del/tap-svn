@@ -34,7 +34,7 @@ public:
 	bool SchedulesEvent(const EPGevent* pEvent) const;
 	bool SchedulesOtherEventsToo(const EPGevent* pEvent) const;
 	const TimeSlot& GetTimeSlot() const;
-	int GetLogicalChannelNum() const;
+	int GetChannelNum() const;
 	string Description() const;
 	bool IsRecording() const;
 
@@ -57,14 +57,13 @@ private:
 	EPGevent* GetFirstScheduledEvent() const;
 	void UpdateTimerInfoTimes();
 	bool SplitTimer(const TimeSlot& slotToRemove);
-	static bool Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd);
-	static bool Schedule(int iLogicalChannelNum, const TimeSlot& timeSlot);
-	static EPGevent* GetFirstScheduledEvent(const TimeSlot& timeSlot, int iLogicalChannelNum);
+	static bool Schedule(int iChannelNum, const TimeSlot& timeSlot, const string& sFileName, bool bPadStart, bool bPadEnd);
+	static bool Schedule(int iChannelNum, const TimeSlot& timeSlot);
+	static EPGevent* GetFirstScheduledEvent(const TimeSlot& timeSlot, int iChannelNum);
 	bool ReSchedule();
 	bool Update();
 
 	TYPE_TimerInfo m_TimerInfo;
-	int m_iLogicalChannelNum;
 	TimeSlot m_time;
 	int m_iIndex;
 	static short int GetDefaultStartPadding();

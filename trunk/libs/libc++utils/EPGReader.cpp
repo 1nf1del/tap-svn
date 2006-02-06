@@ -63,10 +63,10 @@ bool EPGReader::CanRead()
 	return true;
 }
 
-EPGevent* EPGReader::BuildEvent(TYPE_TapEvent* pTapEvent, int iLogicalChan)
+EPGevent* EPGReader::BuildEvent(TYPE_TapEvent* pTapEvent, int iChannelNum)
 {
 	char* pExtData = (char*) (m_bUseExtendedInfo ? TAP_EPG_GetExtInfo(pTapEvent) : 0);
-	EPGevent* pNewEvent = new EPGevent(pTapEvent, iLogicalChan, pExtData);
+	EPGevent* pNewEvent = new EPGevent(pTapEvent, iChannelNum, pExtData);
 	if (pExtData)
 		TAP_MemFree(pExtData);
 	return pNewEvent;
@@ -77,11 +77,9 @@ bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 	int iCount = 0;
 	TYPE_TapEvent* pEvents = TAP_GetEvent(SVC_TYPE_Tv, m_iCurrentChan, &iCount);
 
-	int iLogicalChan = Globals::GetChannels()->ToppyToLogical(m_iCurrentChan);
-
 	for (int i=0; i<iCount; i++)
 	{
-		EPGevent* pNewEvent = BuildEvent(&pEvents[i], iLogicalChan);
+		EPGevent* pNewEvent = BuildEvent(&pEvents[i], m_iCurrentChan);
 		if (pNewEvent->GetEnd().IsInPast())
 		{
 			delete pNewEvent;

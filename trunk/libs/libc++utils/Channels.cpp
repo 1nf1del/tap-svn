@@ -40,10 +40,6 @@ Channels::~Channels(void)
 {
 }
 
-int Channels::ToppyToLogical(int iToppyChan)
-{
-	return m_lcns[iToppyChan];
-}
 
 int Channels::LogicalToToppy(int iLogicalChannelNum)
 {
@@ -55,13 +51,10 @@ int Channels::LogicalToToppy(int iLogicalChannelNum)
 	return -1;
 }
 
-const string& Channels::NameForLCN(int iLogicalChannelNum)
+const string& Channels::NameForChannel(int iChannelNum)
 {
-	for (unsigned int i=0; i<m_lcns.size(); i++)
-	{
-		if (m_lcns[i] == iLogicalChannelNum)
-			return m_names[i];
-	}
+	if (iChannelNum>=0 && iChannelNum<m_names.size())
+		return m_names[iChannelNum];
 
 	return m_names.nullObject();
 }

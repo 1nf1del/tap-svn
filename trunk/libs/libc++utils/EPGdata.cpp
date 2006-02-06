@@ -43,11 +43,6 @@ EPGdata::~EPGdata(void)
 
 void EPGdata::AddEvent(EPGevent* newEvent)
 {
-	if (Globals::GetChannels()->LogicalToToppy(newEvent->GetChannelNum())== -1)
-	{
-		delete newEvent;
-		return;
-	}
 	FindChannelByNum(newEvent->GetChannelNum())->AddEvent(newEvent);
 }
 
