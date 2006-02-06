@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -12,6 +12,7 @@ Usage	:
 History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.1 sl8:		20-11-05	Modified for Auto Scheduler
 	  v0.2 sl8:		20-01-06	All variables initialised
+	  v0.3 sl8:		06-02-06	Config menu enabled
 
 **************************************************************/
 
@@ -21,11 +22,12 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 static int chosenConfigLine = 0;
 static char configOption = 0;
 
-//#define X1	130
-//#define X2	300
-//#define E0	113
-//#define E1	275
-//#define E2	627
+#define CONFIG_X1	130
+#define CONFIG_X2	300
+#define CONFIG_E0	113
+#define CONFIG_E1	275
+#define CONFIG_E2	627
+
 //#define Y	57
 //#define Y2	514
 //#define Y_STEP 30
@@ -66,26 +68,26 @@ void DisplayConfigLine(char lineNumber)
 	switch ( lineNumber )
 	{
 		case 1 :
-				PrintCenter(rgn, E0, (lineNumber * Y1_STEP + Y1_OFFSET), E1, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 
 				if ( currentModelType == TF5800 ) TAP_SPrint(str,"TF5800  (UK)");
 				else TAP_SPrint(str,"TF5000  (International)");
 				
-				TAP_Osd_PutStringAf1622(rgn, X2, (lineNumber * Y1_STEP + Y1_OFFSET), E2, str, MAIN_TEXT_COLOUR, 0 );
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 				break;
 
 
 		case 2 :
-				PrintCenter(rgn, E0, (lineNumber * Y1_STEP + Y1_OFFSET), E1, "Language", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1, "Language", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				TAP_SPrint(str, "English");
-				TAP_Osd_PutStringAf1622(rgn, X2, (lineNumber * Y1_STEP + Y1_OFFSET), E2, str, COLOR_DarkGray, 0 );
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, COLOR_DarkGray, 0 );
 			    break;
 
 				
 		case 3 :
-				PrintCenter(rgn, E0, (lineNumber * Y1_STEP + Y1_OFFSET), E1,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				switch ( keyStage )
 				{
@@ -102,7 +104,7 @@ void DisplayConfigLine(char lineNumber)
 					default : 	TAP_SPrint( str, "eh?" );
 								break;
 				}
-				TAP_Osd_PutStringAf1622(rgn, X2, (lineNumber * Y1_STEP + Y1_OFFSET), E2, str, MAIN_TEXT_COLOUR, 0 );
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 
 
@@ -132,8 +134,8 @@ void DisplayConfigLine(char lineNumber)
 	}
 
 
-    TAP_Osd_FillBox( rgn, E0, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-    TAP_Osd_FillBox( rgn, E1, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );
+    TAP_Osd_FillBox( rgn, CONFIG_E0, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+    TAP_Osd_FillBox( rgn, CONFIG_E1, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );
 
 }
 
@@ -152,7 +154,7 @@ void SaveConfiguration( void )
 	mainActivationKey = CurrentActivationKey;
 	unitModelType = currentModelType;
 
-//	SaveConfigurationToFile();
+	SaveConfigurationToFile();
 }
 
 

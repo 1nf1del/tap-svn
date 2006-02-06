@@ -4,7 +4,7 @@
 
 Name	: logo.c
 Author	: Darkmatter
-Version	: 0.6
+Version	: 0.7
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -20,6 +20,7 @@ History	: v0.0 Darkmatter:	06-06-05	Inception date
 	  v0.5 Darkmatter:	26-07-05	Fixed problem where long 1st words weren't being displayed until 2nd line.
 	  v0.6 sl8:		20-01-06	Uses Kidhazy's method of changing directory. All variables initialised.
 						Uses Kidhazy's logo LCN routine.
+	  v0.7 sl8:		06-02-06	Use Project directory define
 
 ************************************************************/
 
@@ -282,7 +283,7 @@ void ReadLogoFile()
 	int i = 0; //+++
 
 	GotoTapDir();
-	TAP_Hdd_ChangeDir("UK TAP Project");
+	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 	if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
 	
 	logoFile = TAP_Hdd_Fopen( "logo.dat" );

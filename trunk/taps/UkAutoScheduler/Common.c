@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -13,6 +13,7 @@ History	:
 v0.0 Darkmatter:	04-07-05	Inception date
 v0.1 sl8:		20-11-05	Modified for Auto Scheduler
 v0.2 sl8:		20-01-06	Modified for TAP_SDK. All variables initialised
+v0.3 sl8:		06-02-06	Added UK Project directory define
 
 ************************************************************/
 
@@ -71,6 +72,8 @@ v0.2 sl8:		20-01-06	Modified for TAP_SDK. All variables initialised
 	#include "graphics/win32/graphics.inc"
 #endif
 
+
+#define PROJECT_DIRECTORY "UK TAP Project"
 
 
 //#define FILL_COLOUR RGB(0,0,102)

@@ -5,6 +5,7 @@ This module handles all file activity
 v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8:	20-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
 					All variables initialised.
+v0.2 sl8:	06-02-06	Use Project directory define
 
 **************************************************************/
 
@@ -36,7 +37,7 @@ byte schInitRetreiveData(void)
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
 	GotoTapDir();
-	TAP_Hdd_ChangeDir("UK TAP Project");
+	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 
 	if ( ! TAP_Hdd_Exist( "SearchList.txt" ) ) return 0;
 
@@ -693,7 +694,7 @@ void schPrintSearchLine( int searchIndex, TYPE_File *searchFile )
 void schWriteFile( dword bufferSize, TYPE_File *searchFile )
 {
 	GotoTapDir();
-	TAP_Hdd_ChangeDir("UK TAP Project");
+	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 	if ( TAP_Hdd_Exist( "SearchList.txt" ) ) TAP_Hdd_Delete( "SearchList.txt" );	// Just delete any old copies
 
 	TAP_Hdd_Create( "SearchList.txt", ATTR_PROGRAM );				// Create the file

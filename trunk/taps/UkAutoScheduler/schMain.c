@@ -4,6 +4,7 @@ This module performs the search
 
 v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8:	20-01-06	All variables initialised
+v0.2 sl8:	06-02-06	Moved schInitLcnToSvcNumMap to ukauto.c
 
 **************************************************************/
 
@@ -42,8 +43,6 @@ void schService(void)
 	{
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_INITIALISE:
-
-		schInitLcnToSvcNumMap();
 
 		if(schInitRetreiveData() > 0)
 		{

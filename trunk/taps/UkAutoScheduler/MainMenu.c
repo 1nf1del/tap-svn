@@ -4,14 +4,14 @@
 
 Name	: MainMenu.c
 Author	: Darkmatter
-Version	: 0.0
+Version	: 0.1
 For		: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 Darkmatter:	30-07-05	Split from menu.c as part of making the menu code generic
+v0.1	sl8:	06-02-06	Config menu enabled
 
-	Last change:  USE   8 Aug 105   10:18 pm
 ************************************************************/
 
 #include "Menu.c"
@@ -69,7 +69,7 @@ void ProcessMenuSelection( TYPE_MenuProcess menuProcess, int param1 )
 		switch ( param1 )						// menu line
 		{
 			case 1 :
-//				DisplayConfigWindow();
+						DisplayConfigWindow();
 						break;
 			case 2 :	terminateFlag = TRUE;							// Will cause TAP to terminate and unload.
 					    break;											// No need to clean up here.

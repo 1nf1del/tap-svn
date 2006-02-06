@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.4
+Version	: 0.5
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -27,7 +27,9 @@ History	: v0.1 sl8: 11-11-05	Initial release
 	  v0.4 sl8: 21-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
 				All variables initialised
 				Save searchlist file when TAP exits.
-	    
+	  v0.5 sl8:	Activiation key can now be changed
+				Initialise schInitLcnToSvcNumMap from TAP_Main
+
 **************************************************************/
 
 #define DEBUG 0
@@ -36,8 +38,8 @@ History	: v0.1 sl8: 11-11-05	Initial release
 #include "ukauto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler - Recall Key"
-#define VERSION "0.23"
+#define TAP_NAME "UK Auto Scheduler"
+#define VERSION "0.23x"
 
 TAP_ID( ID_UKAUTO );
 
@@ -65,6 +67,7 @@ static byte oldMin = 0;
 #include "schFile.c"
 #include "MainMenu.c"
 #include "ConfigMenu.c"
+#include "IniFile.c"
 
 void ShowMessageWin (char* lpMessage, char* lpMessage1)
 {
@@ -153,6 +156,8 @@ void CheckFlags( void )
 dword My_KeyHandler(dword key, dword param2)
 {
 	dword state = 0, subState = 0;
+																			
+	if ( configWindowShowing ) { ConfigKeyHandler( key ); return 0; }
 
 	if ( creditsShowing ) { CreditsKeyHandler( key ); return 0; }
 																			
@@ -169,11 +174,7 @@ dword My_KeyHandler(dword key, dword param2)
 
 	if
 	(
-#ifndef WIN32	
-		( key == RKEY_Recall )
-#else
-		( key == RKEY_F1 )
-#endif
+		( key == mainActivationKey )
 		&&
 		( schServiceSV != SCH_SERVICE_INITIALISE )
 	)
@@ -251,14 +252,14 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 int TAP_Main(void)
 {
 	FindTapDir();
-//	LoadConfiguration();
+	LoadConfiguration();
 	CacheLogos();
-
+	schInitLcnToSvcNumMap();
 	initialiseTimerWindow();
 	initialiseSearchEdit();
 //	InitialiseSaveRestore();
 	initialiseMenu();
-//	InitialiseConfigRoutines();
+	InitialiseConfigRoutines();
 
 	oldMin = 100;
 	exitFlag = FALSE;
