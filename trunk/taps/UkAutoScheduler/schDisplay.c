@@ -6,6 +6,7 @@ v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8:	29-11-05	Will not highlight a line when number of schedules equal zero.
 v0.2 sl8:	20-01-06	Modified for TAP_SDK. All variables initialised
 v0.3 sl8:	06-02-06	Recall key no longer allowed to exit display screen
+v0.4 sl8:	06-02-06	Bug fix - Prevent corruption of the searchlist if the right key is pressed when no line highlighted
 
 **************************************************************/
 // mods/features required
@@ -333,6 +334,8 @@ void schDisplayKeyHandler(dword key)
 			(schMainTotalValidSearches > 1)
 			&&
 			(chosenLine < (schMainTotalValidSearches))
+			&&
+			(chosenLine > 0)
 		)
 		{
 			schDisplay = schUserData[chosenLine];
