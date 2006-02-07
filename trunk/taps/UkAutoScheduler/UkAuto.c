@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.5
+Version	: 0.6
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -27,8 +27,9 @@ History	: v0.1 sl8: 11-11-05	Initial release
 	  v0.4 sl8: 21-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
 				All variables initialised
 				Save searchlist file when TAP exits.
-	  v0.5 sl8:	Activiation key can now be changed
+	  v0.5 sl8: 06-02-06	Activiation key can now be changed
 				Initialise schInitLcnToSvcNumMap from TAP_Main
+	  v0.6 sl8: 07-02-06	Reload searchlist file each time TAP is activated
 
 **************************************************************/
 
@@ -93,6 +94,8 @@ void ShowMessageWin (char* lpMessage, char* lpMessage1)
 
 void ActivationRoutine( void )
 {
+	schInitRetreiveData();
+
   	TAP_ExitNormal();
 	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 
