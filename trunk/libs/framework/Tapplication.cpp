@@ -28,6 +28,7 @@
 #include "Rect.h"
 #include "logger.h"
 #include "dialog.h"
+#include "Decorator.h"
 
 Tapplication* Tapplication::tap = NULL;
 
@@ -284,4 +285,9 @@ void Tapplication::SetDefaultColors()
 	m_colors[scrollBarColors].frameColor = m_colors[headerColors].frameColor;
 	m_colors[scrollBarColors].bgColor = m_colors[headerColors].bgColor;
 	m_colors[scrollBarColors].textColor = m_colors[headerColors].textColor;
+}
+
+Decorator* Tapplication::GetDefaultDialogDecorator()
+{
+	return new Decorator();
 }

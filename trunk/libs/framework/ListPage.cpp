@@ -106,17 +106,22 @@ void ListPage::DrawFooter()
 	int iWidth = DrawFooterFrame(drawRect);
 	drawRect.Shrink(iWidth);
 
-	ListItem* pSelItem = ListPage::GetSelectedItem();
-	if (pSelItem == 0)
-		return;
-
-	string sFooterText = pSelItem->GetFooterText();
+	string sFooterText = GetFooterText();
 	if (sFooterText.empty())
 		return;
 
 	ListColors theColors = GetColorDef(normalColors);
 
 	drawRect.PutMultiLineString(m_osdRegionIndex, sFooterText, theColors.textColor, theColors.bgColor, m_fsFooter);
+}
+
+string ListPage::GetFooterText()
+{
+	ListItem* pSelItem = ListPage::GetSelectedItem();
+	if (pSelItem == 0)
+		return "";
+
+	return pSelItem->GetFooterText();
 }
 
 ListColors ListPage::GetColorDef(enum colorSets whichSet)
@@ -147,6 +152,21 @@ void ListPage::AddItem(ListItem* pNewItem)
 	
 	m_items.push_back(pNewItem);
 
+}
+
+void ListPage::RemoveItem(ListItem* pItem)
+{
+	for (unsigned int i=0; i<m_items.size(); i++)
+	{
+		if (m_items[i] == pItem)
+		{
+			OnItemAboutToDelete(pItem);
+			m_items.erase(i);
+			delete pItem;
+			if (m_selectedItem >= (int)m_items.size())
+				m_selectedItem--;
+		}
+	}
 }
 
 void ListPage::CalcRealColumnWidths()
@@ -611,4 +631,9 @@ void ListPage::DiscardItems()
 
 	m_items.clear();
 	TRACE("Deleted items\n");
+}
+
+void ListPage::OnItemAboutToDelete(ListItem* pItem)
+{
+
 }

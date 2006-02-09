@@ -22,12 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include ".\dialogbox.h"
 
 #include "Tapplication.h"
-#include "TextTools.h"
-#include "graphics.c"
+#include "Decorator.h"
 
-
-DialogBox::DialogBox(const char* title, const char* line1, const char* line2)
+DialogBox::DialogBox(const char* title, const char* line1, const char* line2, Decorator* pDecorator)
 {
+	m_pDecorator = pDecorator;
+	if (m_pDecorator == NULL)
+	{
+		m_pDecorator = Tapplication::GetTheApplication()->GetDefaultDialogDecorator();
+	}
 	this->title		= title;
 	this->line1		= line1;
 	this->line2		= line2;
@@ -35,6 +38,7 @@ DialogBox::DialogBox(const char* title, const char* line1, const char* line2)
 
 DialogBox::~DialogBox(void)
 {
+	delete m_pDecorator;
 }
 
 void DialogBox::CreateDialog()
@@ -48,12 +52,12 @@ void DialogBox::CreateDialog()
 void DialogBox::Draw()
 {
     // Display the pop-up window.
-    TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_WINDOW_X, YESNO_WINDOW_Y, &_popup360x180Gd, TRUE );
+	m_pDecorator->DrawDialogFrame(YESNO_WINDOW_X, YESNO_WINDOW_Y, 360, 180);
 
     // Display Title and information in pop-up window
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  13, YESNO_WINDOW_X+YESNO_WINDOW_W-5, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  56, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line1, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-	PrintCenter( GetTAPScreenRegion(), YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  89, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line2, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	m_pDecorator->PrintText(YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  13, YESNO_WINDOW_X+YESNO_WINDOW_W-5, title, FNT_Size_1926 , headerColors);
+	m_pDecorator->PrintText(YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  56, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line1, FNT_Size_1622 , normalColors);
+	m_pDecorator->PrintText(YESNO_WINDOW_X+5, YESNO_WINDOW_Y +  89, YESNO_WINDOW_X+YESNO_WINDOW_W-5, line2, FNT_Size_1622 , normalColors);
 }
 
 //-----------------------------------------------------------------------

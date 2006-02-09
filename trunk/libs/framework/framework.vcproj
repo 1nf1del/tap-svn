@@ -184,10 +184,16 @@
 				RelativePath=".\ActionListItem.cpp">
 			</File>
 			<File
+				RelativePath=".\Decorator.cpp">
+			</File>
+			<File
 				RelativePath=".\Dialog.cpp">
 			</File>
 			<File
 				RelativePath=".\DialogBox.cpp">
+			</File>
+			<File
+				RelativePath=".\FooterListItem.cpp">
 			</File>
 			<File
 				RelativePath=".\graphics.c">
@@ -226,6 +232,9 @@
 				RelativePath=".\SimpleTextListItem.cpp">
 			</File>
 			<File
+				RelativePath=".\SkinDecorator.cpp">
+			</File>
+			<File
 				RelativePath=".\SkinOption.cpp">
 			</File>
 			<File
@@ -249,10 +258,16 @@
 				RelativePath=".\colors.h">
 			</File>
 			<File
+				RelativePath=".\Decorator.h">
+			</File>
+			<File
 				RelativePath=".\Dialog.h">
 			</File>
 			<File
 				RelativePath=".\DialogBox.h">
+			</File>
+			<File
+				RelativePath=".\FooterListItem.h">
 			</File>
 			<File
 				RelativePath=".\ListColumn.h">
@@ -285,6 +300,9 @@
 				RelativePath=".\SimpleTextListItem.h">
 			</File>
 			<File
+				RelativePath=".\SkinDecorator.h">
+			</File>
+			<File
 				RelativePath=".\SkinOption.h">
 			</File>
 			<File
@@ -302,6 +320,9 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 		</Filter>
+		<File
+			RelativePath=".\Makefile">
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt">
 		</File>

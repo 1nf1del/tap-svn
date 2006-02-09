@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _rect_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 #define _rect_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 
-#include <stdlib.h>
 #include "tap.h"
 
 class Rect

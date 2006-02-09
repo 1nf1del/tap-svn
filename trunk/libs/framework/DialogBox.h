@@ -25,7 +25,7 @@
 #include "tap.h"
 #include "Dialog.h"
 #include "tapstring.h"
-
+class Decorator;
 // Position of the Delete Confirmation Screen
 #define YESNO_WINDOW_W 360
 #define YESNO_WINDOW_H 180
@@ -42,7 +42,7 @@
 class DialogBox : public Dialog
 {
 public:
-	DialogBox(const char* title, const char* line1, const char* line2);
+	DialogBox(const char* title, const char* line1, const char* line2, Decorator* pDecorator = NULL);
 	virtual ~DialogBox();
 
 	virtual void CreateDialog();
@@ -59,6 +59,7 @@ protected:
 	string title;
 	string line1;
 	string line2;
+	Decorator* m_pDecorator;
 
 private:
 	byte* windowCopy;

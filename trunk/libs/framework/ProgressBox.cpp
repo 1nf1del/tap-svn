@@ -21,9 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include ".\progressbox.h"
 #include "Tapplication.h"
+#include "Decorator.h"
 
-ProgressBox::ProgressBox(const char* title, const char* line1, const char* line2)
-: DialogBox(title, line1, line2)
+ProgressBox::ProgressBox(const char* title, const char* line1, const char* line2, Decorator* pDecorator)
+: DialogBox(title, line1, line2, pDecorator)
 {
 }
 
@@ -55,10 +56,7 @@ void ProgressBox::UpdateProgress(int percent, const char* step1, const char* ste
 	if (percent<0)
 		percent = 0;
 
-	TAP_Osd_FillBox( GetTAPScreenRegion(), YESNO_WINDOW_X + 30, YESNO_WINDOW_Y + 130,
-		percent*3, 15,  HEADING_TEXT_COLOUR);
-	TAP_Osd_FillBox ( GetTAPScreenRegion(), YESNO_WINDOW_X + 30 + percent * 3, YESNO_WINDOW_Y + 130,
-		(100-percent)*3, 15,  TITLE_COLOUR);
+	m_pDecorator->DrawProgress(YESNO_WINDOW_X + 30, YESNO_WINDOW_Y + 130, 300, 15, percent);
 
 #ifdef WIN32
 	TAP_SystemProc(); // repaint on emulator so we can see what we have

@@ -24,12 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "YesNoBox.h"
 #include "../../../trunk/libs/framework/Tapplication.h"
 #include "TextTools.h"
-#include "graphics.c"
+#include "Decorator.h"
 
 
-
-YesNoBox::YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption) 
-: DialogBox(title, line1, line2)
+YesNoBox::YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption, Decorator* pDecorator) 
+: DialogBox(title, line1, line2, pDecorator)
 {
 	option		= defaultOption;
 	result		= false;
@@ -63,26 +62,27 @@ void YesNoBox::DisplayLine()
 		option = 0;
 	}
 
-	TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
-	PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W + offset, button1, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+
+	m_pDecorator->DrawButtonBackground(YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y, 102, 43, false);
+	m_pDecorator->PrintText(YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W + offset, button1, FNT_Size_1926, normalColors );
 
 	if (!button2.empty())
 	{
-		TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeyblueGd, FALSE );
-		PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+		m_pDecorator->DrawButtonBackground(YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, 102, 43, false);
+		m_pDecorator->PrintText(YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, FNT_Size_1926, normalColors );
 	}
 
 	switch ( option )
 	{
 
 	case 0 :
-		TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
-		PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W + offset, button1, COLOR_Yellow, 0, FNT_Size_1926 );
+		m_pDecorator->DrawButtonBackground(YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y, 102, 43, true);
+		m_pDecorator->PrintText(YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE) + offset, YESNO_OPTION_Y+8, YESNO_OPTION_X+(0*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W + offset, button1, FNT_Size_1926, highlightColors );
 		break;
 
 	case 1 :
-		TAP_Osd_PutGd( GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, &_bigkeygreenGd, FALSE );
-		PrintCenter(GetTAPScreenRegion(), YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, COLOR_Yellow, 0, FNT_Size_1926 );
+		m_pDecorator->DrawButtonBackground(YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y, 102, 43, true);
+		m_pDecorator->PrintText(YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE), YESNO_OPTION_Y+8, YESNO_OPTION_X+(1*YESNO_OPTION_X_SPACE)+YESNO_OPTION_W, button2, FNT_Size_1926, highlightColors );
 		break;
 
 	}
@@ -137,8 +137,8 @@ dword YesNoBox::OnKey( dword key, dword extKey )
 	return 0;
 }
 
-int YesNoBox::Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption)
+int YesNoBox::Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption, Decorator* pDecorator)
 {
-	YesNoBox theBox(title, line1, line2, button1, button2, defaultOption);
+	YesNoBox theBox(title, line1, line2, button1, button2, defaultOption, pDecorator);
 	return theBox.DoModal();
 }

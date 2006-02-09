@@ -52,24 +52,30 @@ public:
 	virtual dword OnKey( dword key, dword extKey );
 	virtual void OnOpen();
 	virtual void OnClose();
+	void DiscardItems();
 
 
 	bool AddColumn(ListColumn* pNewColumn);
-	void AddItem(ListItem* pNewItem); 
-	bool Show();
+	void AddItem(ListItem* pNewItem);
+	void RemoveItem(ListItem* pItem);
 	ListItem* GetSelectedItem() const;
 	int GetSelectedIndex() const;
+	dword MoveSelection(int iOffset, bool bWrap = true);
+
+	bool Show();
+
 	virtual ListColors GetColorDef(enum colorSets whichSet);
+	virtual void Redraw();
+	virtual string GetFooterText();
+	virtual void OnItemAboutToDelete(ListItem* pItem);
+
 	word GetRegionIndex();
 	byte GetBodyFontSize();
+	void SetFontSizes(byte fsHeader, byte fsBody, byte fsFooter);
 	unsigned short int GetDefaultItemHeight();
 	dword GetFlags();
-	void SetFontSizes(byte fsHeader, byte fsBody, byte fsFooter);
-	virtual void Redraw();
 	dword GetColumnFlags(int i) const;
-	void DiscardItems();
 
-	dword MoveSelection(int iOffset, bool bWrap = true);
 	bool MoveItem(int index, bool down);
 
 protected:

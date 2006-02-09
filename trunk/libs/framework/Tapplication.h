@@ -26,6 +26,7 @@
 
 class Page;
 class Dialog;
+class Decorator;
 
 extern "C" const dword  __tap_ud__;
 extern "C" void cpp_TAP_Exit();
@@ -52,7 +53,7 @@ public:
 	bool LoadSkin( const char* filename );
 	ListColors GetColorDef( colorSets whichSet ) const		{ return m_colors[whichSet]; }
 	virtual void SetDefaultColors();
-
+	virtual Decorator* GetDefaultDialogDecorator();
 
 	// Application creation
 	static Tapplication* GetTheApplication();

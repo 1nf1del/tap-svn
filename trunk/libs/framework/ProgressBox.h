@@ -25,11 +25,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "dialogbox.h"
 
+
 class ProgressBox :
 	public DialogBox
 {
 public:
-	ProgressBox(const char* title, const char* line1, const char* line2);
+	ProgressBox(const char* title, const char* line1, const char* line2, Decorator* pDecorator = NULL);
 	virtual ~ProgressBox(void);
 	virtual void CreateDialog();
 
