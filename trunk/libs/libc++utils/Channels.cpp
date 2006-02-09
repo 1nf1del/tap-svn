@@ -51,7 +51,7 @@ int Channels::LogicalToToppy(int iLogicalChannelNum)
 	return -1;
 }
 
-const string& Channels::NameForChannel(int iChannelNum)
+const string& Channels::NameForChannel(unsigned int iChannelNum)
 {
 	if (iChannelNum>=0 && iChannelNum<m_names.size())
 		return m_names[iChannelNum];

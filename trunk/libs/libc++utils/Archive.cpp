@@ -18,34 +18,37 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef cpputils_globals_h
-#define cpputils_globals_h
+#include "Archive.h"
+#include "DirectoryUtils.h"
 
-class Timers;
-class EPGdata;
-class Channels;
-class ProgressNotification;
-class Archive;
-#include "EPGdata.h"
-
-class Globals
+Archive::Archive()
 {
-public:
-	Globals(void);
-	~Globals(void);
+	Populate();
+}
 
-	static void Cleanup();
-	static Timers* GetTimers();
-	static EPGdata* GetEPGdata();
-	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
-	static Archive* GetArchive();
+Archive::~Archive()
+{
+	for (unsigned int i=0; i<m_theArchive.size(); i++)
+		delete m_theArchive[i];
 
-private:
+}
 
-	static Timers* m_pTheTimers;
-	static EPGdata* m_pEPGdata;
-	static Channels* m_pChannels;
-	static Archive* m_pArchive;
-};
-#endif
+void Archive::Populate()
+{
+	PopulateFromFolder("/DataFiles");
+}
+
+void Archive::PopulateFromFolder(const string& sFolderName)
+{
+	DirectoryRestorer dr(sFolderName);
+	if (!dr.WasSuccesful())
+		return;
+
+	array<string> recFiles = GetFilesInFolder(sFolderName, ".rec");
+	for (unsigned int i=0; i<recFiles.size(); i++)
+	{
+		m_theArchive.push_back(new ArchivedProgram(recFiles[i]));
+	}
+
+	// now do sub folders
+}

@@ -27,7 +27,7 @@ OBJECTS+=Channels.o EPGchannel.o EPGdata.o EPGevent.o Globals.o Timers.o Timer.o
 OBJECTS+=MEIReader.o EPGVisitor.o TimeSlot.o PackedDateTime.o ProgressNotification.o
 OBJECTS+=DirectoryUtils.o Option.o Options.o KeyDef.o EPGReader.o EPGSourceOption.o
 OBJECTS+=YesNoOption.o NumericOption.o KeyOption.o OptionUpdateNotifier.o
-OBJECTS+=JagCSVReader.o
+OBJECTS+=JagCSVReader.o stringarchive.o Archive.o ArchivedProgram.o
 
 # The first target is the default target.
 all: libc++utils.a

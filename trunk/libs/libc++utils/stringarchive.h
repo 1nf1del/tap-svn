@@ -18,34 +18,37 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef cpputils_globals_h
-#define cpputils_globals_h
+#ifndef _cpputils_stringarchive_h
+#define _cpputils_stringarchive_h
+#include "tapstring.h"
+#include <stdlib.h>
+#include "tap.h"
 
-class Timers;
-class EPGdata;
-class Channels;
-class ProgressNotification;
-class Archive;
-#include "EPGdata.h"
-
-class Globals
+class stringarchive
 {
 public:
-	Globals(void);
-	~Globals(void);
+	stringarchive(const string& data = "");
 
-	static void Cleanup();
-	static Timers* GetTimers();
-	static EPGdata* GetEPGdata();
-	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
-	static Archive* GetArchive();
+	stringarchive& operator << (bool bValue);
+	stringarchive& operator << (int iValue);
+	stringarchive& operator << (word wValue);
+	stringarchive& operator << (const string& sValue);
+
+	stringarchive& operator >> (bool& bValue);
+	stringarchive& operator >> (int& iValue);
+	stringarchive& operator >> (word& wValue);
+	stringarchive& operator >> (string& sValue);
+
+	const string& toString() const;
 
 private:
+	bool ReadIntValue(char cPrefix, char cPostFix, int& value);
+	bool ValidToRead();
+	void Advance();
 
-	static Timers* m_pTheTimers;
-	static EPGdata* m_pEPGdata;
-	static Channels* m_pChannels;
-	static Archive* m_pArchive;
+	string m_sBackingData;
+	bool m_bReading;
+	int m_iReadPos;
 };
+
 #endif

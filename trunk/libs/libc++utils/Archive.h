@@ -18,34 +18,26 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef cpputils_globals_h
-#define cpputils_globals_h
-
-class Timers;
-class EPGdata;
-class Channels;
-class ProgressNotification;
-class Archive;
-#include "EPGdata.h"
-
-class Globals
+#ifndef cpputils_archive_h
+#define cpputils_archive_h
+#include <stdlib.h>
+#include "ArchivedProgram.h"
+#include "taparray.h"
+class ArchivedProgram;
+class Archive
 {
 public:
-	Globals(void);
-	~Globals(void);
+	Archive();
+	~Archive();
 
-	static void Cleanup();
-	static Timers* GetTimers();
-	static EPGdata* GetEPGdata();
-	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
-	static Archive* GetArchive();
+
 
 private:
 
-	static Timers* m_pTheTimers;
-	static EPGdata* m_pEPGdata;
-	static Channels* m_pChannels;
-	static Archive* m_pArchive;
+	void Populate();
+	void PopulateFromFolder(const string & sFolderName);
+
+	array<ArchivedProgram*> m_theArchive;
 };
+
 #endif

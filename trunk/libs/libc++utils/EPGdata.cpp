@@ -147,6 +147,9 @@ bool EPGdata::ReadData(IEPGReader& reader, ProgressNotification* pProgress)
 				pProgress->Step(reader.GetPercentDone());
 		}
 
+		if (pProgress)
+			pProgress->Step(100);
+
 		CheckForContinuedPrograms();
 
 		if (pProgress)

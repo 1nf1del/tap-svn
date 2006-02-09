@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tap.h"
 #include "tapstring.h"
 #include "file.h"
+#include "taparray.h"
 
 class DirectoryRestorer
 {
@@ -43,5 +44,7 @@ string GetCurrentDirectory();
 bool ChangeDirectory(const string& newDirectory);
 UFILE* OpenFile(const string& sFileName, const char* szMode);
 
+array<string> GetFilesInFolder(const string& sFolderName, const string& sExt);
+array<string> GetSubFolders(const string& sFolderName);
 
 #endif

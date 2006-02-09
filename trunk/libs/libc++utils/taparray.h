@@ -123,6 +123,17 @@ public:
 		--m_iLen;
 	}
 
+	void erase(unsigned int iIndex)
+	{
+		if (iIndex>=m_iLen)
+			return;
+
+		destroy(iIndex, iIndex+1);
+		assign(iIndex, m_iLen - iIndex - 1, m_pArray + iIndex + 1);
+		resize(m_iLen - 1);
+	}
+
+
 	void resize(unsigned int iSize)
 	{
 		if (iSize>m_iReserved)

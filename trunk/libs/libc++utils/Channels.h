@@ -31,7 +31,7 @@ public:
 	~Channels(void);
 
 	int LogicalToToppy(int iLogicalChannelNum);
-	const string& NameForChannel(int iChannelNum);
+	const string& NameForChannel(unsigned int iChannelNum);
 	int GetCount();
 
 private:

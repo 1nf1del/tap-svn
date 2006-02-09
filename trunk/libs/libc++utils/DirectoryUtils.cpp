@@ -158,3 +158,45 @@ bool DirectoryRestorer::WasSuccesful()
 }
 
 
+array<string> GetFolderContents(const string& sFolderName, const string& sExt, bool bFolders)
+{
+	array<string> results;
+	DirectoryRestorer dr(sFolderName);
+	if (!dr.WasSuccesful())
+		return results;
+
+	TYPE_File file;
+	int iCount = TAP_Hdd_FindFirst(&file);
+
+	do
+	{
+		if ((file.attr == ATTR_FOLDER) != bFolders)
+			continue;
+
+		if (!bFolders)
+		{
+			string sName = file.name;
+			sName = sName.tolower();
+			if (sName.size()<=sExt.size())
+				continue;
+			if (sName.substr(sName.size() - sExt.size())!=sExt)
+				continue;
+		}
+
+		results.push_back(file.name);
+	} while (TAP_Hdd_FindNext(&file)<(dword)iCount);
+
+	return results;
+}
+
+array<string> GetFilesInFolder(const string& sFolderName, const string& sExt)
+{
+	return GetFolderContents(sFolderName, sExt, false);
+}
+
+array<string> GetSubFolders(const string& sFolderName)
+{
+	return GetFolderContents(sFolderName, "", true);
+}
+
+

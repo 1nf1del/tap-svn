@@ -22,11 +22,12 @@
 #include "Timers.h"
 #include "EPGData.h"
 #include "Channels.h"
+#include "Archive.h"
 
 Timers* Globals::m_pTheTimers = NULL;
 EPGdata* Globals::m_pEPGdata = NULL;
 Channels* Globals::m_pChannels = NULL;
-
+Archive* Globals::m_pArchive = NULL;
 
 Globals::Globals(void)
 {
@@ -76,5 +77,14 @@ void Globals::Cleanup()
 	m_pEPGdata = NULL;
 	delete m_pChannels;
 	m_pChannels = NULL;
+	delete m_pArchive;
+	m_pArchive = NULL;
 }
 
+Archive* Globals::GetArchive()
+{
+	if (m_pArchive == NULL)
+		m_pArchive = new Archive();
+
+	return m_pArchive;
+}
