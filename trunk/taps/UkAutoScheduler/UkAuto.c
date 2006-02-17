@@ -4,7 +4,7 @@
 #define RGB(r,g,b)		( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                    
+
 /************************************************************
 				UkAuto
 	Auto Scheduler TAP
