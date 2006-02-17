@@ -32,14 +32,19 @@ public:
 	stringarchive& operator << (bool bValue);
 	stringarchive& operator << (int iValue);
 	stringarchive& operator << (word wValue);
+	stringarchive& operator << (dword iValue);
 	stringarchive& operator << (const string& sValue);
 
 	stringarchive& operator >> (bool& bValue);
 	stringarchive& operator >> (int& iValue);
 	stringarchive& operator >> (word& wValue);
+	stringarchive& operator >> (dword& iValue);
 	stringarchive& operator >> (string& sValue);
 
 	const string& toString() const;
+
+	bool expect(const string& typeId);
+	void insert(const string& typeId);
 
 private:
 	bool ReadIntValue(char cPrefix, char cPostFix, int& value);

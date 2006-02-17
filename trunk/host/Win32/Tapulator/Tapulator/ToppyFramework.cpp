@@ -584,6 +584,8 @@ TYPE_File* ToppyFramework::Hdd_Fopen(char *name )
 
 	LogInfo("Opened %s - handle 0x%x, TYPE_File 0x%x", (LPCSTR) MakePath(name), handle, pToppyHandle);
 
+	pToppyHandle->startCluster = GetStartClusterHash(name);
+	pToppyHandle->totalCluster = 0;
 	// TODO: more initialization?
 	return pToppyHandle;
 }
@@ -630,13 +632,9 @@ void ToppyFramework::Hdd_Fclose(TYPE_File *file )
 	delete file;
 }
 
-
-void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData)
+DWORD ToppyFramework::GetStartClusterHash(const CString& filename)
 {
-	strncpy(file->name, findData.cFileName, 100);
-	file->size = findData.nFileSizeLow;
-	file->attr = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ATTR_FOLDER : ATTR_NORMAL;
-	CString sName = MakePath(findData.cFileName);
+	CString sName = MakePath(filename);
 	sName.Replace("\\", "/");
 	sName.Replace("//", "/");
 	if (sName.Right(2) == "/.")
@@ -648,11 +646,23 @@ void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findDat
 		sName = sName.Left(iIndex);
 	}
 
-	file->startCluster = 0;
+	DWORD result = 0;
 	for (int i=0; i<sName.GetLength(); i++)
 	{
-		file->startCluster= _rotl(file->startCluster,1) ^ sName[i];
+		result = _rotl(result,1) ^ sName[i];
 	}
+
+	return result;
+
+}
+
+void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData)
+{
+	ZeroMemory(file, sizeof(TYPE_File));
+	strncpy(file->name, findData.cFileName, 100);
+	file->size = findData.nFileSizeLow;
+	file->attr = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ATTR_FOLDER : ATTR_NORMAL;
+	file->startCluster = GetStartClusterHash(findData.cFileName);
 }
 
 DWORD ToppyFramework::Hdd_FindFirst(TYPE_File *file )
@@ -715,7 +725,21 @@ DWORD ToppyFramework::Hdd_Fseek(TYPE_File *file, long pos, long where )
 	if (handle == 0)
 		return 0;
 
+	if (IsLengthForFlenFSeekBug(file->size) && where != SEEK_END)
+		pos-=512;
+
 	return fseek(handle, pos, where); //TODO: correct return value?
+}
+
+bool ToppyFramework::IsLengthForFlenFSeekBug(DWORD dwLen)
+{
+	if (dwLen < 1023)
+		return false;
+
+	if (dwLen % 512)
+		return false;
+
+	return true;
 }
 
 DWORD ToppyFramework::Hdd_Flen(TYPE_File *file )
@@ -725,6 +749,8 @@ DWORD ToppyFramework::Hdd_Flen(TYPE_File *file )
 	fseek(handle, 0, SEEK_END);
 	DWORD dwRes = ftell(handle);
 	fseek(handle, iPos, SEEK_SET);
+	if (IsLengthForFlenFSeekBug(dwRes))
+		dwRes-=512;
 	return dwRes;
 }
 
@@ -779,16 +805,16 @@ DWORD ToppyFramework::Hdd_Create(char *name, BYTE attr )
 
 	if (attr == ATTR_FOLDER)
 	{
-		return ::CreateDirectory(MakePath(name), 0);//TODO: correct return value?
+		return (::CreateDirectory(MakePath(name), 0) == 0) ? 1 : 0;
 	}
 	//TODO: other attributes
 	else
 	{
 		FILE* file = fopen(MakePath(name), "wb");
 		if (file == 0)
-			return 0;
+			return 1;
 		fclose(file);
-		return 1; //TODO: correct return value?
+		return 0; 
 	}
 }
 

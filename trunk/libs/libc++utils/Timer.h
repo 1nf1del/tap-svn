@@ -62,6 +62,7 @@ private:
 	static EPGevent* GetFirstScheduledEvent(const TimeSlot& timeSlot, int iChannelNum);
 	bool ReSchedule();
 	bool Update();
+	bool IsRepeatingTimer() const;
 
 	TYPE_TimerInfo m_TimerInfo;
 	TimeSlot m_time;

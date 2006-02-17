@@ -24,8 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Options.h"
 
 
-OptionsPage::OptionsPage(const string& title, Options* pOptions) : ListPage(LF_SHOW_HEADER | LF_ROW_SEPARATORS | LF_SCROLLBAR|  LF_COLUMN_SEPARATORS 
-																	  , Rect(50,75,620,450), 50, 50, 0)
+OptionsPage::OptionsPage(const string& title, Options* pOptions, int itemHeight, int headerHeight) : ListPage(LF_SHOW_HEADER | LF_ROW_SEPARATORS | LF_SCROLLBAR|  LF_COLUMN_SEPARATORS 
+																	  , Rect(50,75,620,450), itemHeight, headerHeight, 0)
 {
 	m_pOptions = pOptions;
 	SetFontSizes(FNT_Size_1926, FNT_Size_1926, FNT_Size_1622);

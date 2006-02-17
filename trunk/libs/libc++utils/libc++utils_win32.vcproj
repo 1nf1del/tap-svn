@@ -136,6 +136,9 @@
 				RelativePath=".\ArchivedProgram.cpp">
 			</File>
 			<File
+				RelativePath=".\ArchiveVisitor.cpp">
+			</File>
+			<File
 				RelativePath=".\Channels.cpp">
 			</File>
 			<File
@@ -237,6 +240,9 @@
 				RelativePath=".\ArchivedProgram.h">
 			</File>
 			<File
+				RelativePath=".\ArchiveVisitor.h">
+			</File>
+			<File
 				RelativePath=".\Channels.h">
 			</File>
 			<File
@@ -307,6 +313,9 @@
 			</File>
 			<File
 				RelativePath=".\quicksort.h">
+			</File>
+			<File
+				RelativePath=".\RecHeader.h">
 			</File>
 			<File
 				RelativePath=".\stringarchive.h">

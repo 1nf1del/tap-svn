@@ -228,6 +228,8 @@ private:
 	CString MakePath(CString sName);
 	int CountFilesInCurrentFolder();
 	void PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData);
+	DWORD GetStartClusterHash(const CString& filename);
+	bool IsLengthForFlenFSeekBug(DWORD dwLen);
 
 	Regions m_OSDregions;
 	Windows m_Windows;

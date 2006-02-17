@@ -447,6 +447,10 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #include <memory.h>
 #endif
 
+//#ifdef _DEBUG
+//#define DEBUG 1
+//#endif
+
 // TAP use dl prefix, reduce size and use tap.h
 #define USE_DL_PREFIX
 #define NO_MALLINFO 1
@@ -999,6 +1003,8 @@ void  dlmalloc_stats(void);
 #endif /* LACKS_STDLIB_H */
 #ifdef DEBUG
 #if ABORT_ON_ASSERT_FAILURE
+//#include <crtdbg.h>
+//#define assert(x) _ASSERT(x)
 #define assert(x) if(!(x)) ABORT
 #else /* ABORT_ON_ASSERT_FAILURE */
 #include <assert.h>
@@ -3371,7 +3377,8 @@ static size_t release_unused_segments(mstate m) {
       mchunkptr p = align_as_chunk(base);
       size_t psize = chunksize(p);
       /* Can unmap if first chunk holds entire segment and not pinned */
-      if (!cinuse(p) && (char*)p + psize >= base + size - TOP_FOOT_SIZE) {
+      if (!cinuse(p) && (((char*)p + psize) >= (base + size - TOP_FOOT_SIZE-8))) 
+	  {
         tchunkptr tp = (tchunkptr)p;
         assert(segment_holds(sp, (char*)sp));
         if (p == m->dv) {

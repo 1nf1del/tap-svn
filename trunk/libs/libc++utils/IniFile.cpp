@@ -24,8 +24,10 @@
 #include <tap.h>
 #include <tapapifix.h>
 #include "inifile.h"
+#include "file.h"
+#include "DirectoryUtils.h"
 
-const int maxIniLength = 2048;
+const int maxIniLength = 32768;
 
 IniFile::IniFile()
 {
@@ -46,7 +48,7 @@ IniFile::~IniFile()
 // Load the file
 bool IniFile::Load( const char* filename )
 {
-	TYPE_File* file = TAP_Hdd_Fopen( (char*)filename );
+	TYPE_File* file = OpenRawFile(filename, "r");
 	if ( !file )
 		return false;
 
@@ -55,9 +57,12 @@ bool IniFile::Load( const char* filename )
 	length = min( length, maxIniLength );
 
 	string buffer;
-	TAP_Hdd_Fread( buffer.getbuffer(length), 1, length , file );
+	char* pData = buffer.getbuffer(length);
+	memset(pData, 0, length);
+	
+	TAP_Hdd_Fread(pData , 1, length , file );
 	buffer.releasebuffer();
-	TAP_Hdd_Fclose( file );
+	TAP_Hdd_Fclose(file);
 	// remove the spaces we added last time it was saved
 	buffer = buffer.trim();
 
@@ -81,10 +86,7 @@ bool IniFile::Load( const char* filename )
 // Save the file
 bool IniFile::Save( const char* filename ) const
 {
-	if ( !TAP_Hdd_Exist( (char*)filename ) )
-		TAP_Hdd_Create( (char*)filename, ATTR_NORMAL );
-
-	TYPE_File* file = TAP_Hdd_Fopen( (char*)filename );
+	TYPE_File* file = OpenRawFile(filename, "w");
 	if ( !file )
 		return false;
 
@@ -100,10 +102,10 @@ bool IniFile::Save( const char* filename ) const
 	buffer.resize( length );
 	for ( unsigned int u = 0; u < line.size(); ++u )
 		buffer += line[u] + "\r\n";
-	while ( buffer.size() < length-1 )
+	while ( buffer.size() < length )
 		buffer += " ";
 	TAP_Hdd_Fwrite( (void*)(const char*)buffer, 1, buffer.size(), file );
-	TAP_Hdd_Fclose( file );
+	TAP_Hdd_Fclose(file);
 
 	return true;
 }

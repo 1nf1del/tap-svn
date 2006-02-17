@@ -24,20 +24,26 @@
 #include "ArchivedProgram.h"
 #include "taparray.h"
 class ArchivedProgram;
+class ArchiveVisitor;
 class Archive
 {
 public:
-	Archive();
+	Archive(const string& sCacheFile);
 	~Archive();
 
-
+	const array<const ArchivedProgram*>& GetPrograms();
+	bool Visit(ArchiveVisitor* pVisitor) const;
 
 private:
-
 	void Populate();
 	void PopulateFromFolder(const string & sFolderName);
+	void LoadCache();
+	const ArchivedProgram* FindInCache(const string& folderName, TYPE_File& file);
+	void SaveCache();
 
-	array<ArchivedProgram*> m_theArchive;
+	array<const ArchivedProgram*> m_theArchive;
+	array<const ArchivedProgram*> m_cachedArchive;
+	string m_sCacheFile;
 };
 
 #endif

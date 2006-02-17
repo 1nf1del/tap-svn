@@ -19,6 +19,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "DirectoryUtils.h"
+#include "Logger.h"
 
 bool CurrentDirStartCluster (dword* cluster)
 {
@@ -104,42 +105,113 @@ bool ChangeDirectory(const string& newDirectory)
 
 	if (newDirectory.substr(0,1) == "/")
 	{
+		TRACE("ChangeDirectory, path started with /, so moved to root\n");
 		MoveToRoot();
 		iPos = 1;
 	}
 
-	return (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
+	TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
+	bool bResult = (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
+	TRACE(bResult ? "ChangeDirectory Succeeded\n" : "ChangeDirectory Failed\n");
+
+	return bResult;
 }
 
-UFILE* OpenFile(const string& sFileName, const char* szMode)
+int GetLastSlashPos(const string& path)
 {
 	int iSlashPos = -1;
 	int iLastPos = -1;
-	while ((iLastPos = sFileName.find('/',iLastPos)) != -1)
+	while ((iLastPos = path.find('/',iLastPos)) != -1)
 	{
 		iSlashPos = iLastPos;
 	}
 
-	string sCurrentDir;
+	return iSlashPos;
+}
+
+string GetFolderFromPath(const string& path)
+{
+	int iSlashPos = GetLastSlashPos(path);
 	if (iSlashPos != -1)
 	{
-		sCurrentDir = GetCurrentDirectory();
-		string sDir = sFileName.substr(0, iSlashPos);
-		if (!ChangeDirectory(sDir))
-		{
-			ChangeDirectory(sCurrentDir);
-			return 0;
-		}
+		return path.substr(0, iSlashPos);
+	}
+	return ".";
+}
+
+string GetFileFromPath(const string& path)
+{
+	int iSlashPos = GetLastSlashPos(path);
+	if (iSlashPos == -1)
+		return path;
+
+	return path.substr(iSlashPos+1);
+}
+
+bool CreateDirectory(const string& directory)
+{
+	string dir = directory;
+	if (dir.reverseFind('/') == dir.size()-1)
+		dir= directory.substr(0,dir.size()-1);
+
+	string baseFolder = GetFolderFromPath(dir);
+	string newName = GetFileFromPath(dir);
+
+	DirectoryRestorer dr(baseFolder);
+	if (!dr.WasSuccesful())
+	{
+		TRACE("failed to change to base folder");
+		return false;
 	}
 
-	UFILE* result = fopen((char*)&sFileName[iSlashPos+1], (char*) szMode);
+	if (TAP_Hdd_Exist((char*)newName.c_str())) // already there?
+	{
+		TRACE1("apparently %s already exists", newName.c_str());
+		DirectoryRestorer dr(newName);
+		return dr.WasSuccesful();
+	}
 
-	if (iSlashPos != -1)
-		ChangeDirectory(sCurrentDir);
+	return (TAP_Hdd_Create((char*)newName.c_str(), ATTR_FOLDER) == 0);
+}
+
+
+UFILE* OpenFile(const string& sFileName, const char* szMode)
+{
+	string baseFolder = GetFolderFromPath(sFileName);
+	string fileName = GetFileFromPath(sFileName);
+
+	DirectoryRestorer dr(baseFolder);
+	if (!dr.WasSuccesful())
+		return 0;
+
+	return fopen((char*)fileName.c_str(), (char*) szMode);
+}
+
+TYPE_File* OpenRawFile(const string& sFileName, const char* szMode)
+{
+	string baseFolder = GetFolderFromPath(sFileName);
+	string fileName = GetFileFromPath(sFileName);
+
+	DirectoryRestorer dr(baseFolder);
+	if (!dr.WasSuccesful())
+		return 0;
+
+	char mode = *szMode;
+	if (mode!='r' && mode!='w' && mode!='a')
+		return NULL;
+
+	if (mode=='w' || (mode=='a' && !FileExists(fileName)))
+	{
+		TAP_Hdd_Create((char*)fileName.c_str(), ATTR_NORMAL);
+	}
+
+	TYPE_File* result = TAP_Hdd_Fopen((char*)fileName.c_str());
+
+	if (mode=='a' && result)
+		TAP_Hdd_Fseek(result, 0, 2/*SEEK_END*/);
 
 	return result;
 }
-
 
 DirectoryRestorer::DirectoryRestorer(const string& sChangeToDir)
 {
@@ -158,12 +230,11 @@ bool DirectoryRestorer::WasSuccesful()
 }
 
 
-array<string> GetFolderContents(const string& sFolderName, const string& sExt, bool bFolders)
+void GetDetailFolderContents(const string& sFolderName, array<TYPE_File>& results, const string& sExt, bool bFolders)
 {
-	array<string> results;
 	DirectoryRestorer dr(sFolderName);
 	if (!dr.WasSuccesful())
-		return results;
+		return;
 
 	TYPE_File file;
 	int iCount = TAP_Hdd_FindFirst(&file);
@@ -183,8 +254,24 @@ array<string> GetFolderContents(const string& sFolderName, const string& sExt, b
 				continue;
 		}
 
-		results.push_back(file.name);
+		results.push_back(file);
 	} while (TAP_Hdd_FindNext(&file)<(dword)iCount);
+
+	return;
+}
+
+array<string> GetFolderContents(const string& sFolderName, const string& sExt, bool bFolders)
+{
+	array<TYPE_File> files;
+	GetDetailFolderContents(sFolderName, files, sExt, bFolders);
+
+	array<string> results;
+
+	for (unsigned int i=0; i<files.size(); i++)
+	{
+		TYPE_File& file = files[i];
+		results.push_back(file.name);
+	} 
 
 	return results;
 }
@@ -199,4 +286,32 @@ array<string> GetSubFolders(const string& sFolderName)
 	return GetFolderContents(sFolderName, "", true);
 }
 
+bool FileExists(const string& file)
+{
+	string baseFolder = GetFolderFromPath(file);
+	string fileName = GetFileFromPath(file);
+
+	DirectoryRestorer dr(baseFolder);
+	if (!dr.WasSuccesful())
+		return false;
+
+	return TAP_Hdd_Exist((char*) fileName.c_str());
+}
+
+bool DeleteFile(const string& file)
+{
+	if (!FileExists(file))
+		return true;
+
+	string baseFolder = GetFolderFromPath(file);
+	string fileName = GetFileFromPath(file);
+
+	DirectoryRestorer dr(baseFolder);
+	if (!dr.WasSuccesful())
+		return true;
+	
+	return TAP_Hdd_Delete((char*) fileName.c_str()) != 0;
+
+
+}
 

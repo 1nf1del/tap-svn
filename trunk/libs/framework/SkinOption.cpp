@@ -21,30 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include ".\skinoption.h"
 #include "Tapplication.h"
 #include "Logger.h"
+#include "DirectoryUtils.h"
 
 SkinOption::SkinOption(Options* pContainer) :
 Option(pContainer, "Skin", "Default", "Select Skin Colours (*.mcf)", "", NULL)
 {
 	m_choices.push_back("Default");
 
-	TYPE_File file;
-	int iCount = TAP_Hdd_FindFirst(&file);
+	array<string> skins = GetFilesInFolder("/ProgramFiles", ".mcf");
 
-	do
+	for (unsigned int i=0; i<skins.size(); i++)
 	{
-		string sName = file.name;
-		sName = sName.tolower();
-		if (sName.size()<=4)
-			continue;
-		if (sName.find(".mcf")!=sName.size()-4)
-			continue;
-
-
-		sName = file.name;
-		sName = sName.substr(0,sName.size()-4);
-		m_choices.push_back(sName);
-	} while (TAP_Hdd_FindNext(&file)<(dword)iCount);
-
+		m_choices.push_back(skins[i].substr(0,skins[i].size()-4));
+	}
 }
 
 SkinOption::~SkinOption(void)
@@ -65,7 +54,7 @@ void SkinOption::OnUpdate() const
 	}
 	else
 	{
-		pTap->LoadSkin(value + ".mcf");
+		pTap->LoadSkin("/ProgramFiles/" + value + ".mcf");
 	}
 }
 

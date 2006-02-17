@@ -58,6 +58,15 @@ stringarchive& stringarchive::operator <<(word wValue)
 	return *this;
 }
 
+stringarchive& stringarchive::operator <<(dword dwValue)
+{
+	string sNew;
+	sNew.format("d%d;", dwValue);
+	m_sBackingData += sNew;
+	return *this;
+}
+
+
 stringarchive& stringarchive::operator <<(const string& sValue)
 {
 	string sNew;
@@ -103,6 +112,20 @@ stringarchive& stringarchive::operator >>(word& wValue)
 			TRACE("Error reading word field from stringarchive\n");
 		}
 		wValue = (word) iValue;
+	}
+	return *this;
+}
+
+stringarchive& stringarchive::operator >>(dword& dwValue)
+{
+	if (ValidToRead())
+	{
+		int iValue = 0;
+		if (!ReadIntValue('d',';',iValue))
+		{
+			TRACE("Error reading word field from stringarchive\n");
+		}
+		dwValue = (dword) iValue;
 	}
 	return *this;
 }
@@ -159,4 +182,23 @@ bool stringarchive::ReadIntValue(char cPrefix, char cPostFix, int& value)
 	if (m_iReadPos == 0)
 		return false;
 	return true;
+}
+
+bool stringarchive::expect(const string& typeId)
+{
+	string sExp;
+	sExp.format(":%s:", typeId.c_str());
+	if (m_sBackingData.substr(m_iReadPos, sExp.size())==sExp)
+	{
+		m_iReadPos += sExp.size();
+		return true;
+	}
+	return false;
+}
+
+void stringarchive::insert(const string& typeId)
+{
+	string sNew;
+	sNew.format(":%s:", typeId.c_str());
+	m_sBackingData += sNew;
 }

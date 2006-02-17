@@ -87,6 +87,9 @@ bool Timer::SchedulesOtherEventsToo(const EPGevent* pEvent) const
 
 bool Timer::ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad)
 {
+	if (IsRepeatingTimer())
+		return false;
+
 	if (timeSlot.End()>m_time.End())
 	{
 		// we need to extend the timer at the end
@@ -108,6 +111,9 @@ bool Timer::ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad)
 
 bool Timer::ExtendToCoverEvent(const EPGevent* pEvent)
 {
+	if (IsRepeatingTimer())
+		return false;
+
 	if (GetChannelNum() != pEvent->GetChannelNum())
 		return false;
 
@@ -123,6 +129,9 @@ bool Timer::Update()
 
 bool Timer::ShrinkToRemoveEvent(const EPGevent* pEvent)
 {
+	if (IsRepeatingTimer())
+		return false;
+
 	int iStartPadding = pEvent->GetStart() - m_time.Start();
 	int iEndPadding = m_time.End() - pEvent->GetEnd();
 
@@ -266,6 +275,9 @@ void Timer::UpdateTimerInfoTimes()
 
 bool Timer::SplitTimer(const TimeSlot& slotToRemove)
 {
+	if (IsRepeatingTimer())
+		return false;
+
 	if (!TAP_Timer_Delete(m_iIndex))
 		return false;
 
@@ -302,6 +314,8 @@ bool Timer::ReSchedule()
 
 bool Timer::UnSchedule()
 {
+	if (IsRepeatingTimer())
+		return false;
 	// assumes m_timerinfo is valid, but has been deleted
 	return TAP_Timer_Delete(m_iIndex);
 }
@@ -309,6 +323,9 @@ bool Timer::UnSchedule()
 
 bool Timer::Merge(Timer* pOtherTimer)
 {
+	if (IsRepeatingTimer() || pOtherTimer->IsRepeatingTimer())
+		return false;
+
 	if (GetChannelNum() != pOtherTimer->GetChannelNum())
 		return false;
 
@@ -329,6 +346,9 @@ bool Timer::Merge(Timer* pOtherTimer)
 
 bool Timer::TrimToExclude(const TimeSlot& timeSlot)
 {
+	if (IsRepeatingTimer())
+		return false;
+
 	if (!timeSlot.OverlapsWith(m_time))
 		return false;
 
@@ -355,4 +375,10 @@ bool Timer::TrimToExclude(const TimeSlot& timeSlot)
 bool Timer::IsRecording() const
 {
 	return m_TimerInfo.isRec != 0;
+}
+
+bool Timer::IsRepeatingTimer() const
+{
+	return m_TimerInfo.reservationType != RESERVE_TYPE_Onetime;
+
 }

@@ -81,10 +81,10 @@ void Globals::Cleanup()
 	m_pArchive = NULL;
 }
 
-Archive* Globals::GetArchive()
+Archive* Globals::GetArchive(const string& sCacheFile)
 {
 	if (m_pArchive == NULL)
-		m_pArchive = new Archive();
+		m_pArchive = new Archive(sCacheFile);
 
 	return m_pArchive;
 }
