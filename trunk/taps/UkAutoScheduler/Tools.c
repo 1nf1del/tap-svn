@@ -4,17 +4,17 @@
 
 Name	: Tools.c
 Author	: Kidhazy
-Version	: 0.1
+Version	: 0.2
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 Kidhazy: 10-09-05	Inception Date
 	  v0.1 sl8:	20-01-06	All variable initialised
+	  v0.2 sl8:	16-02-06	sysID removed
 
 **************************************************************/
 
-word* sysID = (word*)0xa3fffffa;
 
 
 //--------------------------------------------------------------------

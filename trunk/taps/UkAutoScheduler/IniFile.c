@@ -4,13 +4,14 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.1
+Version	: 0.2
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.1 sl8:		05-02-06	Modified for UKAS
+	  v0.2 sl8:		15-02-06	'Perform Search' option added.
 
 ************************************************************/
 
@@ -76,6 +77,12 @@ void SaveConfigurationToFile( void )
 	WriteStrToIniBuf( str );
 
 	TAP_SPrint(str, "%d\r\n", mainActivationKey );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainPerformSearchMode );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainPerformSearchTime );
 	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );					// write all the data in one pass
@@ -148,6 +155,10 @@ void SetConfigurationVariables( void )
 	else unitModelType = TF5800;
 
 	mainActivationKey = ReadIniDecimal();
+
+	schMainPerformSearchMode = ReadIniDecimal();
+
+	schMainPerformSearchTime = ReadIniDecimal();
 }
 
 

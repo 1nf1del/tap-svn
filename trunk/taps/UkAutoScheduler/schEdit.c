@@ -6,6 +6,8 @@ v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8	02-12-05	No longer highlights the 'To' cell on the channel and time lines. Also 'Start' and 'End' on padding line.
 				Use number keys to enter start/end time and padding.
 v0.2: sl8	20-01-06	Modified for TAP_SDK. All variables initialised.
+v0.3: sl8	16-02-06	Short cut added. Record key saves search (if valid).
+				SearchFolder element added to the main search structure (not used yet)
 
 **************************************************************/
 
@@ -19,6 +21,7 @@ void editPaddingKeyHandler(dword);
 void schReturnFromKeyboard( int, byte, bool);
 void schDisplayDirectEdit(byte, int, int, char*);
 bool schEditValidateSearch(void);
+void schEditSaveSearch(void);
 
 static TYPE_Window editWin;
 static int chosenEditLine = 0;
@@ -72,6 +75,7 @@ static byte schDirectPaddingPos = 0;
 #define SCH_EDIT_Y1_OFFSET	36
 
 #define SEARCHTERM_LENGTH	30
+#define SEARCHFOLDER_LENGTH	30
 
 enum
 {
@@ -791,6 +795,7 @@ bool SearchEdit (int line, int type)
 		schEdit.searchOptions |= SCH_USER_DATA_OPTIONS_EVENTNAME;
 
 		memset(schEdit.searchTerm,0,132);
+		memset(schEdit.searchFolder,0,132);
 
 		schEdit.searchStartTime = 0;
 		schEdit.searchEndTime = 0;
@@ -1350,70 +1355,9 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			case 0:					/* Save */
 
-				if( schEditValidateSearch() == TRUE)
+				if( schEditValidateSearch() == TRUE )
 				{
-					if( schEditType == SCH_NEW_SEARCH )
-					{
-						schMainTotalValidSearches++;
-
-						searchIndex = schMainTotalValidSearches - 1;
-
-						chosenLine = schMainTotalValidSearches;
-					}
-
-					schUserData[searchIndex].searchStatus = schEdit.searchStatus;
-					strcpy(schUserData[searchIndex].searchTerm, schEdit.searchTerm);
-					schUserData[searchIndex].searchDay = schEdit.searchDay;
-					schUserData[searchIndex].searchOptions = schEdit.searchOptions;
-
-					if(timeMode == SCH_DISPLAY_TIME_ANY)
-					{
-						schUserData[searchIndex].searchStartTime = 0;
-						schUserData[searchIndex].searchEndTime = 0;
-					}
-					else
-					{
-						schUserData[searchIndex].searchStartTime = schEdit.searchStartTime;
-						schUserData[searchIndex].searchEndTime = schEdit.searchEndTime;
-					}
-
-					if(channelMode == SCH_DISPLAY_CHANNEL_ANY)
-					{
-						schUserData[searchIndex].searchStartSvcNum = 0;
-						schUserData[searchIndex].searchEndSvcNum = 0;
-
-						schUserData[searchIndex].searchOptions |= SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
-					}
-					else if (channelMode == SCH_DISPLAY_CHANNEL_ONLY)
-					{
-						schUserData[searchIndex].searchStartSvcNum = schEdit.searchStartSvcNum;
-						schUserData[searchIndex].searchEndSvcNum = schEdit.searchStartSvcNum;
-
-						schUserData[searchIndex].searchOptions &= ~SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
-					}
-					else
-					{
-						schUserData[searchIndex].searchStartSvcNum = schEdit.searchStartSvcNum;
-						schUserData[searchIndex].searchEndSvcNum = schEdit.searchEndSvcNum;
-
-						schUserData[searchIndex].searchOptions &= ~SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
-					}
-
-					schUserData[searchIndex].searchTvRadio = schEdit.searchTvRadio;
-
-					schUserData[searchIndex].searchStartPadding = schEdit.searchStartPadding;
-					schUserData[searchIndex].searchEndPadding = schEdit.searchEndPadding;
-
-					schUserData[searchIndex].searchAttach = 0;
-					schUserData[searchIndex].searchAttach |= (attachPosition[0] << 6) & 0xC0;
-					schUserData[searchIndex].searchAttach |= attachType[0] & 0x3F;
-					schUserData[searchIndex].searchAttach |= (attachPosition[1] << 14) & 0xC000;
-					schUserData[searchIndex].searchAttach |= (attachType[1] << 8) & 0x3F00;
-
-					schDisplaySaveToFile = TRUE;
-
-					CloseSearchEditWindow();	// Close the edit window
-					returnFromEdit = TRUE;		// will cause a redraw of search list
+					schEditSaveSearch();
 				}
 
 				break;
@@ -1514,6 +1458,76 @@ bool schEditValidateSearch(void)
 }
 
 
+
+//------------
+//
+void schEditSaveSearch(void)
+{
+	if( schEditType == SCH_NEW_SEARCH )
+	{
+		schMainTotalValidSearches++;
+
+		searchIndex = schMainTotalValidSearches - 1;
+
+		chosenLine = schMainTotalValidSearches;
+	}
+
+	schUserData[searchIndex].searchStatus = schEdit.searchStatus;
+	strcpy(schUserData[searchIndex].searchTerm, schEdit.searchTerm);
+	schUserData[searchIndex].searchDay = schEdit.searchDay;
+	schUserData[searchIndex].searchOptions = schEdit.searchOptions;
+	strcpy(schUserData[searchIndex].searchFolder, schEdit.searchFolder);
+
+	if(timeMode == SCH_DISPLAY_TIME_ANY)
+	{
+		schUserData[searchIndex].searchStartTime = 0;
+		schUserData[searchIndex].searchEndTime = 0;
+	}
+	else
+	{
+		schUserData[searchIndex].searchStartTime = schEdit.searchStartTime;
+		schUserData[searchIndex].searchEndTime = schEdit.searchEndTime;
+	}
+
+	if(channelMode == SCH_DISPLAY_CHANNEL_ANY)
+	{
+		schUserData[searchIndex].searchStartSvcNum = 0;
+		schUserData[searchIndex].searchEndSvcNum = 0;
+
+		schUserData[searchIndex].searchOptions |= SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
+	}
+	else if (channelMode == SCH_DISPLAY_CHANNEL_ONLY)
+	{
+		schUserData[searchIndex].searchStartSvcNum = schEdit.searchStartSvcNum;
+		schUserData[searchIndex].searchEndSvcNum = schEdit.searchStartSvcNum;
+
+		schUserData[searchIndex].searchOptions &= ~SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
+	}
+	else
+	{
+		schUserData[searchIndex].searchStartSvcNum = schEdit.searchStartSvcNum;
+		schUserData[searchIndex].searchEndSvcNum = schEdit.searchEndSvcNum;
+
+		schUserData[searchIndex].searchOptions &= ~SCH_USER_DATA_OPTIONS_ANY_CHANNEL;
+	}
+
+	schUserData[searchIndex].searchTvRadio = schEdit.searchTvRadio;
+
+	schUserData[searchIndex].searchStartPadding = schEdit.searchStartPadding;
+	schUserData[searchIndex].searchEndPadding = schEdit.searchEndPadding;
+
+	schUserData[searchIndex].searchAttach = 0;
+	schUserData[searchIndex].searchAttach |= (attachPosition[0] << 6) & 0xC0;
+	schUserData[searchIndex].searchAttach |= attachType[0] & 0x3F;
+	schUserData[searchIndex].searchAttach |= (attachPosition[1] << 14) & 0xC000;
+	schUserData[searchIndex].searchAttach |= (attachType[1] << 8) & 0x3F00;
+
+	schDisplaySaveToFile = TRUE;
+
+	CloseSearchEditWindow();	// Close the edit window
+	returnFromEdit = TRUE;		// will cause a redraw of search list
+}
+
 //------------
 //
 void schEditKeyHandler(dword key)
@@ -1523,7 +1537,6 @@ void schEditKeyHandler(dword key)
 	oldEditLine = chosenEditLine;
 
 	if ( channelListWindowShowing ) { ChannelListKeyHandler( key ); return; }	// handle channel list edit
-//	if ( calendarWindowShowing ) { CalendarKeyHandler( key ); return; }		// handle calendar
 	if ( enableEditTime ) { editTimeKeyHandler( key ); return; }			// handle Time Edit
 	if ( enableEditPadding ) { editPaddingKeyHandler( key ); return; }		// handle Padding Edit
 	if ( keyboardWindowShowing ) { KeyboardKeyHandler( key ); return; }		// handle calendar
@@ -1684,7 +1697,16 @@ void schEditKeyHandler(dword key)
 		CloseSearchEditWindow();					// Close the edit window
 		returnFromEdit = TRUE;					// will cause a redraw of timer list
 
-		break;					
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_Record:
+
+		if( schEditValidateSearch() == TRUE )
+		{
+			schEditSaveSearch();
+		}
+
+		break;
 	/* ---------------------------------------------------------------------------- */
 	default:
 

@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.6
+Version	: 0.7
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -30,17 +30,21 @@ History	: v0.1 sl8: 11-11-05	Initial release
 	  v0.5 sl8: 06-02-06	Activiation key can now be changed
 				Initialise schInitLcnToSvcNumMap from TAP_Main
 	  v0.6 sl8: 07-02-06	Reload searchlist file each time TAP is activated
+	  v0.7 sl8: 16-02-06	Added logging.
+				Modified for 'Perform Search' config option.
+				Bug fix - Clock not updating when UKAS screen/menu showing.
 
 **************************************************************/
 
 #define DEBUG 0
+#define LOG 0
 
 #include "tap.h"
 #include "ukauto.h"
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.23x"
+#define VERSION "0.24"
 
 TAP_ID( ID_UKAUTO );
 
@@ -56,7 +60,6 @@ TAP_DESCRIPTION("Part of the UK TAP Project");
 TAP_ETCINFO(__DATE__);
 
 void ShowMessageWin(char*, char*);
-static byte oldMin = 0;
 
 #include "Common.c"
 #include "Tools.c"
@@ -69,6 +72,7 @@ static byte oldMin = 0;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
+#include "log.c"
 
 void ShowMessageWin (char* lpMessage, char* lpMessage1)
 {
@@ -91,6 +95,62 @@ void ShowMessageWin (char* lpMessage, char* lpMessage1)
 	TAP_Osd_Delete(rgn_smw);					// release rgn-handle
 }
 
+void schObtainCurrentTime(void)
+{
+	dword	currentTimeInSeconds = 0;
+	dword	lastTimeInSeconds = 0;
+	word	mjd = 0;
+	byte	hour = 0, min = 0, sec = 0;
+	static	word	wrongTimeCount = 0;
+
+	TAP_GetTime( &mjd, &hour, &min, &sec);
+
+	if
+	(
+		(mjd >= MJD_OFFSET)
+		&&
+		(schTimeMjd >= MJD_OFFSET)
+	)
+	{
+		currentTimeInSeconds = ((mjd - MJD_OFFSET) * 24 * 60 * 60) + (hour * 60 * 60) + (min * 60) + sec;
+		lastTimeInSeconds = ((schTimeMjd - MJD_OFFSET) * 24 * 60 * 60) + (schTimeHour * 60 * 60) + (schTimeMin * 60) + schTimeSec;
+
+		if(currentTimeInSeconds >= lastTimeInSeconds)
+		{
+			schTimeMjd = mjd;
+			schTimeHour = hour;
+			schTimeMin = min;
+			schTimeSec = sec;
+
+			wrongTimeCount = 0;
+		}
+		else
+		{
+			if(wrongTimeCount > 10000)
+			{
+				schTimeMjd = mjd;
+				schTimeHour = hour;
+				schTimeMin = min;
+				schTimeSec = sec;
+
+				wrongTimeCount = 0;
+			}
+			else
+			{
+				wrongTimeCount++;
+			}
+		}
+	}
+	else
+	{
+		schTimeMjd = mjd;
+		schTimeHour = hour;
+		schTimeMin = min;
+		schTimeSec = sec;
+
+		wrongTimeCount = 0;
+	}
+}
 
 void ActivationRoutine( void )
 {
@@ -193,11 +253,12 @@ dword My_KeyHandler(dword key, dword param2)
 dword My_IdleHandler(void)
 {
 	dword	currentTickTime = 0;
-	byte 	hour = 0, min = 0, sec = 0;
-	word 	mjd = 0;
+	static	byte	oldMin = 100, oldSec = 0;
 
 	currentTickTime = TAP_GetTick();				// only get the current tick time once
 	if ( keyboardWindowShowing ) KeyboardCursorBlink( currentTickTime );
+
+	schObtainCurrentTime();
 
 	if
 	(
@@ -211,17 +272,39 @@ dword My_IdleHandler(void)
 	)
 	{
 		schService();
+
+		oldMin = 100;
 	}
 	else
 	{
-   		TAP_GetTime( &mjd, &hour, &min, &sec);
-
-		if ( min != oldMin )
+		if ( schTimeMin != oldMin )
 		{
-			oldMin = min;
-//			UpdateListClock();
+			oldMin = schTimeMin;
+
+			if
+			(
+				( menuShowing == FALSE )
+				&&
+				( creditsShowing == FALSE )
+			)
+			{
+				UpdateListClock();
+			}
 		}
 	}
+
+	if
+	(
+		( schTimeSec != oldSec )
+		&&
+		( schStartUpCounter < 0xFF )
+	)
+	{
+		oldSec = schTimeSec;
+
+		schStartUpCounter++;
+	}
+
 }
 
 dword TAP_EventHandler( word event, dword param1, dword param2 )
@@ -260,11 +343,10 @@ int TAP_Main(void)
 	schInitLcnToSvcNumMap();
 	initialiseTimerWindow();
 	initialiseSearchEdit();
-//	InitialiseSaveRestore();
 	initialiseMenu();
 	InitialiseConfigRoutines();
+	logInitialise();
 
-	oldMin = 100;
 	exitFlag = FALSE;
 	terminateFlag = FALSE;
 	returnFromEdit = FALSE;

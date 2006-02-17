@@ -5,8 +5,15 @@ This module performs the search
 v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8:	20-01-06	All variables initialised
 v0.2 sl8:	06-02-06	Moved schInitLcnToSvcNumMap to ukauto.c
+v0.3 sl8:	16-02-06	Bug fix - Searches were not performed correctly on current day. 30 minute window incorrectly calculated.
+				Modified for 'Perform Search' config option
+				Delay searches for 2 minutes when TAP starts.
+				Removed - 30 minute window where timers would not set.
+				Added - Timers can be set up to within 2 minutes of current time (start padding permitting)
 
 **************************************************************/
+
+#define SCH_MAIN_DELAY_SEARCH_ALARM		120			// Search not allowed within 2 Minutes of TAP starting
 
 bool schCompareStrings(char *, char *);
 bool schPerformSearch(TYPE_TapEvent *, int, int);
@@ -15,11 +22,12 @@ void schService(void);
 void schInitLcnToSvcNumMap(void);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
+
 static int schTotalTvSvc = 0;
 static int schTotalRadioSvc = 0;
 static byte schMainTotalValidSearches = 0;
-static int schMainWaitToSearchCount = 0;
-static byte schServiceSV = SCH_SERVICE_INITIALISE;
+static byte schMainPerformSearchMode = 0;
+static int schMainPerformSearchTime = 0;
 
 word* schLcnToServiceTv = NULL;
 word* schLcnToServiceRadio = NULL;
@@ -32,11 +40,8 @@ void schService(void)
 	static word schChannel = 0;
 	static byte schUserSearchIndex = 0;
 	static dword schEpgIndex = 0;
-	static byte lastSec = 0;
 	static int schEpgTotalEvents = 0;
 
-	word mjd = 0;
-	byte hour = 0, min = 0, sec = 0;
 	char buffer1[128];
 
 	switch(schServiceSV)
@@ -61,41 +66,50 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_RESET_SEARCH:
 
-		schMainWaitToSearchCount = SCH_MAIN_WAIT_TO_SEARCH_ALARM;
-		
 		schServiceSV = SCH_SERVICE_WAIT_TO_SEARCH;
 
 		break;
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_WAIT_TO_SEARCH:
 
-		TAP_GetTime( &mjd, &hour, &min, &sec);
-
-		if(sec != lastSec)
+		if(schMainTotalValidSearches > 0)
 		{
-			if(schMainWaitToSearchCount == 0)
+			switch(schMainPerformSearchMode)
 			{
-				if(schMainTotalValidSearches > 0)
+			/*--------------------------------------------------*/
+			case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
+
+				if(schTimeMin == 0)
 				{
-					if((schUserData[0].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
-					{
-						schChannel = 0;
-					}
-					else
-					{
-						schChannel = schUserData[0].searchStartSvcNum;
-					}
-
-					schMainWaitToSearchCount = SCH_MAIN_WAIT_TO_SEARCH_ALARM;
-
 					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
 				}
-			}
-			else
-			{
-				schMainWaitToSearchCount--;
 
-				lastSec = sec;
+				break;
+			/*--------------------------------------------------*/
+			case SCH_CONFIG_SEARCH_PERIOD_SPECIFIED:
+
+				if
+				(
+					(schTimeHour == ((schMainPerformSearchTime >> 8) & 0xFF))
+					&&
+					(schTimeMin == (schMainPerformSearchTime & 0xFF))
+				)
+				{
+					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+				}
+
+				break;
+			/*--------------------------------------------------*/
+			case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
+			default:
+
+				if((schTimeMin % 10) == 0)
+				{
+					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+				}
+
+				break;
+			/*--------------------------------------------------*/
 			}
 		}
 
@@ -103,16 +117,30 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_BEGIN_SEARCH:
 
-		schUserSearchIndex = 0;		
-		schEpgIndex = 0;
+		if(schStartUpCounter > SCH_MAIN_DELAY_SEARCH_ALARM)
+		{
+			logStoreEvent("Performing Search");
 
-		if(schUserData[schUserSearchIndex].searchStatus != SCH_USER_DATA_STATUS_DISABLED)
-		{
-			schServiceSV = SCH_SERVICE_INITIALISE_EPG_DATA;
-		}
-		else
-		{
-			schServiceSV = SCH_SERVICE_NEXT_USER_SEARCH;
+			schUserSearchIndex = 0;		
+			schEpgIndex = 0;
+
+			if((schUserData[schUserSearchIndex].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
+			{
+				schChannel = 0;
+			}
+			else
+			{
+				schChannel = schUserData[schUserSearchIndex].searchStartSvcNum;
+			}
+
+			if(schUserData[schUserSearchIndex].searchStatus != SCH_USER_DATA_STATUS_DISABLED)
+			{
+				schServiceSV = SCH_SERVICE_INITIALISE_EPG_DATA;
+			}
+			else
+			{
+				schServiceSV = SCH_SERVICE_NEXT_USER_SEARCH;
+			}
 		}
 
 		break;
@@ -230,7 +258,44 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_COMPLETE:
 
-		schServiceSV = SCH_SERVICE_RESET_SEARCH;
+		switch(schMainPerformSearchMode)
+		{
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
+
+			if(schTimeMin != 0)
+			{
+				logStoreEvent("Search Finished");
+
+				schServiceSV = SCH_SERVICE_RESET_SEARCH;
+			}
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_SPECIFIED:
+
+			if(schTimeMin != (schMainPerformSearchTime & 0xFF))
+			{
+				logStoreEvent("Search Finished");
+
+				schServiceSV = SCH_SERVICE_RESET_SEARCH;
+			}
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
+		default:
+
+			if((schTimeMin % 10) != 0)
+			{
+				logStoreEvent("Search Finished");
+
+				schServiceSV = SCH_SERVICE_RESET_SEARCH;
+			}
+
+			break;
+		/*--------------------------------------------------*/
+		}
 
 		break;
 	/*--------------------------------------------------*/
@@ -245,33 +310,25 @@ bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 	word eventMjd = 0, eventYear = 0;
 	byte eventHour = 0, eventMin = 0;
 	byte eventMonth = 0, eventDay = 0, eventWeekDay = 0, eventWeekDayBit = 0;
-	word currentMjd = 0;
-	byte currentHour = 0, currentMin = 0, currentSec = 0;
-	dword eventStartInMins = 0, currentTimeInMins = 0;
+	dword eventStartInMins = 0, currentTimeInMins = 0, startPaddingInMins = 0;
 
 	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
 	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
 	eventMin = (epgData[epgDataIndex].startTime & 0xFF);
-	eventStartInMins = (eventHour * 24) + eventMin;
 
 	TAP_ExtractMjd( eventMjd, &eventYear, &eventMonth, &eventDay, &eventWeekDay);
 	eventWeekDayBit = 0x01 << eventWeekDay;
 
-	TAP_GetTime( &currentMjd, &currentHour, &currentMin, &currentSec);
-	currentTimeInMins = (currentHour * 24) + currentMin;
+	eventStartInMins = (eventMjd * 24 * 60) + (eventHour * 60) + eventMin;
+	currentTimeInMins = (schTimeMjd * 24 * 60) + (schTimeHour * 60) + schTimeMin;
+	startPaddingInMins = (((schUserData[schSearch].searchStartPadding & 0xff00) >> 8) * 60) + (schUserData[schSearch].searchStartPadding & 0xff);
 
 	if
 	(
 		(
-			(eventMjd > currentMjd)
-			||
-			(
-				(eventStartInMins > currentTimeInMins)
-				&&
-				((eventStartInMins - currentTimeInMins) > 30)
-				&&
-				(eventMjd == currentMjd)
-			)
+			(eventStartInMins > (startPaddingInMins + 2))
+			&&
+			((eventStartInMins - (startPaddingInMins + 2)) > currentTimeInMins)
 		)
 		&&
 		(
@@ -353,6 +410,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 {
 	TYPE_TimerInfo schTimerInfo;
 	dword schStartTimeWithPadding = 0;
+	dword schEndTimeWithPadding = 0;
 	word schStartTimeInMins = 0;
 	word schEndTimeInMins = 0;
 	word mjd = 0,year = 0;
@@ -363,6 +421,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	char dateStr[64];
 	char numbStr[64];
 	char fileNameStr[132];
+	char logBuffer[LOG_BUFFER_SIZE];
 	int fileNameLen = 0;
 	int timerError = 0;
 	int i = 0;
@@ -489,6 +548,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 	// ------------- Add padding to end time ----------------
 
+	mjd = ((epgData[epgDataIndex].endTime >> 16) & 0xFFFF);
 	hour = ((epgData[epgDataIndex].endTime >> 8) & 0xFF);
 	min = (epgData[epgDataIndex].endTime & 0xFF);
 
@@ -512,12 +572,15 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 	schEndTimeInMins = (hour * 60) + min;
 
-	// -------------------------------------------------------
-
 	if(schEndTimeInMins < schStartTimeInMins)
 	{
 		schEndTimeInMins += (24 * 60);
+		mjd++;
 	}
+
+	schEndTimeWithPadding = (mjd << 16) + (hour << 8) + min;
+
+	// -------------------------------------------------------
 
 	if(schUserData[searchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
 	{

@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.3
+Version	: 0.4
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -14,6 +14,7 @@ v0.0 Darkmatter:	04-07-05	Inception date
 v0.1 sl8:		20-11-05	Modified for Auto Scheduler
 v0.2 sl8:		20-01-06	Modified for TAP_SDK. All variables initialised
 v0.3 sl8:		06-02-06	Added UK Project directory define
+v0.4 sl8:		15-02-06	Modified to allow for 'Perform Search' config option
 
 ************************************************************/
 
@@ -90,6 +91,9 @@ v0.3 sl8:		06-02-06	Added UK Project directory define
 //#define COLOR_LightGray RGB(24,24,24)
 //#define COLOR_Gray RGB(16,16,16)
 
+#define LOG_BUFFER_SIZE		512
+
+#define	MJD_OFFSET	51544		// 01/01/2000
 
 
 //*****************
@@ -117,6 +121,10 @@ void SaveConfigurationToFile( void );			// IniFile.c
 byte schInitRetreiveData(void);
 void schWriteSearchList(void);
 
+bool SearchEdit (int, int);
+
+void logInitialise(void);
+void logStoreEvent(char*);
 
 struct _reent *_impure_ptr; 					// need this declared for reentrant functions in ANSI C library [comment by Sunstealer]
 
@@ -145,6 +153,12 @@ static bool keyboardWindowShowing = 0;
 
 static bool returnFromEdit = 0;
 
+static byte schTimeHour = 0, schTimeMin = 0, schTimeSec = 0;
+static word schTimeMjd = MJD_OFFSET;
+
+static byte schServiceSV = SCH_SERVICE_INITIALISE;
+
+static byte schStartUpCounter = 0;
 
 enum
 {

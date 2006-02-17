@@ -6,16 +6,21 @@ v0.0 sl8:	20-11-05	Inception date
 v0.1 sl8:	20-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
 					All variables initialised.
 v0.2 sl8:	06-02-06	Use Project directory define
+v0.3 sl8:	15-02-06	Modified for new UkAutoSearch.txt file
 
 **************************************************************/
 
 void schPrintSearchLine( int, TYPE_File* );
-void schWriteFile( dword, TYPE_File* );
+void schWriteFile( dword, TYPE_File*, char* );
 void WriteStrToBuf( char*, TYPE_File* );
 
 bool schConvertLcnToSvcNum(word, word*, bool);
 static char *dataBuffer_sr = NULL;
 static int dataBufferPtr_sr = 0;
+
+#define SEARCH_FILENAME		"UkAutoSearch.txt"
+#define SEARCH_INFO		"UK Auto Scheduler Search List v0.2\r\n"
+
 
 byte schInitRetreiveData(void)
 {
@@ -33,15 +38,30 @@ byte schInitRetreiveData(void)
 	char	buffer1[256];
 	char	tempBuffer[10];
 	int	maxBufferSize = 0;
+	byte	version = 0;
+	char	versionStr[128];
 
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
 	GotoTapDir();
 	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 
-	if ( ! TAP_Hdd_Exist( "SearchList.txt" ) ) return 0;
+	if ( TAP_Hdd_Exist( SEARCH_FILENAME ) )
+	{
+		version = 2;
 
-	searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
+		searchFile = TAP_Hdd_Fopen( SEARCH_FILENAME );
+	}
+	else if ( TAP_Hdd_Exist( "SearchList.txt" ) )
+	{
+		version = 1;
+
+		searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
+	}
+	else
+	{
+		return 0;
+	}
 
 	if ( searchFile == NULL ) return 0;
 
@@ -61,6 +81,24 @@ byte schInitRetreiveData(void)
 
 	bufferIndex = 0;
 
+	if(version == 2)
+	{
+		elementIndex = 0;
+		memset(versionStr,0,128);
+		while
+		(
+			(buffer[bufferIndex] != '\r')
+			&&
+			(elementIndex < 128)
+			&&
+			(bufferIndex <= fileLength)
+		)
+		{
+			versionStr[elementIndex++] = buffer[bufferIndex++];
+		}
+
+		bufferIndex += 2;
+	}
 	elementIndex = 0;
 	memset(tempBuffer,0,10);
 	while
@@ -470,7 +508,19 @@ byte schInitRetreiveData(void)
 			memset(tempBuffer,0,10);
 			while
 			(
-				(buffer[bufferIndex] != '\r')
+				(
+					(
+						(buffer[bufferIndex] != '\r')	// old 'SearchList.txt' file format
+						&&
+						(version == 1)
+					)
+					||
+					(
+						(buffer[bufferIndex] != '\t')	// new 'UkAutoSearch.txt' format with move
+						&&
+						(version == 2)
+					)
+				)
 				&&
 				(bufferIndex <= fileLength)
 				&&
@@ -494,7 +544,40 @@ byte schInitRetreiveData(void)
 				schTempUserData.searchOptions = iTemp;
 			}
 
-			bufferIndex += 2;
+			if(version == 1)		// old 'SearchList.txt' file format
+			{
+				memset(schTempUserData.searchFolder,0,132);
+				bufferIndex += 2;
+			}
+			else
+			{				// new 'UkAutoSearch.txt' format with move
+				bufferIndex++;
+
+				// ------------- Search Folder --------------
+
+				elementIndex = 0;
+				memset(schTempUserData.searchFolder,0,132);
+				while
+				(
+					(buffer[bufferIndex] != '\r')
+					&&
+					(elementIndex < 128)
+					&&
+					(bufferIndex <= fileLength)
+				)
+				{
+					schTempUserData.searchFolder[elementIndex++] = buffer[bufferIndex++];
+				}
+				if
+				(
+					(strlen(schTempUserData.searchFolder) > 128)
+				)
+				{
+					schValidSearch = FALSE;
+				}
+
+				bufferIndex += 2;
+			}
 
 			// ----------------------------------------------
 
@@ -508,6 +591,11 @@ byte schInitRetreiveData(void)
 	}
 
 	TAP_MemFree( buffer );
+
+	if(version == 1)
+	{
+		schWriteSearchList();
+	}
 
 	return schMainTotalValidSearches;
 }
@@ -608,6 +696,8 @@ void schWriteSearchList( void )
 	memset( dataBuffer_sr, '\0', bufferSize );	// set the whole buffer to the string termination character (null)
 	dataBufferPtr_sr = 0;
 
+	WriteStrToBuf( SEARCH_INFO, searchFile );
+
 	sprintf(str, "%02x\r\n", schMainTotalValidSearches);	// Total number of searches
 	WriteStrToBuf( str, searchFile );
 
@@ -616,7 +706,7 @@ void schWriteSearchList( void )
 		schPrintSearchLine( i, searchFile );
 	}
 
-	schWriteFile( bufferSize, searchFile );			// write all the data in one pass
+	schWriteFile( bufferSize, searchFile, SEARCH_FILENAME );			// write all the data in one pass
 
 	TAP_MemFree( dataBuffer_sr );				// must return the memory back to the heap
 }
@@ -684,27 +774,29 @@ void schPrintSearchLine( int searchIndex, TYPE_File *searchFile )
 	sprintf(str, "%04x\t", schUserData[searchIndex].searchAttach);	// Attachments
 	WriteStrToBuf( str, searchFile );
 
-	sprintf(str, "%02x", schUserData[searchIndex].searchOptions);	// Options
+	sprintf(str, "%02x\t", schUserData[searchIndex].searchOptions);	// Options
+	WriteStrToBuf( str, searchFile );
+
+	sprintf(str, "%s", schUserData[searchIndex].searchFolder);	// Search Folder
 	WriteStrToBuf( str, searchFile );
 
 	WriteStrToBuf( "\r\n", searchFile );
-
 }
 
-void schWriteFile( dword bufferSize, TYPE_File *searchFile )
+void schWriteFile( dword bufferSize, TYPE_File *file, char* fileName )
 {
 	GotoTapDir();
 	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-	if ( TAP_Hdd_Exist( "SearchList.txt" ) ) TAP_Hdd_Delete( "SearchList.txt" );	// Just delete any old copies
+	if ( TAP_Hdd_Exist( fileName ) ) TAP_Hdd_Delete( fileName );	// Just delete any old copies
 
-	TAP_Hdd_Create( "SearchList.txt", ATTR_PROGRAM );				// Create the file
+	TAP_Hdd_Create( fileName, ATTR_PROGRAM );				// Create the file
 
-	searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
-	if ( searchFile == NULL ) return; 						// Check we can open it
+	file = TAP_Hdd_Fopen( fileName );
+	if ( file == NULL ) return; 						// Check we can open it
 
-	TAP_Hdd_Fwrite( dataBuffer_sr, bufferSize, 1, searchFile );			// dump the whole buffer in one hit
+	TAP_Hdd_Fwrite( dataBuffer_sr, bufferSize, 1, file );			// dump the whole buffer in one hit
 
-	TAP_Hdd_Fclose( searchFile );
+	TAP_Hdd_Fclose( file );
 	//TAP_Hdd_ChangeDir("..");							// return to original directory
 }
 

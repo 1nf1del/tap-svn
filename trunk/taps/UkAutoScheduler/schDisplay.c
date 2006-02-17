@@ -7,6 +7,8 @@ v0.1 sl8:	29-11-05	Will not highlight a line when number of schedules equal zero
 v0.2 sl8:	20-01-06	Modified for TAP_SDK. All variables initialised
 v0.3 sl8:	06-02-06	Recall key no longer allowed to exit display screen
 v0.4 sl8:	06-02-06	Bug fix - Prevent corruption of the searchlist if the right key is pressed when no line highlighted
+v0.5 sl8:	15-02-06	Modified for new 'Perform Search' config option.
+				Bug fix - No longer possible to edit a deleted search.
 
 **************************************************************/
 // mods/features required
@@ -66,15 +68,13 @@ void DrawGraphicBoarders(void)
 void CreateSearchWindow(void)
 {
 	byte	currentWeekDay = 0, currentMonth = 0, currentDay = 0;
-	byte	currentHour = 0, currentMin = 0, currentSec = 0;
-	word	currentYear = 0, currentMJD = 0;
+	word	currentYear = 0;
 	char	str[80];
 
 	schDisplayWindowShowing = TRUE;
 	DrawGraphicBoarders();
 
-	TAP_GetTime( &currentMJD, &currentHour, &currentMin, &currentSec );
-	TAP_ExtractMjd( currentMJD, &currentYear, &currentMonth, &currentDay, &currentWeekDay) ;
+	TAP_ExtractMjd( schTimeMjd, &currentYear, &currentMonth, &currentDay, &currentWeekDay) ;
 	
 	chosenDay = currentWeekDay;											// default: show only today's timers
 	chosenLine = 0;														// default: highlight the 1st timer
@@ -254,13 +254,11 @@ void DrawSearchList(void)
 void UpdateListClock(void)
 {
 	char	str[80], str2[20], str3[20];
-	byte 	hour = 0, min = 0, sec = 0;
 	byte	month = 0, day = 0, weekDay = 0;
-	word 	year = 0, mjd = 0;
+	word 	year = 0;
 	dword	width = 0;
 
-	TAP_GetTime( &mjd, &hour, &min, &sec);
-	TAP_ExtractMjd( mjd, &year, &month, &day, &weekDay) ;
+	TAP_ExtractMjd( schTimeMjd, &year, &month, &day, &weekDay) ;
 
 //	weekDay=2; month=8; day=28; hour=12; min=58;		// use for testing width
 	
@@ -293,7 +291,7 @@ void UpdateListClock(void)
 		default : TAP_SPrint(str3,"BAD"); break;
 	}
 	
-	TAP_SPrint( str, "%s %d %s %02d:%02d", str2, day, str3, hour, min);
+	TAP_SPrint( str, "%s %d %s %02d:%02d", str2, day, str3, schTimeHour, schTimeMin);
 	width = TAP_Osd_GetW( str, 0, FNT_Size_1622 );
 
 	TAP_Osd_PutGd( rgn, 494, 34, &_timebarGd, TRUE );
@@ -527,6 +525,8 @@ void schDisplayKeyHandler(dword key)
 			( chosenLine > 0 )
 			&&
 			( schMainTotalValidSearches > 0)
+			&&
+			( chosenLine <= schMainTotalValidSearches)
 		)
 		{
 			SearchEdit(chosenLine,SCH_EXISTING_SEARCH);

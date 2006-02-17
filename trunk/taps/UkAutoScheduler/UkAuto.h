@@ -3,6 +3,7 @@ struct schDataTag
 	byte searchStatus;
 	byte searchOptions;
 	char searchTerm[132];
+	char searchFolder[132];
 	dword searchStartTime;
 	dword searchEndTime;
 	byte searchTvRadio;
@@ -63,3 +64,9 @@ enum
 	SCH_ATTACH_TYPE_NUMBER
 };
 
+enum
+{
+	SCH_CONFIG_SEARCH_PERIOD_TEN_MINS = 0,
+	SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR,
+	SCH_CONFIG_SEARCH_PERIOD_SPECIFIED
+};
