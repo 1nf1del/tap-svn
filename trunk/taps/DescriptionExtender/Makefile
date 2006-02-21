@@ -26,7 +26,7 @@ all: DescriptionExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/
 # Copy files to the Toppy using tfcopy
 copy: all
 	tfcopy *.tap '#:\ProgramFiles\'
-	disasmips -A DescriptionExtender.tap > DescriptionExtender.asm
+#	@mips-objdump -D DescriptionExtender.elf > DescriptionExtender.asm
 
 # A target for removing generated files.
 clean:
@@ -35,7 +35,7 @@ clean:
 DescriptionExtender.elf::	DescriptionExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 DescriptionExtender.o:		DescriptionExtender.c 
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
+CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander -I../../libs/exTap
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -C ../../libs/libutils
