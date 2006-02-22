@@ -1,52 +1,52 @@
 /*=====================================================================
-	BinTree.h - Binary tree template class
+BinTree.h - Binary tree template class
 
-	Author: Per Nilsson
+Author: Per Nilsson
 
-	Freeware and no copyright on my behalf. However, if you use the 
-	code in some manner	I'd appreciate a notification about it
-	perfnurt@hotmail.com
+Freeware and no copyright on my behalf. However, if you use the 
+code in some manner	I'd appreciate a notification about it
+perfnurt@hotmail.com
 
-	The Red-Black insertion algorithm is to some extent based upon
-	the example in 
-	http://www.oopweb.com/Algorithms/Documents/PLDS210/Volume/red_black.html
+The Red-Black insertion algorithm is to some extent based upon
+the example in 
+http://www.oopweb.com/Algorithms/Documents/PLDS210/Volume/red_black.html
 
-	Classes:
+Classes:
 
-		// The node class.
-		template <class KeyType, class ValueType> class BinTreeNode
+// The node class.
+template <class KeyType, class ValueType> class BinTreeNode
 
-		// The tree class
-		template <class KeyType, class ValueType> class BinTree
-		{
-		public:
-			// Regular low->high (++) and high->low (--) iterator
-		    class Iterator
+// The tree class
+template <class KeyType, class ValueType> class BinTree
+{
+public:
+// Regular low->high (++) and high->low (--) iterator
+class Iterator
 
-			// Top to bottom iterator
-			class ParentFirstIterator
+// Top to bottom iterator
+class ParentFirstIterator
 
-			// Bottom to top iterator
-			class ParentLastIterator
+// Bottom to top iterator
+class ParentLastIterator
 
-			// Top to bottom, level by level iterator
-			class ByLevelIterator
-		}
+// Top to bottom, level by level iterator
+class ByLevelIterator
+}
 
-	Requirements:
-		The KeyType class must support:
-			1. < and == operations.
-			2. Copy construction.
+Requirements:
+The KeyType class must support:
+1. < and == operations.
+2. Copy construction.
 
-		The ValueType must support:
-			1. Copy construction.
-			2. Assignment operation (=) if BinTreeNode::SetValue is used
+The ValueType must support:
+1. Copy construction.
+2. Assignment operation (=) if BinTreeNode::SetValue is used
 
-    Dependencies:
-		No external dependencies
+Dependencies:
+No external dependencies
 
-    #define NO_REDBLACK to deactivate the red-black functionality. 
-	Tree will still work, but nothing is done in regards of balancing.
+#define NO_REDBLACK to deactivate the red-black functionality. 
+Tree will still work, but nothing is done in regards of balancing.
 
 =====================================================================*/
 
@@ -233,10 +233,10 @@ public:
 		Node* operator -> () { return GetNode();	}
 		Node& operator*   () 
 		{ 
-			if (atEnd())
-			{
-				throw "Iterator at end";			
-			}
+			//			if (atEnd())
+			//			{
+			////				throw "Iterator at end";			
+			//			}
 			return *mCur; 
 		}
 
@@ -266,69 +266,9 @@ public:
 		// Private Commands
 		//------------------------------
 		// ++
-		void Inc()
-		{
-			// Already at end?
-			if (mCur==0)
-				return;
-
-			if (mCur->GetRightChild())
-			{
-				// If current node has a right child, the next higher node is the 
-				// node with lowest key beneath the right child.
-				mCur =  Min(mCur->GetRightChild());
-			}
-			else if (mCur->IsLeftChild())
-			{
-				// No right child? Well if current node is a left child then
-				// the next higher node is the parent
-				mCur = mCur->GetParent();
-			}
-			else
-			{
-				// Current node neither is left child nor has a right child.
-				// Ie it is either right child or root
-				// The next higher node is the parent of the first non-right
-				// child (ie either a left child or the root) up in the
-				// hierarchy. Root's parent is 0.
-				while(mCur->IsRightChild())
-					mCur = mCur->GetParent();
-				mCur =  mCur->GetParent();
-			}
-		}
-
+		void Inc();
 		// --
-		void Dec()
-		{
-			// Already at end?
-			if (mCur==0)
-				return;
-
-			if (mCur->GetLeftChild())
-			{
-				// If current node has a left child, the next lower node is the 
-				// node with highest key beneath the left child.
-				mCur =  Max(mCur->GetLeftChild());
-			}
-			else if (mCur->IsRightChild())
-			{
-				// No left child? Well if current node is a right child then
-				// the next lower node is the parent
-				mCur =  mCur->GetParent();
-			}
-			else
-			{
-				// Current node neither is right child nor has a left child.
-				// Ie it is either left child or root
-				// The next higher node is the parent of the first non-left
-				// child (ie either a right child or the root) up in the
-				// hierarchy. Root's parent is 0.
-
-				while(mCur->IsLeftChild())
-					mCur = mCur->GetParent();
-				mCur =  mCur->GetParent();
-			}
-		}
+		void Dec();
 
 		//------------------------------
 		// Private Members
@@ -387,8 +327,8 @@ public:
 		Node* operator -> () { return GetNode();	}
 		Node& operator*   () 
 		{ 
-			if (atEnd())
-				throw "ParentFirstIterator at end";			
+			//if (atEnd())
+			//	throw "ParentFirstIterator at end";			
 			return *GetNode(); 
 		}
 	private:
@@ -488,8 +428,8 @@ public:
 		Node* operator -> () { return GetNode();	}
 		Node& operator*   () 
 		{ 
-			if (atEnd())
-				throw "ParentLastIterator at end";			
+			//if (atEnd())
+			//	throw "ParentLastIterator at end";			
 			return *GetNode(); 
 		}
 	private:
@@ -640,8 +580,8 @@ public:
 		Node* operator -> () { return GetNode(); }
 		Node& operator*   () 
 		{ 
-			if (atEnd())
-				throw "ParentLastIterator at end";			
+			//if (atEnd())
+			//	throw "ParentLastIterator at end";			
 			return *GetNode(); 
 		}
 	private:
@@ -697,212 +637,36 @@ public:
 	// Public Construction
 	//------------------------------
 	// Constructor.
-	map():mRoot(0),mSize(0){}
+	map();
 
 	// Destructor
-	~map(){ DeleteAll(); }
+	~map();
 
 	//------------------------------
 	// Public Commands
 	//------------------------------
 
-	bool Insert(const KeyType& keyNew, const ValueType& v)
-#ifndef NO_REDBLACK
-	// RED / BLACK insertion
-	{
-		// First insert node the "usual" way (no fancy balance logic yet)
-		Node* newNode = new Node(keyNew,v);
-		if (!Insert(newNode))
-		{
-			delete newNode;
-			return false;
-		}
-
-		// Then attend a balancing party
-		while  (!newNode->IsRoot() && (newNode->GetParent()->IsRed()))
-		{
-			if ( newNode->GetParent()->IsLeftChild()) 
-			{
-				// If newNode is a left child, get its right 'uncle'
-				Node* newNodesUncle = newNode->GetParent()->GetParent()->GetRightChild();
-				if ( newNodesUncle!=0 && newNodesUncle->IsRed())
-				{
-					// case 1 - change the colours
-					newNode->GetParent()->SetBlack();
-					newNodesUncle->SetBlack();
-					newNode->GetParent()->GetParent()->SetRed();
-					// Move newNode up the tree
-					newNode = newNode->GetParent()->GetParent();
-				}
-				else 
-				{
-					// newNodesUncle is a black node
-					if ( newNode->IsRightChild()) 
-					{
-					// and newNode is to the right
-					// case 2 - move newNode up and rotate
-					newNode = newNode->GetParent();
-					RotateLeft(newNode);
-					}
-					// case 3
-					newNode->GetParent()->SetBlack();
-					newNode->GetParent()->GetParent()->SetRed();
-					RotateRight(newNode->GetParent()->GetParent());
-				}
-			}
-			else 
-			{
-				// If newNode is a right child, get its left 'uncle'
-				Node* newNodesUncle = newNode->GetParent()->GetParent()->GetLeftChild();
-				if ( newNodesUncle!=0 && newNodesUncle->IsRed())
-				{
-					// case 1 - change the colours
-					newNode->GetParent()->SetBlack();
-					newNodesUncle->SetBlack();
-					newNode->GetParent()->GetParent()->SetRed();
-					// Move newNode up the tree
-					newNode = newNode->GetParent()->GetParent();
-				}
-				else 
-				{
-					// newNodesUncle is a black node
-					if ( newNode->IsLeftChild()) 
-					{
-						// and newNode is to the left
-						// case 2 - move newNode up and rotate
-						newNode = newNode->GetParent();
-						RotateRight(newNode);
-					}
-					// case 3
-					newNode->GetParent()->SetBlack();
-					newNode->GetParent()->GetParent()->SetRed();
-					RotateLeft(newNode->GetParent()->GetParent());
-				}
-
-			}
-		}
-		// Color the root black
-		mRoot->SetBlack();
-		return true;
-	}
-#else
-	// No balance logic insertion
-	{
-		Node* newNode = new Node(keyNew,v);
-		if (!Insert(newNode))
-		{
-			delete newNode;
-			return false;
-		}
-		return true;
-	}
-#endif // NO_REDBLACK
-
+	bool Insert(const KeyType& keyNew, const ValueType& v);
 	// Set. If the key already exist just replace the value
 	// else insert a new element.
-	void Set(const KeyType& k, const ValueType& v)
-	{
-		Node* p = Find(k);
-		if (p)
-		{
-			p->SetValue(v);
-		}
-		else
-			Insert(k,v);
-	}
+	void Set(const KeyType& k, const ValueType& v);
 
 	// Remove a node.Return true if the node could
 	// be found (and was removed) in the tree.
-	bool Delete(const KeyType& k)
-	{
-		Node* p = Find(k);
-		if (p == 0) return false;
-
-		// Rotate p down to the left until it has no right child, will get there
-		// sooner or later.
-		while(p->GetRightChild())
-		{
-			// "Pull up my right child and let it knock me down to the left"
-			RotateLeft(p);
-		}
-		// p now has no right child but might have a left child
-		Node* left = p->GetLeftChild(); 
-
-		// Let p's parent point to p's child instead of point to p
-		if (p->IsLeftChild())
-		{
-			p->GetParent()->SetLeftChild(left);
-		}
-		else if (p->IsRightChild())
-		{
-			p->GetParent()->SetRightChild(left);
-		}
-		else
-		{
-			// p has no parent => p is the root. 
-			// Let the left child be the new root.
-			SetRoot(left);
-		}
-
-		// p is now gone from the tree in the sense that 
-		// no one is pointing at it. Let's get rid of it.
-		delete p;
-			
-		mSize--;
-		return true;
-	}
-
+	bool Delete(const KeyType& k);
 	// Wipe out the entire tree.
-	void DeleteAll()
-	{
-		ParentLastIterator i(GetParentLastIterator());
-
-		while(!i.atEnd())
-		{
-			Node* p = i.GetNode();
-			i++; // Increment it before it is deleted
-			     // else iterator will get quite confused.
-			delete p;
-		}
-		mRoot = 0;
-		mSize= 0;
-	}
+	void DeleteAll();
 
 	//------------------------------
 	// Public Queries
 	//------------------------------
 
 	// Is the tree empty?
-	bool IsEmpty() const { return mRoot == 0; }
+	bool IsEmpty() const;
 
 	// Search for the node.
 	// Returns 0 if node couldn't be found.
-	Node* Find(const KeyType& keyToFind) const
-	{
-		Node* pNode = mRoot;
-
-		while(pNode!=0)
-		{
-			const KeyType& key(pNode->GetKey());
-
-			if (keyToFind == key)
-			{
-				// Found it! Return it! Wheee!
-				return pNode;
-			}			
-			else if (keyToFind < key)
-			{
-				pNode = pNode->GetLeftChild();
-			}
-			else //keyToFind > key
-			{
-				pNode = pNode->GetRightChild();
-			}
-		}
-
-		return 0;
-	}
-	
+	Node* Find(const KeyType& keyToFind) const;
 	// Get the root element. 0 if tree is empty.
 	Node* GetRoot() const { return mRoot; }
 
@@ -912,41 +676,17 @@ public:
 	//------------------------------
 	// Public Iterators
 	//------------------------------
-	Iterator GetIterator()			 
-	{ 
-		Iterator it(GetRoot());
-		return it; 
-	}
-	ParentFirstIterator GetParentFirstIterator() 
-	{
-		ParentFirstIterator it(GetRoot());
-		return it; 
-	}
-	ParentLastIterator GetParentLastIterator()
-	{   
-		ParentLastIterator it(GetRoot());
-		return it;	
-	}
-	ByLevelIterator GetByLevelIterator()	 
-	{ 
-		ByLevelIterator it(GetRoot(),Size());
-		return it;	
-	}
-	
+	Iterator GetIterator()			 ;
+	ParentFirstIterator GetParentFirstIterator() ;
+	ParentLastIterator GetParentLastIterator();
+	ByLevelIterator GetByLevelIterator()	 ;
+
 	//------------------------------
 	// Public Operators
 	//------------------------------
 
 	// operator [] for accesss to elements
-	ValueType& operator[](const KeyType& k) 
-	{
-		Node* pNode = Find(k);
-		if (pNode != NULL)
-			return pNode->GetValue();
-
-		Insert(k, ValueType());
-		return Find(k)->GetValue();
-	}
+	ValueType& operator[](const KeyType& k) ;
 private:
 
 	//------------------------------
@@ -962,111 +702,19 @@ private:
 	//------------------------------
 	// Private Commands
 	//------------------------------
-	void SetRoot(Node* newRoot)
-	{
-		mRoot = newRoot;
-		if (mRoot!=0)
-			mRoot->SetParent(0);
-	}
+	void SetRoot(Node* newRoot);
 
 	// Insert a node into the tree without using any fancy balancing logic.
 	// Returns false if that key already exist in the tree.
-	bool Insert(Node* newNode)
-	{
-		bool result=true; // Assume success
-
-		if (mRoot==0)
-		{
-			SetRoot(newNode);
-			mSize = 1;
-		}
-		else
-		{
-			Node* pNode = mRoot;
-			const KeyType& keyNew = newNode->GetKey();
-			while (pNode)
-			{
-				const KeyType& key(pNode->GetKey());
-
-				if (keyNew == key)
-				{
-					result = false;
-					pNode = 0;
-				} 
-				else if (keyNew < key)
-				{
-					if (pNode->GetLeftChild()==0)
-					{
-						pNode->SetLeftChild(newNode);
-						pNode = 0;
-					}
-					else
-					{
-						pNode = pNode->GetLeftChild();
-					}
-				} 
-				else 
-				{
-					// keyNew > key
-					if (pNode->GetRightChild()==0)
-					{
-						pNode->SetRightChild(newNode);
-						pNode = 0;
-					}
-					else
-					{
-						pNode = pNode->GetRightChild();
-					}
-				}
-			}
-
-			if (result)
-			{
-				mSize++;
-			}
-		}
-		
-		return result;
-	}
+	bool Insert(Node* newNode);
 
 	// Rotate left.
 	// Pull up node's right child and let it knock node down to the left
-	void RotateLeft(Node* p)
-	{		
-		Node* right = p->GetRightChild();
-
-		p->SetRightChild(right->GetLeftChild());
-		
-		if (p->IsLeftChild())
-			p->GetParent()->SetLeftChild(right);
-		else if (p->IsRightChild())
-			p->GetParent()->SetRightChild(right);
-		else
-		{
-			SetRoot(right);
-		}
-		right->SetLeftChild(p);
-	}
+	void RotateLeft(Node* p);
 
 	// Rotate right.
 	// Pull up node's left child and let it knock node down to the right
-	void RotateRight(Node* p)
-	{		
-
-		Node* left = p->GetLeftChild();
-
-		p->SetLeftChild(left->GetRightChild());
-		
-		if (p->IsLeftChild())
-			p->GetParent()->SetLeftChild(left);
-		else if (p->IsRightChild())
-			p->GetParent()->SetRightChild(left);
-		else
-		{
-			SetRoot(left);
-		}
-		left->SetRightChild(p);
-	}
+	void RotateRight(Node* p);
 
 	//------------------------------
 	// Private Members
@@ -1074,5 +722,435 @@ private:
 	Node* mRoot; // The top node. 0 if empty.	
 	unsigned int mSize; // Number of nodes in the tree
 };
+
+
+template <class KeyType, class ValueType> map<KeyType, ValueType>::map()
+:mRoot(0),mSize(0)
+{
+}
+
+template <class KeyType, class ValueType> map<KeyType, ValueType>::~map()
+{ 
+	DeleteAll(); 
+}
+
+//------------------------------
+// Public Commands
+//------------------------------
+
+template <class KeyType, class ValueType> bool map<KeyType, ValueType>::Insert(const KeyType& keyNew, const ValueType& v)
+#ifndef NO_REDBLACK
+// RED / BLACK insertion
+{
+	// First insert node the "usual" way (no fancy balance logic yet)
+	BinTreeNode<KeyType,ValueType>* newNode = new BinTreeNode<KeyType,ValueType>(keyNew,v);
+	if (!Insert(newNode))
+	{
+		delete newNode;
+		return false;
+	}
+
+	// Then attend a balancing party
+	while  (!newNode->IsRoot() && (newNode->GetParent()->IsRed()))
+	{
+		if ( newNode->GetParent()->IsLeftChild()) 
+		{
+			// If newNode is a left child, get its right 'uncle'
+			BinTreeNode<KeyType,ValueType>* newNodesUncle = newNode->GetParent()->GetParent()->GetRightChild();
+			if ( newNodesUncle!=0 && newNodesUncle->IsRed())
+			{
+				// case 1 - change the colours
+				newNode->GetParent()->SetBlack();
+				newNodesUncle->SetBlack();
+				newNode->GetParent()->GetParent()->SetRed();
+				// Move newNode up the tree
+				newNode = newNode->GetParent()->GetParent();
+			}
+			else 
+			{
+				// newNodesUncle is a black node
+				if ( newNode->IsRightChild()) 
+				{
+					// and newNode is to the right
+					// case 2 - move newNode up and rotate
+					newNode = newNode->GetParent();
+					RotateLeft(newNode);
+				}
+				// case 3
+				newNode->GetParent()->SetBlack();
+				newNode->GetParent()->GetParent()->SetRed();
+				RotateRight(newNode->GetParent()->GetParent());
+			}
+		}
+		else 
+		{
+			// If newNode is a right child, get its left 'uncle'
+			BinTreeNode<KeyType,ValueType>* newNodesUncle = newNode->GetParent()->GetParent()->GetLeftChild();
+			if ( newNodesUncle!=0 && newNodesUncle->IsRed())
+			{
+				// case 1 - change the colours
+				newNode->GetParent()->SetBlack();
+				newNodesUncle->SetBlack();
+				newNode->GetParent()->GetParent()->SetRed();
+				// Move newNode up the tree
+				newNode = newNode->GetParent()->GetParent();
+			}
+			else 
+			{
+				// newNodesUncle is a black node
+				if ( newNode->IsLeftChild()) 
+				{
+					// and newNode is to the left
+					// case 2 - move newNode up and rotate
+					newNode = newNode->GetParent();
+					RotateRight(newNode);
+				}
+				// case 3
+				newNode->GetParent()->SetBlack();
+				newNode->GetParent()->GetParent()->SetRed();
+				RotateLeft(newNode->GetParent()->GetParent());
+			}
+
+		}
+	}
+	// Color the root black
+	mRoot->SetBlack();
+	return true;
+}
+#else
+// No balance logic insertion
+{
+	BinTreeNode<KeyType,ValueType>* newNode = new BinTreeNode<KeyType,ValueType>(keyNew,v);
+	if (!Insert(newNode))
+	{
+		delete newNode;
+		return false;
+	}
+	return true;
+}
+#endif // NO_REDBLACK
+
+// Set. If the key already exist just replace the value
+// else insert a new element.
+template <class KeyType, class ValueType> void map<KeyType, ValueType>::Set(const KeyType& k, const ValueType& v)
+{
+	BinTreeNode<KeyType,ValueType>* p = Find(k);
+	if (p)
+	{
+		p->SetValue(v);
+	}
+	else
+		Insert(k,v);
+}
+
+// Remove a node.Return true if the node could
+// be found (and was removed) in the tree.
+template <class KeyType, class ValueType> bool map<KeyType, ValueType>::Delete(const KeyType& k)
+{
+	BinTreeNode<KeyType,ValueType>* p = Find(k);
+	if (p == 0) return false;
+
+	// Rotate p down to the left until it has no right child, will get there
+	// sooner or later.
+	while(p->GetRightChild())
+	{
+		// "Pull up my right child and let it knock me down to the left"
+		RotateLeft(p);
+	}
+	// p now has no right child but might have a left child
+	BinTreeNode<KeyType,ValueType>* left = p->GetLeftChild(); 
+
+	// Let p's parent point to p's child instead of point to p
+	if (p->IsLeftChild())
+	{
+		p->GetParent()->SetLeftChild(left);
+	}
+	else if (p->IsRightChild())
+	{
+		p->GetParent()->SetRightChild(left);
+	}
+	else
+	{
+		// p has no parent => p is the root. 
+		// Let the left child be the new root.
+		SetRoot(left);
+	}
+
+	// p is now gone from the tree in the sense that 
+	// no one is pointing at it. Let's get rid of it.
+	delete p;
+
+	mSize--;
+	return true;
+}
+
+// Wipe out the entire tree.
+template <class KeyType, class ValueType> void map<KeyType, ValueType>::DeleteAll()
+{
+	ParentLastIterator i(GetParentLastIterator());
+
+	while(!i.atEnd())
+	{
+		BinTreeNode<KeyType,ValueType>* p = i.GetNode();
+		i++; // Increment it before it is deleted
+		// else iterator will get quite confused.
+		delete p;
+	}
+	mRoot = 0;
+	mSize= 0;
+}
+
+//------------------------------
+// Public Queries
+//------------------------------
+
+// Is the tree empty?
+template <class KeyType, class ValueType> bool map<KeyType, ValueType>::IsEmpty() const { return mRoot == 0; }
+
+// Search for the node.
+// Returns 0 if node couldn't be found.
+template <class KeyType, class ValueType> BinTreeNode<KeyType,ValueType>* map<KeyType, ValueType>::Find(const KeyType& keyToFind) const
+{
+	BinTreeNode<KeyType,ValueType>* pNode = mRoot;
+
+	while(pNode!=0)
+	{
+		const KeyType& key(pNode->GetKey());
+
+		if (keyToFind == key)
+		{
+			// Found it! Return it! Wheee!
+			return pNode;
+		}			
+		else if (keyToFind < key)
+		{
+			pNode = pNode->GetLeftChild();
+		}
+		else //keyToFind > key
+		{
+			pNode = pNode->GetRightChild();
+		}
+	}
+
+	return 0;
+}
+
+
+
+//------------------------------
+// Public Iterators
+//------------------------------
+template <class KeyType, class ValueType> typename map<KeyType, ValueType>::Iterator map<KeyType, ValueType>::GetIterator()			 
+{ 
+	Iterator it(GetRoot());
+	return it; 
+}
+template <class KeyType, class ValueType> typename map<KeyType, ValueType>::ParentFirstIterator map<KeyType, ValueType>::GetParentFirstIterator() 
+{
+	ParentFirstIterator it(GetRoot());
+	return it; 
+}
+template <class KeyType, class ValueType> typename map<KeyType, ValueType>::ParentLastIterator map<KeyType, ValueType>::GetParentLastIterator()
+{   
+	ParentLastIterator it(GetRoot());
+	return it;	
+}
+template <class KeyType, class ValueType> typename map<KeyType, ValueType>::ByLevelIterator map<KeyType, ValueType>::GetByLevelIterator()	 
+{ 
+	ByLevelIterator it(GetRoot(),Size());
+	return it;	
+}
+
+//------------------------------
+// Public Operators
+//------------------------------
+
+// operator [] for accesss to elements
+template <class KeyType, class ValueType> ValueType& map<KeyType, ValueType>::operator[](const KeyType& k) 
+{
+	BinTreeNode<KeyType,ValueType>* pNode = Find(k);
+	if (pNode != NULL)
+		return pNode->GetValue();
+
+	Insert(k, ValueType());
+	return Find(k)->GetValue();
+}
+
+
+//------------------------------
+// Private Commands
+//------------------------------
+template <class KeyType, class ValueType> 	void map<KeyType, ValueType>::SetRoot(BinTreeNode<KeyType,ValueType>* newRoot)
+{
+	mRoot = newRoot;
+	if (mRoot!=0)
+		mRoot->SetParent(0);
+}
+
+// Insert a node into the tree without using any fancy balancing logic.
+// Returns false if that key already exist in the tree.
+template <class KeyType, class ValueType> bool map<KeyType, ValueType>::Insert(BinTreeNode<KeyType,ValueType>* newNode)
+{
+	bool result=true; // Assume success
+
+	if (mRoot==0)
+	{
+		SetRoot(newNode);
+		mSize = 1;
+	}
+	else
+	{
+		BinTreeNode<KeyType,ValueType>* pNode = mRoot;
+		const KeyType& keyNew = newNode->GetKey();
+		while (pNode)
+		{
+			const KeyType& key(pNode->GetKey());
+
+			if (keyNew == key)
+			{
+				result = false;
+				pNode = 0;
+			} 
+			else if (keyNew < key)
+			{
+				if (pNode->GetLeftChild()==0)
+				{
+					pNode->SetLeftChild(newNode);
+					pNode = 0;
+				}
+				else
+				{
+					pNode = pNode->GetLeftChild();
+				}
+			} 
+			else 
+			{
+				// keyNew > key
+				if (pNode->GetRightChild()==0)
+				{
+					pNode->SetRightChild(newNode);
+					pNode = 0;
+				}
+				else
+				{
+					pNode = pNode->GetRightChild();
+				}
+			}
+		}
+
+		if (result)
+		{
+			mSize++;
+		}
+	}
+
+	return result;
+}
+
+// Rotate left.
+// Pull up node's right child and let it knock node down to the left
+template <class KeyType, class ValueType> 	void map<KeyType, ValueType>::RotateLeft(BinTreeNode<KeyType,ValueType>* p)
+{		
+	BinTreeNode<KeyType,ValueType>* right = p->GetRightChild();
+
+	p->SetRightChild(right->GetLeftChild());
+
+	if (p->IsLeftChild())
+		p->GetParent()->SetLeftChild(right);
+	else if (p->IsRightChild())
+		p->GetParent()->SetRightChild(right);
+	else
+	{
+		SetRoot(right);
+	}
+	right->SetLeftChild(p);
+}
+
+// Rotate right.
+// Pull up node's left child and let it knock node down to the right
+template <class KeyType, class ValueType> void map<KeyType, ValueType>::RotateRight(BinTreeNode<KeyType,ValueType>* p)
+{		
+
+	BinTreeNode<KeyType,ValueType>* left = p->GetLeftChild();
+
+	p->SetLeftChild(left->GetRightChild());
+
+	if (p->IsLeftChild())
+		p->GetParent()->SetLeftChild(left);
+	else if (p->IsRightChild())
+		p->GetParent()->SetRightChild(left);
+	else
+	{
+		SetRoot(left);
+	}
+	left->SetRightChild(p);
+}
+
+template <class KeyType, class ValueType> void map<KeyType, ValueType>::Iterator::Inc()
+{
+	// Already at end?
+	if (mCur==0)
+		return;
+
+	if (mCur->GetRightChild())
+	{
+		// If current node has a right child, the next higher node is the 
+		// node with lowest key beneath the right child.
+		mCur =  Min(mCur->GetRightChild());
+	}
+	else if (mCur->IsLeftChild())
+	{
+		// No right child? Well if current node is a left child then
+		// the next higher node is the parent
+		mCur = mCur->GetParent();
+	}
+	else
+	{
+		// Current node neither is left child nor has a right child.
+		// Ie it is either right child or root
+		// The next higher node is the parent of the first non-right
+		// child (ie either a left child or the root) up in the
+		// hierarchy. Root's parent is 0.
+		while(mCur->IsRightChild())
+			mCur = mCur->GetParent();
+		mCur =  mCur->GetParent();
+	}
+}
+
+// --
+template <class KeyType, class ValueType> void map<KeyType, ValueType>::Iterator::Dec()
+{
+	// Already at end?
+	if (mCur==0)
+		return;
+
+	if (mCur->GetLeftChild())
+	{
+		// If current node has a left child, the next lower node is the 
+		// node with highest key beneath the left child.
+		mCur =  Max(mCur->GetLeftChild());
+	}
+	else if (mCur->IsRightChild())
+	{
+		// No left child? Well if current node is a right child then
+		// the next lower node is the parent
+		mCur =  mCur->GetParent();
+	}
+	else
+	{
+		// Current node neither is right child nor has a left child.
+		// Ie it is either left child or root
+		// The next higher node is the parent of the first non-left
+		// child (ie either a right child or the root) up in the
+		// hierarchy. Root's parent is 0.
+
+		while(mCur->IsLeftChild())
+			mCur = mCur->GetParent();
+		mCur =  mCur->GetParent();
+	}
+}
+
+
+
 #endif // _BINTREE_H_
 

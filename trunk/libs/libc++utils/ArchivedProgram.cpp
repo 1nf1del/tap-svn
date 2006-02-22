@@ -47,7 +47,6 @@ void ArchivedProgram::Init()
 	if (f == NULL)
 		return;
 
-
 	m_wClusterNum = f->fd->startCluster;
 	m_wTotalCluster = f->fd->totalCluster;
 

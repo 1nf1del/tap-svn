@@ -22,18 +22,24 @@ include ../../tools/build/tap.mk
 
 INCLUDEDIRS=-I ../libc++utils -I ../libutils
 CXXFLAGS+= $(INCLUDEDIRS)
-OBJECTS=Main.o Region.o Tapplication.o Page.o BitmapPage.o Dialog.o TextTools.o Dialog.o graphics.o YesNoBox.o DialogBox.o ProgressBox.o
+OBJECTS=Main.o Region.o Tapplication.o Page.o BitmapPage.o TextTools.o Dialog.o graphics.o YesNoBox.o DialogBox.o ProgressBox.o
 OBJECTS+=ListPage.o Rect.o ListItem.o ListColumn.o SimpleTextListItem.o ActionListItem.o
 OBJECTS+=OptionsPage.o SkinOption.o OptionListItem.o MultiLineListItem.o FooterListItem.o
 OBJECTS+=Decorator.o SkinDecorator.o
+LIBRARIES=../libutils/libutils.a ../libc++utils/libc++utils.a
+LIBDIRS=-L ../libutils -L ../libc++utils
 
 all: libFramework.a
 
-libFramework.a:  $(OBJECTS)
-	$(AR) cr $@ $^
+include ../libc++utils/tap++.mk
+
+LDFLAGS:= -u TAP_Main $(LIBDIRS) -lc++utils -lutils $(LDFLAGS)
+
+libFramework.a:  $(OBJECTS)  $(TEMPLATESBUILTFLAG)
+	$(AR) cr $@ $(OBJECTS)
 
 clean:
-	-rm -f *.a *.o *.elf
+	-rm -f *.a *.o *.elf *.rpo buildtemplates.done
 
 depends:
 	makedepend -I $(TAP_HOME)/include $(INCLUDEDIRS) -Y/usr/include -Y/usr/local/include -I/usr/include *.cpp

@@ -28,19 +28,26 @@ OBJECTS+=MEIReader.o EPGVisitor.o TimeSlot.o PackedDateTime.o ProgressNotificati
 OBJECTS+=DirectoryUtils.o Option.o Options.o KeyDef.o EPGReader.o EPGSourceOption.o
 OBJECTS+=YesNoOption.o NumericOption.o KeyOption.o OptionUpdateNotifier.o
 OBJECTS+=JagCSVReader.o stringarchive.o Archive.o ArchivedProgram.o ArchiveVisitor.o
+LIBRARIES=../libutils/libutils.a 
+LIBDIRS=-L ../libutils
 
 # The first target is the default target.
 all: libc++utils.a
 
+include tap++.mk
+
+LDFLAGS:= -u TAP_Main $(LIBDIRS) -lutils $(LDFLAGS)
+
+
 INCLUDEDIRS=-I ../libutils
 CXXFLAGS+= $(INCLUDEDIRS)
 
-libc++utils.a: $(OBJECTS)
-	$(AR) cr $@ $^
+libc++utils.a: $(OBJECTS) $(TEMPLATESBUILTFLAG)
+	$(AR) cr $@ $(OBJECTS)
 
 # A target for removing generated files.
 clean:
-	-rm -f *.a *.o *.elf
+	-rm -f *.a *.o *.elf *.rpo *.done
 	
 depends:
 	makedepend -I $(TAP_HOME)/include $(INCLUDEDIRS) -Y/usr/include -Y/usr/local/include -I/usr/include *.cpp

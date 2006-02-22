@@ -40,128 +40,35 @@ template <typename T> class array
 {
 	typedef SimpleComparitor<T> default_comparitor;
 public:
-	array(int iInitialSize = 0, int iInitialReserved = 0) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
-	{
-		resize(iInitialSize);
-		grow(iInitialReserved);
-	}
+	array(int iInitialSize = 0, int iInitialReserved = 0);
 
-	array(const array<T>& other) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
-	{
-		*this = other;	
-	}
+	array(const array<T>& other);
 
-	array<T>& operator=(const array<T>& right)
-	{
-		if (&right != this)
-		{
-			clear();
-			grow(right.m_iLen);
-			copy(right.m_iLen, right.m_pArray);
-			m_iLen = right.m_iLen;
-		}
+	array<T>& operator=(const array<T>& right);
+	~array(void);
+	T& operator[](unsigned int i);
 
-		return *this;
-	}
+	const T& operator[](unsigned int i) const;
 
-	~array(void)
-	{
-		destroy(0,m_iLen);
-		delete [] (char*) m_pArray;
-	}
+	unsigned int size() const;
 
-	T& operator[](unsigned int i)
-	{
-		if (i>=m_iLen)
-			return m_nullObject;
-
-		return m_pArray[i];
-	}
-
-	const T& operator[](unsigned int i) const
-	{
-		if (i>=m_iLen)
-			return m_nullObject;
-
-		return m_pArray[i];
-	}
-
-	unsigned int size() const
-	{
-		return m_iLen;
-	}
-
-	void push_back(const T& newItem)
-	{
-		grow(m_iLen+1);
-		construct(m_iLen, m_iLen+1, newItem);
-		++m_iLen;
-	}
-
-	T& back()
-	{
-		if (m_iLen == 0)
-			return m_nullObject;
-
-		return m_pArray[m_iLen-1];
-	}
-
-	const T& back() const
-	{
-		if (m_iLen == 0)
-			return m_nullObject;
-
-		return m_pArray[m_iLen-1];
-	}
-
-	void pop()
-	{
-		if (m_iLen == 0)
-			return;
-
-		destroy(m_iLen-1, m_iLen);
-		--m_iLen;
-	}
-
-	void erase(unsigned int iIndex)
-	{
-		if (iIndex>=m_iLen)
-			return;
-
-		destroy(iIndex, iIndex+1);
-		assign(iIndex, m_iLen - iIndex - 1, m_pArray + iIndex + 1);
-		resize(m_iLen - 1);
-	}
+	void push_back(const T& newItem);
 
 
-	void resize(unsigned int iSize)
-	{
-		if (iSize>m_iReserved)
-			grow(iSize);
+	T& back();
 
-		if (iSize>m_iLen)
-		{
-			construct(m_iLen, iSize, T());
-			m_iLen = iSize;
-		}
-		else if (iSize<m_iLen)
-		{
-			destroy(iSize, m_iLen-iSize);
-			m_iLen = iSize;
+	const T& back() const;
 
-			shrink(iSize);
-		}
-	}
+	void pop();
 
-	void clear()
-	{
-		resize(0);
-	}
+	void erase(unsigned int iIndex);
 
-	bool empty() const
-	{
-		return size() == 0;
-	}
+
+	void resize(unsigned int iSize);
+
+	void clear();
+
+	bool empty() const;
 
 	template <class Comparitor> void sort()
 	{
@@ -169,110 +76,256 @@ public:
 		QuickSort(m_pArray, m_iLen, comp);
 	}
 
-	void sort()
-	{
-		default_comparitor comp;
-		QuickSort(m_pArray, m_iLen, comp);
-	}
+	void sort();
 
-	int find(const T& item) const
-	{
-		for (unsigned int i=0; i<m_iLen; i++)
-		{
-			if (m_pArray[i]==item)
-				return i;
-		}
-		return -1;
-	}
+	int find(const T& item) const;
 
-	bool contains(const T& item) const
-	{
-		return find(item)!=-1;
-	}
-
-	const T& nullObject() const
-	{
-		return m_nullObject;
-	}
+	bool contains(const T& item) const;
+	const T& nullObject() const;
 
 private:
 
-	void assign(unsigned int iOffs, unsigned int iCount, T* pSrcData)
-	{
-		if (iCount > 0)
-			memcpy(m_pArray + iOffs, pSrcData, iCount * sizeof(T));
-	}
-
-	void copy(unsigned int iCount, T* pSrcData)
-	{
-		if (iCount > 0)
-		{
-			for (unsigned int i=0; i<iCount; i++)
-			{
-				construct(i, i+1, pSrcData[i]);
-			}
-		}
-	}
+	void assign(unsigned int iOffs, unsigned int iCount, T* pSrcData);
+	void copy(unsigned int iCount, T* pSrcData);
 
 
-	void copyToSize(unsigned int iNewLen)
-	{
-		T* pOldData = m_pArray;
-		m_pArray = (T*) new char[iNewLen*sizeof(T)];
-		assign(0, min(m_iReserved, iNewLen), pOldData);
-		delete [] (char*)pOldData; 
-		m_iReserved = iNewLen;
-	}
+	void copyToSize(unsigned int iNewLen);
 
-	void grow(unsigned int iNewSize)
-	{
-		if (iNewSize <= m_iReserved)
-			return;
+	void grow(unsigned int iNewSize);
 
-		iNewSize = max(iNewSize, m_iReserved + m_iReserved/2);
-		if (iNewSize<8)
-			iNewSize = 8;
+	void shrink(unsigned int iNewSize);
+	void destroy(int iFirstPos, int iLastPos);
 
-		copyToSize(iNewSize);
-	}
-
-	void shrink(unsigned int iNewSize)
-	{
-		if (iNewSize*2 >= m_iReserved)
-			return;
-
-		if (m_iReserved <= 8)
-			return;
-
-		copyToSize(max(m_iLen, iNewSize));
-	}
-
-	void destroy(int iFirstPos, int iLastPos)
-	{
-		T* pItem = m_pArray + iFirstPos;
-		int iCount = iLastPos - iFirstPos;
-		for (int i=0; i<iCount; i++)
-		{
-			pItem->~T();
-			pItem++;
-		}
-	}
-
-	void construct(int iFirstPos, int iLastPos, const T& _val)
-	{
-		T* pItem = m_pArray + iFirstPos;
-		int iCount = iLastPos - iFirstPos;
-		for (int i=0; i<iCount; i++)
-		{
-			new (pItem) T(_val);
-			pItem++;
-		}
-	}
+	void construct(int iFirstPos, int iLastPos, const T& _val);
 
 	T* m_pArray;
 	T m_nullObject;
 	unsigned int m_iLen;
 	unsigned int m_iReserved;
 };
+
+template<typename T> array<T>::array(int iInitialSize = 0, int iInitialReserved = 0) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
+{
+	resize(iInitialSize);
+	grow(iInitialReserved);
+}
+
+template<typename T> array<T>::array(const array<T>& other) : m_pArray(0), m_iLen(0), m_iReserved(0), m_nullObject(T())
+{
+	*this = other;
+}
+
+template<typename T> array<T>& array<T>::operator=(const array<T>& right)
+{
+	if (&right != this)
+	{
+		clear();
+		grow(right.m_iLen);
+		copy(right.m_iLen, right.m_pArray);
+		m_iLen = right.m_iLen;
+	}
+
+	return *this;
+}
+
+template<typename T> array<T>::~array(void)
+{
+	destroy(0,m_iLen);
+	delete [] (char*) m_pArray;
+}
+
+template<typename T> T& array<T>::operator[](unsigned int i)
+{
+	if (i>=m_iLen)
+		return m_nullObject;
+
+	return m_pArray[i];
+}
+
+template<typename T> const T& array<T>::operator[](unsigned int i) const
+{
+	if (i>=m_iLen)
+		return m_nullObject;
+
+	return m_pArray[i];
+}
+
+template<typename T> unsigned int array<T>::size() const
+{
+	return m_iLen;
+}
+
+template<typename T> void array<T>::push_back(const T& newItem)
+{
+	grow(m_iLen+1);
+	construct(m_iLen, m_iLen+1, newItem);
+	++m_iLen;
+}
+
+template<typename T> T& array<T>::back()
+{
+	if (m_iLen == 0)
+		return m_nullObject;
+
+	return m_pArray[m_iLen-1];
+}
+
+template<typename T> const T& array<T>::back() const
+{
+	if (m_iLen == 0)
+		return m_nullObject;
+
+	return m_pArray[m_iLen-1];
+}
+
+template<typename T> void array<T>::pop()
+{
+	if (m_iLen == 0)
+		return;
+
+	destroy(m_iLen-1, m_iLen);
+	--m_iLen;
+}
+
+template<typename T> void array<T>::erase(unsigned int iIndex)
+{
+	if (iIndex>=m_iLen)
+		return;
+
+	destroy(iIndex, iIndex+1);
+	assign(iIndex, m_iLen - iIndex - 1, m_pArray + iIndex + 1);
+	resize(m_iLen - 1);
+}
+
+
+template<typename T> void array<T>::resize(unsigned int iSize)
+{
+	if (iSize>m_iReserved)
+		grow(iSize);
+
+	if (iSize>m_iLen)
+	{
+		construct(m_iLen, iSize, T());
+		m_iLen = iSize;
+	}
+	else if (iSize<m_iLen)
+	{
+		destroy(iSize, m_iLen-iSize);
+		m_iLen = iSize;
+
+		shrink(iSize);
+	}
+}
+
+template<typename T> void array<T>::clear()
+{
+	resize(0);
+}
+
+template<typename T> bool array<T>::empty() const
+{
+	return size() == 0;
+}
+
+
+template<typename T> void array<T>::sort()
+{
+	default_comparitor comp;
+	QuickSort(m_pArray, m_iLen, comp);
+}
+
+template<typename T> int array<T>::find(const T& item) const
+{
+	for (unsigned int i=0; i<m_iLen; i++)
+	{
+		if (m_pArray[i]==item)
+			return i;
+	}
+	return -1;
+}
+
+template<typename T> bool array<T>::contains(const T& item) const
+{
+	return find(item)!=-1;
+}
+
+template<typename T> const T& array<T>::nullObject() const
+{
+	return m_nullObject;
+}
+
+
+template<typename T> void array<T>::assign(unsigned int iOffs, unsigned int iCount, T* pSrcData)
+{
+	if (iCount > 0)
+		memcpy(m_pArray + iOffs, pSrcData, iCount * sizeof(T));
+}
+
+template<typename T> void array<T>::copy(unsigned int iCount, T* pSrcData)
+{
+	if (iCount > 0)
+	{
+		for (unsigned int i=0; i<iCount; i++)
+		{
+			construct(i, i+1, pSrcData[i]);
+		}
+	}
+}
+
+
+template<typename T> void array<T>::copyToSize(unsigned int iNewLen)
+{
+	T* pOldData = m_pArray;
+	m_pArray = (T*) new char[iNewLen*sizeof(T)];
+	assign(0, min(m_iReserved, iNewLen), pOldData);
+	delete [] (char*)pOldData;
+	m_iReserved = iNewLen;
+}
+
+template<typename T> void array<T>::grow(unsigned int iNewSize)
+{
+	if (iNewSize <= m_iReserved)
+		return;
+
+	iNewSize = max(iNewSize, m_iReserved + m_iReserved/2);
+	if (iNewSize<8)
+		iNewSize = 8;
+
+	copyToSize(iNewSize);
+}
+
+template<typename T> void array<T>::shrink(unsigned int iNewSize)
+{
+	if (iNewSize*2 >= m_iReserved)
+		return;
+
+	if (m_iReserved <= 8)
+		return;
+
+	copyToSize(max(m_iLen, iNewSize));
+}
+
+template<typename T> void array<T>::destroy(int iFirstPos, int iLastPos)
+{
+	T* pItem = m_pArray + iFirstPos;
+	int iCount = iLastPos - iFirstPos;
+	for (int i=0; i<iCount; i++)
+	{
+		pItem->~T();
+		pItem++;
+	}
+}
+
+template<typename T> void array<T>::construct(int iFirstPos, int iLastPos, const T& _val)
+{
+	T* pItem = m_pArray + iFirstPos;
+	int iCount = iLastPos - iFirstPos;
+	for (int i=0; i<iCount; i++)
+	{
+		new (pItem) T(_val);
+		pItem++;
+	}
+}
+
 
 #endif

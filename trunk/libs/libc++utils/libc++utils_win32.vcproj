@@ -267,9 +267,6 @@
 				RelativePath=".\EPGVisitor.h">
 			</File>
 			<File
-				RelativePath=".\fastdelegate.h">
-			</File>
-			<File
 				RelativePath=".\Globals.h">
 			</File>
 			<File
@@ -355,6 +352,9 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt">
+		</File>
+		<File
+			RelativePath=".\tap++.mk">
 		</File>
 	</Files>
 	<Globals>
