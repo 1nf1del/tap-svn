@@ -1,0 +1,4 @@
+EXPORTS
+	TAP_EventHandler
+	TAP_Main
+	SetFramework

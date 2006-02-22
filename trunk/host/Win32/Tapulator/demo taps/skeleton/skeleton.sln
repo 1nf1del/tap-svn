@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skeleton", "skeleton.vcproj", "{F4672D43-3230-4B19-A133-715665259564}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+		Tapulator Debug = Tapulator Debug
+		Tapulator Release = Tapulator Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{F4672D43-3230-4B19-A133-715665259564}.Debug.ActiveCfg = Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Debug.Build.0 = Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Release.ActiveCfg = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Release.Build.0 = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Tapulator Debug.ActiveCfg = Tapulator Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Tapulator Debug.Build.0 = Tapulator Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Tapulator Release.ActiveCfg = Tapulator Release|Win32
+		{F4672D43-3230-4B19-A133-715665259564}.Tapulator Release.Build.0 = Tapulator Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
