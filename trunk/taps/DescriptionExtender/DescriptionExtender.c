@@ -28,7 +28,7 @@
 
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 1.0 Beta 5");
+TAP_PROGRAM_NAME("DescriptionExtender 1.0");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 
@@ -103,44 +103,56 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 		{
 			// Try each entry in the event table. Not very efficient, but the firmware does exactly the same
 			int i;
-			for (i=0; i<5000; i++)
+			for ( i=0; i<5000; ++i )
 			{
 				type_eventtable* e = &et[i];
 
-				// Match satIdx, orgNetId, tsId, svcId, evtId
-				if (event->evtId == e->event_id)
+				// On valid events, match evtId
+				if ( (e->char00 & 0xc0) && event->evtId == e->event_id )
 				{
-					if (event->svcId == e->service_id && event->tsId == e->transport_stream_id &&
-						event->orgNetId == e->original_network_id && event->satIdx == e->sat_index)
+					// Match satIdx, orgNetId, tsId, svcId, evtId
+					if ( event->svcId == e->service_id && event->tsId == e->transport_stream_id &&
+						 event->orgNetId == e->original_network_id && event->satIdx == e->sat_index )
 					{
-						// Get the address of the description string
-						byte *description = (char *)((dword)e->event_name + e->event_name_length);
-						// Work out the length of the string we're going to return
-						int extended_length = e->extended_length;
-						int description_length = strlen(description);
-						if ( description_length > 127 )
-							extended_length += description_length+1;
+						int outputLength = 0;
+						int descriptionLength = 0;
+						// Description is in the 250 byte event name block immediately after event name (no zero terminator)
+						byte *description = e->event_name;
+						if ( description )
+						{
+							description += e->event_name_length;
+							descriptionLength = strlen(description);
+							if ( descriptionLength > 127 )
+								outputLength += descriptionLength + 1;
+						}
+						// Add on the extended info length, plus space for a zero terminator
+						if ( e->extended_length > 0 )
+							outputLength += e->extended_length + 1;
 
 						// If there's going to be something worth returning
-						if ( extended_length > 0 )
+						if ( outputLength > 0 )
 						{
-							// allocate memory plus extra for zero terminators
-							result = FW_MemAlloc(extended_length+2);
+							// allocate memory, plus space for a zero terminator
+							result = FW_MemAlloc( outputLength+1 );
 							if ( result )
 							{
 								byte* p = result;
-								if ( description_length > 127 )
+								// Append any long description text
+								if ( descriptionLength > 127 )
 								{
-									// There's a long description to return
-									memcpy(p, description, description_length);
-									p[description_length] = '\0';
-									p+=description_length;
+									memcpy( p, description, descriptionLength );
+									p[descriptionLength] = '\0';
+									p += descriptionLength + 1;
 								}
 								// Append the existing extended infomation
-								memcpy(p, e->extended_event_name, e->extended_length);
-								p[e->extended_length] = '\0';
+								if ( e->extended_length > 0 )
+								{
+									memcpy( p, e->extended_event_name, e->extended_length );
+									p[e->extended_length] = '\0';
+									p += e->extended_length + 1;
+								}
 								// And terminate with an additional terminator
-								p[e->extended_length+1] = '\0';
+								p[0] = '\0';
 							}
 						}
 						break;
@@ -166,10 +178,12 @@ FirmwareDetail firmware[] =
 	TF5800t,		0x1205,	0x8032e818,
 	TF5800t,		0x1204,	0x8032e698,
 	TF5000_5500,	0x1205,	0x802d6bb4,
-	TF5100,			0x1205,	0x802ad730, // Sept 05
+	TF5100c,		0x1205,	0x802ad730, // Firmware 1.45 Sept 05
+	TF5100,			0x1205,	0x802ad730, // Firmware 1.45 Sept 05
 //	TF5100_MP,		0x1212,	0x802c7ab4, // Oct 04
 	TF5200c,		0x1205,	0x802ac8e8
 };
+
 
 int TAP_Main(void)
 {

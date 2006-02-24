@@ -25,7 +25,7 @@ all: DescriptionExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/
 
 # Copy files to the Toppy using tfcopy
 copy: all
-	tfcopy *.tap '#:\ProgramFiles\'
+	tfcopy DescriptionExtender.tap '#:\ProgramFiles\'
 #	@mips-objdump -D DescriptionExtender.elf > DescriptionExtender.asm
 
 # A target for removing generated files.
