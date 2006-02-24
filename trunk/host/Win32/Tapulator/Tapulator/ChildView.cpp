@@ -26,7 +26,7 @@
 #include "ChildView.h"
 #include "MainFrm.h"
 #include ".\childview.h"
-#include "RawKey.h"
+#include "MoreKeys.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

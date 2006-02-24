@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;..\..\..\..\libs\Firmware"
+				AdditionalIncludeDirectories="&quot;C:\cygwin\usr\local\topfield-gcc\topfield-sdk\include&quot;;..\..\..\..\libs\libutils"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"

@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "Tapulator.h"
-#include "RawKey.h"
+#include "Morekeys.h"
 
 #include "MainFrm.h"
 

@@ -25,12 +25,7 @@
 #include "RemoteDialog.h"
 #include ".\remotedialog.h"
 #include "Mainfrm.h"
-#include "RawKey.h"
-
-#define RKEY_Red        0x1003f
-#define RKEY_Green      0x10024
-#define RKEY_Yellow     0x10025
-#define RKEY_Blue       0x10026
+#include "MoreKeys.h"
 
 // CRemoteDialog dialog
 

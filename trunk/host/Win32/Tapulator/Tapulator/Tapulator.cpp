@@ -48,16 +48,11 @@ END_MESSAGE_MAP()
 
 CTapulatorApp::CTapulatorApp()
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-	m_pRecentFileList = NULL;
 }
 
 CTapulatorApp::~CTapulatorApp()
 {
-	delete m_pRecentFileList;
 	Heap::DoneWithHeap();
-	
 }
 
 // The one and only CTapulatorApp object

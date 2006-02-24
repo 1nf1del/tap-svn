@@ -110,6 +110,11 @@ OSDRegion* Regions::Find(WORD index)
 void Regions::Destroy(WORD index)
 {
 	index -= UserRegionStartNum;
+	if ( index < 0 || index >= m_Regions.size() )
+	{
+		AfxMessageBox( "Destroying invalid region handle" );
+		return;
+	}
 	delete m_Regions[index];
 	m_Regions[index] = 0;
 }
