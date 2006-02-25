@@ -1,3 +1,24 @@
+/*
+Copyright (C) 2005 Simon Capewell
+
+This file is part of the TAPs for Topfield PVRs project.
+	http://tap.berlios.de/
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -6,6 +27,7 @@
 #include "FreeImage.h"
 #include "tfdcompress.h"
 
+#define min(a,b) ((a)<(b) ? (a) : (b))
 
 typedef enum
 {
@@ -18,7 +40,7 @@ char outputFilename[256];
 FILE *outputFile;
 FILE *headerFile;
 int outputHeader = FALSE;
-int verbose = TRUE;
+int verbose = FALSE;
 
 // Returns a pointer to the beginning of the filename
 char* GetFilename(char* path)
@@ -61,44 +83,8 @@ void StripFilenameExtension(char* path)
 		*c = 0;
 }
 
-// Case-sensitive pattern match
-int patMatch(const char* pattern, const char* string)
-{
-	switch (pattern[0])
-	{
-	case '\0':
-		return !string[0];
 
-	case '*':
-		return patMatch(pattern+1, string) || string[0] && patMatch(pattern, string+1);
-
-	case '?':
-		return string[0] && patMatch(pattern+1, string+1);
-
-
-	default:
-		return (pattern[0] == string[0]) && patMatch(pattern+1, string+1);
-	}
-}
-
-// Case-insensitive pattern match
-int patiMatch(const char* pattern, const char* string)
-{
-	switch (pattern[0])
-	{
-	case '\0':
-		return !string[0];
-	case '*':
-		return patiMatch(pattern+1, string) || string[0] && patiMatch(pattern, string+1);
-	case '?':
-		return string[0] && patiMatch(pattern+1, string+1);
-	default:
-		return (toupper(pattern[0]) == toupper(string[0])) && patiMatch(pattern+1, string+1);
-	}
-}
-
-
-void HexDump( BYTE* buffer, int bufferLength )
+void HexDumpByte( BYTE* buffer, int bufferLength )
 {
 	int colCount = 0;
 	fprintf( outputFile, "\t" );
@@ -113,8 +99,25 @@ void HexDump( BYTE* buffer, int bufferLength )
 	}
 	fprintf( outputFile, "\n" );
 }
-
 unsigned short swap( unsigned short w );
+
+void HexDumpWord( WORD* buffer, int bufferLength )
+{
+	int colCount = 0;
+	fprintf( outputFile, "\t" );
+	while ( bufferLength-- )
+	{
+		fprintf( outputFile, "0x%04x%s", swap(*(buffer++)), bufferLength ? "," : "" );
+		if ( bufferLength && ++colCount == 0x10 )
+		{
+			colCount = 0;
+			fprintf( outputFile, "\n\t" );
+		}
+	}
+	fprintf( outputFile, "\n" );
+}
+
+
 
 
 
@@ -123,9 +126,8 @@ int ProcessImage( char* filename )
 	FREE_IMAGE_FORMAT fif;
 	FIBITMAP *dib;
 	char graphicName[100];
-	int width, height;
-	RGBQUAD rgb;
-	int bufferSize, x,y;
+	int width, height, outputWidth;
+	int bufferSize, i;
 	BYTE* buffer;
 	WORD *p;
 
@@ -152,25 +154,29 @@ int ProcessImage( char* filename )
 	StripFilenameExtension( graphicName );
 	strlwr( graphicName );
 
-	width = FreeImage_GetWidth( dib );
+	outputWidth = width = FreeImage_GetWidth( dib );
 	height = FreeImage_GetHeight( dib );
+	// gd format needs to be padded to an even number of pixels
+	if ( compression == COMPRESSION_TFD )
+		outputWidth += width % 2;
 
-	// Convert RGB to ARGB555
-	bufferSize = width*height*2;
+	// Get the raw bits in RGB555 format
+	bufferSize = outputWidth*height*2;
 	buffer = (BYTE*)malloc( bufferSize );
-	p = (WORD*)buffer;
-	for ( y = 0; y < height; ++y )
-	{
-		for ( x = 0; x < width; ++x )
-		{
-			FreeImage_GetPixelColor( dib, x,y, &rgb );
-			rgb.rgbRed = (rgb.rgbRed+3) >> 3;
-			rgb.rgbGreen = (rgb.rgbGreen+3) >> 3;
-			rgb.rgbBlue = (rgb.rgbBlue+3) >> 3;
-			*p++ = swap(0x8000 + (((min(31,rgb.rgbRed) << 5) + min(31,rgb.rgbGreen)) << 5) + min(31,rgb.rgbBlue));
-		}
-	}
+	// ensure that any padding bytes are set to zero
+	memset( buffer, 0, bufferSize );
+	FreeImage_ConvertToRawBits( buffer, dib, 2*outputWidth, 16, FI16_555_RED_MASK,FI16_555_GREEN_MASK,FI16_555_BLUE_MASK, FALSE );
 	FreeImage_Unload( dib );
+
+	// Swap words for MIPs big endian format
+	p = (WORD*)buffer;
+	for ( i = 0; i < bufferSize; i+=2 )
+	{
+		if (*p!=0)
+			*p=0x8000|*p;
+		*p = swap(*p);
+		++p;
+	}
 
 	if ( !outputHeader )
 	{
@@ -183,6 +189,8 @@ int ProcessImage( char* filename )
 			return FALSE;
 		}
 		fprintf( outputFile, "#include <tap.h>\n\n" );
+		if ( verbose )
+			fprintf( stderr, "Created %s\n", filename );
 	}
 
 	switch ( compression )
@@ -191,19 +199,19 @@ int ProcessImage( char* filename )
 	{
 		if ( headerFile )
 		{
-			fprintf( headerFile, "#define %s_Width %d;\n", graphicName, width );
-			fprintf( headerFile, "#define %s_Height %d;\n", graphicName, height );
-			fprintf( headerFile, "extern word _%sData[];\n", graphicName );
+			fprintf( headerFile, "#define %s_Width %d\n", graphicName, outputWidth );
+			fprintf( headerFile, "#define %s_Height %d\n", graphicName, height );
+			fprintf( headerFile, "extern word %sData[];\n", graphicName );
 		}
 		else
 		{
-			fprintf( outputFile, "#define %s_WIDTH %d;\n", graphicName, width );
-			fprintf( outputFile, "#define %s_HEIGHT %d;\n", graphicName, height );
+			fprintf( outputFile, "#define %s_Width %d\n", graphicName, outputWidth );
+			fprintf( outputFile, "#define %s_Height %d\n", graphicName, height );
 		}
 		fprintf( outputFile, "\n" );
 		fprintf( outputFile, "word %sData[] = \n", graphicName );
 		fprintf( outputFile, "{\n" );
-		HexDump( buffer, bufferSize );
+		HexDumpWord( (WORD*)buffer, bufferSize/2 );
 		fprintf( outputFile, "};\n" );
 		fprintf( outputFile, "\n" );
 		break;
@@ -213,9 +221,9 @@ int ProcessImage( char* filename )
 		BYTE *output = (BYTE*)malloc( bufferSize );
 		int compressed = tfdcompress( buffer, bufferSize, output );
 		fprintf( outputFile, "byte _%sCpm[] = \n{\n", graphicName );
-		HexDump( output, compressed );
+		HexDumpByte( output, compressed );
 		fprintf( outputFile, "};\n" );
-		fprintf( outputFile, "TYPE_GrData _%sGd = { 1, 0, OSD_1555, COMPRESS_Tfp, _%sCpm, %d, %d, %d };\n\n", graphicName, graphicName, bufferSize, width, height );
+		fprintf( outputFile, "TYPE_GrData _%sGd = { 1, 0, OSD_1555, COMPRESS_Tfp, _%sCpm, %d, %d, %d };\n\n", graphicName, graphicName, bufferSize, outputWidth, height );
 		if ( headerFile )
 		{
 			fprintf( headerFile, "extern TYPE_GrData _%sGd;\n", graphicName );
@@ -228,7 +236,8 @@ int ProcessImage( char* filename )
 	if ( !outputHeader )
 		fclose( outputFile );
 
-	free( buffer );
+	if ( buffer )
+		free( buffer );
 
 	return TRUE;
 }
@@ -244,7 +253,7 @@ int ProcessImage( char* filename )
 
 int Usage()
 {
-	printf("Make Graphics, a graphics to source converter for Topfield TAPs\n");
+	printf("Make Graphics 1.1, a graphics to source converter for Topfield TAPs\n");
 	printf("Usage: makegraphics <image filenames> [options]\n");
 	printf("\t<image filenames> may contain wildcards\n");
 	printf("\t-g\tGenerate compressed gd format files\n");
@@ -313,6 +322,8 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 		fprintf( outputFile, "#include <tap.h>\n\n" );
+		if ( verbose )
+			fprintf( stderr, "Created source %s\n", outputFilename );
 
 		// Create matching header file
 		StripFilenameExtension( outputFilename );
@@ -323,6 +334,9 @@ int main(int argc, char* argv[])
 			fprintf( stderr, "Can't open output file %s\n", outputFilename );
 			return 1;
 		}
+		if ( verbose )
+			fprintf( stderr, "Created header %s\n", outputFilename );
+
 		StripFilenameExtension( outputFilename );
 		fprintf( headerFile, "#ifndef __%s_H\n#define __%s_H\n\n", outputFilename, outputFilename );
 		fprintf( headerFile, "#include <tap.h>\n\n" );
@@ -333,13 +347,14 @@ int main(int argc, char* argv[])
 	{
 		if ( argv[i][0] != '-' && argv[i][0] != '/' )
 		{
+			#ifdef WIN32
 			struct _finddata_t fd;
 			intptr_t fh = _findfirst( argv[i], &fd );
 			if ( fh == -1 )
 			{
 				if ( errno == EINVAL )
 					fprintf( stderr, "%s is not a valid wildcard\n", argv[i] );
-				else if ( errno == ENOENT )
+				else if ( errno == ENOENT && verbose )
 					fprintf( stderr, "No files found matching %s\n", argv[i] );
 			}
 			else
@@ -357,11 +372,14 @@ int main(int argc, char* argv[])
 				}
 				_findclose( fh );
 			}
+			#else
+			if (ProcessImage(argv[i]))
+				++fileCount;
+			#endif
 		}
 	}
 
-	if ( verbose )
-		fprintf( stderr, "Processed %d files\n", fileCount );
+	fprintf( stderr, "Processed %d files\n", fileCount );
 
 	if ( outputFile )
 		fclose( outputFile );

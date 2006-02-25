@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <limits.h>
 typedef unsigned char  uchar;   /*  8 bits or more */
-typedef unsigned short uint;    /* 16 bits or more */
+typedef unsigned int   uint;    /* 16 bits or more */
 typedef unsigned short ushort;  /* 16 bits or more */
 typedef unsigned long  ulong;   /* 32 bits or more */
 
