@@ -25,11 +25,14 @@
 #include "stringarchive.h"
 #include "logger.h"
 
-ArchivedProgram::ArchivedProgram(const string& folderName, const string& fileName)
+ArchivedProgram::ArchivedProgram(const string& folderName, const string& fileName, dword dwStartCluster, dword dwClusterCount)
 {
 	m_sFolderName = folderName;
 	m_sFileName = fileName;
+
 	m_bIsValid = false;
+	m_wClusterNum = dwStartCluster;
+	m_wTotalCluster = dwClusterCount;
 	Init();
 }
 
@@ -47,8 +50,6 @@ void ArchivedProgram::Init()
 	if (f == NULL)
 		return;
 
-	m_wClusterNum = f->fd->startCluster;
-	m_wTotalCluster = f->fd->totalCluster;
 
 	RecHeader hdr;
 	read(f->fd, &hdr, sizeof(RecHeader));

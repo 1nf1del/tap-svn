@@ -105,14 +105,15 @@ bool ChangeDirectory(const string& newDirectory)
 
 	if (newDirectory.substr(0,1) == "/")
 	{
-		TRACE("ChangeDirectory, path started with /, so moved to root\n");
+//		TRACE("ChangeDirectory, path started with /, so moved to root\n");
 		MoveToRoot();
 		iPos = 1;
 	}
 
-	TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
+//	TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
 	bool bResult = (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
-	TRACE(bResult ? "ChangeDirectory Succeeded\n" : "ChangeDirectory Failed\n");
+	if (!bResult)
+		TRACE(bResult ? "ChangeDirectory Succeeded\n" : "ChangeDirectory Failed\n");
 
 	return bResult;
 }
@@ -160,13 +161,13 @@ bool CreateDirectory(const string& directory)
 	DirectoryRestorer dr(baseFolder);
 	if (!dr.WasSuccesful())
 	{
-		TRACE("failed to change to base folder");
+//		TRACE("failed to change to base folder");
 		return false;
 	}
 
 	if (TAP_Hdd_Exist((char*)newName.c_str())) // already there?
 	{
-		TRACE1("apparently %s already exists", newName.c_str());
+//		TRACE1("apparently %s already exists", newName.c_str());
 		DirectoryRestorer dr(newName);
 		return dr.WasSuccesful();
 	}

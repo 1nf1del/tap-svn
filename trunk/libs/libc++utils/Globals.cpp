@@ -23,6 +23,7 @@
 #include "EPGData.h"
 #include "Channels.h"
 #include "Archive.h"
+#include "Logger.H"
 
 Timers* Globals::m_pTheTimers = NULL;
 EPGdata* Globals::m_pEPGdata = NULL;
@@ -84,7 +85,10 @@ void Globals::Cleanup()
 Archive* Globals::GetArchive(const string& sCacheFile)
 {
 	if (m_pArchive == NULL)
+	{
+//		TRACE("building archive");	
 		m_pArchive = new Archive(sCacheFile);
+	}
 
 	return m_pArchive;
 }

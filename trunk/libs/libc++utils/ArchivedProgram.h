@@ -30,7 +30,7 @@ class stringarchive;
 class ArchivedProgram
 {
 public:
-	ArchivedProgram(const string& folderName, const string& fileName); 
+	ArchivedProgram(const string& folderName, const string& fileName, dword dwStartCluster, dword dwClusterCount); 
 
 	bool IsValid() const;
 	const TimeSlot& GetTimeSlot() const;

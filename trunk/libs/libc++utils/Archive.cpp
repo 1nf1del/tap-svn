@@ -22,6 +22,7 @@
 #include "DirectoryUtils.h"
 #include "ArchiveVisitor.h"
 #include "inifile.h"
+#include "Logger.H"
 
 Archive::Archive(const string& sCacheFile)
 {
@@ -51,7 +52,8 @@ void Archive::Populate()
 void Archive::LoadCache()
 {
 	IniFile ini;
-	ini.Load(m_sCacheFile);
+	if (!ini.Load(m_sCacheFile))
+		return;
 
 	for (int i=0; i<ini.GetKeyCount(); i++)
 	{
@@ -62,6 +64,8 @@ void Archive::LoadCache()
 			m_cachedArchive.push_back(new ArchivedProgram(ArchivedProgram::DeSerialize(s)));
 		}
 	}
+
+//	TRACE1("Loaded cache %d items", ini.GetKeyCount());
 }
 
 void Archive::SaveCache()
@@ -73,11 +77,18 @@ void Archive::SaveCache()
 		sKey.format("Program%d", i);
 		ini.SetValue(sKey, m_theArchive[i]->Serialize());
 	}
-	ini.Save(m_sCacheFile);
+	if (!ini.Save(m_sCacheFile))
+	{
+//		TRACE("failed to save cache");	
+		return;
+	}
+
+//	TRACE1("Saved cache %d items", ini.GetKeyCount());
 }
 
 void Archive::PopulateFromFolder(const string& sFolderName)
 {
+//	TRACE1("Looking in folder %s", sFolderName.c_str());
 	DirectoryRestorer dr(sFolderName);
 
 	array<TYPE_File> files;
@@ -88,7 +99,13 @@ void Archive::PopulateFromFolder(const string& sFolderName)
 		const ArchivedProgram* pProg = FindInCache(sFolderName, file);
 		if (pProg == NULL)
 		{
-			pProg = new ArchivedProgram(sFolderName, file.name);
+//			TRACE("Adding Program from folder");
+			pProg = new ArchivedProgram(sFolderName, file.name, file.startCluster, file.totalCluster);
+		}
+		else
+		{
+//			TRACE("Adding program from cache");
+
 		}
 
 		if (pProg->IsValid())
