@@ -32,7 +32,7 @@ class EPGevent;
 class MEIReader : public IEPGReader
 {
 public:
-	MEIReader(void);
+	MEIReader(const string& filename = "");
 	~MEIReader(void);
 
 	bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
@@ -43,6 +43,7 @@ private:
 	virtual string GetFileName();
 	virtual EPGevent* ConstructEvent(const string& sdata);
 
+	string m_sFileName;
 	UFILE* m_pFile;
 };
 #endif

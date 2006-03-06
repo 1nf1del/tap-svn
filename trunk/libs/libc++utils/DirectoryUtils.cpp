@@ -21,6 +21,43 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "DirectoryUtils.h"
 #include "Logger.h"
 
+
+word (*realTAP_Hdd_ChangeDir)( char* dir ) = 0;
+static string sCurrentDirectory;
+
+
+
+int GetLastSlashPos(const string& path)
+{
+	int iSlashPos = -1;
+	int iLastPos = -1;
+	while ((iLastPos = path.find('/',iLastPos)) != -1)
+	{
+		iSlashPos = iLastPos;
+	}
+
+	return iSlashPos;
+}
+
+string GetFolderFromPath(const string& path)
+{
+	int iSlashPos = GetLastSlashPos(path);
+	if (iSlashPos != -1)
+	{
+		return path.substr(0, iSlashPos);
+	}
+	return ".";
+}
+
+string GetFileFromPath(const string& path)
+{
+	int iSlashPos = GetLastSlashPos(path);
+	if (iSlashPos == -1)
+		return path;
+
+	return path.substr(iSlashPos+1);
+}
+
 bool CurrentDirStartCluster (dword* cluster)
 {
 	TYPE_File file;
@@ -38,7 +75,18 @@ bool CurrentDirStartCluster (dword* cluster)
 	return (strcmp (file.name, ".") == 0);
 }
 
-string GetCurrentDirectory (void)
+void InternalMoveToRoot()
+{
+	dword cluster;
+	while (CurrentDirStartCluster (&cluster))
+	{
+		// move into parent directory and look for a starting cluster match
+		TAP_Hdd_ChangeDir ("..");
+	}
+}
+
+
+string InternalGetCurrentDirectory (void)
 {
 	dword cluster;
 	string path;
@@ -86,18 +134,86 @@ string GetCurrentDirectory (void)
 	return (path);
 }
 
+void UpdateCurrentDirectory(const char* dir)
+{
+	string sChange = dir;
+	if (sChange == ".")
+		return ;
+
+	if (sChange == "..")
+		sChange = "../";
+
+	while (sChange.substr(0,3) == "../")
+	{
+		if (sCurrentDirectory == "/")
+			return;
+
+		int iTrim = sCurrentDirectory.reverseFind('/');
+		if (iTrim >= 0)
+			sCurrentDirectory = sCurrentDirectory.substr(0,iTrim);
+
+		sChange = sChange.substr(3);		
+	}
+
+	if (sCurrentDirectory.empty())
+		sCurrentDirectory="/";
+
+	if (sChange.empty())
+		return;
+
+
+	if (sCurrentDirectory[sCurrentDirectory.size()-1]!='/')
+		sCurrentDirectory += "/";
+	
+	sCurrentDirectory += sChange;
+	return ;
+}
+
+extern "C"
+{
+	word ourTAP_Hdd_ChangeDir(char* dir)
+	{
+		word result = realTAP_Hdd_ChangeDir(dir);
+		if (result != 0)
+			UpdateCurrentDirectory(dir);
+		return result;
+	}
+}
+
+void HookChangeDirFunc()
+{
+	if (realTAP_Hdd_ChangeDir)
+		return;
+
+	// ctor the string as it will be ignored during load
+	new (&sCurrentDirectory) string();
+
+	sCurrentDirectory = InternalGetCurrentDirectory();
+
+	realTAP_Hdd_ChangeDir = TAP_Hdd_ChangeDir;
+	TAP_Hdd_ChangeDir = ourTAP_Hdd_ChangeDir;
+}
+
 void MoveToRoot()
 {
-	dword cluster;
-	while (CurrentDirStartCluster (&cluster))
+	while (sCurrentDirectory!="/")
 	{
-		// move into parent directory and look for a starting cluster match
-		TAP_Hdd_ChangeDir ("..");
+		if (TAP_Hdd_ChangeDir ("..") == 0)
+			return; // bail out
 	}
+}
+
+// Real functionality
+
+string GetCurrentDirectory()
+{
+	HookChangeDirFunc();
+	return sCurrentDirectory;
 }
 
 bool ChangeDirectory(const string& newDirectory)
 {
+	HookChangeDirFunc();
 	if (newDirectory.size() == 0)
 		return true; // nothing to do
 
@@ -118,39 +234,10 @@ bool ChangeDirectory(const string& newDirectory)
 	return bResult;
 }
 
-int GetLastSlashPos(const string& path)
-{
-	int iSlashPos = -1;
-	int iLastPos = -1;
-	while ((iLastPos = path.find('/',iLastPos)) != -1)
-	{
-		iSlashPos = iLastPos;
-	}
-
-	return iSlashPos;
-}
-
-string GetFolderFromPath(const string& path)
-{
-	int iSlashPos = GetLastSlashPos(path);
-	if (iSlashPos != -1)
-	{
-		return path.substr(0, iSlashPos);
-	}
-	return ".";
-}
-
-string GetFileFromPath(const string& path)
-{
-	int iSlashPos = GetLastSlashPos(path);
-	if (iSlashPos == -1)
-		return path;
-
-	return path.substr(iSlashPos+1);
-}
-
 bool CreateDirectory(const string& directory)
 {
+	HookChangeDirFunc();
+
 	string dir = directory;
 	if (dir.reverseFind('/') == dir.size()-1)
 		dir= directory.substr(0,dir.size()-1);
@@ -178,6 +265,8 @@ bool CreateDirectory(const string& directory)
 
 UFILE* OpenFile(const string& sFileName, const char* szMode)
 {
+	HookChangeDirFunc();
+
 	string baseFolder = GetFolderFromPath(sFileName);
 	string fileName = GetFileFromPath(sFileName);
 
@@ -190,6 +279,8 @@ UFILE* OpenFile(const string& sFileName, const char* szMode)
 
 TYPE_File* OpenRawFile(const string& sFileName, const char* szMode)
 {
+	HookChangeDirFunc();
+
 	string baseFolder = GetFolderFromPath(sFileName);
 	string fileName = GetFileFromPath(sFileName);
 
@@ -287,8 +378,13 @@ array<string> GetSubFolders(const string& sFolderName)
 	return GetFolderContents(sFolderName, "", true);
 }
 
-bool FileExists(const string& file)
+bool FileExists(string file)
 {
+	if (file.reverseFind('/') == file.size() -1)
+	{
+		file = file.substr(0,file.size()-1);
+	}
+
 	string baseFolder = GetFolderFromPath(file);
 	string fileName = GetFileFromPath(file);
 

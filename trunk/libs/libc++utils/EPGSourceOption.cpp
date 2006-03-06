@@ -29,6 +29,7 @@ Option(pContainer, key, "MEI", name, description, pNotifier)
 	m_choices.push_back("Builtin");
 	m_choices.push_back("Builtin+");
 	m_choices.push_back("Auto");
+	m_choices.push_back("freeview.mei");
 }
 
 EPGSourceOption::~EPGSourceOption()
@@ -55,6 +56,9 @@ int EPGSourceOption::ValueAsInteger() const
 
 	if (value == "Builtin+")
 		return BuiltinExtendedEPG;
+
+	if (value == "freeview.mei")
+		return FreeviewMEI;
 
 	return Mei;
 

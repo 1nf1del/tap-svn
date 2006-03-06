@@ -25,8 +25,11 @@
 #include "EPGdata.h"
 #include "DirectoryUtils.h"
 
-MEIReader::MEIReader(void)
+MEIReader::MEIReader(const string& filename)
 {
+	m_sFileName = filename;
+	if (m_sFileName.empty())
+		m_sFileName = "/ProgramFiles/MyStuff.mei";
 	m_pFile = 0;
 }
 
@@ -41,14 +44,6 @@ bool MEIReader::Init()
 		return true;
 
 	m_pFile = OpenFile(GetFileName(), "r");
-
-	//m_pFile = fopen("MyStuff.mei", "r");
-	//if (m_pFile == NULL)
-	//{
-	//	TAP_Hdd_ChangeDir("..");
-	//	m_pFile = fopen("MyStuff.mei", "r");	
-	//	TAP_Hdd_ChangeDir("Auto Start");
-	//}
 
 	return (m_pFile != 0);
 }
@@ -103,7 +98,7 @@ int MEIReader::GetPercentDone()
 
 string MEIReader::GetFileName()
 {
-	return "/ProgramFiles/MyStuff.mei";
+	return m_sFileName;
 }
 
 EPGevent* MEIReader::ConstructEvent(const string& sdata)

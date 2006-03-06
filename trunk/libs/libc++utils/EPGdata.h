@@ -38,6 +38,7 @@ enum DataSources
 	BuiltinEPG,
 	JagsCSV,
 	BuiltinExtendedEPG,
+	FreeviewMEI,
 };
 
 #define EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS 0x00000001
@@ -65,6 +66,7 @@ private:
 	bool TryReadingBuiltin(ProgressNotification* pProgress);
 	bool TryReadingJagsCSV(ProgressNotification* pProgress);
 	bool TryReadingExtendedBuiltin(ProgressNotification* pProgress);
+	bool TryReadingFreeViewMei(ProgressNotification* pProgress);
 
 	EPGchannel* FindChannelByNum(word channelNum);
 	array<EPGchannel*> m_channels;

@@ -284,6 +284,13 @@ const PackedDateTime& EPGevent::GetEnd() const
 	return m_TimeSlot.End();
 }
 
+string RemoveStarsFromTitle(const string& title)
+{
+	string result = title;
+	result.replace('*', ' ');
+	return result.trim();
+}
+
 bool EPGevent::IsContinuationOf(const EPGevent* other) const
 {
 	if (m_bContinuation)
@@ -292,8 +299,6 @@ bool EPGevent::IsContinuationOf(const EPGevent* other) const
 	//if (m_wChannelNum >=80)
 	//	return false;
 
-	if (m_sTitle != other->m_sTitle)
-		return false;
 
 	int gap = GetStart() - other->GetEnd();
 	int duration = Duration() + other->Duration();
@@ -306,6 +311,12 @@ bool EPGevent::IsContinuationOf(const EPGevent* other) const
 
 	if (duration < 75)
 		return false; // that's no film
+
+
+	if (RemoveStarsFromTitle(m_sTitle) != RemoveStarsFromTitle(other->m_sTitle))
+	{
+		return false;
+	}
 
 	return true;
 }

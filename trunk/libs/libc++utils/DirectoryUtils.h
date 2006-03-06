@@ -44,7 +44,7 @@ string GetCurrentDirectory();
 bool ChangeDirectory(const string& newDirectory);
 UFILE* OpenFile(const string& sFileName, const char* szMode);
 bool CreateDirectory(const string& directory);
-bool FileExists(const string& file);
+bool FileExists(string file);
 bool DeleteFile(const string& file);
 TYPE_File* OpenRawFile(const string& sFileName, const char* szMode);
 

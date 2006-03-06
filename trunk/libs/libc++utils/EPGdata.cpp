@@ -182,6 +182,12 @@ bool EPGdata::TryReadingMei(ProgressNotification* pProgress)
 	return ReadData(reader, pProgress);
 }
 
+bool EPGdata::TryReadingFreeViewMei(ProgressNotification* pProgress)
+{
+	MEIReader reader("/ProgramFiles/Freeview.mei");
+	return ReadData(reader, pProgress);
+}
+
 bool EPGdata::TryReadingJagsCSV(ProgressNotification* pProgress)
 {
 	JagCSVReader reader;
@@ -202,6 +208,8 @@ bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, 
 		return TryReadingJagsCSV(pProgress);
 	case BuiltinExtendedEPG:
 		return TryReadingExtendedBuiltin(pProgress);
+	case FreeviewMEI:
+		return TryReadingFreeViewMei(pProgress);
 	case Auto:
 	default:
 		if (TryReadingMei(pProgress))
