@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.4
+Version	: 0.5
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -14,6 +14,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.2 sl8:		20-01-06	All variables initialised
 	  v0.3 sl8:		06-02-06	Config menu enabled
 	  v0.4 sl8		16-02-06	Activation key enabled. 'Perform Search' option added
+	  v0.5 sl8		09-03-06	Option added to enable/disable firmware calls
 
 **************************************************************/
 
@@ -163,6 +164,20 @@ void DisplayConfigLine(char lineNumber)
 		}
 
 		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+
+		break;
+	/*--------------------------------------------------*/
+	case 5 :
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		if (FirmwareCallsEnabled == FALSE)
+		{
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
+		}
+		else
+		{
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
+		}
 
 		break;
 	/*--------------------------------------------------*/
@@ -438,6 +453,34 @@ void ConfigActionHandler(dword key)
 
 		break;
 	/*--------------------------------------------------*/
+	case 5 :
+		switch ( key )						// Firware Calls
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+		case RKEY_VolDown:
+		case RKEY_Ok :
+
+			if ( FirmwareCallsEnabled == FALSE )
+			{
+				FirmwareCallsEnabled = TRUE;
+			}
+			else
+			{
+				FirmwareCallsEnabled = FALSE;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		default :
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		break;
+	/*--------------------------------------------------*/
 	case 10 :														// bottom line commands : Save, or Cancel
 		switch ( key )
 		{
@@ -618,7 +661,7 @@ void configTimeKeyHandler(dword key)
 	hour = (schMainPerformSearchTime & 0xff00) >> 8;		// extract the time
 	min = schMainPerformSearchTime & 0xff;
 
-TAP_Print("Key pressed\r\n");		
+//TAP_Print("Key pressed\r\n");		
 
 	switch ( key )
 	{

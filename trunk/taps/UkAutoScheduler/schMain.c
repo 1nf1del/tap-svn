@@ -10,24 +10,32 @@ v0.3 sl8:	16-02-06	Bug fix - Searches were not performed correctly on current da
 				Delay searches for 2 minutes when TAP starts.
 				Removed - 30 minute window where timers would not set.
 				Added - Timers can be set up to within 2 minutes of current time (start padding permitting)
+v0.4 sl8:	09-03-06	Destination folder and remote search file mods
 
 **************************************************************/
 
-#define SCH_MAIN_DELAY_SEARCH_ALARM		120			// Search not allowed within 2 Minutes of TAP starting
+#define SCH_MAIN_DELAY_SEARCH_ALARM		120	// Search not allowed within 2 Minutes of TAP starting
+#define SCH_MAX_FILE_LENGTH			30	// Max length of file name in archive - 4 (.rec)
 
 bool schCompareStrings(char *, char *);
 bool schPerformSearch(TYPE_TapEvent *, int, int);
 void schSetTimer(TYPE_TapEvent *, int, int, word);
 void schService(void);
 void schInitLcnToSvcNumMap(void);
+void schMainUpdateSearchList(void);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
+static struct schDataTag schRemoteData[SCH_MAX_SEARCHES];
+
+static struct schMoveTag schMoveData[SCH_MAX_MOVES];
 
 static int schTotalTvSvc = 0;
 static int schTotalRadioSvc = 0;
 static byte schMainTotalValidSearches = 0;
+static byte schMainTotalValidRemoteSearches = 0;
 static byte schMainPerformSearchMode = 0;
 static int schMainPerformSearchTime = 0;
+static byte schMainTotalValidMoves = 0;
 
 word* schLcnToServiceTv = NULL;
 word* schLcnToServiceRadio = NULL;
@@ -81,7 +89,7 @@ void schService(void)
 
 				if(schTimeMin == 0)
 				{
-					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
 				}
 
 				break;
@@ -95,7 +103,7 @@ void schService(void)
 					(schTimeMin == (schMainPerformSearchTime & 0xFF))
 				)
 				{
-					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
 				}
 
 				break;
@@ -105,7 +113,7 @@ void schService(void)
 
 				if((schTimeMin % 10) == 0)
 				{
-					schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
 				}
 
 				break;
@@ -115,11 +123,33 @@ void schService(void)
 
 		break;
 	/*--------------------------------------------------*/
+	case SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES:
+
+		if(schInitRetreiveRemoteData() > 0)
+		{
+			schServiceSV = SCH_SERVICE_UPDATE_SEARCH_LIST;
+		}
+		else
+		{
+			schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_SERVICE_UPDATE_SEARCH_LIST:
+
+		schMainUpdateSearchList();
+
+		schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+
+
+		break;	
+	/*-------------------------------------------------*/
 	case SCH_SERVICE_BEGIN_SEARCH:
 
 		if(schStartUpCounter > SCH_MAIN_DELAY_SEARCH_ALARM)
 		{
-			logStoreEvent("Performing Search");
+//			logStoreEvent("Performing Search");
 
 			schUserSearchIndex = 0;		
 			schEpgIndex = 0;
@@ -265,7 +295,7 @@ void schService(void)
 
 			if(schTimeMin != 0)
 			{
-				logStoreEvent("Search Finished");
+//				logStoreEvent("Search Finished");
 
 				schServiceSV = SCH_SERVICE_RESET_SEARCH;
 			}
@@ -276,7 +306,7 @@ void schService(void)
 
 			if(schTimeMin != (schMainPerformSearchTime & 0xFF))
 			{
-				logStoreEvent("Search Finished");
+//				logStoreEvent("Search Finished");
 
 				schServiceSV = SCH_SERVICE_RESET_SEARCH;
 			}
@@ -288,7 +318,7 @@ void schService(void)
 
 			if((schTimeMin % 10) != 0)
 			{
-				logStoreEvent("Search Finished");
+//				logStoreEvent("Search Finished");
 
 				schServiceSV = SCH_SERVICE_RESET_SEARCH;
 			}
@@ -418,6 +448,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	byte hour = 0, min = 0;
 	byte attachPosition[2];
 	byte attachType[2];
+	char prefixStr[64];
+	char appendStr[64];
 	char dateStr[64];
 	char numbStr[64];
 	char fileNameStr[132];
@@ -425,6 +457,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	int fileNameLen = 0;
 	int timerError = 0;
 	int i = 0;
+	bool longName = FALSE;
 
 	// ------------- Attachments ----------------
 
@@ -447,6 +480,9 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	memset(numbStr,0,64);
 	sprintf(numbStr,"S#%d", (searchIndex + 1));
 
+	memset(prefixStr,0,64);
+	memset(appendStr,0,64);
+
 	for(i = 0; i < 2; i++)
 	{
 		if(attachPosition[i] == SCH_ATTACH_POS_PREFIX)
@@ -458,8 +494,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
-					strcat(fileNameStr,numbStr);
-					strcat(fileNameStr,"_");
+					strcat(prefixStr,numbStr);
+					strcat(prefixStr,"_");
 				}
 
 				break;
@@ -468,8 +504,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
-					strcat(fileNameStr,dateStr);
-					strcat(fileNameStr,"_");
+					strcat(prefixStr,dateStr);
+					strcat(prefixStr,"_");
 				}
 
 				break;
@@ -480,8 +516,6 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			}
 		}	
 	}
-
-	strcat(fileNameStr,epgData[epgDataIndex].eventName);
 
 	for(i = 0; i < 2; i++)
 	{
@@ -494,8 +528,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
-					strcat(fileNameStr,"_");
-					strcat(fileNameStr,numbStr);
+					strcat(appendStr,"_");
+					strcat(appendStr,numbStr);
 				}
 
 				break;
@@ -504,8 +538,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
-					strcat(fileNameStr,"_");
-					strcat(fileNameStr,dateStr);
+					strcat(appendStr,"_");
+					strcat(appendStr,dateStr);
 				}
 
 				break;
@@ -516,6 +550,22 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			}
 		}	
 	}
+
+	strcat(fileNameStr,prefixStr);
+
+	longName = FALSE;
+	if((strlen(prefixStr) + strlen(epgData[epgDataIndex].eventName) + strlen(appendStr)) > SCH_MAX_FILE_LENGTH)
+	{
+		strncat(fileNameStr,epgData[epgDataIndex].eventName, (SCH_MAX_FILE_LENGTH - strlen(prefixStr) - strlen(appendStr)));
+
+		longName = TRUE;
+	}
+	else
+	{
+		strcat(fileNameStr,epgData[epgDataIndex].eventName);
+	}
+
+	strcat(fileNameStr,appendStr);
 
 	strcat(fileNameStr,".rec");
 
@@ -603,10 +653,54 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	timerError = TAP_Timer_Add(&schTimerInfo);
 	if( timerError == 0)
 	{
-//		TAP_Print(fileNameStr);
-//		TAP_Print("\r\n");
+		if
+		(
+			(strlen(schUserData[searchIndex].searchFolder) > 0)
+			&&
+			(schMainTotalValidMoves < SCH_MAX_MOVES)
+		)
+		{
+			schMoveData[schMainTotalValidMoves].moveEnabled = TRUE;
+			strcpy(schMoveData[schMainTotalValidMoves].moveFileName, fileNameStr);
+			strcpy(schMoveData[schMainTotalValidMoves].moveFolder, schUserData[searchIndex].searchFolder);
+			schMoveData[schMainTotalValidMoves].moveStartTime = schStartTimeWithPadding;
+			schMoveData[schMainTotalValidMoves].moveEndTime = schEndTimeWithPadding;
+			schMoveData[schMainTotalValidMoves].moveFailedCount = 0;
 
-//		ShowMessageWin("Timer Set:",schTimerInfo.fileName);
+			schMainTotalValidMoves++;
+
+			schWriteMoveList();
+/*
+			if(longName == TRUE)
+			{
+				memset(logBuffer,0,LOG_BUFFER_SIZE);
+				sprintf( logBuffer, "Timer Set with Move (L): %s   %s", fileNameStr, epgData[epgDataIndex].eventName );
+				logStoreEvent(logBuffer);
+			}
+			else
+			{
+				memset(logBuffer,0,LOG_BUFFER_SIZE);
+				sprintf( logBuffer, "Timer Set with Move: %s", fileNameStr );
+				logStoreEvent(logBuffer);
+			}
+*/
+		}
+		else
+		{
+/*			if(longName == TRUE)
+			{
+				memset(logBuffer,0,LOG_BUFFER_SIZE);
+				sprintf( logBuffer, "Timer Set without Move (L): %s   %s", fileNameStr,  epgData[epgDataIndex].eventName );
+				logStoreEvent(logBuffer);		
+			}
+			else
+			{
+				memset(logBuffer,0,LOG_BUFFER_SIZE);
+				sprintf( logBuffer, "Timer Set without Move: %s", fileNameStr );
+				logStoreEvent(logBuffer);
+			}
+*/
+		}
 	}
 	else
 	{
@@ -674,4 +768,26 @@ void schInitLcnToSvcNumMap(void)
 
 		schLcnToServiceRadio[i] = chInfo.logicalChNum; 
 	}
+}
+
+
+void schMainUpdateSearchList(void)
+{
+	byte i = 0;
+
+	for(i = 0; i < schMainTotalValidRemoteSearches; i++)
+	{
+		if(schMainTotalValidSearches < SCH_MAX_SEARCHES)
+		{
+			schUserData[schMainTotalValidSearches] = schRemoteData[i];
+
+			schMainTotalValidSearches++;
+		}
+	}
+
+	schWriteSearchList();
+
+	GotoProgramFiles();
+
+	TAP_Hdd_Delete( REMOTE_FILENAME );
 }

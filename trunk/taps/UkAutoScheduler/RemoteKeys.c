@@ -4,13 +4,14 @@
 
 Name	: RemoteKeys.c
 Author	: Darkmatter
-Version	: 0.1
+Version	: 0.2
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.1 sl8:		20-01-06	All variables initialised
+	  v0.2 sl8:		19-02-06	Bug Fix - Left and right keys swapped
 
 **************************************************************/
 
@@ -175,8 +176,8 @@ void CreateTF5800Keys( keyCodes_Struct *keyCodes )
     KeyAdd( keyCodes, 0x1000b, "Recall" );
     KeyAdd( keyCodes, 0x10014, "Info" );
 
-    KeyAdd( keyCodes, 0x1000f, "Right Arrow" );
-    KeyAdd( keyCodes, 0x10015, "Left Arrow" );
+    KeyAdd( keyCodes, 0x10015, "Right Arrow" );
+    KeyAdd( keyCodes, 0x1000f, "Left Arrow" );
     KeyAdd( keyCodes, 0x10012, "Up Arrow" );
     KeyAdd( keyCodes, 0x1001d, "Down Arrow" );
     KeyAdd( keyCodes, 0x1001e, "Ok" );

@@ -4,7 +4,7 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -12,6 +12,7 @@ Usage	:
 History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.1 sl8:		05-02-06	Modified for UKAS
 	  v0.2 sl8:		15-02-06	'Perform Search' option added.
+	  v0.3 sl8:		09-03-06	Firmware enable/disable option added
 
 ************************************************************/
 
@@ -83,6 +84,9 @@ void SaveConfigurationToFile( void )
 	WriteStrToIniBuf( str );
 
 	TAP_SPrint(str, "%d\r\n", schMainPerformSearchTime );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", FirmwareCallsEnabled );
 	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );					// write all the data in one pass
@@ -159,6 +163,8 @@ void SetConfigurationVariables( void )
 	schMainPerformSearchMode = ReadIniDecimal();
 
 	schMainPerformSearchTime = ReadIniDecimal();
+
+	FirmwareCallsEnabled = ReadIniDecimal();
 }
 
 

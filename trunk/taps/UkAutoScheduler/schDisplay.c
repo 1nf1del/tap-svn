@@ -9,6 +9,7 @@ v0.3 sl8:	06-02-06	Recall key no longer allowed to exit display screen
 v0.4 sl8:	06-02-06	Bug fix - Prevent corruption of the searchlist if the right key is pressed when no line highlighted
 v0.5 sl8:	15-02-06	Modified for new 'Perform Search' config option.
 				Bug fix - No longer possible to edit a deleted search.
+v0.6 sl8:	08-03-06	Allow the activation key to exit to TV
 
 **************************************************************/
 // mods/features required
@@ -321,6 +322,7 @@ void schDisplayKeyHandler(dword key)
 		}
 
 		schServiceSV = SCH_SERVICE_RESET_SEARCH;
+		schMoveServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
 
 		exitFlag = TRUE;		// signal exit to top level - will clean up, close window,
 
@@ -545,12 +547,35 @@ void schDisplayKeyHandler(dword key)
 		
 		break;
 	/* ---------------------------------------------------------------------------- */
+	case RKEY_Yellow:
+	case RKEY_Green:
+	case RKEY_Blue:
+	case RKEY_Info:
+
+		/* Reserved keys */
+
+		break;
+	/* ---------------------------------------------------------------------------- */
 	case RKEY_Menu:
 		ActivateMenu();
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	default:
+
+		if (mainActivationKey == key)		// Close on a 2nd press of the activation key.
+		{
+			if(schDisplaySaveToFile == TRUE)
+			{
+				schWriteSearchList();
+			}
+
+			schServiceSV = SCH_SERVICE_RESET_SEARCH;
+			schMoveServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
+
+			exitFlag = TRUE;		// signal exit to top level - will clean up, close window,
+		}
+
 		break;
 	/* ---------------------------------------------------------------------------- */
 	}

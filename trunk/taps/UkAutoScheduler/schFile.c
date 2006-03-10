@@ -7,40 +7,47 @@ v0.1 sl8:	20-01-06	Uses Kidhazy's method of changing directories. Modified for T
 					All variables initialised.
 v0.2 sl8:	06-02-06	Use Project directory define
 v0.3 sl8:	15-02-06	Modified for new UkAutoSearch.txt file
+v0.4 sl8:	09-02-06	Rewirte to accommodate Move file and remote file.
 
 **************************************************************/
 
 void schPrintSearchLine( int, TYPE_File* );
+void schPrintMoveLine( int, int, TYPE_File* );
 void schWriteFile( dword, TYPE_File*, char* );
 void WriteStrToBuf( char*, TYPE_File* );
-
 bool schConvertLcnToSvcNum(word, word*, bool);
+
+void schFileParseString(char*, bool*, int*, char*, int*, int, bool);
+dword schFileParseHex(bool*, int*, char*, int*, int, dword);
+dword schFileParseTime(bool*, int*, char*, int*);
+
+
 static char *dataBuffer_sr = NULL;
 static int dataBufferPtr_sr = 0;
 
-#define SEARCH_FILENAME		"UkAutoSearch.txt"
-#define SEARCH_INFO		"UK Auto Scheduler Search List v0.2\r\n"
-
+#define DELIMIT_TAB		0x09
+#define DELIMIT_NL		0x0A
+#define DELIMIT_CR		0x0D
 
 byte schInitRetreiveData(void)
 {
 	TYPE_File	*searchFile = NULL;
 	struct	schDataTag schTempUserData;
-	bool	schValidSearch = 0;
+	bool	schValidSearch = FALSE;
+	bool	schValidHeader = FALSE;
 	int	bufferIndex = 0;
-	int	elementIndex = 0, searchIndex = 0;
 	dword	fileLength = 0;
-	int	min = 0, hour = 0;
 	int	iTemp = 0;
 	char	*buffer = NULL;
-	word	schLcn = 0;
+	dword	schLcn = 0;
 	byte	schUserDataSearches = 0;
-	char	buffer1[256];
-	char	tempBuffer[10];
 	int	maxBufferSize = 0;
 	byte	version = 0;
 	char	versionStr[128];
-
+	dword	dwTemp = 0;
+	char	buffer1[256];
+	int	schNewLineCount = 0;
+	
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
 	GotoTapDir();
@@ -75,243 +82,49 @@ byte schInitRetreiveData(void)
 	TAP_Hdd_Fread( buffer, fileLength, 1, searchFile );
 
 	TAP_Hdd_Fclose( searchFile );
-//	TAP_Hdd_ChangeDir("..");
 
 	schMainTotalValidSearches = 0;
 
 	bufferIndex = 0;
 
+	schValidHeader = TRUE;
+
 	if(version == 2)
 	{
-		elementIndex = 0;
-		memset(versionStr,0,128);
-		while
-		(
-			(buffer[bufferIndex] != '\r')
-			&&
-			(elementIndex < 128)
-			&&
-			(bufferIndex <= fileLength)
-		)
-		{
-			versionStr[elementIndex++] = buffer[bufferIndex++];
-		}
-
-		bufferIndex += 2;
+		schFileParseString(&versionStr[0], &schValidHeader, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
 	}
-	elementIndex = 0;
-	memset(tempBuffer,0,10);
-	while
-	(	
-		(buffer[bufferIndex] != '\r')
-		&&
-		(bufferIndex <= fileLength)
-		&&
-		(elementIndex < 8)
-	)
-	{
-		tempBuffer[elementIndex++] = buffer[bufferIndex++];
-	}
-	iTemp = axtoi(tempBuffer);
-	if
-	(
-		(iTemp > SCH_MAX_SEARCHES)
-		||
-		(strlen(tempBuffer) != 2)
-	)
+	
+	schUserDataSearches = schFileParseHex(&schValidHeader, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_SEARCHES);
+	if(schValidHeader == FALSE)
 	{
 		schUserDataSearches = 0;
 	}
-	else
-	{
-		schUserDataSearches = iTemp;
-	}
-
-	bufferIndex += 2;
 
 	if(schUserDataSearches > 0)
 	{
-		for(searchIndex = 0; searchIndex < schUserDataSearches; searchIndex++)
+		schValidSearch = TRUE;
+
+		for(searchIndex = 0; ((searchIndex < schUserDataSearches) && (schValidSearch == TRUE)); searchIndex++)
 		{
-			schValidSearch = TRUE;
+			schNewLineCount = 0;
 
 			// ----------------- Search Number -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(	
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			iTemp = axtoi(tempBuffer);
-			if
-			(
-				(iTemp > SCH_MAX_SEARCHES)
-				||
-				(strlen(tempBuffer) != 2)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				// Not used at the moment
-			}
-
-			bufferIndex++;
+			dwTemp = schFileParseHex(&schValidSearch, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_SEARCHES);
 
 			// ----------------- Search Status -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(	
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			iTemp = axtoi(tempBuffer);
-			if
-			(
-				(iTemp > 255)
-				||
-				(strlen(tempBuffer) != 2)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchStatus = iTemp;
-			}
-
-			bufferIndex++;
+			schTempUserData.searchStatus = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 2, 0xFF);
 
 			// ----------------- Search Term -----------------
-
-			elementIndex = 0;
-			memset(schTempUserData.searchTerm,0,132);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(elementIndex < 128)
-				&&
-				(bufferIndex <= fileLength)
-			)
-			{
-				schTempUserData.searchTerm[elementIndex++] = buffer[bufferIndex++];
-			}
-			if
-			(
-				(strlen(schTempUserData.searchTerm) == 0)
-				||
-				(strlen(schTempUserData.searchTerm) > 128)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-
-			bufferIndex++;
+			schFileParseString(&schTempUserData.searchTerm[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
 
 			// ----------------- Search Start Time -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(	
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			hour = ( ((tempBuffer[0] - '0') * 10) + (tempBuffer[1] - '0') );
-			min = ( ((tempBuffer[3] - '0') * 10) + (tempBuffer[4] - '0') );
-			if
-			(
-				(hour > 23)
-				||
-				(min > 59)
-				||
-				(strlen(tempBuffer) != 5)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchStartTime = (hour << 8) + (min);
-			}
-
-			bufferIndex++;
+			schTempUserData.searchStartTime = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
 
 			// ----------------- Search End Time -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			hour = ( ((tempBuffer[0] - '0') * 10) + (tempBuffer[1] - '0') );
-			min = ( ((tempBuffer[3] - '0') * 10) + (tempBuffer[4] - '0') );
-			if
-			(
-				(hour > 23)
-				||
-				(min > 59)
-				||
-				(strlen(tempBuffer) != 5)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchEndTime = (hour << 8) + (min);
-			}
-
-			bufferIndex++;
+			schTempUserData.searchEndTime = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
 
 			// ----------------- Search Start Channel -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			schLcn = axtoi(tempBuffer);
+			schLcn = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
 
 			schTempUserData.searchTvRadio = SCH_TV;
 			if((schLcn & 0x8000) != 0)
@@ -326,38 +139,19 @@ byte schInitRetreiveData(void)
 				(schLcn > 999)
 				||
 				(schConvertLcnToSvcNum(schLcn, &schTempUserData.searchStartSvcNum, schTempUserData.searchTvRadio) == FALSE)
-				||
-				(strlen(tempBuffer) != 4)
 			)
 			{
 				schValidSearch = FALSE;
 			}
 
-			bufferIndex++;
-
 			// ----------------- Search End Channel -----------------
+			schLcn = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
 
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			schLcn = axtoi(tempBuffer);
 			if
 			(
 				(schLcn > 999)
 				||
 				(schConvertLcnToSvcNum(schLcn, &schTempUserData.searchEndSvcNum, schTempUserData.searchTvRadio) == FALSE)
-				||
-				(strlen(tempBuffer) != 4)
 			)
 			{
 				schValidSearch = FALSE;
@@ -367,225 +161,46 @@ byte schInitRetreiveData(void)
 			{
 				schValidSearch = FALSE;
 			}
-			
-			bufferIndex++;
 
 			// ----------------- Search Day -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			iTemp = axtoi(tempBuffer);
-			if
-			(
-				(iTemp > 127)
-				||
-				(strlen(tempBuffer) != 2)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchDay = iTemp;
-			}
-
-			bufferIndex++;
+			schTempUserData.searchDay = schFileParseHex(&schValidSearch, &schNewLineCount, &buffer[0], &bufferIndex, 2, 0x7F);
 
 			// ----------------- Search Start Padding -----------------
+			schTempUserData.searchStartPadding = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
 
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(	
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			hour = ( ((tempBuffer[0] - '0') * 10) + (tempBuffer[1] - '0') );
-			min = ( ((tempBuffer[3] - '0') * 10) + (tempBuffer[4] - '0') );
-			if
-			(
-				(hour > 23)
-				||
-				(min > 59)
-				||
-				(strlen(tempBuffer) != 5)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchStartPadding = (hour << 8) + (min);
-			}
-
-			bufferIndex++;
 
 			// ----------------- Search End Padding -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(	
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			hour = ( ((tempBuffer[0] - '0') * 10) + (tempBuffer[1] - '0') );
-			min = ( ((tempBuffer[3] - '0') * 10) + (tempBuffer[4] - '0') );
-			if
-			(
-				(hour > 23)
-				||
-				(min > 59)
-				||
-				(strlen(tempBuffer) != 5)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchEndPadding = (hour << 8) + (min);
-			}
-
-			bufferIndex++;
+			schTempUserData.searchEndPadding = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
 
 			// ----------------- Search Attach -----------------
-
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(buffer[bufferIndex] != '\t')
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
-			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			iTemp = axtoi(tempBuffer);
-			if
-			(
-				(strlen(tempBuffer) != 4)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchAttach = iTemp;
-			}
-
-			bufferIndex++;
+			schTempUserData.searchAttach = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
 
 			// ----------------- Search Options -----------------
+			schTempUserData.searchOptions = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 2, 0xFF);
 
-			elementIndex = 0;
-			memset(tempBuffer,0,10);
-			while
-			(
-				(
-					(
-						(buffer[bufferIndex] != '\r')	// old 'SearchList.txt' file format
-						&&
-						(version == 1)
-					)
-					||
-					(
-						(buffer[bufferIndex] != '\t')	// new 'UkAutoSearch.txt' format with move
-						&&
-						(version == 2)
-					)
-				)
-				&&
-				(bufferIndex <= fileLength)
-				&&
-				(elementIndex < 8)
-			)
+			// ----------------- Search Folder -----------------
+			memset(schTempUserData.searchFolder,0,132);
+			if(version == 2)
 			{
-				tempBuffer[elementIndex++] = buffer[bufferIndex++];
-			}
-			iTemp = axtoi(tempBuffer);
-			if
-			(
-				(iTemp > 255)
-				||
-				(strlen(tempBuffer) != 2)
-			)
-			{
-				schValidSearch = FALSE;
-			}
-			else
-			{
-				schTempUserData.searchOptions = iTemp;
-			}
-
-			if(version == 1)		// old 'SearchList.txt' file format
-			{
-				memset(schTempUserData.searchFolder,0,132);
-				bufferIndex += 2;
-			}
-			else
-			{				// new 'UkAutoSearch.txt' format with move
-				bufferIndex++;
-
-				// ------------- Search Folder --------------
-
-				elementIndex = 0;
-				memset(schTempUserData.searchFolder,0,132);
-				while
-				(
-					(buffer[bufferIndex] != '\r')
-					&&
-					(elementIndex < 128)
-					&&
-					(bufferIndex <= fileLength)
-				)
-				{
-					schTempUserData.searchFolder[elementIndex++] = buffer[bufferIndex++];
-				}
-				if
-				(
-					(strlen(schTempUserData.searchFolder) > 128)
-				)
-				{
-					schValidSearch = FALSE;
-				}
-
-				bufferIndex += 2;
+				schFileParseString(&schTempUserData.searchFolder[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, TRUE);
 			}
 
 			// ----------------------------------------------
+
+			if(schNewLineCount != 1)
+			{
+				schValidSearch = FALSE;
+			}
 
 			if(schValidSearch == TRUE)
 			{
 				schUserData[schMainTotalValidSearches] = schTempUserData;
 
 				schMainTotalValidSearches++;
+			}
+			else
+			{
+
 			}
 		}
 	}
@@ -596,14 +211,16 @@ byte schInitRetreiveData(void)
 	{
 		schWriteSearchList();
 	}
+//sprintf(buffer1,"Valid searches: %d\r\n", schMainTotalValidSearches );
+//TAP_Print(buffer1);		
 
 	return schMainTotalValidSearches;
 }
 
 
-int axtoi(char *hexString)
+int axtodw(char *hexString)
 {
-	int result = 0;
+	dword result = 0;
 	int i = 0;
 	int j = 0;
 	int length = 0;
@@ -615,9 +232,9 @@ int axtoi(char *hexString)
 	{
 		result = 0x0;
 	}
-	else if (length > 4)
+	else if (length > 8)
 	{
-		result = 0xFFFF;
+		result = 0xFFFFFFFF;
 	}
 	else
 	{
@@ -652,6 +269,11 @@ bool schConvertLcnToSvcNum(word schLcn, word *schSvcNum, bool schRadio)
 {
 	word i = 0;
 	bool found = FALSE;
+
+	if(schLcn == 0)
+	{
+		schLcn = schLcnToServiceTv[0];		/* Pick first valid LCN */
+	}
 
 	if(schRadio == FALSE)
 	{
@@ -812,3 +434,610 @@ void WriteStrToBuf( char *str, TYPE_File *searchFile )					// add str to current
 	}
 	dataBufferPtr_sr += i;
 }
+
+
+byte schInitRetreiveMoveData(void)
+{
+
+	TYPE_File	*moveFile = NULL;
+	struct	schMoveTag	schTempMoveData;
+	bool	schValidMove = FALSE;
+	bool	schValidHeader = FALSE;
+	int	bufferIndex = 0;
+	int	elementIndex = 0, moveIndex = 0;
+	dword	fileLength = 0;
+	int	min = 0, hour = 0;
+//	int	iTemp = 0;
+	dword	dwTemp = 0;
+	char	*buffer = NULL;
+	word	schLcn = 0;
+	byte	schFileMoves = 0;
+	char	versionStr[128];
+	char	buffer1[256];
+	char	tempBuffer[10];
+	int	maxBufferSize = 0;
+	int	schNewLineCount = 0;
+
+	maxBufferSize = (((SCH_MAX_MOVES * ((sizeof( struct schMoveTag )) + 20)) / 512) + 1) * 512;
+
+	GotoTapDir();
+	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+
+	if ( ! TAP_Hdd_Exist( MOVE_FILENAME ) )
+	{
+//TAP_Print("Failed - Doesn't exist\r\n");		
+	
+		return 0;
+	}
+	moveFile = TAP_Hdd_Fopen( MOVE_FILENAME );
+
+	if ( moveFile == NULL )
+	{
+//TAP_Print("Failed - Null\r\n");		
+	
+		return 0;
+	}
+
+	buffer = (char *)TAP_MemAlloc( maxBufferSize );
+
+	fileLength = TAP_Hdd_Flen( moveFile );
+	if ( fileLength > maxBufferSize ) fileLength = maxBufferSize;
+
+	memset( buffer, 0, fileLength );
+
+	TAP_Hdd_Fread( buffer, fileLength, 1, moveFile );
+
+	TAP_Hdd_Fclose( moveFile );
+
+	schMainTotalValidMoves = 0;
+
+	bufferIndex = 0;
+
+	schValidHeader = TRUE;
+
+	schFileParseString(&versionStr[0], &schValidHeader, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+	schFileMoves = schFileParseHex(&schValidHeader, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_MOVES);
+	if(schValidHeader == FALSE)
+	{
+		schFileMoves = 0;
+	}
+
+	if(schFileMoves > 0)
+	{
+		schValidMove = TRUE;
+
+		for(moveIndex = 0; ((moveIndex < schFileMoves) && (schValidMove == TRUE)); moveIndex++)
+	     	{
+			schNewLineCount = 0;
+
+			schTempMoveData.moveEnabled = TRUE;
+			schTempMoveData.moveFailedCount = 0;
+
+			// ----------------- Move Number -----------------
+
+			dwTemp = schFileParseHex(&schValidMove, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_MOVES);
+
+			// ----------------- Move File Name -----------------
+
+			schFileParseString(schTempMoveData.moveFileName, &schValidMove, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+
+			// ----------------- Move Folder -----------------
+
+			schFileParseString(schTempMoveData.moveFolder, &schValidMove, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+
+			// ----------------- Move Start Time -----------------
+
+			schTempMoveData.moveStartTime = schFileParseHex(&schValidMove, &schNewLineCount, buffer, &bufferIndex, 8, 0xFFFFFFFF);
+
+			// ----------------- Move End Time -----------------
+
+			schTempMoveData.moveEndTime = schFileParseHex(&schValidMove, &schNewLineCount, buffer, &bufferIndex, 8, 0xFFFFFFFF);
+
+			// ----------------------------------------------
+
+			if(schNewLineCount != 1)
+			{
+				schValidMove = FALSE;
+			}
+
+			if(schValidMove == TRUE)
+			{
+				schMoveData[schMainTotalValidMoves] = schTempMoveData;
+
+				schMainTotalValidMoves++;
+			}
+		}
+	}
+
+	TAP_MemFree( buffer );
+
+//sprintf(buffer1,"Total Valid Moves: %d\r\n", schMainTotalValidMoves );
+//TAP_Print(buffer1);		
+
+	return schMainTotalValidMoves;
+}
+
+
+void schWriteMoveList( void )
+{
+	TYPE_File *moveFile = NULL;
+	int	i = 0;
+	dword	bufferSize = 0;
+	char	str[256];
+	char	buffer1[256];
+	byte	schNewTotalMoves = 0;
+	struct	schMoveTag	schTempMoveData;
+
+	bufferSize = (((schMainTotalValidMoves * ((sizeof( struct schMoveTag )) + 20)) / 512) + 1) * 512;
+
+	dataBuffer_sr = TAP_MemAlloc( bufferSize );	// Buffer the write data to memory before writing all in one hit
+	memset( dataBuffer_sr, '\0', bufferSize );	// set the whole buffer to the string termination character (null)
+	dataBufferPtr_sr = 0;
+
+	WriteStrToBuf( MOVE_INFO, moveFile );
+
+	schNewTotalMoves = 0;
+	for ( i = 0; i < schMainTotalValidMoves; i++)
+	{
+		if (schMoveData[i].moveEnabled == TRUE)
+		{
+			schNewTotalMoves++;
+		}
+	}
+
+//sprintf(buffer1,"schNewTotalMoves: %x\r\n", schNewTotalMoves );
+//TAP_Print(buffer1);		
+
+	sprintf(str, "%02x\r\n", schNewTotalMoves);		// Total number of moves
+	WriteStrToBuf( str, moveFile );
+
+	schNewTotalMoves = 0;
+	for ( i = 0; i < schMainTotalValidMoves; i++)		// build an ordered list of moves, eariest=0
+	{
+		if (schMoveData[i].moveEnabled == TRUE)
+		{
+			schPrintMoveLine( i, schNewTotalMoves, moveFile );
+
+			schTempMoveData = schMoveData[i];
+			schMoveData[schNewTotalMoves] = schTempMoveData;
+
+			schNewTotalMoves++;
+		}
+	}
+
+	schWriteFile( bufferSize, moveFile, MOVE_FILENAME );	// write all the data in one pass
+
+	TAP_MemFree( dataBuffer_sr );				// must return the memory back to the heap
+
+	schMainTotalValidMoves = schNewTotalMoves;
+}
+
+
+void schPrintMoveLine( int moveIndex, int totalMoves, TYPE_File *moveFile )
+{
+	char str[1024];
+	int 	min = 0, hour = 0;
+
+	sprintf(str,"%02x\t", (totalMoves+1) );				// Move Number
+	WriteStrToBuf( str, moveFile );
+//TAP_Print("Move Number\r\n");
+
+	sprintf(str, "%s\t", schMoveData[moveIndex].moveFileName);		// File Name
+	WriteStrToBuf( str, moveFile );
+
+	sprintf(str, "%s\t", schMoveData[moveIndex].moveFolder);		// Folder
+	WriteStrToBuf( str, moveFile );
+
+	sprintf(str, "%08x\t", schMoveData[moveIndex].moveStartTime);		// Start Time
+	WriteStrToBuf( str, moveFile );
+
+	sprintf(str, "%08x\t", schMoveData[moveIndex].moveEndTime);		// End Time
+	WriteStrToBuf( str, moveFile );
+
+	WriteStrToBuf( "\r\n", moveFile );
+}
+
+
+byte schInitRetreiveRemoteData(void)
+{
+	TYPE_File	*remoteFile = NULL;
+	struct	schDataTag schTempUserData;
+	bool	schValidSearch = FALSE;
+	bool	schValidHeader = FALSE;
+	int	bufferIndex = 0;
+	dword	fileLength = 0;
+	int	iTemp = 0;
+	char	*buffer = NULL;
+	dword	schLcn = 0;
+	byte	schUserRemoteSearches = 0;
+	int	maxBufferSize = 0;
+	char	versionStr[128];
+	dword	dwTemp = 0;
+	char	buffer1[256];
+	int	schNewLineCount = 0;
+	
+	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
+
+	GotoProgramFiles();
+
+	if ( TAP_Hdd_Exist( REMOTE_FILENAME ) == FALSE )
+	{
+		return 0;
+	}
+
+	remoteFile = TAP_Hdd_Fopen( REMOTE_FILENAME );
+
+	if ( remoteFile == NULL ) return 0;
+
+	buffer = (char *)TAP_MemAlloc( maxBufferSize );
+
+	fileLength = TAP_Hdd_Flen( remoteFile );
+	if ( fileLength > maxBufferSize ) fileLength = maxBufferSize;
+
+	memset( buffer, 0, fileLength );
+
+	TAP_Hdd_Fread( buffer, fileLength, 1, remoteFile );
+
+	TAP_Hdd_Fclose( remoteFile );
+
+	schMainTotalValidRemoteSearches = 0;
+
+	bufferIndex = 0;
+
+	schValidHeader = TRUE;
+
+	schFileParseString(&versionStr[0], &schValidHeader, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+	
+	schUserRemoteSearches = schFileParseHex(&schValidHeader, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_SEARCHES);
+	if(schValidHeader == FALSE)
+	{
+		schUserRemoteSearches = 0;
+	}
+
+
+//sprintf(buffer1,"Unchecked Remotes Searches: %x\r\n", schUserRemoteSearches );
+//TAP_Print(buffer1);		
+
+	if(schUserRemoteSearches > 0)
+	{
+		schValidSearch = TRUE;
+
+		for(searchIndex = 0; ((searchIndex < schUserRemoteSearches) && (schValidSearch == TRUE)); searchIndex++)
+		{
+			schNewLineCount = 0;
+
+			// ----------------- Search Number -----------------
+			dwTemp = schFileParseHex(&schValidSearch, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_SEARCHES);
+
+			// ----------------- Search Status -----------------
+			schTempUserData.searchStatus = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 2, 0xFF);
+
+			// ----------------- Search Term -----------------
+			schFileParseString(&schTempUserData.searchTerm[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+
+			// ----------------- Search Start Time -----------------
+			schTempUserData.searchStartTime = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
+
+			// ----------------- Search End Time -----------------
+			schTempUserData.searchEndTime = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
+
+			// ----------------- Search Start Channel -----------------
+			schLcn = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
+
+			schTempUserData.searchTvRadio = SCH_TV;
+			if((schLcn & 0x8000) != 0)
+			{
+				schTempUserData.searchTvRadio = SCH_RADIO;
+
+				schLcn &= 0x7FFF;
+			}
+
+			if
+			(
+				(schLcn > 999)
+				||
+				(schConvertLcnToSvcNum(schLcn, &schTempUserData.searchStartSvcNum, schTempUserData.searchTvRadio) == FALSE)
+			)
+			{
+				schValidSearch = FALSE;
+			}
+
+			// ----------------- Search End Channel -----------------
+			schLcn = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
+
+			if
+			(
+				(schLcn > 999)
+				||
+				(schConvertLcnToSvcNum(schLcn, &schTempUserData.searchEndSvcNum, schTempUserData.searchTvRadio) == FALSE)
+			)
+			{
+				schValidSearch = FALSE;
+			}
+
+			if(schTempUserData.searchEndSvcNum < schTempUserData.searchStartSvcNum)
+			{
+				schValidSearch = FALSE;
+			}
+
+			// ----------------- Search Day -----------------
+			schTempUserData.searchDay = schFileParseHex(&schValidSearch, &schNewLineCount, &buffer[0], &bufferIndex, 2, 0x7F);
+
+			// ----------------- Search Start Padding -----------------
+			schTempUserData.searchStartPadding = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
+
+
+			// ----------------- Search End Padding -----------------
+			schTempUserData.searchEndPadding = schFileParseTime(&schValidSearch, &schNewLineCount, buffer, &bufferIndex);
+
+			// ----------------- Search Attach -----------------
+			schTempUserData.searchAttach = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
+
+			// ----------------- Search Options -----------------
+			schTempUserData.searchOptions = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 2, 0xFF);
+
+			// ----------------- Search Folder -----------------
+			schFileParseString(&schTempUserData.searchFolder[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, TRUE);
+
+			// ----------------------------------------------
+
+			if(schNewLineCount != 1)
+			{
+				schValidSearch = FALSE;
+			}
+
+			if(schValidSearch == TRUE)
+			{
+				schRemoteData[schMainTotalValidRemoteSearches] = schTempUserData;
+
+				schMainTotalValidRemoteSearches++;
+			}
+			else
+			{
+
+			}
+		}
+	}
+
+	TAP_MemFree( buffer );
+
+	return schMainTotalValidRemoteSearches;
+}
+
+
+
+
+
+
+
+void schFileParseString(char* strResult, bool* valid, int* newLineCount, char* buffer, int* bufferIndex, int maxLength, bool zeroAllowed)
+{
+	dword	bufferLength = 0;
+	int	elementIndex = 0;
+	char	strTemp[256];
+	
+	bufferLength = strlen(buffer);
+
+	elementIndex = 0;
+
+	memset(strTemp, 0, 256);
+
+	while
+	(
+		(buffer[*bufferIndex] != DELIMIT_TAB)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_CR)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_NL)
+		&&
+		(buffer[*bufferIndex] != 0)
+		&&
+		(elementIndex < maxLength)
+		&&
+		(*bufferIndex <= bufferLength)
+	)
+	{
+		strTemp[elementIndex++] = buffer[(*bufferIndex)++];
+	}
+
+	if
+	(
+		(
+			(zeroAllowed == FALSE)
+			&&
+			(strlen(strTemp) == 0)
+		)
+		||
+		(strlen(strTemp) > maxLength)
+	)
+	{
+		*valid = FALSE;
+
+		memset(strResult, 0, maxLength);
+	}
+	else
+	{
+		strcpy(strResult,strTemp);
+	}
+
+	if(buffer[*bufferIndex] == DELIMIT_TAB)
+	{
+		(*bufferIndex)++;
+	}
+	else
+	{
+		while
+		(
+			(
+				(buffer[*bufferIndex] == DELIMIT_CR)
+				||
+				(buffer[*bufferIndex] == DELIMIT_NL)
+			)
+			&&
+			(buffer[*bufferIndex] != 0)
+			&&
+			(*bufferIndex <= bufferLength)
+		)
+		{
+			(*bufferIndex)++;
+		}
+
+		(*newLineCount)++;
+	}
+}
+
+dword schFileParseHex(bool* valid, int* newLineCount, char* buffer, int* bufferIndex, int size, dword maxValue)
+{
+	dword	bufferLength = 0;
+	int	elementIndex = 0;
+	char	tempBuffer[10];
+	dword	dwResult = 0;
+	dword	dwTemp = 0;
+
+	bufferLength = strlen(buffer);
+
+	elementIndex = 0;
+	memset(tempBuffer, 0, 10);
+
+	while
+	(
+		(buffer[*bufferIndex] != DELIMIT_TAB)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_CR)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_NL)
+		&&
+		(buffer[*bufferIndex] != 0)
+		&&
+		(elementIndex < size)
+		&&
+		(*bufferIndex <= bufferLength)
+	)
+	{
+		tempBuffer[elementIndex++] = buffer[(*bufferIndex)++];
+	}
+
+	dwTemp = axtodw(tempBuffer);
+
+	if
+	(
+		(dwTemp > maxValue)
+		||
+		(strlen(tempBuffer) != size)
+	)
+	{
+		*valid = FALSE;	
+	}
+	else
+	{
+		dwResult = dwTemp;
+	}
+
+	if(buffer[*bufferIndex] == DELIMIT_TAB)
+	{
+		(*bufferIndex)++;
+	}
+	else
+	{
+		while
+		(
+			(
+				(buffer[*bufferIndex] == DELIMIT_CR)
+				||
+				(buffer[*bufferIndex] == DELIMIT_NL)
+			)
+			&&
+			(buffer[*bufferIndex] != 0)
+			&&
+			(*bufferIndex <= bufferLength)
+		)
+		{
+			(*bufferIndex)++;
+		}
+
+		(*newLineCount)++;
+	}
+
+	return dwResult;
+}
+
+
+dword schFileParseTime(bool* valid, int* newLineCount, char* buffer, int* bufferIndex)
+{
+	dword	bufferLength = 0;
+	int		elementIndex = 0;
+	int		hour = 0, min = 0;
+	char	tempBuffer[10];
+	dword	dwResult = 0;
+	
+	bufferLength = strlen(buffer);
+
+	elementIndex = 0;
+	memset(tempBuffer, 0, 10);
+
+	while
+	(
+		(buffer[*bufferIndex] != DELIMIT_TAB)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_CR)
+		&&
+		(buffer[*bufferIndex] != DELIMIT_NL)
+		&&
+		(buffer[*bufferIndex] != 0)
+		&&
+		(elementIndex < 8)
+		&&
+		(*bufferIndex <= bufferLength)
+	)
+	{
+		tempBuffer[elementIndex++] = buffer[(*bufferIndex)++];
+	}
+
+	hour = ( ((tempBuffer[0] - '0') * 10) + (tempBuffer[1] - '0') );
+	min = ( ((tempBuffer[3] - '0') * 10) + (tempBuffer[4] - '0') );
+
+	if
+	(
+		(hour > 23)
+		||
+		(min > 59)
+		||
+		(strlen(tempBuffer) != 5)
+	)
+	{
+		*valid = FALSE;
+	}
+	else
+	{
+	 	dwResult = (hour << 8) + (min);
+	}	 	
+
+	if(buffer[*bufferIndex] == DELIMIT_TAB)
+	{
+		(*bufferIndex)++;
+	}
+	else
+	{
+		while
+		(
+			(
+				(buffer[*bufferIndex] == DELIMIT_CR)
+				||
+				(buffer[*bufferIndex] == DELIMIT_NL)
+			)
+			&&
+			(buffer[*bufferIndex] != 0)
+			&&
+			(*bufferIndex <= bufferLength)
+		)
+		{
+			(*bufferIndex)++;
+		}
+
+		(*newLineCount)++;
+	}
+	
+	return dwResult;
+}
+
+

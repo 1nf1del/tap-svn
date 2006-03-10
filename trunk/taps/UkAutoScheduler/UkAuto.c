@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.7
+Version	: 0.8
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -33,6 +33,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 	  v0.7 sl8: 16-02-06	Added logging.
 				Modified for 'Perform Search' config option.
 				Bug fix - Clock not updating when UKAS screen/menu showing.
+	  v0.8 sl8: 09-03-06	Destination folder mods
 
 **************************************************************/
 
@@ -44,7 +45,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.24"
+#define VERSION "0.30"
 
 TAP_ID( ID_UKAUTO );
 
@@ -61,6 +62,12 @@ TAP_ETCINFO(__DATE__);
 
 void ShowMessageWin(char*, char*);
 
+#ifndef WIN32
+#include "Firmware.c"
+#include "TAPExtensions.c"
+#include "FirmwareCalls.c"
+#endif
+
 #include "Common.c"
 #include "Tools.c"
 #include "logo.c"
@@ -69,6 +76,7 @@ void ShowMessageWin(char*, char*);
 #include "schDisplay.c"
 #include "schEdit.c"
 #include "schFile.c"
+#include "schMove.c"
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
@@ -273,6 +281,16 @@ dword My_IdleHandler(void)
 	{
 		schService();
 
+		if
+		(
+			(FirmwareCallsEnabled == TRUE)
+			&&
+			(TAP_Hdd_Move_Available == TRUE)
+		)
+		{
+			schMoveService();
+		}
+
 		oldMin = 100;
 	}
 	else
@@ -346,6 +364,14 @@ int TAP_Main(void)
 	initialiseMenu();
 	InitialiseConfigRoutines();
 	logInitialise();
+
+#ifndef WIN32
+	if( FirmwareCallsEnabled == TRUE )
+	{
+		StartTAPExtensions();
+		TAP_Hdd_Move_Available = Is_TAP_Hdd_Move_Available();
+	}
+#endif
 
 	exitFlag = FALSE;
 	terminateFlag = FALSE;

@@ -8,6 +8,7 @@ v0.1 sl8	02-12-05	No longer highlights the 'To' cell on the channel and time lin
 v0.2: sl8	20-01-06	Modified for TAP_SDK. All variables initialised.
 v0.3: sl8	16-02-06	Short cut added. Record key saves search (if valid).
 				SearchFolder element added to the main search structure (not used yet)
+v0.4: sl8	09-03-06	Allow user to choose a destination folder. Removed debug info. Show selected days info
 
 **************************************************************/
 
@@ -101,6 +102,7 @@ enum
 	SCH_EDIT_DAYS,
 	SCH_EDIT_PADDING,
 	SCH_EDIT_ATTACH,
+	SCH_EDIT_FOLDER,
 	SCH_EDIT_SAVE = 10
 };
 
@@ -152,6 +154,8 @@ void DisplayLine(char lineNumber)
 	{
 		TAP_Osd_PutGd( rgn, 54, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowadarkblueGd, FALSE );
 	}
+
+	TAP_Osd_FillBox( rgn, 53, 490, 614, 86, FILL_COLOUR );		// clear the bottom portion
 
 	switch ( lineNumber )
 	{
@@ -422,6 +426,17 @@ void DisplayLine(char lineNumber)
 		TAP_Osd_FillBox( rgn, E1+(5*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
 		TAP_Osd_FillBox( rgn, E1+(6*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
+		sprintf(str, "Selected Days:");
+		if((schEdit.searchDay & 0x01) == 0x01) strcat(str," Monday");
+		if((schEdit.searchDay & 0x02) == 0x02) strcat(str," Tuesday");
+		if((schEdit.searchDay & 0x04) == 0x04) strcat(str," Wednesday");
+		if((schEdit.searchDay & 0x08) == 0x08) strcat(str," Thursday");
+		if((schEdit.searchDay & 0x10) == 0x10) strcat(str," Friday");
+		if((schEdit.searchDay & 0x20) == 0x20) strcat(str," Saturday");
+		if((schEdit.searchDay & 0x40) == 0x40) strcat(str," Sunday");
+
+		TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, TITLE_COLOUR, 0 );
+
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_PADDING:
@@ -603,6 +618,37 @@ void DisplayLine(char lineNumber)
 		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
 		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
 		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_EDIT_FOLDER:
+
+		textColour = COLOR_DarkBlue;
+		if ( chosenEditLine == SCH_EDIT_FOLDER )		// highlight the current cursor line
+		{
+			TAP_Osd_PutGd( rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
+			textColour = COLOR_DarkGreen;
+		}
+
+		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Folder", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		if(FirmwareCallsEnabled == TRUE)
+		{
+			if( TAP_Hdd_Move_Available == TRUE)
+			{
+				TAP_SPrint(str,"/%s/", schEdit.searchFolder);
+
+				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+40, str, MAIN_TEXT_COLOUR, 0 );
+			}
+			else
+			{
+				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+50, "Not Available", textColour, 0 );
+			}
+		}
+		else
+		{
+			TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+58, "Firmware Calls Disabled", textColour, 0 );
+		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -830,8 +876,6 @@ bool SearchEdit (int line, int type)
 		break;
 	/* ---------------------------------------------------------------------------- */
 	}
-
-	PrintTimerExtraInfo();
 }
 
 
@@ -846,12 +890,10 @@ void RedrawSearchEdit( void )
 	{
 	    DisplayLine(i);
 	}
-
-	PrintTimerExtraInfo();
 }
 
 
-void ReturnFromKeyboard( char *str, bool success)
+void ReturnFromKeyboardSearchTerm( char *str, bool success)
 {
 	if ( success == TRUE)
 	{
@@ -859,6 +901,16 @@ void ReturnFromKeyboard( char *str, bool success)
 	}
 
 	DisplayLine( SCH_EDIT_SEARCH );
+}																		// no need to update display as keyboard.c has scheduled a global redisplay
+
+void ReturnFromKeyboardSearchFolder( char *str, bool success)
+{
+	if ( success == TRUE)
+	{
+		strcpy( schEdit.searchFolder, str );
+	}
+
+	DisplayLine( SCH_EDIT_FOLDER );
 }																		// no need to update display as keyboard.c has scheduled a global redisplay
 
 void schReturnFromKeyboard( int selectedLogo, byte selectedSvc, bool success)
@@ -941,7 +993,7 @@ void EditLineKeyHandler(dword key)
 
 		if( key == RKEY_Ok )
 		{
-			ActivateKeyboard( schEdit.searchTerm, SEARCHTERM_LENGTH, &ReturnFromKeyboard );
+			ActivateKeyboard( schEdit.searchTerm, SEARCHTERM_LENGTH, &ReturnFromKeyboardSearchTerm );
 		}
 
 		break;
@@ -1343,6 +1395,22 @@ void EditLineKeyHandler(dword key)
 
 		break;
 	/* ---------------------------------------------------------------------------- */
+	case SCH_EDIT_FOLDER:
+
+		if
+		(
+			( key == RKEY_Ok )
+			&&
+			( FirmwareCallsEnabled == TRUE )
+			&&
+			( TAP_Hdd_Move_Available == TRUE)
+		)
+		{
+			ActivateKeyboard( schEdit.searchFolder, SEARCHFOLDER_LENGTH, &ReturnFromKeyboardSearchFolder );
+		}
+
+		break;
+	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_SAVE:														// Record or program
 
 		switch ( key )
@@ -1549,11 +1617,6 @@ void schEditKeyHandler(dword key)
 		if ( chosenEditLine < TIMER_LINES )
 		{
 			chosenEditLine++;
-			if(chosenEditLine > 8)
-			{
-				chosenEditLine = 10;
-				chosenEditCell = 1;
-			}
 
 			if(chosenEditCell > schEditCellLimit[chosenEditLine])
 			{
@@ -1581,10 +1644,6 @@ void schEditKeyHandler(dword key)
 		if ( chosenEditLine > 1 )				// 0=hidden - can't hide once cursor moved
 		{
 			chosenEditLine--;
-			if(chosenEditLine > 8)
-			{
-				chosenEditLine = 8;
-			}
 
 			if(chosenEditCell > schEditCellLimit[chosenEditLine])
 			{
@@ -1713,9 +1772,6 @@ void schEditKeyHandler(dword key)
 		break;
 	/* ---------------------------------------------------------------------------- */
 	}
-
-	PrintTimerExtraInfo();
-
 }
 
 

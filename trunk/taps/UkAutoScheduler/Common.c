@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.4
+Version	: 0.5
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -15,6 +15,7 @@ v0.1 sl8:		20-11-05	Modified for Auto Scheduler
 v0.2 sl8:		20-01-06	Modified for TAP_SDK. All variables initialised
 v0.3 sl8:		06-02-06	Added UK Project directory define
 v0.4 sl8:		15-02-06	Modified to allow for 'Perform Search' config option
+v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 
 ************************************************************/
 
@@ -119,12 +120,15 @@ void FormatNameString( char *source, int *index, char *dest, int width);		// log
 void SaveConfigurationToFile( void );			// IniFile.c
 
 byte schInitRetreiveData(void);
+byte schInitRetreiveRemoteData(void);
 void schWriteSearchList(void);
+void schWriteMoveList(void);
 
 bool SearchEdit (int, int);
 
 void logInitialise(void);
 void logStoreEvent(char*);
+void logArchive(void);
 
 struct _reent *_impure_ptr; 					// need this declared for reentrant functions in ANSI C library [comment by Sunstealer]
 
@@ -157,8 +161,12 @@ static byte schTimeHour = 0, schTimeMin = 0, schTimeSec = 0;
 static word schTimeMjd = MJD_OFFSET;
 
 static byte schServiceSV = SCH_SERVICE_INITIALISE;
+static byte schMoveServiceSV = SCH_MOVE_SERVICE_INITIALISE;
 
 static byte schStartUpCounter = 0;
+
+static bool FirmwareCallsEnabled = FALSE;
+static bool TAP_Hdd_Move_Available = FALSE;
 
 enum
 {

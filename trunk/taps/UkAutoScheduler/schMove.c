@@ -1,42 +1,84 @@
+/************************************************************
+Part of the ukEPG project
+This module moves a file to a specified directory
+
+v0.0 sl8:	09-03-06	Inception date
+
+**************************************************************/
+
+#define SCH_MAIN_DELAY_MOVE_ALARM	120			// Move not allowed within 2 Minutes of TAP starting
+#define SCH_REC_FILE_NAME_SIZE		95
+
 void schMoveService(void);
+void WIN32_ReplaceTempFileData(TYPE_File* tempFile);
 
-
-static byte schMoveServiceSV = SCH_MOVE_SERVICE_INITIALISE;
-
-
-void schService(void)
+void schMoveService(void)
 {
-word mjd;
-byte hour,min,sec;
-char buffer1[128];
+	char	logBuffer[LOG_BUFFER_SIZE];
+	char	fileStr[200];
+	char	folderStr[200];
+	int	totalFileCount = 0, i = 0;
+	TYPE_PlayInfo	CurrentPlaybackInfo;
+	TYPE_RecInfo	CurrentRecordInfo[2];
+	char	CurrentPlaybackFileName[TS_FILE_NAME_SIZE];
+	char	CurrentRecord0FileName[SCH_REC_FILE_NAME_SIZE];
+	char	CurrentRecord1FileName[SCH_REC_FILE_NAME_SIZE];
+	bool	schFileFound = FALSE;
+	static	TYPE_File	tempFile;
+	static	dword	schMoveCurrentTime = 0;
+	static	byte	schMoveIndex = 0;
+	static	bool	schMoveExpired = FALSE;
+	static	bool	schMoveSuccessful = FALSE;
+	static	bool	moveFailed = FALSE;
+	int	result = 0;
 
 	switch(schMoveServiceSV)
 	{
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_INITIALISE:
 
-		schServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
+		if(schInitRetreiveMoveData() > 0)
+		{
+		}
+		else
+		{
+		}
+
+		schMoveServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
+
+//TAP_Print("MOVE - Initialised\r\n");		
+//sprintf(buffer1,"Numb of moves: %x\r\n", schMainTotalValidMoves );
+//TAP_Print(buffer1);		
 
 		break;
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_WAIT_TO_CHECK:
 
-		TAP_GetTime( &mjd, &hour, &min, &sec);
-
-		if(sec == 40)
+		if
+		(
+			(schTimeSec == 40)
+			&&
+			(schMainTotalValidMoves > 0)
+			&&
+			(schStartUpCounter > SCH_MAIN_DELAY_MOVE_ALARM)
+		)
 		{
 			schMoveIndex = 0;
 
-			schMoveCurrentTime = (mjd * 16) + (hour * 8) + min;
+			schMoveCurrentTime = (schTimeMjd << 16) + (schTimeHour << 8) + schTimeMin;
+
+			schMoveExpired = FALSE;
+
+			moveFailed = FALSE;
 
 			schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_MOVE;
 		}
 
 		break;
 	/*--------------------------------------------------*/
-	case SCH_SERVICE_CHECK_MOVE:
+	case SCH_MOVE_SERVICE_CHECK_MOVE:
 
-		if(schMoveCurrentTime >= schMoveData[schMoveIndex].endTime)
+		if (schMoveCurrentTime >= schMoveData[schMoveIndex].moveEndTime)
 		{
 			schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_ARCHIVE;
 		}
@@ -49,27 +91,141 @@ char buffer1[128];
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_CHECK_ARCHIVE:
 
-int   totalCnt, i;
-TYPE_File tempFile;
-     
-     *files = 0;
-     *subfolders = 0;
-     
-//     TAP_Hdd_ChangeDir(NewDir);  // change to the directory that is to be counted.
+		GotoDataFiles();
+		totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
 
-		totalCnt = TAP_Hdd_FindFirst(&tempFile); 
-    
-		for ( i=1; i <= totalCnt ; i += 1 )
+		schMoveSuccessful = FALSE;
+		schFileFound = FALSE;
+		for ( i=1; ((i <= totalFileCount) && (schFileFound == FALSE)) ; i++ )
 		{
 			if
 			(
-				(IsFileRec(tempFile.name, tempFile.attr))
+				(schMoveData[schMoveIndex].moveStartTime == ((tempFile.mjd << 16) + (tempFile.hour << 8) + tempFile.min))
 				&&
+				(tempFile.attr == ATTR_TS)
+				&&
+				(strcmp(tempFile.name, schMoveData[schMoveIndex].moveFileName) == 0)
+			)
+			{
+				TAP_Hdd_GetPlayInfo (&CurrentPlaybackInfo);
+				TAP_Hdd_GetRecInfo (0, &CurrentRecordInfo[0]);
+				TAP_Hdd_GetRecInfo (1, &CurrentRecordInfo[1]);
 
+				memset(CurrentPlaybackFileName,0,TS_FILE_NAME_SIZE);
+				if(CurrentPlaybackInfo.playMode == PLAYMODE_Playing)
+				{
+					strcpy(CurrentPlaybackFileName,CurrentPlaybackInfo.file->name);
+				}
 
+				memset(CurrentRecord0FileName,0,SCH_REC_FILE_NAME_SIZE);
+				if
+				(
+					(CurrentRecordInfo[0].recType == RECTYPE_Normal)
+					&&
+					(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo[0].startTime)
+				)
+				{
+					strcpy(CurrentRecord0FileName,CurrentRecordInfo[0].fileName);
+				}
 
-			TAP_Hdd_FindNext(&tempFile); 
+				memset(CurrentRecord1FileName,0,SCH_REC_FILE_NAME_SIZE);
+				if
+				(
+					(CurrentRecordInfo[1].recType == RECTYPE_Normal)
+					&&
+					(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo[1].startTime)
+				)
+				{
+					strcpy(CurrentRecord1FileName,CurrentRecordInfo[1].fileName);
+				}
+
+				if
+				(
+					(strcmp(CurrentPlaybackFileName, schMoveData[schMoveIndex].moveFileName) != 0)
+					&&
+					(strcmp(CurrentRecord0FileName, schMoveData[schMoveIndex].moveFileName) != 0)
+					&&
+					(strcmp(CurrentRecord1FileName, schMoveData[schMoveIndex].moveFileName) != 0)
+				)
+				{
+					sprintf( fileStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFileName );
+					sprintf( folderStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
+#ifndef WIN32
+					if(TAP_Hdd_Move( fileStr, folderStr ) == TRUE)
+					{
+						schMoveSuccessful = TRUE;
+
+						schMoveData[schMoveIndex].moveEnabled = FALSE;
+
+						schMoveExpired = TRUE;				// Delete this move when all moves checked
+
+//						memset(logBuffer,0,LOG_BUFFER_SIZE);
+//						sprintf( logBuffer, "Found (Move Successful): %s    %d", schMoveData[schMoveIndex].moveFileName, result );
+//						logStoreEvent(logBuffer);			
+					}
+					else
+					{
+//						memset(logBuffer,0,LOG_BUFFER_SIZE);
+//						sprintf( logBuffer, "Found (Move Failed): %s    %d", schMoveData[schMoveIndex].moveFileName, result );
+//						logStoreEvent(logBuffer);
+					}
+#endif
+
+				}
+				else
+				{
+//					memset(logBuffer,0,LOG_BUFFER_SIZE);
+//					sprintf( logBuffer, "Found (Failed second test): %s   %d,%d,%d,%d", schMoveData[schMoveIndex].moveFileName, (strcmp(CurrentPlaybackFileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(CurrentRecord0FileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(CurrentRecord1FileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(tempFile.name, schMoveData[schMoveIndex].moveFileName) == 0));
+//					logStoreEvent(logBuffer);
+				}
+
+				schFileFound = TRUE;			
+			}
+			else
+			{
+				TAP_Hdd_FindNext(&tempFile);
+			}
+
+#ifdef WIN32
+	WIN32_ReplaceTempFileData(&tempFile);
+#endif
 		}
+
+		if(schMoveSuccessful == TRUE)
+		{
+			schMoveServiceSV = SCH_MOVE_SERVICE_NEXT_MOVE;
+		}
+		else
+		{
+			schMoveServiceSV = SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL:
+
+		schMoveData[schMoveIndex].moveFailedCount++;
+
+		if(schMoveData[schMoveIndex].moveFailedCount >= 3)
+		{
+			schMoveData[schMoveIndex].moveEnabled = FALSE;
+
+			schMoveExpired = TRUE;				// Delete this move when all moves checked
+
+			moveFailed = TRUE;
+
+//			memset(logBuffer,0,LOG_BUFFER_SIZE);
+//			sprintf( logBuffer, "Failed (Move to be deleted): %s    Count: %d", schMoveData[schMoveIndex].moveFileName, schMoveData[schMoveIndex].moveFailedCount  );
+//			logStoreEvent(logBuffer);		
+		}
+		else
+		{
+//			memset(logBuffer,0,LOG_BUFFER_SIZE);
+//			sprintf( logBuffer, "Failed: %s    Count: %d", schMoveData[schMoveIndex].moveFileName, schMoveData[schMoveIndex].moveFailedCount  );
+//			logStoreEvent(logBuffer);		
+		}
+
+		schMoveServiceSV = SCH_MOVE_SERVICE_NEXT_MOVE;
 
 		break;
 	/*--------------------------------------------------*/
@@ -77,9 +233,16 @@ TYPE_File tempFile;
 
 		schMoveIndex++;
 
-		if(schMoveIndex >= schMoveTotal)
+		if(schMoveIndex >= schMainTotalValidMoves)
 		{
-			schMoveServiceSV = SCH_MOVE_SERVICE_COMPLETE;
+			if(schMoveExpired == TRUE)
+			{
+				schMoveServiceSV = SCH_MOVE_SERVICE_DELETE_EXPIRED_MOVES;
+			}
+			else
+			{
+				schMoveServiceSV = SCH_MOVE_SERVICE_COMPLETE;
+			}
 		}
 		else
 		{
@@ -88,11 +251,36 @@ TYPE_File tempFile;
 
 		break;
 	/*--------------------------------------------------*/
-	case SCH_MOVE_SERVICE_COMPLETE:
-	
-		TAP_GetTime( &mjd, &hour, &min, &sec);
+	case SCH_MOVE_SERVICE_DELETE_EXPIRED_MOVES:
 
-		if(sec != 40)
+		schWriteMoveList();
+
+//		memset(logBuffer,0,LOG_BUFFER_SIZE);
+//		sprintf( logBuffer, "Move list updated" );
+//		logStoreEvent(logBuffer);		
+
+		if (moveFailed == FALSE)
+		{
+			schMoveServiceSV = SCH_MOVE_SERVICE_COMPLETE;
+		}
+		else
+		{
+			schMoveServiceSV = SCH_MOVE_LOG_ARCHIVE;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_MOVE_LOG_ARCHIVE:
+
+		logArchive();
+
+		schMoveServiceSV = SCH_MOVE_SERVICE_COMPLETE;
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_MOVE_SERVICE_COMPLETE:
+
+		if(schTimeSec != 40)
 		{
 			schMoveServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
 		}
@@ -107,425 +295,39 @@ TYPE_File tempFile;
 }
 
 
-bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
+void WIN32_ReplaceTempFileData(TYPE_File* tempFile)
 {
-	int eventNameIndex = 0;
-	bool foundSearchTerm = FALSE;
-	word eventMjd,eventYear = 0;
-	byte eventHour,eventMin;
-	byte eventMonth,eventDay,eventWeekDay, eventWeekDayBit = 0;
-	word currentMjd;
-	byte currentHour,currentMin,currentSec;
-	dword eventStartInMins,currentTimeInMins;
-
-	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
-	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
-	eventMin = (epgData[epgDataIndex].startTime & 0xFF);
-	eventStartInMins = (eventHour * 24) + eventMin;
-
-	TAP_ExtractMjd( eventMjd, &eventYear, &eventMonth, &eventDay, &eventWeekDay);
-	eventWeekDayBit = 0x01 << eventWeekDay;
-
-	TAP_GetTime( &currentMjd, &currentHour, &currentMin, &currentSec);
-	currentTimeInMins = (currentHour * 24) + currentMin;
-
-if
-(
-	(epgDataIndex < 10)
-	&&
-	(
-		(schUserData[schSearch].searchStartTime == schUserData[schSearch].searchEndTime)
-		||
-		(
-			(schUserData[schSearch].searchStartTime < schUserData[schSearch].searchEndTime)
-			&&
-			((epgData[epgDataIndex].startTime & 0xFFFF) >= schUserData[schSearch].searchStartTime)
-			&&
-			((epgData[epgDataIndex].startTime & 0xFFFF) <= schUserData[schSearch].searchEndTime)
-		)
-		||
-		(
-			(schUserData[schSearch].searchStartTime > schUserData[schSearch].searchEndTime)
-			&&
-			(
-				((epgData[epgDataIndex].startTime & 0xFFFF) >= schUserData[schSearch].searchStartTime)
-				||
-				((epgData[epgDataIndex].startTime & 0xFFFF) <= schUserData[schSearch].searchEndTime)
-			)
-		)
-	)
-)
-
-{
-//TAP_Print("Searching %s\r\n", epgData[epgDataIndex].eventName);
-}
-
-	if
-	(
-		(
-			(eventMjd > currentMjd)
-			||
-			(
-				(eventStartInMins > currentTimeInMins)
-				&&
-				((eventStartInMins - currentTimeInMins) > 30)
-				&&
-				(eventMjd == currentMjd)
-			)
-		)
-		&&
-		(
-			(schUserData[schSearch].searchStartTime == schUserData[schSearch].searchEndTime)
-			||
-			(
-				(schUserData[schSearch].searchStartTime < schUserData[schSearch].searchEndTime)
-				&&
-				((epgData[epgDataIndex].startTime & 0xFFFF) >= schUserData[schSearch].searchStartTime)
-				&&
-				((epgData[epgDataIndex].startTime & 0xFFFF) <= schUserData[schSearch].searchEndTime)
-			)
-			||
-			(
-				(schUserData[schSearch].searchStartTime > schUserData[schSearch].searchEndTime)
-				&&
-				(
-					((epgData[epgDataIndex].startTime & 0xFFFF) >= schUserData[schSearch].searchStartTime)
-					||
-					((epgData[epgDataIndex].startTime & 0xFFFF) <= schUserData[schSearch].searchEndTime)
-				)
-			)
-		)
-		&&
-		((schUserData[schSearch].searchDay & eventWeekDayBit) == eventWeekDayBit)
-	)
+	if(strcmp(tempFile->name,"Little Britain_S2E1.rec") == 0)
 	{
-if
-(
-	(epgDataIndex < 10)
-)
-
-{
-//TAP_Print("Searching %s\r\n", epgData[epgDataIndex].eventName);
-}
-
-		
-		
-		if
-		(
-			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME) == SCH_USER_DATA_OPTIONS_EVENTNAME)
-			&&
-			(
-				((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) != SCH_USER_DATA_OPTIONS_EXACT_MATCH)
-				||
-				(strlen(epgData[epgDataIndex].eventName) == strlen(schUserData[schSearch].searchTerm))
-			)
-		)
-		{
-			foundSearchTerm = schCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm);
-		}
-
-if(foundSearchTerm == TRUE)
-{
-//TAP_Print("Found %s\r\n", epgData[epgDataIndex].eventName);
-}
-		if
-		(
-			(foundSearchTerm == FALSE)
-			&&
-			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION) == SCH_USER_DATA_OPTIONS_DESCRIPTION)
-		)
-		{
-			foundSearchTerm = schCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm);
-		}
-
-		if
-		(
-			(foundSearchTerm == FALSE)
-			&&
-			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_EXT_INFO) == SCH_USER_DATA_OPTIONS_EXT_INFO)
-		)
-		{
-			if( schEpgDataExtendedInfo )
-			{
-				TAP_MemFree( schEpgDataExtendedInfo );
-				schEpgDataExtendedInfo = 0;
-			}
-			schEpgDataExtendedInfo = TAP_EPG_GetExtInfo(&epgData[epgDataIndex]);
-
-			if(schEpgDataExtendedInfo)
-			{
-				foundSearchTerm = schCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm);
-			}
-		}
+		tempFile->attr = 0xd1;
+		tempFile->mjd = 53775;		// 09/02/06
+		tempFile->hour = 12;
+		tempFile->min = 00;
 	}
 
-	return foundSearchTerm;
-}
-
-
-
-void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word svcNum)
-{
-TYPE_TimerInfo schTimerInfo;
-dword schStartTimeWithPadding = 0;
-word schStartTimeInMins = 0;
-word schEndTimeInMins = 0;
-word mjd,year = 0;
-byte month,day,weekDay, weekDayBit = 0;
-byte hour,min;
-byte attachPosition[2];
-byte attachType[2];
-char dateStr[64];
-char numbStr[64];
-char fileNameStr[132];
-int fileNameLen;
-int timerError;
-int i;
-
-	// ------------- Attachments ----------------
-
-	memset(fileNameStr,0,132);
-
-	attachPosition[0] = (schUserData[searchIndex].searchAttach >> 6) & 0x03;
-	attachType[0] = schUserData[searchIndex].searchAttach & 0x3F;
-	attachPosition[1] = (schUserData[searchIndex].searchAttach >> 14) & 0x03;
-	attachType[1] = (schUserData[searchIndex].searchAttach >> 8) & 0x3F;
-
-	fileNameLen = strlen(epgData[epgDataIndex].eventName);
-
-	mjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
-
-	TAP_ExtractMjd( mjd, &year, &month, &day, &weekDay);
-
-	memset(dateStr,0,64);
-	sprintf(dateStr,"%02d.%02d.%02d", day, month, (year % 10));
-
-	memset(numbStr,0,64);
-	sprintf(numbStr,"S#%d", (searchIndex + 1));
-
-	for(i = 0; i < 2; i++)
+	if(strcmp(tempFile->name,"Little Britain_S2E2.rec") == 0)
 	{
-		if(attachPosition[i] == SCH_ATTACH_POS_PREFIX)
-		{
-			switch(attachType[i])
-			{
-			/* ---------------------------------------------------------------------------- */
-			case SCH_ATTACH_TYPE_NUMBER:
-
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
-				{
-					strcat(fileNameStr,numbStr);
-					strcat(fileNameStr,"_");
-				}
-
-				break;
-			/* ---------------------------------------------------------------------------- */
-			case SCH_ATTACH_TYPE_DATE:
-
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
-				{
-					strcat(fileNameStr,dateStr);
-					strcat(fileNameStr,"_");
-				}
-
-				break;
-			/* ---------------------------------------------------------------------------- */
-			default:
-				break;
-			/* ---------------------------------------------------------------------------- */
-			}
-		}	
+		tempFile->attr = 0xd1;
+		tempFile->mjd = 53775;		// 09/02/06
+		tempFile->hour = 13;
+		tempFile->min = 00;
 	}
 
-	strcat(fileNameStr,epgData[epgDataIndex].eventName);
-
-	for(i = 0; i < 2; i++)
+	if(strcmp(tempFile->name,"Little Britain_S2E3.rec") == 0)
 	{
-		if(attachPosition[i] == SCH_ATTACH_POS_APPEND)
-		{
-			switch(attachType[i])
-			{
-			/* ---------------------------------------------------------------------------- */
-			case SCH_ATTACH_TYPE_NUMBER:
-
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
-				{
-					strcat(fileNameStr,"_");
-					strcat(fileNameStr,numbStr);
-				}
-
-				break;
-			/* ---------------------------------------------------------------------------- */
-			case SCH_ATTACH_TYPE_DATE:
-
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
-				{
-					strcat(fileNameStr,"_");
-					strcat(fileNameStr,dateStr);
-				}
-
-				break;
-			/* ---------------------------------------------------------------------------- */
-			default:
-				break;
-			/* ---------------------------------------------------------------------------- */
-			}
-		}	
+		tempFile->attr = 0xd1;
+		tempFile->mjd = 53775;		// 09/02/06
+		tempFile->hour = 14;
+		tempFile->min = 00;
 	}
 
-	strcat(fileNameStr,".rec");
-
-	// ------------- Add padding to start time ----------------
-
-	hour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
-	min = (epgData[epgDataIndex].startTime & 0xFF);
-
-	if(min >= schUserData[searchIndex].searchStartPadding)
+	if(strcmp(tempFile->name,"Little Britain_S2E4.rec") == 0)
 	{
-		min -= schUserData[searchIndex].searchStartPadding;
-	}
-	else
-	{
-		min = (min + 60) - schUserData[searchIndex].searchStartPadding;
-
-		if(hour > 0)
-		{
-			hour -= 1;
-		}
-		else
-		{
-			hour = 23;
-			mjd--;
-		}
+		tempFile->attr = 0xd1;
+		tempFile->mjd = 53775;		// 09/02/06
+		tempFile->hour = 15;
+		tempFile->min = 00;
 	}
 
-	schStartTimeWithPadding = (mjd << 16) + (hour << 8) + min;
-	schStartTimeInMins = (hour * 60) + min;
 
-	// ------------- Add padding to end time ----------------
-
-	hour = ((epgData[epgDataIndex].endTime >> 8) & 0xFF);
-	min = (epgData[epgDataIndex].endTime & 0xFF);
-
-	if(min < (60 - schUserData[searchIndex].searchEndPadding))
-	{
-		min += schUserData[searchIndex].searchEndPadding;
-	}
-	else
-	{
-		min = (min + schUserData[searchIndex].searchEndPadding) - 60;
-
-		if(hour < 23)
-		{
-			hour++;
-		}
-		else
-		{
-			hour = 0;
-		}
-	}
-
-	schEndTimeInMins = (hour * 60) + min;
-
-	// -------------------------------------------------------
-
-	if(schEndTimeInMins < schStartTimeInMins)
-	{
-		schEndTimeInMins += (24 * 60);
-	}
-
-	if(schUserData[searchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
-	{
-		schTimerInfo.isRec = 1;						// Needs to be R or P
-	}
-	else
-	{
-		schTimerInfo.isRec = 0;
-	}
-	schTimerInfo.tuner = 3;							// Next available tuner
-	schTimerInfo.svcType = schUserData[searchIndex].searchTvRadio;		// 0 TV, 1 Radio
-	schTimerInfo.reserved = 0;	
-	schTimerInfo.svcNum = svcNum;						// Channel number
-	schTimerInfo.reservationType = 0;					// ?
-	schTimerInfo.nameFix = 1;						// ?
-	schTimerInfo.duration = (schEndTimeInMins - schStartTimeInMins);
-	schTimerInfo.startTime = schStartTimeWithPadding;
-	strcpy(schTimerInfo.fileName, fileNameStr);
-
-	timerError = TAP_Timer_Add(&schTimerInfo);
-	if( timerError == 0)
-	{
-//		TAP_Print(fileNameStr);
-//		TAP_Print("\r\n");
-
-//		ShowMessageWin("Timer Set:",schTimerInfo.fileName);
-	}
-	else
-	{
-//		sprintf(buffer1,"Timer Failed - Error: %x\r\n\r\n",timerError);
-//		TAP_Print(buffer1);
-	}
-}
-
-
-
-
-
-bool schCompareStrings(char *eventName, char *searchTerm)
-{
-int eventNameIndex = 0;
-bool foundSearchTerm = FALSE;
-int eventNameLength = 0;
-int searchTermLength = 0;
-
-	eventNameLength = strlen(eventName);
-	searchTermLength = strlen(searchTerm);
-
-	if
-	(
-		(eventNameLength > 0)
-		&&
-		(searchTermLength > 0)
-	)
-	{
-		if(strlen(eventName) >= strlen(searchTerm))
-		{
-			for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
-			{
-//strncasecmp
-//strncmp
-				if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
-				{
-					foundSearchTerm = TRUE;
-				}
-			}
-		}
-	}
-
-	return foundSearchTerm;
-}
-
-
-void schInitLcnToSvcNumMap(void)
-{
-int i = 0;
-TYPE_TapChInfo chInfo;
-
-	TAP_Channel_GetTotalNum( &schTotalTvSvc, &schTotalRadioSvc );
-
-	schLcnToServiceTv = (word*)TAP_MemAlloc(schTotalTvSvc * 2);
-	for (i = 0; i < schTotalTvSvc; i++)
-	{
-		TAP_Channel_GetInfo(SCH_TV,i,&chInfo);
-
-		schLcnToServiceTv[i] = chInfo.logicalChNum; 
-	}
-
-	schLcnToServiceRadio = (word*)TAP_MemAlloc(schTotalRadioSvc * 2);
-	for (i = 0; i < schTotalRadioSvc; i++)
-	{
-		TAP_Channel_GetInfo(SCH_RADIO,i,&chInfo);
-
-		schLcnToServiceRadio[i] = chInfo.logicalChNum; 
-	}
 }
