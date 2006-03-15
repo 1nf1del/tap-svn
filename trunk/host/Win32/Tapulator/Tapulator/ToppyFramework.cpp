@@ -842,17 +842,29 @@ WORD ToppyFramework::Hdd_ChangeDir(char *dir )
 	if (sChange.IsEmpty())
 		return 1;
 
+	word result = 1;
 
 	CString sNewDir = MakePath(sChange);
 	if (_access(sNewDir, 00) != 0)
 	{
-		return 0;
+		result = 0;
+		while (true)
+		{
+			int iTrim = sChange.ReverseFind('/');
+			sChange = sChange.Left(iTrim);
+			if (sChange.IsEmpty())
+				break;
+
+			sNewDir = MakePath(sChange);
+			if (_access(sNewDir, 00) == 0)
+				break;
+		}
 	}
 
-
-	m_sCurrentFolder += "/";
+	if (!sChange.IsEmpty())
+		m_sCurrentFolder += "/";
 	m_sCurrentFolder += sChange;
-	return 1;
+	return result;
 }
 
 
