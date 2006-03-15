@@ -136,6 +136,7 @@ string InternalGetCurrentDirectory (void)
 
 void UpdateCurrentDirectory(const char* dir)
 {
+//	TRACE2("Current dir is %s, changing to %s", sCurrentDirectory.c_str(), dir);
 	string sChange = dir;
 	if (sChange == ".")
 		return ;
@@ -166,6 +167,7 @@ void UpdateCurrentDirectory(const char* dir)
 		sCurrentDirectory += "/";
 	
 	sCurrentDirectory += sChange;
+//	TRACE1("Current dir is %s", sCurrentDirectory.c_str());
 	return ;
 }
 
@@ -185,10 +187,14 @@ void HookChangeDirFunc()
 	if (realTAP_Hdd_ChangeDir)
 		return;
 
+//	Logger::SetDestination(Logger::Screen|Logger::Serial);
+	TRACE("Hooking ChangeDir Function \n");
+
 	// ctor the string as it will be ignored during load
 	new (&sCurrentDirectory) string();
 
 	sCurrentDirectory = InternalGetCurrentDirectory();
+	TRACE1("Current directory initialized to %s\n", sCurrentDirectory.c_str());
 
 	realTAP_Hdd_ChangeDir = TAP_Hdd_ChangeDir;
 	TAP_Hdd_ChangeDir = ourTAP_Hdd_ChangeDir;
@@ -207,16 +213,20 @@ void MoveToRoot()
 
 string GetCurrentDirectory()
 {
-	HookChangeDirFunc();
+HookChangeDirFunc();
 	return sCurrentDirectory;
 }
 
-bool ChangeDirectory(const string& newDirectory)
+bool ChangeDirectoryImpl(const string& newDirectory, bool bTrans)
 {
 	HookChangeDirFunc();
 	if (newDirectory.size() == 0)
 		return true; // nothing to do
 
+	// this function is going to be transactional, even if the underlying TAP API isn't
+	string sStartDirectory = sCurrentDirectory;
+
+//	TRACE2("ChangeDirectory, starting in %s, going to %s", sCurrentDirectory.c_str(), newDirectory.c_str());
 	int iPos = 0;
 
 	if (newDirectory.substr(0,1) == "/")
@@ -229,14 +239,40 @@ bool ChangeDirectory(const string& newDirectory)
 //	TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
 	bool bResult = (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
 	if (!bResult)
-		TRACE(bResult ? "ChangeDirectory Succeeded\n" : "ChangeDirectory Failed\n");
+	{
+		// due to the way TAP_Hdd_ChangeDir works when it fails, we are not
+		// always in the directory we were in before - we need to recalc
+		// the current directory - easier to do this in the failure case
+		// than to add special handling in every changedir to cope with it
+		sCurrentDirectory = InternalGetCurrentDirectory();
+		TRACE2("ChangeDirectory Failed - couldn't get to %s now in %s\n", newDirectory.c_str(), sCurrentDirectory.c_str());
+		if (bTrans)
+		{
+			if (ChangeDirectoryImpl(sStartDirectory, false))
+			{
+				TRACE1("ChangeDirectory has moved back to %s\n", sStartDirectory.c_str());
+			}
+			else
+			{
+				TRACE("ChangeDirectory unable to return to the starting directory - that's odd\n");
+			}
+		}
+	}
 
 	return bResult;
+}
+
+bool ChangeDirectory(const string& newDirectory)
+{
+	return ChangeDirectoryImpl(newDirectory, true);
 }
 
 bool CreateDirectory(const string& directory)
 {
 	HookChangeDirFunc();
+
+//	TRACE1("Started CreateDirectory - param is %s", directory.c_str());
+//	TRACE1("Started CreateDirectory - current dir  is %s", sCurrentDirectory.c_str());
 
 	string dir = directory;
 	if (dir.reverseFind('/') == dir.size()-1)
@@ -245,21 +281,27 @@ bool CreateDirectory(const string& directory)
 	string baseFolder = GetFolderFromPath(dir);
 	string newName = GetFileFromPath(dir);
 
+//	TRACE2("Split input path into %s and %s\n", baseFolder.c_str(), newName.c_str());
+
 	DirectoryRestorer dr(baseFolder);
 	if (!dr.WasSuccesful())
 	{
-//		TRACE("failed to change to base folder");
+		TRACE("failed to change to base folder\n");
 		return false;
 	}
 
 	if (TAP_Hdd_Exist((char*)newName.c_str())) // already there?
 	{
-//		TRACE1("apparently %s already exists", newName.c_str());
+		TRACE1("apparently %s already exists", newName.c_str());
 		DirectoryRestorer dr(newName);
-		return dr.WasSuccesful();
+		bool bResult = dr.WasSuccesful();
+		TRACE1("tried to change to target folder - result was %d", bResult);
+		return bResult;
 	}
 
-	return (TAP_Hdd_Create((char*)newName.c_str(), ATTR_FOLDER) == 0);
+	dword result = TAP_Hdd_Create((char*)newName.c_str(), ATTR_FOLDER);
+	TRACE1("Result from Create was %d\n", result);
+	return (FileExists(newName));
 }
 
 

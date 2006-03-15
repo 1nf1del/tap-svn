@@ -153,8 +153,8 @@ bool ArchivedProgram::Represents(const string& folderName, TYPE_File& file) cons
 	if (m_wClusterNum != file.startCluster)
 		return false;
 
-	if (m_wTotalCluster != file.totalCluster)
-		return false;
+	//if (m_wTotalCluster != file.totalCluster)
+	//	return false;
 
 	return true;
 
