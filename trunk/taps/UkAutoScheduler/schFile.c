@@ -7,7 +7,8 @@ v0.1 sl8:	20-01-06	Uses Kidhazy's method of changing directories. Modified for T
 					All variables initialised.
 v0.2 sl8:	06-02-06	Use Project directory define
 v0.3 sl8:	15-02-06	Modified for new UkAutoSearch.txt file
-v0.4 sl8:	09-02-06	Rewirte to accommodate Move file and remote file.
+v0.4 sl8:	09-03-06	Rewirte to accommodate Move file and remote file.
+v0.5 sl8:	15-03-06	Bug Fix - Not saving the move file correctly
 
 **************************************************************/
 
@@ -631,7 +632,7 @@ void schPrintMoveLine( int moveIndex, int totalMoves, TYPE_File *moveFile )
 	sprintf(str, "%08x\t", schMoveData[moveIndex].moveStartTime);		// Start Time
 	WriteStrToBuf( str, moveFile );
 
-	sprintf(str, "%08x\t", schMoveData[moveIndex].moveEndTime);		// End Time
+	sprintf(str, "%08x", schMoveData[moveIndex].moveEndTime);		// End Time
 	WriteStrToBuf( str, moveFile );
 
 	WriteStrToBuf( "\r\n", moveFile );
