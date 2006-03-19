@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2005-2006 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -28,9 +28,10 @@
 
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 1.0");
+TAP_PROGRAM_NAME("DescriptionExtender 1.1");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
+TAP_ETCINFO(__DATE__);
 
 
 #include <TSRCommander.h>
@@ -40,7 +41,9 @@ TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 // This function cleans up and closes the TAP
 bool TSRCommanderExitTAP()
 {
+#ifdef DEBUG
 	TAP_Print("Exiting DescriptionExtender\n");
+#endif
 	UndoFirmwareHacks();
 	return TRUE;
 }
@@ -69,19 +72,50 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	return param1;
 }
 
+
 //-----------------------------------------------------------------------------
+typedef struct {
+	Model	model;
+    int		firmwareVersion;
+	dword	eventTable;
+	dword	eventTableLength;
+} FirmwareDetail;
+
+
+FirmwareDetail firmware[] = 
+{
+	// Model		FW version,	Event Table,	Max events
+	TF5800t,		0x1225,		0x8032a7c8,		5000,		// 08 Dec 2005
+	TF5800t,		0x1209,		0x80326c4c,		5000,		// 15 Sept 2005 
+	TF5800t,		0x1205,		0x8032e818,		5000,		// 07 Sept 2005
+	TF5800t,		0x1204,		0x8032e698,		5000,		// 01 Sept 2005
+	TF5000_5500,	0x1205,		0x802d6bb4,		5000,		// 13 Sept 2005
+	TF5010_5510,	0x1212,		0x802d84e0,		4000,		// 05 Oct 2005
+	TF5100c,		0x1260,		0x802b5498,		5000,		// 15 Mar 2006
+	TF5100c,		0x1248,		0x802b5120,		5000,		// 20 Feb 2006
+	TF5100c,		0x1205,		0x802ad730,		5000,		// 12 Sept 2005
+	TF5100c,		0x1170,		0x802c27b0,		5000,		// 04 May 2005
+	TF5100,			0x1260,		0x802ae474,		5000,		// 15 Mar 2006
+	TF5100,			0x1248,		0x802ae23c,		5000,		// 20 Feb 2006
+	TF5100,			0x1205,		0x802a5cac,		5000,		// 12 Sept 2005
+	TF5100t_MP,		0x1212,		0x802c7ab4,		5000,		// 04 Oct 2005
+	TF5200c,		0x1205,		0x802ac8e8,		5000,		// 13 Sept 2005
+	PC5101c_5102c,	0x1212,		0x802a8fe4,		5000		// 05 Oct 2005
+};
 
 
 void* FW_MemAlloc(dword size)
 {
 }
-int FW_MemFree(const void *addr)
+void FW_sprintf(void *s, const void *fmt, ...)
 {
 }
 void FW_Print(const void *fmt, ...)
 {
 }
-void* AddressOfEventTable()
+
+
+FirmwareDetail* GetFirmwareDetail()
 {
 	__asm__ __volatile__ (
 		"lui	$02,0x0\n"
@@ -98,12 +132,15 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 
 	if ( event && event->svcId )
 	{
-		type_eventtable* et = (type_eventtable*)AddressOfEventTable();
-		if ( et )
+		FirmwareDetail* parameters = GetFirmwareDetail();
+		if ( parameters )
 		{
+			type_eventtable* et = (type_eventtable*)parameters->eventTable;
+			int eventTableLength = parameters->eventTableLength;
+
 			// Try each entry in the event table. Not very efficient, but the firmware does exactly the same
 			int i;
-			for ( i=0; i<5000; ++i )
+			for ( i=0; i<eventTableLength; ++i )
 			{
 				type_eventtable* e = &et[i];
 
@@ -141,7 +178,7 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 								if ( descriptionLength > 127 )
 								{
 									memcpy( p, description, descriptionLength );
-									p[descriptionLength] = '\0';
+									p[descriptionLength] = ' ';
 									p += descriptionLength + 1;
 								}
 								// Append the existing extended infomation
@@ -164,25 +201,6 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 
 	return result;
 }
-
-typedef struct {
-	Model	model;
-    int		firmwareVersion;
-    dword	eventTable;
-} FirmwareDetail;
-
-FirmwareDetail firmware[] = 
-{
-	TF5800t,		0x1225,	0x8032a7c8,
-	TF5800t,		0x1209,	0x80326c4c,
-	TF5800t,		0x1205,	0x8032e818,
-	TF5800t,		0x1204,	0x8032e698,
-	TF5000_5500,	0x1205,	0x802d6bb4,
-	TF5100c,		0x1205,	0x802ad730, // Firmware 1.45 Sept 05
-	TF5100,			0x1205,	0x802ad730, // Firmware 1.45 Sept 05
-//	TF5100_MP,		0x1212,	0x802c7ab4, // Oct 04
-	TF5200c,		0x1205,	0x802ac8e8
-};
 
 
 int TAP_Main(void)
@@ -207,14 +225,14 @@ int TAP_Main(void)
 		char buffer[300];
 		sprintf( buffer, "Sorry, this TAP is not compatible with your firmware\n"
 			"For an update, please contact the author quoting\n"
-			"%d, %04X and %X for an update", *sysID, _appl_version, TAP_EPG_GetExtInfo-0x80000000 );
+			"%d, %04X, %X and %X for an update", *sysID, _appl_version, TAP_GetCurrentEvent-0x80000000, TAP_EPG_GetExtInfo-0x80000000 );
 		ShowMessage( buffer, 750 );
 		return 0;
 	}
 
 	// We need to know the address of the firmware event table without needing to use $gp
-	((word*)AddressOfEventTable)[1] = ((dword)firmware[index].eventTable >> 16) & 0xffff;
-	((word*)AddressOfEventTable)[3] = (dword)firmware[index].eventTable & 0xffff;
+	((word*)GetFirmwareDetail)[1] = ((dword)(firmware+index) >> 16) & 0xffff;
+	((word*)GetFirmwareDetail)[3] = (dword)(firmware+index) & 0xffff;
 
 	// Replace TAP_EPG_GetExtInfo with a jump to our GetEventDescription function
 	HackFirmware( (dword*)TAP_EPG_GetExtInfo, J(GetEventDescription) );
@@ -223,9 +241,9 @@ int TAP_Main(void)
 	// Set up TAP API wrappers that don't require the use of $gp to be called
 	((dword*)FW_MemAlloc)[0] = J(TAP_MemAlloc);
 	((dword*)FW_MemAlloc)[1] = NOP_CMD;
-	((dword*)FW_MemFree)[0] = J(TAP_MemFree);
-	((dword*)FW_MemFree)[1] = NOP_CMD;
 	// Useful for debugging
+	((dword*)FW_sprintf)[0] = J(TAP_SPrint);
+	((dword*)FW_sprintf)[1] = NOP_CMD;
 	((dword*)FW_Print)[0] = J(TAP_Print);
 	((dword*)FW_Print)[1] = NOP_CMD;
 
