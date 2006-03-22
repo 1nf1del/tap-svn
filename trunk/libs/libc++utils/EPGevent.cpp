@@ -208,6 +208,8 @@ void EPGevent::Parse(const string& sMEIdata)
 			break;
 		case genre:
 			m_sGenre = sSub;
+			if (m_sGenre.empty())
+				m_sGenre = "No Genre";
 			break;
 		case runningTime:
 			m_wRunningTime = (word) atoi(sSub);
