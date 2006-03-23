@@ -11,6 +11,7 @@ v0.3 sl8:	16-02-06	Bug fix - Searches were not performed correctly on current da
 				Removed - 30 minute window where timers would not set.
 				Added - Timers can be set up to within 2 minutes of current time (start padding permitting)
 v0.4 sl8:	09-03-06	Destination folder and remote search file mods
+v0.5 sl8:	22-03-06	Bug fix - Move failed if programme spanned midnight
 
 **************************************************************/
 
@@ -602,7 +603,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	hour = ((epgData[epgDataIndex].endTime >> 8) & 0xFF);
 	min = (epgData[epgDataIndex].endTime & 0xFF);
 
-	if(min < (60 - schUserData[searchIndex].searchEndPadding))
+	if((min + schUserData[searchIndex].searchEndPadding) < 60)
 	{
 		min += schUserData[searchIndex].searchEndPadding;
 	}
@@ -617,6 +618,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 		else
 		{
 			hour = 0;
+			mjd++;
 		}
 	}
 
@@ -625,7 +627,6 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	if(schEndTimeInMins < schStartTimeInMins)
 	{
 		schEndTimeInMins += (24 * 60);
-		mjd++;
 	}
 
 	schEndTimeWithPadding = (mjd << 16) + (hour << 8) + min;
