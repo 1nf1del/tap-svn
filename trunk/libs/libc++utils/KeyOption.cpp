@@ -28,6 +28,7 @@ Option(pContainer, key, defaultValue, name, description, pNotifier)
 	m_choices.push_back("List");
 	m_choices.push_back("White");
 	m_choices.push_back("Recall");
+	m_choices.push_back("Guide");
 }
 
 KeyOption::~KeyOption(void)
@@ -52,6 +53,9 @@ KeyDef KeyOption::GetKeyCodes(const string& sDesc)
 
 	if (sDesc == "Recall")
 		return KeyDef(RKEY_Recall, RAWKEY_Recall);
+
+	if (sDesc == "Guide")
+		return KeyDef(RKEY_Guide, RAWKEY_Guide);
 
 	return KeyDef(0xFFFFFFFF,0xFFFFFFFF);
 }

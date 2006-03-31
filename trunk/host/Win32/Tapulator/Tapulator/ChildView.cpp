@@ -157,6 +157,12 @@ void CChildView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case 'G':
 		RaiseKeyEvent(RKEY_Guide, RAWKEY_Guide);
 		break;
+	case 'E':
+		RaiseKeyEvent(RKEY_Exit, RAWKEY_Exit_AudioTrk);
+		break;
+	case 'L':
+		RaiseKeyEvent(RKEY_TvRadio, RAWKEY_List_TVRad);
+		break;
 	}
 
 	CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
