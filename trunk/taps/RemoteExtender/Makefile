@@ -25,15 +25,16 @@ all: RemoteExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfi
 
 # Copy files to the Toppy using tfcopy
 copy: all
-	tfcopy *.tap '#:\ProgramFiles\'
+	@mips-objdump -D RemoteExtender.elf > RemoteExtender.asm
+	tfcopy RemoteExtender.tap '#:\ProgramFiles\'
+
 
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-RemoteExtender.elf::	RemoteExtender.o RemoteMap.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+RemoteExtender.elf::	RemoteExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 RemoteExtender.o:		RemoteExtender.c RemoteMap.h
-RemoteMap.o:			RemoteMap.c RemoteMap.h
 
 CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 

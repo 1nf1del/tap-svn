@@ -24,17 +24,33 @@
 #include <Firmware.h>
 #include <TAPExtensions.h>
 #include <OpCodes.h>
-#include "RemoteMap.h"
+#include <morekeys.h>
+
+//#define MHEG 1
+//#define TOPPY2 1
+
+#ifdef MHEG
+#define MHEG_TEXT "MHEG "
+#else
+#define MHEG_TEXT ""
+#endif
+
+#ifdef TOPPY2
+#define TOPPY2_TEXT "Toppy2 " 
+#else
+#define TOPPY2_TEXT ""
+#endif
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender 0.4");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "0.7");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
 
 #include <TSRCommander.h>
 
+dword exitCount = 0;
 dword lastKey = 0;
 
 
@@ -49,16 +65,46 @@ dword lastKey = 0;
 void ReceiveKeyHook()
 {
 	__asm__ __volatile__ (
-		"nop\n"
-		"nop\n"
-		"lui	$09,0x0\n"
-		"or		$09,$09,0x0\n"
-		"nop\n"
-		"ori	$08,$00,0xe300\n"
-		"bne	$21,$08,a1\n"
-		"nop\n"
-		"sw		$15,0($09)\n"
-		"a1:\n"
+		"nop\n"								// 00 				
+		"nop\n"								// 04
+		"lui	$09,0x0\n"					// 08 $t1
+		"or		$09,$09,0x0\n"				// 0c $t1
+		"nop\n"	
+		"ori	$08,$00,0xe300\n"			// 0C $t0
+		"bne	$21,$08,end\n");			// 
+
+#ifdef TOPPY2
+	__asm__ __volatile__ (
+		"srl	$10,$15,16\n"
+		"beqz	$10,store\n"				// continue to allow front panel codes through
+		"and	$10,$15,0xff\n"
+		// if $15 < 0x20
+		"slti	$08,$10,0x20\n"
+		"bnez	$08,filter\n"
+		// if $10 >= 0x40
+		"slti	$08,$10,0x40\n"
+		"beqz	$08,test14\n"
+		"addiu	$15,$15,-0x20\n"
+		"b		store\n"
+
+		"test14:\n"
+		"slti	$08,$10,0x53\n"
+		"bnez	$08,filter\n"
+		"li		$08,0x5e\n"
+		"beq	$08,$10,filter\n"
+
+		"addiu	$15,$15,-0x10\n"
+		"b		store\n"
+
+		"filter:\n"
+		"ori	$15,0xffff\n"
+		"store:\n"
+		"sw		$15,0($30)\n");				// *fp=t7
+#endif
+
+	__asm__ __volatile__ (
+		"sw		$15,0($09)\n"				// *t9=t7
+		"end:\n"
 		"nop\n");
 }
 
@@ -104,7 +150,7 @@ bool HookReceiveKeyFunction()
 		return FALSE;
 	}
 
-	if ( (addr[0x21] & 0xffffff00) != 0x3c198000 || (addr[0x22] & 0xffffff00) != 0x3c188000 )
+	if ( (addr[0x20] & 0xffffff00) != 0xafcf0000 || (addr[0x21] & 0xffffff00) != 0x3c198000 )
 	{
 		ShowMessage( "Firmware receive function has an unexpected structure\n", 200 );
 		return FALSE;
@@ -119,16 +165,16 @@ bool HookReceiveKeyFunction()
 	}
 
 	// save the original instructions to be executed prior to the hook code
-	hookFn[0] = addr[0x21];
-	hookFn[1] = addr[0x22];
+	hookFn[0] = addr[0x20];
+	hookFn[1] = addr[0x21];
 
 	// initialize memory address
 	hookFn[2] = LUI_T1_CMD | (((dword)&lastKey >> 16) & 0xffff);
 	hookFn[3] = OR_T1_CMD | ((dword)&lastKey & 0xffff);
 
 	// install the hook
-	HackFirmware( addr+0x21, JAL(ReceiveKeyHook) );
-	HackFirmware( addr+0x22, NOP_CMD );
+	HackFirmware( addr+0x20, JAL(ReceiveKeyHook) );
+	HackFirmware( addr+0x21, NOP_CMD );
 
 	return TRUE;
 }
@@ -190,12 +236,16 @@ bool AdjustDispatchKeyFunction()
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
 #ifdef DEBUG
-	if ( ( event == EVT_KEY || event == EVT_KEY-1 )&& param1 == RKEY_Recall ) 
+	if ( event == EVT_KEY || event == EVT_KEY-1 ) 
 	{
-		UndoFirmwareHacks();
-		TAP_Exit();
-		TAP_Print("Exiting Remote Extender TAP\n");
-		return 0;
+		TAP_Print("RemoteExtender: key=%X lastKey=%X\n", param1, lastKey);
+		if ( param1 == RKEY_Recall )
+		{
+			UndoFirmwareHacks();
+			TAP_Exit();
+			TAP_Print("Exiting Remote Extender TAP\n");
+			return 0;
+		}
 	}
 #endif
 
@@ -204,26 +254,44 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	{
 		int i;
 
+#ifdef TOPPY2
+		// Don't pass on filtered Toppy2 keypresses
+		if ( (lastKey & 0xffff) == 0xffff )
+		{
+			lastKey = 0;
+			return 0;
+		}
+#endif
+
+		// provide an emergency shut down - press front panel OK button 5 times
+		if ( lastKey != RAWKEY_Front_Ok )
+			exitCount = 0;
+		else if ( exitCount < 4 )
+			++exitCount;
+		else
+		{
+			UndoFirmwareHacks();
+			TAP_Exit();
+			ShowMessage("Remote Extender TAP shut down\n"
+				"Front Panel OK button was pressed 5 times.", 200);
+			return 0;
+		}
+
 		// lastkey must NOT be referenced within the for loop due to possible re-entrancy
 		// e.g. another TAP calling TAP_SystemProc from their TAP_EventHandler
-		param2 = lastKey ? 0x100 | (lastKey & 0xff) : 0;
+		param2 = lastKey < 0x10000 ? lastKey : 0x100 | (lastKey & 0xff);
+		// therefore we clear it here
+		lastKey = 0;
 
-		//TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
-
+		// TAP_Print("Sending %04X %08X %02X\n", event, param1, param2 );
 		for ( i = 0 ; i < TAP_MAX; ++i )
 		{
 			if ( i != *currentTAPIndex )	// don't call ourselves
 			{
-				dword tempParam1 = param1;
-				/* Example code to send a specific key translation to a specific TAP
-					In this case Jag's EPG
-				if ( lastKey && tapProcess[i].header && tapProcess[i].header->id == 0x80000102 )
-				{
-					tempParam1 = keys5000[param2 & 0xff];
-				}
-				*/
-				// TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, tempParam1, param2 );
-				tempParam1 = TAP_SendEvent( i, EVT_KEY, tempParam1, param2 );
+				dword tempParam1;
+
+				// TAP_Print("Sending %04X %08X %02X\n", EVT_KEY, param1, param2 );
+				tempParam1 = TAP_SendEvent( i, EVT_KEY, param1, param2 );
 
 				// Zero return value should mean don't pass the value on to other TAPs
 				// The firmware actually does, so make sure param2 is also zero in this case
@@ -233,26 +301,83 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 					param2 = 0;
 				}
 			}
-
-			// Clear the keypress
-			lastKey = 0;
 		}
 
 		// Check keypresses that originate from a programmable remote rather than TAP_GenerateEvent 
 		// for potentially disk formatting Topfield test codes
-		if ( param2 != 0 && param1 >= RKEY_Cmd_0 && param1 <= RKEY_Cmd_f )
+		// RKEY_Cmd_6 jumps to the start of the timeshift buffer
+		if ( param2 != 0 && param1 >= RKEY_Cmd_0 && param1 <= RKEY_Cmd_f && param1 != RKEY_Cmd_6 )
 		{
-			ShowMessage(
-				"Test key detected. It is advisable to avoid\n"
+			char buffer[200];
+			sprintf( buffer, "Test key %X detected. It is advisable to avoid\n"
 				"this keycode as it may cause disk corruption\n"
-				"when RemoteExtender is not running.", 500 );
+				"when RemoteExtender is not running." );
+			ShowMessage( buffer, 500 );
 			// We definately don't want the firmware to receive these keypresses!
 			return 0;
 		}
+
 		return param1;
 	}
 
 	return param1;
+}
+
+
+//see  dtt mheg-5 spec. v1.06, section 3.6
+//if register_group == 0 then no mheg is running
+//if register_group == 3 then mheg is running, has claimed <text><red><green><yellow><blue>
+//if register_group == 5 then mheg is running, has claimed group3 + <arrow keys> + <ok>
+//if register_group == 4 then mheg is running, has claimed group3 + group5 + <number keys>
+int GetMHEGMode()
+{
+	dword v0;
+    int register_group = 0;
+
+	v0 = *(dword*)0x80427bfc;
+    if (v0)
+	{
+        dword v1 = *(dword*)(v0 + 0x8);
+        if (v1)
+		{
+            register_group = *(dword*)(v1 + 0x34);
+		}
+	}
+
+	return register_group;
+}
+
+
+// Call TAP_GetState
+dword GetState( dword *state, dword *subState )
+{
+	__asm__ __volatile__ (
+		"addiu	$8,0\n"
+		"addiu	$8,0\n"
+		"addiu	$8,0\n"
+		"nop\n");
+}
+
+
+dword GetStateHook( dword *state, dword *subState )
+{
+	dword s, ss;
+	// Call TAP_GetState
+	dword result = GetState( &s, &ss );
+	// If nothing else appears to be active, check for full screen MHEG
+	if ( s == STATE_Normal && ss == SUBSTATE_Normal )
+	{
+		if ( GetMHEGMode() >= 4 )
+		{
+			s = STATE_Ttx;
+			ss = SUBSTATE_Ttx;
+		}
+	}
+	if (state)
+		*state = s;
+	if (subState)
+		*subState = ss;
+	return result;
 }
 
 
@@ -273,9 +398,16 @@ int TAP_Main()
 {
 	TAP_Print( "Starting Remote Extender TAP\n" );
 
+#ifdef MHEG
+	if ( _appl_version != 0x1225 || GetModel() != TF5800t )
+	{
+		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 200 );
+	}
+#endif
+
 	if ( !StartTAPExtensions() )
 	{
-		ShowMessage( "Sorry, Remote Extender is not compatible with your firmware", 200 );
+		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 200 );
 		return 0;
 	}
 
@@ -290,6 +422,22 @@ int TAP_Main()
 		UndoFirmwareHacks();
 		return 0;
 	}
+
+	// patch TAP_GetState to return STATE_Ttx and SUBSTATE_Ttx when full screen MHEG is active
+#ifdef MHEG
+	{
+		dword* fn = (dword*)GetState;
+		dword* addr = (dword*)TAP_GetState;
+
+		// save the original instructions to be executed prior to the hook code
+		fn[0] = addr[0];
+		fn[1] = addr[1];
+		fn[2] = J(addr+2);
+		fn[3] = NOP_CMD;
+		HackFirmware( addr, J(GetStateHook) );
+		HackFirmware( addr+1, NOP_CMD );
+	}
+#endif
 
 	return 1;
 }
