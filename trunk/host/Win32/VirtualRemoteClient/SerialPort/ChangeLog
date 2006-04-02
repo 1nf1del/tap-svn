@@ -1,5 +1,0 @@
-* Jan 21, 2005 Yuri:
-	Added GetPortNames method, and its implementation on Win32
-	Moved Serial Port enums and delegates to a separate file
-	Fixed property setting order to ensure consistency between serial port and it's stream
-	Added more enum description attributes
