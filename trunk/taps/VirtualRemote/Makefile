@@ -25,13 +25,22 @@ all: VirtualRemote.tap ../../libs/Firmware/libfirmware.a
 
 # Copy files to the Toppy using tfcopy
 copy: all
-	tfcopy *.tap '#:\ProgramFiles\'
+	tfcopy *.tap '#:\ProgramFiles\Auto Start\'
+#	tfcopy *.tap '#:\ProgramFiles\'
 
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-VirtualRemote.elf::	VirtualRemote.o ../../libs/Firmware/libfirmware.a
+VirtualRemote.elf::	VirtualRemote.o ScreenCapture.o ../../libs/extap/extap.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 VirtualRemote.o:	VirtualRemote.c
+ScreenCapture.o:	ScreenCapture.c
+../../libs/extap/extap.o:	../../libs/extap/extap.c
 
-CFLAGS+=-I../../libs/TSRCommander -I../../libs/Firmware
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../../libs/extap
+
+../../libs/libutils/libutils.a::
+	$(MAKE) -C ../../libs/libutils
+
+../../libs/Firmware/libfirmware.a::
+	$(MAKE) -C ../../libs/Firmware
