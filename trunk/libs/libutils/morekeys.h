@@ -43,6 +43,14 @@
 //  Where there are differences between the 5800 and 5000, 
 //  the 5800 use is first and the 5000 use second in the name
 
+
+#define RAWKEY_Front_ChUp		1
+#define RAWKEY_Front_ChDown 	2
+#define RAWKEY_Front_VolUp		3
+#define RAWKEY_Front_VolDown	4
+#define RAWKEY_Front_Ok 		5
+#define RAWKEY_Front_Menu		6
+
 #define RAWKEY_Up				0x100 
 #define RAWKEY_Down				0x101 
 #define RAWKEY_Right			0x102 
