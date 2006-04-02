@@ -1,7 +1,7 @@
-#region license
+#region License
 
 /*
-Copyright (C) 2005 Simon Capewell
+Copyright (C) 2006 Simon Capewell
 
 This file is part of the TAPs for Topfield PVRs project.
 	http://tap.berlios.de/
@@ -24,29 +24,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endregion
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Data;
+using System.Text;
 using System.Windows.Forms;
-using System.Xml;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using DirectShowLib;
+using System.Runtime.InteropServices;
+using VirtualRemote;
 
 namespace VirtualRemote
 {
-	/// <summary>
-	/// Summary description for VideoControl.
-	/// </summary>
-//	[ToolboxBitmap(typeof(VideoControl))]
-	public class VideoControl : System.Windows.Forms.UserControl
+	public partial class VideoControl : UserControl
 	{
-		/// <summary>
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.Container components = null;
-
 		// a small enum to record the graph state
 		public enum PlayState 
 		{
@@ -70,47 +61,17 @@ namespace VirtualRemote
 
 		public VideoControl()
 		{
-			// This call is required by the Windows.Forms Form Designer.
 			InitializeComponent();
 
 			this.components = new Container();
 
-			if ( System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv" )
+			if (System.Diagnostics.Process.GetCurrentProcess().ProcessName.ToLower() == "devenv" ||
+				System.Diagnostics.Process.GetCurrentProcess().ProcessName.ToLower() == "vcsexpress")
 				return;
 
 			if ( Enabled )
 				CaptureVideo();
 		}
-
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		protected override void Dispose( bool disposing )
-		{
-			if( disposing )
-			{
-				if( components != null )
-					components.Dispose();
-				CloseInterfaces();  
-			}
-			base.Dispose( disposing );
-		}
-
-		#region Component Designer generated code
-		/// <summary>
-		/// Required method for Designer support - do not modify 
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
-			// 
-			// VideoControl
-			// 
-			this.Name = "VideoControl";
-			this.Resize += new System.EventHandler(this.VideoControl_Resize);
-
-		}
-		#endregion
 
 		public void CaptureVideo()
 		{
@@ -169,7 +130,7 @@ namespace VirtualRemote
 			object source = null;
 
 			// Create the system device enumerator
-			ICreateDevEnum devEnum = (ICreateDevEnum) new CreateDevEnum();
+			ICreateDevEnum devEnum = (ICreateDevEnum)new CreateDevEnum();
 
 			// Create an enumerator for the video capture devices
 			hr = devEnum.CreateClassEnumerator(FilterCategory.VideoInputDevice, out classEnum, 0);
@@ -191,7 +152,7 @@ namespace VirtualRemote
 			// Note that if the Next() call succeeds but there are no monikers,
 			// it will return 1 (S_FALSE) (which is not a failure).  Therefore, we
 			// check that the return code is 0 (S_OK).
-			if (classEnum.Next (moniker.Length, moniker, out fetched) == 0)
+			if (classEnum.Next(moniker.Length, moniker, out fetched) == 0)
 			{
 				// Bind Moniker to a filter object
 				Guid iid = typeof(IBaseFilter).GUID;
@@ -199,7 +160,7 @@ namespace VirtualRemote
 			}
 			else
 			{
-				throw new ApplicationException("Unable to access video capture device!");   
+				throw new ApplicationException("Unable to access video capture device!");
 			}
 
 			// Release COM objects
@@ -207,7 +168,7 @@ namespace VirtualRemote
 			Marshal.ReleaseComObject(classEnum);
 
 			// An exception is thrown if cast fail
-			return (IBaseFilter) source;
+			return (IBaseFilter)source;
 		}
 		/*
 			// Uncomment this version of FindCaptureDevice to use the DsDevice helper class
@@ -236,11 +197,11 @@ namespace VirtualRemote
 			int hr = 0;
 
 			// An exception is thrown if cast fail
-			graphBuilder = (IGraphBuilder) new FilterGraph();
-			captureGraphBuilder = (ICaptureGraphBuilder2) new CaptureGraphBuilder2();
-			mediaControl = (IMediaControl) graphBuilder;
-			videoWindow = (IVideoWindow) graphBuilder;
-			mediaEventEx = (IMediaEventEx) graphBuilder;
+			graphBuilder = (IGraphBuilder)new FilterGraph();
+			captureGraphBuilder = (ICaptureGraphBuilder2)new CaptureGraphBuilder2();
+			mediaControl = (IMediaControl)graphBuilder;
+			videoWindow = (IVideoWindow)graphBuilder;
+			mediaEventEx = (IMediaEventEx)graphBuilder;
 
 			hr = mediaEventEx.SetNotifyWindow(Handle, WM_GRAPHNOTIFY, IntPtr.Zero);
 			DsError.ThrowExceptionForHR(hr);
@@ -262,7 +223,7 @@ namespace VirtualRemote
 			// Failing to call put_Owner can lead to assert failures within
 			// the video renderer, as it still assumes that it has a valid
 			// parent window.
-			if(videoWindow != null)
+			if (videoWindow != null)
 			{
 				videoWindow.put_Visible(OABool.False);
 				videoWindow.put_Owner(IntPtr.Zero);
@@ -315,7 +276,7 @@ namespace VirtualRemote
 			// Resize the video preview window to match owner window size
 			if (videoWindow != null)
 			{
-				videoWindow.SetWindowPosition(0,0, ClientSize.Width,ClientSize.Height);
+				videoWindow.SetWindowPosition(0, 0, ClientSize.Width, ClientSize.Height);
 			}
 		}
 
@@ -353,23 +314,23 @@ namespace VirtualRemote
 			if (mediaEventEx == null)
 				return;
 
-			while(mediaEventEx.GetEvent(out evCode, out evParam1, out evParam2, 0) == 0)
+			while (mediaEventEx.GetEvent(out evCode, out evParam1, out evParam2, 0) == 0)
 			{
 				// Free event parameters to prevent memory leaks associated with
 				// event parameter data.  While this application is not interested
 				// in the received events, applications should always process them.
 				hr = mediaEventEx.FreeEventParams(evCode, evParam1, evParam2);
 				DsError.ThrowExceptionForHR(hr);
-        
+
 				// Insert event processing code here, if desired
 			}
 		}
-    
+
 		protected override void WndProc(ref Message m)
 		{
 			switch (m.Msg)
 			{
-				case WM_GRAPHNOTIFY:
+			case WM_GRAPHNOTIFY:
 				{
 					HandleGraphEvent();
 					break;
@@ -377,36 +338,36 @@ namespace VirtualRemote
 			}
 
 			// Pass this message to the video window for notification of system changes
-			if ( videoWindow != null )
+			if (videoWindow != null)
 				videoWindow.NotifyOwnerMessage(m.HWnd, m.Msg, m.WParam.ToInt32(), m.LParam.ToInt32());
 
-			base.WndProc( ref m );
+			base.WndProc(ref m);
 		}
 
 		private void VideoControl_Resize(object sender, System.EventArgs e)
 		{
 			// Stop graph when Form is iconic
-			if ( ParentForm != null )
+			if (ParentForm != null)
 			{
-				if ( ParentForm.WindowState == FormWindowState.Minimized )
+				if (ParentForm.WindowState == FormWindowState.Minimized)
 					ChangePreviewState(false);
 
 				// Restart Graph when window come back to normal state
-				if ( ParentForm.WindowState == FormWindowState.Normal )
+				if (ParentForm.WindowState == FormWindowState.Normal)
 					ChangePreviewState(true);
 			}
-			
+
 			ResizeVideoWindow();
 		}
 
 		public void ShowTunerSettings()
 		{
-			DsHelp.ShowTunerPinDialog( captureGraphBuilder, sourceFilter, Handle );
+			DsHelp.ShowTunerPinDialog(captureGraphBuilder, sourceFilter, Handle);
 		}
 
 		public bool StartVideo()
 		{
-			if ( currentState != PlayState.Running )
+			if (currentState != PlayState.Running)
 				CaptureVideo();
 
 			return true;
@@ -414,8 +375,8 @@ namespace VirtualRemote
 
 		public bool StopVideo()
 		{
-			if ( currentState == PlayState.Running )
-				CloseInterfaces();  
+			if (currentState == PlayState.Running)
+				CloseInterfaces();
 
 			return true;
 		}

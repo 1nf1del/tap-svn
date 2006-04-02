@@ -117,4 +117,56 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="memoryUsageToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAmBJREFUOE+dk01M
+        E1EQx/fk0ZNevXjBg3qrFz2QYDz4dTKQgBygTVRiavw2JiaaaIUgmLRIxBiNSjGY0kixbUgaPmvZVltK
+        7LZgoabfpaUrtLVFqH/nbQ3SGoxxksm+mTfzm5n33nJchfhDixAz37BZsoU1TDh8qIwts6PJZeSyKxt5
+        vNOLmuom6N9ZN3w/aOVZiP8JCsZSEJeWyqqeqO2gwNOoOtxT5meGzuIuh0QiYSnoO2lmrRTP1tqpVaRZ
+        WZJ4DhCZ85eouvUlyNSnAMRsHqu0kaLR2ZefjeKO2oCe3mG8HBhHgXyhLOBPA0mCrJM9ZA/i4q1ucBbb
+        NBK5IpIUFaUjEIvAXFTErkPtVEGB3QfbwZqY/woISWCWIBGC8AsrJYBp3IUvlMUqLIhUhQKZ9I8JBLgG
+        WZ1W6sBDRzSdAGZSBKFCo94UGs7dAzcw4oInVkCAAAJtMs1Qgkb/kQCXIavtxTLZrjhgj9B3EXBTJ3p7
+        mAD3wT0ftML2OQ4vVWZ0Zwxg99E16CKAEgfqXoE1xZP/PQF4AlhD62hp0+H81YfgXpgdEmDMl4abRnDR
+        jEFKaLo9RIAb2LavE5ORPBxEnSCIyZvDE8scduyt/32VfUZegphp0A/Unkko4OSFUTR3JdDwYB43tQEp
+        +a2QhcboxZ4jl6BQtpa/had9w2D62DiD1/YYRsJF2OjQ3HSCBiEHtdkHeasOO/c3ovHs3a2fteKKGsfk
+        bRLE4KdkUrlKj+1VpyCrOfP35M0/x9GWR1D12zGZB6qbNf+eWAlRPnPi+PU3/wdgMDZvvbJzy5l/Am7V
+        YvnqVXhIAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <metadata name="serialPort.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>238, 17</value>
+  </metadata>
+  <metadata name="repeatTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>126, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>43</value>
+  </metadata>
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAIAICAQAAAAAADoAgAAJgAAABAQEAAAAAAAKAEAAA4DAAAoAAAAIAAAAEAAAAABAAQAAAAAAAAC
+        AAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAgAAAgAAAAICAAIAAAACAAIAAgIAAAICAgADAwMAAAAD/AAD/
+        AAAA//8A/wAAAP8A/wD//wAA////AP////////////////////+IiIiIiIiIiIiIiIiIiIiI8A//////
+        8A///////////wdwiIiIiAdwiIiIiIiIiIgPhwf//3B3cP//////////gPhwAAAHdw8AAACIiIiIiP8P
+        h3d3d3Dwd3d3D/////+AAAAAAAAAD4iIhwiIiIiIB3d3d3d3dw////cP///wAA+IiIiIiIhwAAAAiIiI
+        B3APiZqsyId3d3dw//AAAHdwD4marMiPiIiHgAAHd3B4gA+IiIiIj4iIh4B3B3dwiIAPh3iHeI+IiIeA
+        dwiIgIiAD494j3iP///3gIgIiICIgA+IiIiIiIh3iID/CIiAiIAPiIiIiIiAB3iA/w//8IiAD4d4h3iI
+        gHB3cAAP//D4gA+PeI94iIB3AAAP8AAA//APiIiIiIiAh3d3cIiIiA/wD///////8IiIiHD////wAA8A
+        AAAAAAD4iIhwiIiIiIgP9w/////w/wAAD///////iA9wAAAIgPCIiIiIiIiIiP/w+IiIgPAP////////
+        /////wAAAAf//////////////3//93/3d/9/9/939/93f/9//3/39/9/f/f3//f3/3//f/9/9/f/f3/3
+        9/f39/9//3//93/3d/939/9/9/93f/9/////////f/////f//393d3////////f3///3//9/AAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAoAAAAEAAAACAAAAABAAQAAAAAAIAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAgAAAgAAAAICAAIAA
+        AACAAIAAgIAAAMDAwACAgIAAAAD/AAD/AAAA//8A/wAAAP8A/wD//wAA////AAAAAAAAAAAACIiIiIiA
+        AAAPmXqnzHAAAA+ZeqfMcAAAD3d3d3dwAIAPd3d3d3CAcA+IeIeIcHBwD/h/h/hw8HAPd3d3d3AA8A93
+        d3d3cAAADwAHd3dwAAAPCIAA//AAAAAHd3cAAAAAAAd//wAAAAAAD/AAAAAAAAAAAAAAAAAAgB8AAAAP
+        AAAADwAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAAPAAAADwAAgB8AAMB/AADA/wAAx/8AAA==
+</value>
+  </data>
 </root>
