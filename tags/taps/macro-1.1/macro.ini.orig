@@ -1,0 +1,66 @@
+;========================================================
+; macro ini sample
+;========================================================
+;
+; macro section:
+; ==============
+; ExitTAP is the key to exit the TAP/bring up TSRCommander menu
+; Function is the key to initiate a macro. The next key after identifies which macro to execute - see [function keys]
+; Config is the key to bring up the Config menu if you don't have TSRCommander
+; Up
+; Down
+; Confirm
+; Delete
+;
+;  (NB ';' at beginning means this line is a comment and will be ignored)
+;
+;-------------------------------------------------------
+[macro]
+ExitTAP=RKEY_Exit
+Function=RKEY_Recall
+
+; function keys section:
+; ======================
+; these are the function keys macros
+; Normal keys are indicated using the RKEY_ convention (see KEY.H)
+; Menus are indicated by M<index from top>
+; Left part is always a single key which must be pressed to invoke the sequence after the "="
+; Right part is one or more keys/menu offsets separated by a comma
+;
+; key={macro}
+; macro={option[,]...}
+; option=[key|menu]
+; key=RKEY_s
+; menu=Mn
+;
+;-------------------------------------------------------
+[function keys]
+RKEY_9=RKEY_1,D100,RKEY_0
+
+;RKEY_0=RKEY_Menu,M1,RKEY_Ok,M2
+
+; options section:
+; ================
+; FunctionState:  one of AlwaysOn, UseKeyOnce, UseKeyEveryTime - V1 only AlwaysOn is supported
+;   AlwaysOn: no need to press function key to activate macros
+;   UseKeyOnce: press the function key once and macros are enabled from then on
+;   UseKeyEveryTime: function key must be pressed every time a macro is required
+; ExitMenu: N=Don't Show a menu when exit is pressed else do
+; FunctionKeyTime:  Number of seconds allowed between function key pressed and its key. 100=1second
+; LoggingLevel: How much to log to the log file/serial port
+; MenuColPixel1&2: Which pixel column the M% option code will use to find the valid rows (1 primary, 2 backup)
+;
+; FunctionState=AlwaysOn|UseKeyOnce|UseKeyEveryTime
+; ExitMenu=Y|N
+; FunctionKeyTime=nnnn
+; LoggingLevel=LogNone|LogSome|LogMore|LogAll
+;      LogAll goes to Serial port also
+
+;-------------------------------------------------------
+[options]
+FunctionState=UseKeyEveryTime
+ExitMenu=N
+FunctionKeyTime=200
+LoggingLevel=LogAll
+MenuColPixel1=80
+MenuColPixel2=40
