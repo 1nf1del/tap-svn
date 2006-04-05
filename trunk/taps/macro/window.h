@@ -13,4 +13,3 @@ int GetCurrentWindowLine(int w);
 void PutStringToWindow(int w, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor);
 
 #endif
-

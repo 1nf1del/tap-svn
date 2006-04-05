@@ -2,7 +2,8 @@
 #  V1.0  JDA  30 June 2004
 
 # where the tap include files are like libtap.a, tap.h, etc
-TAPDIR=c:\work\tap
+TAPDIR=c:\work\tapReal
+#TAPDIR=c:\work\tap
 # where cygwin is installed
 CYGWINDIR=c:\cygwin
 

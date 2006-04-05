@@ -2,22 +2,14 @@
 #define __MACRO_H
 
 #define PROGRAMNAME "macro"
-#define VERSION "v1.0"
+#define VERSION "v1.11"
 
 //define reasonable start time in minutes
 #define REASONABLE_START_TIME  2
 //time between function key press and the macro key (in 10msecs)
-#define FUNCTIONKEY_TIME  2*100
-//max number of macro definitions
-#define MAXMACROS 100
-//max text length of a key's name
-#define MAXKEYNAME	25
-//max number of keys assignable to a macro
-#define MAXMACROKEYS 50
+//#define FUNCTIONKEY_TIME  2*100
 //name of the keymap file
 #define KEYMAPFILE "macro.ini"
-//allowed delimiters between keynames for a macro
-#define MACRODELIMITERS  ","
 
 //FunctionState:  one of AlwaysOn, UseKeyOnce, UseKeyEveryTime - V1 only AlwaysOn is supported
 //   AlwaysOn: no need to press function key to activate macros
@@ -37,8 +29,34 @@ enum inputPhases {
 	_functionKeyPressed,
 	_executingMacro,
 	_executingMacroMenu,
-	_menuActive
+	_recordingMacro,
+	_recordingMacroEnd,
+	_menuActive,
+	_listActive,
+};
+
+
+//menu options - these should match the menu lines in DisplayMenu
+enum menuOptions {
+	_optCreateMacro = 1,
+	_optListMacros,
+	_optTestMacro,
+	_optFunctionKey,
+	_optFunctionKeyTime,
+	_optFunctionState,
+	_optLoggingLevel,
+	_optRecordDelays,
+	_optSaveOptions,
+	_optExitTAP,
+	_optPassThrough
+};
+
+//logging levels - how much to log
+enum loggingLevels {
+	_logNone,
+	_logSome,
+	_logMore,
+	_logAll
 };
 
 #endif
-

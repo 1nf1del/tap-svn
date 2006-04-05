@@ -8,6 +8,9 @@
 //
 //---------------------------------------------------------------------------------
 
+#ifdef WIN32
+#include "TAP_Emulations.h"
+#endif
 
 #include "tap.h"
 #include "window.h"
@@ -43,7 +46,7 @@ int CreateWindow (const char *title, dword x, dword y, dword w, dword h)
 	win->rgn = TAP_Osd_Create ( 0, 0, 720, 576, 0, FALSE );	//full screen
 
 	TAP_Win_SetDefaultColor ( &win->win );
-	TAP_Win_Create ( &win->win, win->rgn, x, y, w, h, FALSE, FALSE );
+	TAP_Win_Create ( &win->win, win->rgn, x, y, w, h, FALSE, TRUE );
 	TAP_Win_SetTitle ( &win->win, title, 0, FNT_Size_1622 );
 	win->currentLine = 0;
 	win->lineCount = 0;
@@ -84,7 +87,8 @@ int DeleteWindow (int w)
 	TAP_EnterNormal();
 
 	free(win);
-	_windows[w] == NULL;
+	_windows[w] = NULL;
+	--_windowCount;
 	return w;
 
 }
@@ -176,7 +180,7 @@ void MoveToWindowLine(int w, int line)
 }
 
 //----------------------------------------------------------------------------------
-// SetMinWindowLine
+// SetMinWindowLine - sets the min line user can move to
 //----------------------------------------------------------------------------------
 
 void SetMinWindowLine(int w, int line)
@@ -193,7 +197,7 @@ void SetMinWindowLine(int w, int line)
 }
 
 //----------------------------------------------------------------------------------
-// SetMaxWindowLine
+// SetMaxWindowLine - sets the max line user can move to
 //----------------------------------------------------------------------------------
 
 void SetMaxWindowLine(int w, int line)
@@ -231,4 +235,3 @@ void PutStringToWindow(int w, dword x, dword y, dword maxX, const char *str, dwo
 	TAP_Osd_PutStringAf1926( win->rgn, x, y, maxX, str, fcolor, bcolor );
 	//TAP_Osd_PutStringAf( win->rgn, x, y, maxX, str, fcolor, bcolor );
 }
-
