@@ -94,7 +94,5 @@
 #define FKEY_Ok 		0x00005
 #define FKEY_Exit		0x00006
 
-#define KEY_Flag_Click				0x40000000
-#define KEY_Flag_Push				0x20000000
-
 #endif
+
