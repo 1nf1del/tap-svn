@@ -10,104 +10,80 @@ v0.4 sl8:	06-02-06	Bug fix - Prevent corruption of the searchlist if the right k
 v0.5 sl8:	15-02-06	Modified for new 'Perform Search' config option.
 				Bug fix - No longer possible to edit a deleted search.
 v0.6 sl8:	08-03-06	Allow the activation key to exit to TV
+v0.7 sl8:	11-04-06	Show window added and tidy up.
 
 **************************************************************/
-// mods/features required
-//
-// must deal with timers firing in the background - timer list can change at any point!!!
-//
 
-#define MAX_TIMERS 255
-#define MAX_START_TIME 0xffffffff
-#define DEFAULT_DAY 7
-#define NUMBER_OF_LINES 10
-#define SCH_DISP_Y1_OFFSET (36 + 23)
-#define Y1_STEP 42					// was 44
+#define SCH_DISP_NUMBER_OF_LINES	10
+#define SCH_DISP_Y1_OFFSET		(SYS_Y1_OFFSET + 23)
 
-#define START_X		53
-#define DIVIDER_X1	85
-#define DIVIDER_X2	478
-#define DIVIDER_X3	541
-#define DIVIDER_X4	604
-#define END_X		667	//614
+#define SCH_DISP_DIVIDER_X0		53
+#define SCH_DISP_DIVIDER_X1		85
+#define SCH_DISP_DIVIDER_X2		478
+#define SCH_DISP_DIVIDER_X3		541
+#define SCH_DISP_DIVIDER_X4		604
+#define SCH_DISP_DIVIDER_X5		667
 
 #define ALL_OFFSET	23
 #define SET_OFFSET	20
 
-void schDisplayShowLegend(void);
-
-static TYPE_Window Win;
-
-
-static bool schDisplayWindowShowing = 0;
-static bool schDisplaySaveToFile = 0;
-static int order[MAX_TIMERS];
-static char chosenDay = 0;
-static int chosenLine = 0;
-static int page = 0;
-static int maxShown = 0;
-static int timerCount = 0;
-
-
-static byte rowSelection = 0;			// test code
-
-
-//------------
-//
-void DrawGraphicBoarders(void)
+enum
 {
-	TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );		// clear the screen
-	TAP_Osd_PutGd( rgn, 0, 0, &_topGd, TRUE );			// draw top graphics
-	TAP_Osd_PutGd( rgn, 0, 0, &_sideGd, TRUE );			// draw left side graphics
-	TAP_Osd_PutGd( rgn, 672, 0, &_sideGd, TRUE );			// draw right side graphics
-}
+	SCH_DISP_SORT_ORDER_ALL = 0,
+	SCH_DISP_SORT_ORDER_RECORD,
+	SCH_DISP_SORT_ORDER_WATCH,
+	SCH_DISP_SORT_ORDER_DISABLE
+};
 
+
+void schDispDrawLegend(void);
+
+static	bool	schDispWindowShowing = 0;
+static	bool	schDispSaveToFile = 0;
+static	int	schDispChosenLine = 0;
+static	int	schDispPage = 0;
+static	int	schDispMaxShown = 0;
+static	int	schDispSortOrder = 0;
 
 	
 //------------
 //
-void CreateSearchWindow(void)
+void schDispWindowCreate(void)
 {
-	byte	currentWeekDay = 0, currentMonth = 0, currentDay = 0;
-	word	currentYear = 0;
-	char	str[80];
+	schDispWindowShowing = TRUE;
 
-	schDisplayWindowShowing = TRUE;
-	DrawGraphicBoarders();
+	sysDrawGraphicBorders();
 
-	TAP_ExtractMjd( schTimeMjd, &currentYear, &currentMonth, &currentDay, &currentWeekDay) ;
-	
-	chosenDay = currentWeekDay;											// default: show only today's timers
-	chosenLine = 0;														// default: highlight the 1st timer
-	page = 0;
+	schDispChosenLine = 0;														// default: highlight the 1st timer
+	schDispPage = 0;
 }
 
 
-void CloseTimerWindow( void )
+void schDispWindowClose( void )
 {
-	schDisplayWindowShowing = FALSE;
+	schDispWindowShowing = FALSE;
 }
 
 
 
 //------------
 //
-void DrawBackground(void)
+void schDispDrawBackground(void)
 {
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Auto Schedule", TITLE_COLOUR, COLOR_Black );
 
-	PrintCenter(rgn, START_X, 71, DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, DIVIDER_X1, 71, DIVIDER_X2, "Search Term", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, DIVIDER_X2, 71, DIVIDER_X3, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, DIVIDER_X3, 71, DIVIDER_X4, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, DIVIDER_X4, 71, END_X, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, 71, SCH_DISP_DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X1, 71, SCH_DISP_DIVIDER_X2, "Search Term", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X2, 71, SCH_DISP_DIVIDER_X3, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X3, 71, SCH_DISP_DIVIDER_X4, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X4, 71, SCH_DISP_DIVIDER_X5, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
 }
 
 
 
 //------------
 //
-void DisplaySearchText(int line, int dispLine)
+void schDispDrawText(int line, int dispLine)
 {
 	char	str[132];
 	int	textColour = 0;
@@ -118,14 +94,14 @@ void DisplaySearchText(int line, int dispLine)
 	memset(str,0,132);
 	TAP_SPrint(str,"%d", line);
 
-	PrintCenter(rgn, START_X, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, DIVIDER_X1, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X1, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 	memset(str,0,132);
 	TAP_SPrint(str,"\"%s\"", schUserData[line-1].searchTerm);
 
 	if(schUserData[line-1].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
 	{
-		if( chosenLine == line )
+		if( schDispChosenLine == line )
 		{
 			textColour = COLOR_DarkGreen;
 		}
@@ -134,7 +110,7 @@ void DisplaySearchText(int line, int dispLine)
 			textColour = COLOR_DarkBlue;
 		}
 
-		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, textColour, 0 );
+		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, textColour, 0 );
 	}
 	else
 	{
@@ -142,52 +118,52 @@ void DisplaySearchText(int line, int dispLine)
 	// Record/Watch Icon
 		if(schUserData[line-1].searchStatus == SCH_USER_DATA_STATUS_RECORD)
 		{
-			TAP_Osd_PutGd( rgn, 93, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redcircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutGd( rgn, 93, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greencircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
 		}
 
 	// Search term
-		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, MAIN_TEXT_COLOUR, 0 );
 
 	// Channel
 		if((schUserData[line-1].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X2 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X2 + ALL_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X2 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X2 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X2 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X2 + SET_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "Set", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X2 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X2 + SET_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "Set", MAIN_TEXT_COLOUR, 0 );
 		}
 
 	// Days
 		if(schUserData[line-1].searchDay == 0x7F)
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X3 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X3 + ALL_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X3 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X3 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X3 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X3 + SET_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "Set", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X3 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X3 + SET_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "Set", MAIN_TEXT_COLOUR, 0 );
 		}
 
 	// Time
 		if(schUserData[line-1].searchStartTime == schUserData[line-1].searchEndTime)
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X4 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X4 + ALL_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, END_X, "All", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X4 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X4 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X5, "All", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutGd( rgn, DIVIDER_X4 + 7, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, DIVIDER_X4 + SET_OFFSET, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET, END_X, "Set", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X4 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redovalGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X4 + SET_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X5, "Set", MAIN_TEXT_COLOUR, 0 );
 		}
 	}
 }
@@ -196,21 +172,24 @@ void DisplaySearchText(int line, int dispLine)
 
 //------------
 //
-void DisplaySearchLine(int line)
+void schDispDrawLine(int line)
 {
-	int dispLine = 0;
+	int	dispLine = 0;
+//	int	i = 0;
+//	int	foundCount = 0;
+//	bool	found = FALSE;
 
 	if ( line == 0 ) return;											// bounds check
 	
-	dispLine = ((line-1) % NUMBER_OF_LINES) + 1;				// calculate position on page
+	dispLine = ((line-1) % SCH_DISP_NUMBER_OF_LINES) + 1;				// calculate position on page
 
-	if ( chosenLine == line )											// highlight the current cursor line
+	if ( schDispChosenLine == line )											// highlight the current cursor line
 	{
-		TAP_Osd_PutGd( rgn, 53, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_highlightGd, FALSE );
+		TAP_Osd_PutGd( rgn, 53, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_highlightGd, FALSE );
 	}
 	else
 	{
-		TAP_Osd_PutGd( rgn, 53, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_rowaGd, FALSE );
+		TAP_Osd_PutGd( rgn, 53, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_rowaGd, FALSE );
 	}
 
 	if
@@ -220,30 +199,46 @@ void DisplaySearchLine(int line)
 		(line <= schMainTotalValidSearches)
 	)
 	{
-		DisplaySearchText(line, dispLine);						// anything to display ?
+		schDispDrawText(line, dispLine);						// anything to display ?
+
+//		found = FALSE;
+//		foundCount = 0;
+//		for(i = 0; ((i < schMainTotalValidSearches) && (found == FALSE)); i++)
+//		{
+//			if(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+//			{
+//				foundCount++;
+//				if(foundCount == line)
+//				{
+//					schDispDrawText(i+1, line);
+//
+//					found = TRUE;
+//				}
+//			}
+//		}
 	}
 
-	TAP_Osd_FillBox( rgn, DIVIDER_X1, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );	// draw the column seperators
-	TAP_Osd_FillBox( rgn, DIVIDER_X2, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );	// temporary code - will eventually place in graphics
-	TAP_Osd_FillBox( rgn, DIVIDER_X3, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );	// once positions fixed.
-	TAP_Osd_FillBox( rgn, DIVIDER_X4, (dispLine * Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );
+	TAP_Osd_FillBox( rgn, SCH_DISP_DIVIDER_X1, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );	// draw the column seperators
+	TAP_Osd_FillBox( rgn, SCH_DISP_DIVIDER_X2, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );	// temporary code - will eventually place in graphics
+	TAP_Osd_FillBox( rgn, SCH_DISP_DIVIDER_X3, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );	// once positions fixed.
+	TAP_Osd_FillBox( rgn, SCH_DISP_DIVIDER_X4, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );
 }
 
 
 
 //------------
 //
-void DrawSearchList(void)
+void schDispDrawList(void)
 {
 	int i = 0, start = 0, end = 0;
 
-	DrawBackground();
+	schDispDrawBackground();
 
-	start = (page * NUMBER_OF_LINES)+1;
+	start = (schDispPage * SCH_DISP_NUMBER_OF_LINES)+1;
 
-	for ( i=start; i<start+NUMBER_OF_LINES ; i++)
+	for (i = start; i < (start + SCH_DISP_NUMBER_OF_LINES); i++)
 	{
-		DisplaySearchLine(i);
+		schDispDrawLine(i);
 	}
 }
 
@@ -308,15 +303,15 @@ void schDisplayKeyHandler(dword key)
 	int	oldPage = 0, oldChosenLine = 0;
 	struct	schDataTag schDisplay;
 
-	oldPage = page;
-	oldChosenLine = chosenLine;
+	oldPage = schDispPage;
+	oldChosenLine = schDispChosenLine;
 
 	switch ( key )
 	{
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Exit:
 
-		if(schDisplaySaveToFile == TRUE)
+		if(schDispSaveToFile == TRUE)
 		{
 			schWriteSearchList();
 		}
@@ -329,71 +324,73 @@ void schDisplayKeyHandler(dword key)
 		break;													// and enter the normal state
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_VolUp:	// Right
+
 		if
 		(
 			(schMainTotalValidSearches > 1)
 			&&
-			(chosenLine < (schMainTotalValidSearches))
+			(schDispChosenLine < (schMainTotalValidSearches))
 			&&
-			(chosenLine > 0)
+			(schDispChosenLine > 0)
 		)
 		{
-			schDisplay = schUserData[chosenLine];
+			schDisplay = schUserData[schDispChosenLine];
 
-			schUserData[chosenLine] = schUserData[chosenLine - 1];
+			schUserData[schDispChosenLine] = schUserData[schDispChosenLine - 1];
 
-			schUserData[chosenLine - 1] = schDisplay;
+			schUserData[schDispChosenLine - 1] = schDisplay;
 
-			chosenLine++;
+			schDispChosenLine++;
 
-			page = (chosenLine-1) / NUMBER_OF_LINES;
+			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
 
-			if ( page == oldPage )			// only redraw what's nessesary
+			if ( schDispPage == oldPage )			// only redraw what's nessesary
 			{
-				DisplaySearchLine(chosenLine);
-				DisplaySearchLine(chosenLine - 1);
+				schDispDrawLine(schDispChosenLine);
+				schDispDrawLine(schDispChosenLine - 1);
 			}
 			else
 			{
-				DrawSearchList();
+				schDispDrawList();
 			}
 
-			schDisplaySaveToFile = TRUE;
+			schDispSaveToFile = TRUE;
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_VolDown:	// Left
+
 		if
 		(
 			(schMainTotalValidSearches > 1)
 			&&
-			(chosenLine > 1)
+			(schDispChosenLine > 1)
 			&&
-			(chosenLine <= schMainTotalValidSearches)
+			(schDispChosenLine <= schMainTotalValidSearches)
 		)
 		{
-			schDisplay = schUserData[chosenLine - 2];
+			schDisplay = schUserData[schDispChosenLine - 2];
 
-			schUserData[chosenLine - 2] = schUserData[chosenLine - 1];
+			schUserData[schDispChosenLine - 2] = schUserData[schDispChosenLine - 1];
 
-			schUserData[chosenLine - 1] = schDisplay;
+			schUserData[schDispChosenLine - 1] = schDisplay;
 
-			chosenLine--;
+			schDispChosenLine--;
 
-			page = (chosenLine-1) / NUMBER_OF_LINES;
+			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
 
-			if ( page == oldPage )			// only redraw what's nessesary
+			if ( schDispPage == oldPage )			// only redraw what's nessesary
 			{
-				DisplaySearchLine(chosenLine);
-				DisplaySearchLine(chosenLine + 1);
+				schDispDrawLine(schDispChosenLine);
+				schDispDrawLine(schDispChosenLine + 1);
 			}
 			else
 			{
-				DrawSearchList();
+				schDispDrawList();
 			}
 
-			schDisplaySaveToFile = TRUE;
+			schDispSaveToFile = TRUE;
 		}
 
 		break;
@@ -402,29 +399,29 @@ void schDisplayKeyHandler(dword key)
 
 		if ( schMainTotalValidSearches > 0)
 		{
-			if ( chosenLine < schMainTotalValidSearches )
+			if ( schDispChosenLine < schMainTotalValidSearches )
 			{
-				chosenLine++;			// 0=hidden - can't hide once cursor moved
+				schDispChosenLine++;			// 0=hidden - can't hide once cursor moved
 			}
 			else
 			{
-				chosenLine=1;
+				schDispChosenLine=1;
 			}
 
-			page = (chosenLine-1) / NUMBER_OF_LINES;
+			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
 
-			if ( page == oldPage )			// only redraw what's nessesary
+			if ( schDispPage == oldPage )			// only redraw what's nessesary
 			{
 				if ( oldChosenLine > 0 )
 				{
-					DisplaySearchLine(oldChosenLine);
+					schDispDrawLine(oldChosenLine);
 				}
 
-				DisplaySearchLine(chosenLine);
+				schDispDrawLine(schDispChosenLine);
 			}
 			else
 			{
-				DrawSearchList();
+				schDispDrawList();
 			}
 		}
 
@@ -434,55 +431,57 @@ void schDisplayKeyHandler(dword key)
 
 		if ( schMainTotalValidSearches > 0)
 		{
-			if ( chosenLine > 1 )
+			if ( schDispChosenLine > 1 )
 			{
-				chosenLine--;
+				schDispChosenLine--;
 			}
 			else
 			{
-				chosenLine = schMainTotalValidSearches;
+				schDispChosenLine = schMainTotalValidSearches;
 			}
 
-			page = (chosenLine-1) / NUMBER_OF_LINES;
+			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
 
-			if ( page == oldPage )					// only redraw what's nessesary
+			if ( schDispPage == oldPage )					// only redraw what's nessesary
 			{
-				if ( oldChosenLine > 0 ) DisplaySearchLine(oldChosenLine);
-				DisplaySearchLine(chosenLine);
+				if ( oldChosenLine > 0 ) schDispDrawLine(oldChosenLine);
+				schDispDrawLine(schDispChosenLine);
 			}
 			else
 			{
-				DrawSearchList();
+				schDispDrawList();
 			}
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Forward:
-		if ( page == ((maxShown-1) / NUMBER_OF_LINES) )			// page down
+
+		if ( schDispPage == ((schDispMaxShown-1) / SCH_DISP_NUMBER_OF_LINES) )			// page down
 		{
-			chosenLine = maxShown;
+			schDispChosenLine = schDispMaxShown;
 		}
 		else
 		{
-			page = page + 1;
-			chosenLine = (page * NUMBER_OF_LINES) + 1;		// will land only on top of page
-			DrawSearchList();
+			schDispPage = schDispPage + 1;
+			schDispChosenLine = (schDispPage * SCH_DISP_NUMBER_OF_LINES) + 1;		// will land only on top of page
+			schDispDrawList();
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Rewind:
-		if ( page > 0 )							// page up
+
+		if ( schDispPage > 0 )							// page up
 		{
-			page = page - 1;
-			chosenLine = (page * NUMBER_OF_LINES) + 1;		// will land only on bottom of page
-			DrawSearchList();
+			schDispPage = schDispPage - 1;
+			schDispChosenLine = (schDispPage * SCH_DISP_NUMBER_OF_LINES) + 1;		// will land only on bottom of page
+			schDispDrawList();
 		}
 		else
 		{
-			page = 0;
-			chosenLine = 1;
+			schDispPage = 0;
+			schDispChosenLine = 1;
 		}
 
 		break;
@@ -499,57 +498,100 @@ void schDisplayKeyHandler(dword key)
 
 		if ( schMainTotalValidSearches > 0)
 		{
-			chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);		// direct keyboard selection of any line
+			schDispChosenLine = (key - RKEY_0) + (schDispPage * SCH_DISP_NUMBER_OF_LINES);		// direct keyboard selection of any line
 
-			if ( chosenLine > maxShown ) chosenLine = maxShown;
+			if ( schDispChosenLine > schDispMaxShown ) schDispChosenLine = schDispMaxShown;
 
-			DisplaySearchLine( oldChosenLine );
-			DisplaySearchLine( chosenLine );
+			schDispDrawLine( oldChosenLine );
+			schDispDrawLine( schDispChosenLine );
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_0:
+
 		if ( schMainTotalValidSearches > 0)
 		{
-			chosenLine = (10) + (page * NUMBER_OF_LINES);			// make "0" select the 10th (last) line
-			if ( chosenLine > maxShown ) chosenLine = maxShown;
+			schDispChosenLine = (10) + (schDispPage * SCH_DISP_NUMBER_OF_LINES);			// make "0" select the 10th (last) line
+			if ( schDispChosenLine > schDispMaxShown ) schDispChosenLine = schDispMaxShown;
 
-			DisplaySearchLine( oldChosenLine );
-			DisplaySearchLine( chosenLine );
+			schDispDrawLine( oldChosenLine );
+			schDispDrawLine( schDispChosenLine );
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Ok:
+
 		if
 		(
-			( chosenLine > 0 )
+			( schDispChosenLine > 0 )
 			&&
 			( schMainTotalValidSearches > 0)
 			&&
-			( chosenLine <= schMainTotalValidSearches)
+			( schDispChosenLine <= schMainTotalValidSearches)
 		)
 		{
-			SearchEdit(chosenLine,SCH_EXISTING_SEARCH);
+			schEditWindowActivate(schDispChosenLine,SCH_EXISTING_SEARCH);
 		}
 		break;
 	/* ---------------------------------------------------------------------------- */
-#ifndef WIN32
 	case RKEY_Red:
-#else
-	case RKEY_F1:
-#endif
+
 		if(schMainTotalValidSearches < SCH_MAX_SEARCHES)
 		{
-			SearchEdit(0,SCH_NEW_SEARCH);
+			schEditWindowActivate(0,SCH_NEW_SEARCH);
+		}
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_Green:
+
+		if
+		(
+			(schMainTotalValidSearches > 0)
+			&&
+			(schDispChosenLine > 0)
+		)
+		{
+			schShowWindowActivate(schDispChosenLine, schDispChosenLine);
 		}
 		
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Yellow:
-	case RKEY_Green:
+
+		if(schMainTotalValidSearches > 0)
+		{
+			schShowWindowActivate(1, schMainTotalValidSearches);
+		}
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
 	case RKEY_Blue:
+
+		if(schDispSortOrder == SCH_DISP_SORT_ORDER_ALL)
+		{
+			schDispSortOrder = SCH_DISP_SORT_ORDER_RECORD;
+		}
+		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_RECORD)
+		{
+			schDispSortOrder = SCH_DISP_SORT_ORDER_WATCH;
+		}
+		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_WATCH)
+		{
+			schDispSortOrder = SCH_DISP_SORT_ORDER_DISABLE;
+		}
+		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_DISABLE)
+		{
+			schDispSortOrder = SCH_DISP_SORT_ORDER_ALL;
+		}
+		else
+		{
+		}
+
+		break;
+	/* ---------------------------------------------------------------------------- */
 	case RKEY_Info:
 
 		/* Reserved keys */
@@ -557,6 +599,7 @@ void schDisplayKeyHandler(dword key)
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Menu:
+
 		ActivateMenu();
 
 		break;
@@ -565,7 +608,7 @@ void schDisplayKeyHandler(dword key)
 
 		if (mainActivationKey == key)		// Close on a 2nd press of the activation key.
 		{
-			if(schDisplaySaveToFile == TRUE)
+			if(schDispSaveToFile == TRUE)
 			{
 				schWriteSearchList();
 			}
@@ -584,37 +627,49 @@ void schDisplayKeyHandler(dword key)
 
 //---------------------------
 //
-void ActivateDisplayWindow( void )
+void schDispWindowActivate( void )
 {
-	schDisplaySaveToFile = FALSE;
+	schDispSaveToFile = FALSE;
 
-	CreateSearchWindow();
-	DrawSearchList();
-	schDisplayShowLegend();
+	schDispWindowCreate();
+	schDispDrawList();
+	schDispDrawLegend();
 	UpdateListClock();
 }
 
-void initialiseTimerWindow( void )
+void schDispWindowInitialise( void )
 {
-	schDisplayWindowShowing = FALSE;
-	chosenDay = DEFAULT_DAY;
-	chosenLine = 0;
-	page = 0;
-	rowSelection = 0;
+	schDispWindowShowing = FALSE;
+	schDispChosenLine = 0;
+	schDispPage = 0;
 }
 
-void RefreshSearchWindow( void )
+void schDispRefresh( void )
 {
-	DrawGraphicBoarders();
-	DrawSearchList();
-	schDisplayShowLegend();
+	sysDrawGraphicBorders();
+
+	schDispDrawList();
+	schDispDrawLegend();
 	UpdateListClock();
 }
 
-void schDisplayShowLegend( void )
-{
-	TAP_Osd_FillBox( rgn, 53, 514, 614, 62, FILL_COLOUR );		// clear the bottom portion
+#define LEG_START	52
+#define LEG_TEXT_OFFSET	44
+#define LEG_SPACING	156
 
-	TAP_Osd_PutGd( rgn, 62, 523, &_redoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, 106, 523, 666, "New Schedule", TITLE_COLOUR, 0 );
+void schDispDrawLegend( void )
+{
+	TAP_Osd_FillBox( rgn, 53, 514, 614, 62, INFO_FILL_COLOUR );		// clear the bottom portion
+
+	TAP_Osd_PutGd( rgn, LEG_START + (0 * LEG_SPACING), 523, &_redoval38x19Gd, TRUE );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (0 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "New Schedule", INFO_COLOUR, 0 );
+
+	TAP_Osd_PutGd( rgn, LEG_START + (1 * LEG_SPACING), 523, &_greenoval38x19Gd, TRUE );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (1 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Search", INFO_COLOUR, 0 );
+
+	TAP_Osd_PutGd( rgn, LEG_START + (2 * LEG_SPACING), 523, &_yellowoval38x19Gd, TRUE );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Search All", INFO_COLOUR, 0 );
+
+	TAP_Osd_PutGd( rgn, LEG_START + (3 * LEG_SPACING), 523, &_blueoval38x19Gd, TRUE );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Spare", INFO_COLOUR, 0 );
 }

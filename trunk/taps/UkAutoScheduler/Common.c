@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.5
+Version	: 0.6
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -16,6 +16,7 @@ v0.2 sl8:		20-01-06	Modified for TAP_SDK. All variables initialised
 v0.3 sl8:		06-02-06	Added UK Project directory define
 v0.4 sl8:		15-02-06	Modified to allow for 'Perform Search' config option
 v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
+v0.6 sl8		11-04-06	Show window added and tidy up.
 
 ************************************************************/
 
@@ -60,6 +61,7 @@ v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 	#include "graphics/Menu_Title.gd"
 	#include "graphics/PopUp466x406.gd"
 	#include "graphics/PopUp476x416.gd"
+	#include "graphics/PopUp360x130.gd"
 	#include "graphics/PopUp360x180.gd"
 	#include "graphics/redoval.gd"
 	#include "graphics/greenoval.gd"
@@ -67,11 +69,16 @@ v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 	#include "graphics/BigKeyBlue.gd"
 	#include "graphics/InfoOval38x19.gd"
 	#include "graphics/redoval38x19.gd"
+	#include "graphics/greenoval38x19.gd"
+	#include "graphics/yellowoval38x19.gd"
+	#include "graphics/blueoval38x19.gd"
 	#include "graphics/InfoOval44x22.gd"
 	#include "graphics/DateHighlight.gd"
 	#include "graphics/DateOverStamp.gd"
 #else
 	#include "graphics/win32/graphics.inc"
+	TYPE_TapEvent* TAP_GetEvent_SDK( byte, word, int* );
+	void TAP_Channel_GetTotalNum_SDK( int*, int* );
 #endif
 
 
@@ -79,14 +86,17 @@ v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 
 
 //#define FILL_COLOUR RGB(0,0,102)
-#define FILL_COLOUR COLOR_Black
-#define MAIN_TEXT_COLOUR RGB(29,29,29)
-#define HEADING_TEXT_COLOUR RGB8888(0,152,192)
-#define TITLE_COLOUR RGB(18,18,18)
-#define INFO_COLOUR RGB(18,18,18)
-#define TIME_COLOUR RGB(4,4,4)
-#define CALENDAR_BACKGROUND_COLOUR COLOR_User9
-#define CALENDAR_DAY_TEXT MAIN_TEXT_COLOUR
+#define FILL_COLOUR			COLOR_Black
+#define MAIN_TEXT_COLOUR		RGB(29,29,29)
+#define HEADING_TEXT_COLOUR		RGB8888(0,152,192)
+#define TITLE_COLOUR			RGB(18,18,18)
+#define TIME_COLOUR			RGB(4,4,4)
+#define CALENDAR_BACKGROUND_COLOUR	COLOR_User9
+#define CALENDAR_DAY_TEXT		MAIN_TEXT_COLOUR
+#define INFO_FILL_COLOUR		COLOR_User3
+#define POPUP_FILL_COLOUR		RGB8888(37,36,154)
+#define INFO_COLOUR			COLOR_White
+
 //#define COLOR_White RGB(31,31,31)
 //#define COLOR_OffWhite RGB(29,29,29)
 //#define COLOR_LightGray RGB(24,24,24)
@@ -96,18 +106,21 @@ v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 
 #define	MJD_OFFSET	51544		// 01/01/2000
 
+#define SYS_Y1_STEP	42
+#define SYS_Y1_OFFSET	36
+
 
 //*****************
 // Prototypes
 //*****************
 //
-void GenerateExitRequest( void );				// UkTimers.c
-void DrawGraphicBoarders(void);
+//void GenerateExitRequest( void );			// UkTimers.c
+void sysDrawGraphicBorders(void);
 
-void MakeNewTimer( byte chosenWeekDay );		// TimerEdit.c
-int ActivateTimerSaveRestore( void );			// TimerSaveRestore.c
-void ReadTimerFile( void );
-void GenerateTimerFile( void );
+//void MakeNewTimer( byte chosenWeekDay );		// TimerEdit.c
+//int ActivateTimerSaveRestore( void );			// TimerSaveRestore.c
+//void ReadTimerFile( void );
+//void GenerateTimerFile( void );
 
 void ActivateMenu(void);						// MainMenu.c
 void RedrawMainMenu( void );
@@ -119,12 +132,13 @@ void FormatNameString( char *source, int *index, char *dest, int width);		// log
 
 void SaveConfigurationToFile( void );			// IniFile.c
 
-byte schInitRetreiveData(void);
-byte schInitRetreiveRemoteData(void);
+byte schFileRetreiveSearchData(void);
+byte schFileRetreiveRemoteData(void);
 void schWriteSearchList(void);
 void schWriteMoveList(void);
 
-bool SearchEdit (int, int);
+bool schEditWindowActivate(int, int);
+void schShowWindowActivate(int, int);
 
 void logInitialise(void);
 void logStoreEvent(char*);
@@ -155,6 +169,9 @@ static bool menuShowing = 0;
 static bool configWindowShowing = 0;
 static bool keyboardWindowShowing = 0;
 
+static bool schShowWindowShowing = 0;
+
+
 static bool returnFromEdit = 0;
 
 static byte schTimeHour = 0, schTimeMin = 0, schTimeSec = 0;
@@ -173,3 +190,15 @@ enum
 	SCH_EXISTING_SEARCH = 0,
 	SCH_NEW_SEARCH
 };
+
+
+//------------
+//
+void sysDrawGraphicBorders(void)
+{
+	TAP_Osd_FillBox( rgn, 0, 0, 720, 576, FILL_COLOUR );		// clear the screen
+	TAP_Osd_PutGd( rgn, 0, 0, &_topGd, TRUE );			// draw top graphics
+	TAP_Osd_PutGd( rgn, 0, 0, &_sideGd, TRUE );			// draw left side graphics
+	TAP_Osd_PutGd( rgn, 672, 0, &_sideGd, TRUE );			// draw right side graphics
+}
+

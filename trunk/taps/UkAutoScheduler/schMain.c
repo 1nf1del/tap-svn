@@ -12,10 +12,16 @@ v0.3 sl8:	16-02-06	Bug fix - Searches were not performed correctly on current da
 				Added - Timers can be set up to within 2 minutes of current time (start padding permitting)
 v0.4 sl8:	09-03-06	Destination folder and remote search file mods
 v0.5 sl8:	22-03-06	Bug fix - Move failed if programme spanned midnight
+v0.6 sl8:	11-04-06	Show window added and tidy up.
 
 **************************************************************/
 
+#if DEBUG == 0
 #define SCH_MAIN_DELAY_SEARCH_ALARM		120	// Search not allowed within 2 Minutes of TAP starting
+#else
+#define SCH_MAIN_DELAY_SEARCH_ALARM		1
+#endif
+
 #define SCH_MAX_FILE_LENGTH			30	// Max length of file name in archive - 4 (.rec)
 
 bool schCompareStrings(char *, char *);
@@ -58,7 +64,7 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_INITIALISE:
 
-		if(schInitRetreiveData() > 0)
+		if(schFileRetreiveSearchData() > 0)
 		{
 //			sprintf(buffer1, "%d Valid Searches",schMainTotalValidSearches);
 //			ShowMessageWin(buffer1,"Loaded");
@@ -122,11 +128,15 @@ void schService(void)
 			}
 		}
 
+#if DEBUG == 1
+	schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
+#endif
+
 		break;
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES:
 
-		if(schInitRetreiveRemoteData() > 0)
+		if(schFileRetreiveRemoteData() > 0)
 		{
 			schServiceSV = SCH_SERVICE_UPDATE_SEARCH_LIST;
 		}
@@ -178,14 +188,17 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_INITIALISE_EPG_DATA:
 
+#ifndef WIN32
 		if( schEpgData )
 		{
 			TAP_MemFree( schEpgData );
 			schEpgData = 0;
 		}
-		
-		schEpgData = TAP_GetEvent( schUserData[schUserSearchIndex].searchTvRadio, schChannel, &schEpgTotalEvents );
 
+		schEpgData = TAP_GetEvent( schUserData[schUserSearchIndex].searchTvRadio, schChannel, &schEpgTotalEvents );
+#else
+		schEpgData = TAP_GetEvent_SDK( schUserData[schUserSearchIndex].searchTvRadio, schChannel, &schEpgTotalEvents );
+#endif
 		schServiceSV = SCH_SERVICE_PERFORM_SEARCH;
 		
 		break;	
@@ -261,6 +274,7 @@ void schService(void)
 	case SCH_SERVICE_NEXT_USER_SEARCH:
 
 		schUserSearchIndex++;
+
 		schEpgIndex = 0;
 
 		if(schUserSearchIndex >= schMainTotalValidSearches)
@@ -735,10 +749,13 @@ bool schCompareStrings(char *eventName, char *searchTerm)
 		{
 			for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
 			{
-				if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
-				{
-					foundSearchTerm = TRUE;
-				}
+//				if(eventName[eventNameIndex] == searchTerm[0])
+//				{
+					if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
+					{
+						foundSearchTerm = TRUE;
+					}
+//				}
 			}
 		}
 	}
@@ -752,7 +769,11 @@ void schInitLcnToSvcNumMap(void)
 	int i = 0;
 	TYPE_TapChInfo chInfo;
 
+#ifndef WIN32
 	TAP_Channel_GetTotalNum( &schTotalTvSvc, &schTotalRadioSvc );
+#else
+	TAP_Channel_GetTotalNum_SDK( &schTotalTvSvc, &schTotalRadioSvc );
+#endif
 
 	schLcnToServiceTv = (word*)TAP_MemAlloc(schTotalTvSvc * 2);
 	for (i = 0; i < schTotalTvSvc; i++)
@@ -792,3 +813,4 @@ void schMainUpdateSearchList(void)
 
 	TAP_Hdd_Delete( REMOTE_FILENAME );
 }
+

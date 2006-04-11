@@ -3,6 +3,7 @@ Part of the ukEPG project
 This module moves a file to a specified directory
 
 v0.0 sl8:	09-03-06	Inception date
+v0.1 sl8:	11-04-06	Tidy up.
 
 **************************************************************/
 
@@ -37,7 +38,7 @@ void schMoveService(void)
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_INITIALISE:
 
-		if(schInitRetreiveMoveData() > 0)
+		if(schFileRetreiveMoveData() > 0)
 		{
 		}
 		else
@@ -152,6 +153,9 @@ void schMoveService(void)
 					sprintf( folderStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
 #ifndef WIN32
 					if(TAP_Hdd_Move( fileStr, folderStr ) == TRUE)
+#else
+					if(1)
+#endif
 					{
 						schMoveSuccessful = TRUE;
 
@@ -169,8 +173,6 @@ void schMoveService(void)
 //						sprintf( logBuffer, "Found (Move Failed): %s    %d", schMoveData[schMoveIndex].moveFileName, result );
 //						logStoreEvent(logBuffer);
 					}
-#endif
-
 				}
 				else
 				{

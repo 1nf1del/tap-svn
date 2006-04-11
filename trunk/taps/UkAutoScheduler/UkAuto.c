@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.8
+Version	: 0.9
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -34,6 +34,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 				Modified for 'Perform Search' config option.
 				Bug fix - Clock not updating when UKAS screen/menu showing.
 	  v0.8 sl8: 09-03-06	Destination folder mods
+	  v0.9 sl8: 11-04-06	Show window added and tidy up.
 
 **************************************************************/
 
@@ -45,7 +46,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.32"
+#define VERSION "0.32x"
 
 TAP_ID( ID_UKAUTO );
 
@@ -77,10 +78,15 @@ void ShowMessageWin(char*, char*);
 #include "schEdit.c"
 #include "schFile.c"
 #include "schMove.c"
+#include "schShow.c"
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
 #include "log.c"
+
+#ifdef WIN32
+#include "sdk.c"
+#endif
 
 void ShowMessageWin (char* lpMessage, char* lpMessage1)
 {
@@ -162,17 +168,17 @@ void schObtainCurrentTime(void)
 
 void ActivationRoutine( void )
 {
-	schInitRetreiveData();
+	schFileRetreiveSearchData();
 
   	TAP_ExitNormal();
 	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 
-	ActivateDisplayWindow();	
+	schDispWindowActivate();	
 }
 
 void ExitRoutine( void )
 {
-	CloseTimerWindow();
+	schDispWindowClose();
 	TAP_Osd_Delete( rgn );
 	TAP_EnterNormal();
 }
@@ -182,7 +188,7 @@ void ExitRoutine( void )
 //
 void TerminateRoutine( void )				// Performs the clean-up and terminate TAP
 {
-	if(schDisplaySaveToFile == TRUE)
+	if(schDispSaveToFile == TRUE)
 	{
 		schWriteSearchList();
 	}
@@ -218,9 +224,10 @@ void CheckFlags( void )
 	{																		// redraw the underlying window
 		returnFromEdit = FALSE;
 
-		if ( menuShowing ) { DisplayMenu( &mainMenu ); return; }		// Menu
-		if ( schEditWindowShowing ) { RedrawSearchEdit(); return; }		// Timer edit
-		if ( schDisplayWindowShowing ) { RefreshSearchWindow(); return; }	// Timer display
+		if ( menuShowing ) { DisplayMenu( &mainMenu ); return; }
+		if ( schEditWindowShowing ) { schEditRefresh(); return; }
+		if ( schShowWindowShowing ) { schShowRefresh(); return; }
+		if ( schDispWindowShowing ) { schDispRefresh(); return; }
 	}
 }
 
@@ -236,7 +243,9 @@ dword My_KeyHandler(dword key, dword param2)
 
 	if ( schEditWindowShowing ) { schEditKeyHandler( key ); return 0; }			// search edit
 
-	if ( schDisplayWindowShowing ) { schDisplayKeyHandler( key ); return 0; }		// search display list
+	if ( schShowWindowShowing ) { schShowKeyHandler( key ); return 0; }			// search display list
+
+	if ( schDispWindowShowing ) { schDisplayKeyHandler( key ); return 0; }		// search display list
 
 	TAP_GetState(&state, &subState);
 	if ((state != STATE_Normal) || (subState != SUBSTATE_Normal)) return key;		// otherwise just return if another menu is shown
@@ -276,7 +285,9 @@ dword My_IdleHandler(void)
 		&&
 		(schEditWindowShowing == FALSE)
 		&&
-		(schDisplayWindowShowing == FALSE)
+		(schDispWindowShowing == FALSE)
+		&&
+		(schShowWindowShowing == FALSE)
 	)
 	{
 		schService();
@@ -295,6 +306,11 @@ dword My_IdleHandler(void)
 	}
 	else
 	{
+		if(schShowWindowShowing == TRUE)
+		{
+			schShowService();
+		}
+
 		if ( schTimeMin != oldMin )
 		{
 			oldMin = schTimeMin;
@@ -355,14 +371,18 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 int TAP_Main(void)
 {
+#ifdef WIN32
+	sdkRetreiveXmlData();
+#endif
 	FindTapDir();
 	LoadConfiguration();
 	CacheLogos();
 	schInitLcnToSvcNumMap();
-	initialiseTimerWindow();
-	initialiseSearchEdit();
+	schDispWindowInitialise();
+	schEditWindowInitialise();
 	initialiseMenu();
 	InitialiseConfigRoutines();
+	schShowWindowInitialise();
 	logInitialise();
 
 #ifndef WIN32

@@ -9,30 +9,24 @@ v0.2: sl8	20-01-06	Modified for TAP_SDK. All variables initialised.
 v0.3: sl8	16-02-06	Short cut added. Record key saves search (if valid).
 				SearchFolder element added to the main search structure (not used yet)
 v0.4: sl8	09-03-06	Allow user to choose a destination folder. Removed debug info. Show selected days info
+v0.5: sl8	11-04-06	Show window added and tidy up.
 
 **************************************************************/
 
 #include "ChannelSelection.c"
 #include "Keyboard.c"
 
-void CloseSearchEditWindow(void);
-void schDisplayCellText(char,int,byte,int,bool,char*);
-void editTimeKeyHandler(dword);
-void editPaddingKeyHandler(dword);
-void schReturnFromKeyboard( int, byte, bool);
-void schDisplayDirectEdit(byte, int, int, char*);
+void schEditCloseWindow(void);
+void schEditDrawCellText(int,int,byte,int,bool,char*);
+void schEditTimeKeyHandler(dword);
+void schEditPaddingKeyHandler(dword);
+void schEditReturnFromKeyboard( int, byte, bool);
+void schEditDrawDirect(byte, int, int, char*);
 bool schEditValidateSearch(void);
 void schEditSaveSearch(void);
 
-static TYPE_Window editWin;
-static int chosenEditLine = 0;
-static int chosenEditCell = 0;
-static int timerLine = 0;
-static byte currentExitOption = 0;
-
-static byte selectedDay = 0;
-static byte selectedMonth = 0;
-static word selectedYear = 0;
+static int schEditChosenLine = 0;
+static int schEditChosenCell = 0;
 
 static byte searchIndex = 0;
 
@@ -66,12 +60,10 @@ static byte schDirectPaddingPos = 0;
 #define Y	57
 #define Y2	514
 #define Y_STEP 30
-#define TIMER_LINES 10
+#define SCH_EDIT_NUMBER_OF_LINES 10
 
 #define SCH_CELL_MEDIUM 126
 #define SCH_CELL_SMALL 72
-
-#define DEFUALT_EXIT_OPTION 0
 
 #define SCH_EDIT_Y1_OFFSET	36
 
@@ -117,15 +109,15 @@ enum
 
 //-----------------------------------------------------------------------
 //
-void CreateSearchEditWindow(void)
+void schEditCreateWindow(void)
 {
 	schEditWindowShowing = TRUE;
-	DrawGraphicBoarders();
+	sysDrawGraphicBorders();
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Auto Schedule - Edit", TITLE_COLOUR, COLOR_Black );
 }
 
 
-void CloseSearchEditWindow(void)
+void schEditCloseWindow(void)
 {
 	schEditWindowShowing = FALSE;
 }
@@ -134,7 +126,7 @@ void CloseSearchEditWindow(void)
 
 //------------
 //
-void DisplayLine(char lineNumber)
+void schEditDrawLine(int lineNumber)
 {
 	char	str[80], str2[80];
 	byte	month = 0, day = 0, weekDay = 0;
@@ -146,13 +138,13 @@ void DisplayLine(char lineNumber)
 
 	TYPE_TapChInfo	currentChInfo;
 
-	if (( lineNumber < 1 ) || ( lineNumber > TIMER_LINES )) return;		// bound check
+	if (( lineNumber < 1 ) || ( lineNumber > SCH_EDIT_NUMBER_OF_LINES )) return;		// bound check
 	
-	TAP_Osd_PutGd( rgn, 53, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowaGd, FALSE );
+	TAP_Osd_PutGd( rgn, 53, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowaGd, FALSE );
 
 	if( lineNumber != SCH_EDIT_SAVE)
 	{
-		TAP_Osd_PutGd( rgn, 54, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowadarkblueGd, FALSE );
+		TAP_Osd_PutGd( rgn, 54, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowadarkblueGd, FALSE );
 	}
 
 	TAP_Osd_FillBox( rgn, 53, 490, 614, 86, FILL_COLOUR );		// clear the bottom portion
@@ -162,11 +154,11 @@ void DisplayLine(char lineNumber)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_STATUS:
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Status", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Status", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_STATUS )			// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_STATUS )			// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
 		}
 
 		switch( schEdit.searchStatus )
@@ -174,25 +166,25 @@ void DisplayLine(char lineNumber)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_DISABLED:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Disabled", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Disabled", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_RECORD:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Record", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Record", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			TAP_Osd_PutGd( rgn, 272, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 281, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, 272, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 281, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2, "R", MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_WATCH:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Watch", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Watch", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			TAP_Osd_PutGd( rgn, 272, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 279, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, 272, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 279, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2, "W", MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -205,68 +197,68 @@ void DisplayLine(char lineNumber)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_SEARCH:
 
-		if ( chosenEditLine == SCH_EDIT_SEARCH )		// highlight the current cursor line
+		if ( schEditChosenLine == SCH_EDIT_SEARCH )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
 		}
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		TAP_SPrint(str,"\"%s\"", schEdit.searchTerm);
 
-		TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+40, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+40, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_MATCH:
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Match", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Match", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_MATCH )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_MATCH )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * chosenEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * schEditChosenCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 		}
 
 		// -------------------------------------------------
 		if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH)
 		{
-			schDisplayCellText(lineNumber ,E1 ,0 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Exact");
+			schEditDrawCellText(lineNumber ,E1 ,0 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Exact");
 		}
 		else
 		{
-			schDisplayCellText(lineNumber ,E1 ,0 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Partial");
+			schEditDrawCellText(lineNumber ,E1 ,0 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Partial");
 		}
 
-		schDisplayCellText(lineNumber ,E1 ,1 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Title");
+		schEditDrawCellText(lineNumber ,E1 ,1 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Title");
 
-		schDisplayCellText(lineNumber ,E1 ,2 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION), "Description");
+		schEditDrawCellText(lineNumber ,E1 ,2 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION), "Description");
 
-		schDisplayCellText(lineNumber ,E1 ,3 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXT_INFO), "Extended");
+		schEditDrawCellText(lineNumber ,E1 ,3 ,SCH_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXT_INFO), "Extended");
 
 		// -------------------------------------------------
 
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_CHANNEL:														// channel name
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1,  "Channel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1,  "Channel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if(chosenEditCell == 2)
+		if(schEditChosenCell == 2)
 		{
 			modifiedEditCell = 3;
 		}
 		else
 		{
-			modifiedEditCell = chosenEditCell;
+			modifiedEditCell = schEditChosenCell;
 		}
 
-		if( chosenEditLine == SCH_EDIT_CHANNEL )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_CHANNEL )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 		}
 
 		switch(channelMode)
@@ -274,43 +266,43 @@ void DisplayLine(char lineNumber)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_RANGE:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			DisplayLogo( rgn, E1 + SCH_CELL_MEDIUM + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
+			DisplayLogo( rgn, E1 + SCH_CELL_MEDIUM + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
 
-			PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			DisplayLogo( rgn, E1 + (3 * SCH_CELL_MEDIUM) + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchEndSvcNum, schEdit.searchTvRadio);
+			DisplayLogo( rgn, E1 + (3 * SCH_CELL_MEDIUM) + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchEndSvcNum, schEdit.searchTvRadio);
 
-			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-			TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_ONLY:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Only", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Only", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			DisplayLogo( rgn, E1 + SCH_CELL_MEDIUM + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber*Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
+			DisplayLogo( rgn, E1 + SCH_CELL_MEDIUM + (SCH_CELL_MEDIUM / 2) - 30, (lineNumber*SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
 
-			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_ANY:
 
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			if(schEdit.searchTvRadio == SCH_TV)
 			{
-				PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "TV", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "TV", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 			}
 			else
 			{
-				PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "Radio", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "Radio", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 			}
 
-			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -320,38 +312,38 @@ void DisplayLine(char lineNumber)
 		/* ---------------------------------------------------------------------------- */
 		}
 
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_TIME:														// time
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Time", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Time", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_TIME )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_TIME )		// highlight the current cursor line
 		{
-			if(chosenEditCell == 2)
+			if(schEditChosenCell == 2)
 			{
 				modifiedEditCell = 3;
 			}
 			else
 			{
-				modifiedEditCell = chosenEditCell;
+				modifiedEditCell = schEditChosenCell;
 			}
 
 			if (enableEditTime == TRUE)
 			{
-				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_editcellmedGd, FALSE );
+				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_editcellmedGd, FALSE );
 			}
 			else
 			{
-				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 			}
 		}
 
 		if(timeMode == SCH_DISPLAY_TIME_RANGE)
 		{
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			hour = (schEdit.searchStartTime & 0xff00) >> 8;
 			min = (schEdit.searchStartTime & 0xff);
@@ -362,16 +354,16 @@ void DisplayLine(char lineNumber)
 				(modifiedEditCell == 1)
 			)
 			{
-				schDisplayDirectEdit(schDirectTimePos,hour,min,str);
+				schEditDrawDirect(schDirectTimePos,hour,min,str);
 			}
 			else
 			{
 				TAP_SPrint(str, "%02d:%02d", hour, min);
 			}
 			
-			PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			hour = (schEdit.searchEndTime & 0xff00) >> 8;
 			min = (schEdit.searchEndTime & 0xff);
@@ -382,49 +374,49 @@ void DisplayLine(char lineNumber)
 				(modifiedEditCell == 3)
 			)
 			{
-				schDisplayDirectEdit(schDirectTimePos,hour,min,str);
+				schEditDrawDirect(schDirectTimePos,hour,min,str);
 			}
 			else
 			{
 				TAP_SPrint(str, "%02d:%02d", hour, min);
 			}
-			PrintCenter(rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (4 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (4 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-			TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+			TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 		}
 		else
 		{
-			PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		}
 
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_DAYS:														// Days
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Days", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Days", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_DAYS )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_DAYS )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_SMALL * chosenEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellsmaGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_SMALL * schEditChosenCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellsmaGd, FALSE );
 		}
 
-		schDisplayCellText(lineNumber ,E1 ,0 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x01), "Mon");
-		schDisplayCellText(lineNumber ,E1 ,1 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x02), "Tue");
-		schDisplayCellText(lineNumber ,E1 ,2 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x04), "Wed");
-		schDisplayCellText(lineNumber ,E1 ,3 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x08), "Thu");
-		schDisplayCellText(lineNumber ,E1 ,4 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x10), "Fri");
-		schDisplayCellText(lineNumber ,E1 ,5 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x20), "Sat");
-		schDisplayCellText(lineNumber ,E1 ,6 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x40), "Sun");
+		schEditDrawCellText(lineNumber ,E1 ,0 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x01), "Mon");
+		schEditDrawCellText(lineNumber ,E1 ,1 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x02), "Tue");
+		schEditDrawCellText(lineNumber ,E1 ,2 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x04), "Wed");
+		schEditDrawCellText(lineNumber ,E1 ,3 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x08), "Thu");
+		schEditDrawCellText(lineNumber ,E1 ,4 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x10), "Fri");
+		schEditDrawCellText(lineNumber ,E1 ,5 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x20), "Sat");
+		schEditDrawCellText(lineNumber ,E1 ,6 ,SCH_CELL_SMALL ,(schEdit.searchDay & 0x40), "Sun");
 
-		TAP_Osd_FillBox( rgn, E1+SCH_CELL_SMALL, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1+(2*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1+(3*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1+(4*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1+(5*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1+(6*SCH_CELL_SMALL), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+SCH_CELL_SMALL, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+(2*SCH_CELL_SMALL), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+(3*SCH_CELL_SMALL), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+(4*SCH_CELL_SMALL), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+(5*SCH_CELL_SMALL), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1+(6*SCH_CELL_SMALL), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		sprintf(str, "Selected Days:");
 		if((schEdit.searchDay & 0x01) == 0x01) strcat(str," Monday");
@@ -441,11 +433,11 @@ void DisplayLine(char lineNumber)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_PADDING:
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Padding", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Padding", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_PADDING )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_PADDING )		// highlight the current cursor line
 		{
-			if(chosenEditCell == 0)
+			if(schEditChosenCell == 0)
 			{
 				modifiedEditCell = 1;
 			}
@@ -456,15 +448,15 @@ void DisplayLine(char lineNumber)
 
 			if (enableEditPadding == TRUE)
 			{
-				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_editcellmedGd, FALSE );
+				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_editcellmedGd, FALSE );
 			}
 			else
 			{
-				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+				TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * modifiedEditCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 			}
 		}
 
-		PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Start", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Start", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		hour = (schEdit.searchStartPadding & 0xff00) >> 8;
 		min = (schEdit.searchStartPadding & 0xff);
@@ -475,15 +467,15 @@ void DisplayLine(char lineNumber)
 			(modifiedEditCell == 1)
 		)
 		{
-			schDisplayDirectEdit(schDirectPaddingPos,hour,min,str);
+			schEditDrawDirect(schDirectPaddingPos,hour,min,str);
 		}
 		else
 		{
 			TAP_SPrint(str, "%02d:%02d", hour, min);
 		}
-		PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "End", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "End", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		hour = (schEdit.searchEndPadding & 0xff00) >> 8;
 		min = (schEdit.searchEndPadding & 0xff);
@@ -494,27 +486,27 @@ void DisplayLine(char lineNumber)
 			(modifiedEditCell == 3)
 		)
 		{
-			schDisplayDirectEdit(schDirectPaddingPos,hour,min,str);
+			schEditDrawDirect(schDirectPaddingPos,hour,min,str);
 		}
 		else
 		{
 			TAP_SPrint(str, "%02d:%02d", hour, min);
 		}
-		PrintCenter(rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (4 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (4 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_ATTACH:
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Attach", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Attach", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if( chosenEditLine == SCH_EDIT_ATTACH )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_ATTACH )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * chosenEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * schEditChosenCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 		}
 
 		switch(attachPosition[0])
@@ -542,7 +534,7 @@ void DisplayLine(char lineNumber)
 			break;
 		/* ---------------------------------------------------------------------------- */
 		}
-		PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		
 		switch(attachType[0])
 		{
@@ -564,7 +556,7 @@ void DisplayLine(char lineNumber)
 		/* ---------------------------------------------------------------------------- */
 		}
 
-		schDisplayCellText(lineNumber ,E1 ,1 ,SCH_CELL_MEDIUM ,(attachPosition[0] != SCH_ATTACH_POS_NONE), str);
+		schEditDrawCellText(lineNumber ,E1 ,1 ,SCH_CELL_MEDIUM ,(attachPosition[0] != SCH_ATTACH_POS_NONE), str);
 	
 
 		switch(attachPosition[1])
@@ -592,7 +584,7 @@ void DisplayLine(char lineNumber)
 			break;
 		/* ---------------------------------------------------------------------------- */
 		}
-		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(attachType[1])
 		{
@@ -613,24 +605,24 @@ void DisplayLine(char lineNumber)
 			break;
 		/* ---------------------------------------------------------------------------- */
 		}
-		schDisplayCellText(lineNumber ,E1 ,3 ,SCH_CELL_MEDIUM ,(attachPosition[1] != SCH_ATTACH_POS_NONE), str);
+		schEditDrawCellText(lineNumber ,E1 ,3 ,SCH_CELL_MEDIUM ,(attachPosition[1] != SCH_ATTACH_POS_NONE), str);
 
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_FOLDER:
 
 		textColour = COLOR_DarkBlue;
-		if ( chosenEditLine == SCH_EDIT_FOLDER )		// highlight the current cursor line
+		if ( schEditChosenLine == SCH_EDIT_FOLDER )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
 			textColour = COLOR_DarkGreen;
 		}
 
-		PrintCenter(rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Folder", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1, "Folder", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if(FirmwareCallsEnabled == TRUE)
 		{
@@ -638,38 +630,38 @@ void DisplayLine(char lineNumber)
 			{
 				TAP_SPrint(str,"/%s/", schEdit.searchFolder);
 
-				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+40, str, MAIN_TEXT_COLOUR, 0 );
+				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+40, str, MAIN_TEXT_COLOUR, 0 );
 			}
 			else
 			{
-				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+50, "Not Available", textColour, 0 );
+				TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+50, "Not Available", textColour, 0 );
 			}
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+58, "Firmware Calls Disabled", textColour, 0 );
+			TAP_Osd_PutStringAf1622(rgn, X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E2+58, "Firmware Calls Disabled", textColour, 0 );
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_SAVE:
 
-		TAP_Osd_PutGd( rgn, 53, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
+		TAP_Osd_PutGd( rgn, 53, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
 
-		if( chosenEditLine == SCH_EDIT_SAVE )		// highlight the current cursor line
+		if( schEditChosenLine == SCH_EDIT_SAVE )		// highlight the current cursor line
 		{
-			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * chosenEditCell), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
+			TAP_Osd_PutGd( rgn, E1 + (SCH_CELL_MEDIUM * schEditChosenCell), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellmedGd, FALSE );
 		}
 
-		PrintCenter(rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + SCH_CELL_MEDIUM, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		PrintCenter(rgn, E1 + (1 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + (1 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (2 * SCH_CELL_MEDIUM), "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, E1 + (3 * SCH_CELL_MEDIUM), "Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		
-		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + SCH_CELL_MEDIUM, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (2 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+		TAP_Osd_FillBox( rgn, E1 + (3 * SCH_CELL_MEDIUM), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -680,13 +672,13 @@ void DisplayLine(char lineNumber)
 	}
 
 
-	TAP_Osd_FillBox( rgn, E0, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-	TAP_Osd_FillBox( rgn, E1, (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, Y1_STEP, FILL_COLOUR );
+	TAP_Osd_FillBox( rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+	TAP_Osd_FillBox( rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );
 
 }
 
 
-void schDisplayDirectEdit(byte position, int hour, int min, char *str)
+void schEditDrawDirect(byte position, int hour, int min, char *str)
 {
 	switch ( position )
 	{
@@ -718,14 +710,14 @@ void schDisplayDirectEdit(byte position, int hour, int min, char *str)
 	}		
 }
 
-void schDisplayCellText(char lineNumber ,int cellPosX ,byte cell ,int cellSize ,bool cellEnabled, char *text)
+void schEditDrawCellText(int lineNumber ,int cellPosX ,byte cell ,int cellSize ,bool cellEnabled, char *text)
 {
 	int textColour = 0;
 
 	textColour = MAIN_TEXT_COLOUR;
 	if( cellEnabled == FALSE)
 	{
-		if(( chosenEditLine == lineNumber ) && ( chosenEditCell == cell))
+		if(( schEditChosenLine == lineNumber ) && ( schEditChosenCell == cell))
 		{
 			textColour = COLOR_DarkGreen;
 		}
@@ -734,22 +726,11 @@ void schDisplayCellText(char lineNumber ,int cellPosX ,byte cell ,int cellSize ,
 			textColour = COLOR_DarkBlue;
 		}
 	}
-	PrintCenter(rgn, cellPosX + (cell * cellSize), (lineNumber * Y1_STEP) + SCH_EDIT_Y1_OFFSET, cellPosX + (cell * cellSize) + cellSize, text, textColour, 0, FNT_Size_1622 );
+	PrintCenter(rgn, cellPosX + (cell * cellSize), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, cellPosX + (cell * cellSize) + cellSize, text, textColour, 0, FNT_Size_1622 );
 }
 
 
 
-void PrintTimerExtraInfo( void )
-{
-	char	str[256];
-
-	TAP_Osd_FillBox( rgn, 53, 490, 614, 86, FILL_COLOUR );		// clear the bottom portion
-
-	TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, "Debug:", COLOR_DarkGray, 0 );
-	
-	TAP_SPrint(str, "Edit Line : %d      Edit Cell : %d       Reserved : %d", chosenEditLine, chosenEditCell, schEdit.searchOptions & (SCH_USER_DATA_OPTIONS_EVENTNAME | SCH_USER_DATA_OPTIONS_DESCRIPTION | SCH_USER_DATA_OPTIONS_EXT_INFO)  );
-	TAP_Osd_PutStringAf1419( rgn, 58, 528, 666, str, COLOR_DarkGray, 0 );
-}
 
 //------------
 //
@@ -801,14 +782,14 @@ void CopySearchFields(int index)
 
 //------------
 //
-bool SearchEdit (int line, int type)
+bool schEditWindowActivate (int line, int type)
 {
 	int i = 0;
 
 	schEditType = type;
 
-	chosenEditLine = SCH_EDIT_SAVE;
-	chosenEditCell = 1;
+	schEditChosenLine = SCH_EDIT_SAVE;
+	schEditChosenCell = 1;
 
 	schDirectTimePos = SCH_DIRECT_EDIT_HOUR_TENS;
 	schDirectPaddingPos = SCH_DIRECT_EDIT_HOUR_TENS;
@@ -821,12 +802,12 @@ bool SearchEdit (int line, int type)
 		searchIndex = line - 1;
 		CopySearchFields(searchIndex);
 
-		CreateSearchEditWindow();
+		schEditCreateWindow();
 		UpdateListClock();
 
-		for ( i=1; i <= TIMER_LINES ; i++)
+		for ( i=1; i <= SCH_EDIT_NUMBER_OF_LINES ; i++)
 		{
-		    DisplayLine(i);
+		    schEditDrawLine(i);
 		}
 
 		break;
@@ -865,12 +846,12 @@ bool SearchEdit (int line, int type)
 		attachPosition[1] = 0;
 		attachType[1] = 0;
 
-		CreateSearchEditWindow();
+		schEditCreateWindow();
 		UpdateListClock();
 		
-		for ( i=1; i <= TIMER_LINES ; i++)
+		for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES ; i++)
 		{
-		    DisplayLine(i);
+			schEditDrawLine(i);
 		}
 
 		break;
@@ -879,16 +860,16 @@ bool SearchEdit (int line, int type)
 }
 
 
-void RedrawSearchEdit( void )
+void schEditRefresh( void )
 {
 	int i = 0;
 	
-	CreateSearchEditWindow();
+	schEditCreateWindow();
 	UpdateListClock();
 
-	for ( i=1; i<=TIMER_LINES ; i++)
+	for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES; i++)
 	{
-	    DisplayLine(i);
+		schEditDrawLine(i);
 	}
 }
 
@@ -900,7 +881,7 @@ void ReturnFromKeyboardSearchTerm( char *str, bool success)
 		strcpy( schEdit.searchTerm, str );
 	}
 
-	DisplayLine( SCH_EDIT_SEARCH );
+	schEditDrawLine( SCH_EDIT_SEARCH );
 }																		// no need to update display as keyboard.c has scheduled a global redisplay
 
 void ReturnFromKeyboardSearchFolder( char *str, bool success)
@@ -910,14 +891,14 @@ void ReturnFromKeyboardSearchFolder( char *str, bool success)
 		strcpy( schEdit.searchFolder, str );
 	}
 
-	DisplayLine( SCH_EDIT_FOLDER );
+	schEditDrawLine( SCH_EDIT_FOLDER );
 }																		// no need to update display as keyboard.c has scheduled a global redisplay
 
-void schReturnFromKeyboard( int selectedLogo, byte selectedSvc, bool success)
+void schEditReturnFromKeyboard( int selectedLogo, byte selectedSvc, bool success)
 {
 	if ( success == TRUE)
 	{
-		if( chosenEditCell == 1)
+		if( schEditChosenCell == 1)
 		{
 			schEdit.searchStartSvcNum = selectedLogo;
 			schEdit.searchTvRadio = selectedSvc;
@@ -944,7 +925,7 @@ void EditLineKeyHandler(dword key)
 	byte	chosenDay = 0;
 	char	str[256];
 
-	switch ( chosenEditLine )
+	switch ( schEditChosenLine )
 	{
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_STATUS:
@@ -978,7 +959,7 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			}
 
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1003,7 +984,7 @@ void EditLineKeyHandler(dword key)
 		switch ( key )
 		{
 		case RKEY_Ok:
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			case 0:
 				if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH ) 
@@ -1054,7 +1035,7 @@ void EditLineKeyHandler(dword key)
 				break;
 			}
 			
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		default:
@@ -1070,7 +1051,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			/* ---------------------------------------------------------------------------- */
 			case 0:
@@ -1103,7 +1084,7 @@ void EditLineKeyHandler(dword key)
 				/* ---------------------------------------------------------------------------- */
 				}
 				
-				DisplayLine( chosenEditLine );
+				schEditDrawLine( schEditChosenLine );
 
 				break;
 			/* ---------------------------------------------------------------------------- */
@@ -1122,13 +1103,13 @@ void EditLineKeyHandler(dword key)
 						schEdit.searchTvRadio = SCH_TV;
 					}
 
-					DisplayLine( chosenEditLine );
+					schEditDrawLine( schEditChosenLine );
 
 					break;
 				/* ---------------------------------------------------------------------------- */
 				default:
 
-					DisplayChannelListWindow(schEdit.searchStartSvcNum, schEdit.searchTvRadio, &schReturnFromKeyboard);
+					DisplayChannelListWindow(schEdit.searchStartSvcNum, schEdit.searchTvRadio, &schEditReturnFromKeyboard);
 
 					break;
 				/* ---------------------------------------------------------------------------- */
@@ -1137,7 +1118,7 @@ void EditLineKeyHandler(dword key)
 				break;
 			/* ---------------------------------------------------------------------------- */
 			case 2:
-				DisplayChannelListWindow(schEdit.searchEndSvcNum, schEdit.searchTvRadio, &schReturnFromKeyboard);
+				DisplayChannelListWindow(schEdit.searchEndSvcNum, schEdit.searchTvRadio, &schEditReturnFromKeyboard);
 
 				break;
 			/* ---------------------------------------------------------------------------- */
@@ -1177,7 +1158,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			/* ---------------------------------------------------------------------------- */
 			case 0:
@@ -1222,7 +1203,7 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			}
 			
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1241,7 +1222,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			chosenDay = 0x01 << chosenEditCell;
+			chosenDay = 0x01 << schEditChosenCell;
 
 			if((schEdit.searchDay & chosenDay) == chosenDay)
 			{
@@ -1252,7 +1233,7 @@ void EditLineKeyHandler(dword key)
 				schEdit.searchDay |= chosenDay;
 			}
 
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1270,7 +1251,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			/* ---------------------------------------------------------------------------- */
 			case 0:
@@ -1299,7 +1280,7 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			}
 			
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1318,7 +1299,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			/* ---------------------------------------------------------------------------- */
 			case 0:
@@ -1383,7 +1364,7 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			}
 			
-			DisplayLine( chosenEditLine );
+			schEditDrawLine( schEditChosenLine );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1418,7 +1399,7 @@ void EditLineKeyHandler(dword key)
 		/* ---------------------------------------------------------------------------- */
 		case RKEY_Ok:
 
-			switch( chosenEditCell )
+			switch( schEditChosenCell )
 			{
 			/* ---------------------------------------------------------------------------- */
 			case 0:					/* Save */
@@ -1431,7 +1412,7 @@ void EditLineKeyHandler(dword key)
 				break;
 			/* ---------------------------------------------------------------------------- */
 			case 1:					/* Cancel */
-				CloseSearchEditWindow();	// Close the edit window
+				schEditCloseWindow();		// Close the edit window
 				returnFromEdit = TRUE;		// will cause a redraw of search list
 
 				break;
@@ -1454,10 +1435,10 @@ void EditLineKeyHandler(dword key)
 
 					schMainTotalValidSearches--;
 
-					schDisplaySaveToFile = TRUE;
+					schDispSaveToFile = TRUE;
 				}
 
-				CloseSearchEditWindow();	// Close the edit window
+				schEditCloseWindow();		// Close the edit window
 				returnFromEdit = TRUE;		// will cause a redraw of search list
 
 				break;
@@ -1537,7 +1518,7 @@ void schEditSaveSearch(void)
 
 		searchIndex = schMainTotalValidSearches - 1;
 
-		chosenLine = schMainTotalValidSearches;
+		schDispChosenLine = schMainTotalValidSearches;
 	}
 
 	schUserData[searchIndex].searchStatus = schEdit.searchStatus;
@@ -1590,9 +1571,9 @@ void schEditSaveSearch(void)
 	schUserData[searchIndex].searchAttach |= (attachPosition[1] << 14) & 0xC000;
 	schUserData[searchIndex].searchAttach |= (attachType[1] << 8) & 0x3F00;
 
-	schDisplaySaveToFile = TRUE;
+	schDispSaveToFile = TRUE;
 
-	CloseSearchEditWindow();	// Close the edit window
+	schEditCloseWindow();		// Close the edit window
 	returnFromEdit = TRUE;		// will cause a redraw of search list
 }
 
@@ -1602,11 +1583,11 @@ void schEditKeyHandler(dword key)
 {
 	int i = 0, oldEditLine = 0;
 
-	oldEditLine = chosenEditLine;
+	oldEditLine = schEditChosenLine;
 
 	if ( channelListWindowShowing ) { ChannelListKeyHandler( key ); return; }	// handle channel list edit
-	if ( enableEditTime ) { editTimeKeyHandler( key ); return; }			// handle Time Edit
-	if ( enableEditPadding ) { editPaddingKeyHandler( key ); return; }		// handle Padding Edit
+	if ( enableEditTime ) { schEditTimeKeyHandler( key ); return; }			// handle Time Edit
+	if ( enableEditPadding ) { schEditPaddingKeyHandler( key ); return; }		// handle Padding Edit
 	if ( keyboardWindowShowing ) { KeyboardKeyHandler( key ); return; }		// handle calendar
 
 	switch ( key )
@@ -1614,50 +1595,50 @@ void schEditKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_ChDown:
 
-		if ( chosenEditLine < TIMER_LINES )
+		if ( schEditChosenLine < SCH_EDIT_NUMBER_OF_LINES )
 		{
-			chosenEditLine++;
+			schEditChosenLine++;
 
-			if(chosenEditCell > schEditCellLimit[chosenEditLine])
+			if(schEditChosenCell > schEditCellLimit[schEditChosenLine])
 			{
-				chosenEditCell = schEditCellLimit[chosenEditLine];
+				schEditChosenCell = schEditCellLimit[schEditChosenLine];
 			}
 
-			DisplayLine(oldEditLine);
-			DisplayLine(chosenEditLine);
+			schEditDrawLine(oldEditLine);
+			schEditDrawLine(schEditChosenLine);
 		}
 		else
 		{
-			chosenEditLine = 1;				// 0=hidden - can't hide once cursor moved
-			if(chosenEditCell > schEditCellLimit[chosenEditLine])
+			schEditChosenLine = 1;				// 0=hidden - can't hide once cursor moved
+			if(schEditChosenCell > schEditCellLimit[schEditChosenLine])
 			{
-				chosenEditCell = schEditCellLimit[chosenEditLine];
+				schEditChosenCell = schEditCellLimit[schEditChosenLine];
 			}
 
-			DisplayLine(TIMER_LINES);
-			DisplayLine(chosenEditLine);
+			schEditDrawLine(SCH_EDIT_NUMBER_OF_LINES);
+			schEditDrawLine(schEditChosenLine);
 		}
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_ChUp:
 		
-		if ( chosenEditLine > 1 )				// 0=hidden - can't hide once cursor moved
+		if ( schEditChosenLine > 1 )				// 0=hidden - can't hide once cursor moved
 		{
-			chosenEditLine--;
+			schEditChosenLine--;
 
-			if(chosenEditCell > schEditCellLimit[chosenEditLine])
+			if(schEditChosenCell > schEditCellLimit[schEditChosenLine])
 			{
-				chosenEditCell = schEditCellLimit[chosenEditLine];
+				schEditChosenCell = schEditCellLimit[schEditChosenLine];
 			}
-			DisplayLine(oldEditLine);
-			DisplayLine(chosenEditLine);
+			schEditDrawLine(oldEditLine);
+			schEditDrawLine(schEditChosenLine);
 		}
 		else
 		{
-			chosenEditLine = TIMER_LINES;
-			chosenEditCell = 1;
-			DisplayLine(1);
-			DisplayLine(chosenEditLine);
+			schEditChosenLine = SCH_EDIT_NUMBER_OF_LINES;
+			schEditChosenCell = 1;
+			schEditDrawLine(1);
+			schEditDrawLine(schEditChosenLine);
 		}
 
 		break;
@@ -1669,9 +1650,9 @@ void schEditKeyHandler(dword key)
 			searchIndex++;
 			CopySearchFields(searchIndex);
 
-			for ( i=1; i<=TIMER_LINES ; i++)		// redraw all fields
+			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES; i++)		// redraw all fields
 			{
-				DisplayLine(i);
+				schEditDrawLine(i);
 			}
       		}
 
@@ -1684,9 +1665,9 @@ void schEditKeyHandler(dword key)
 			searchIndex--;
 			CopySearchFields(searchIndex);
 
-			for ( i=1; i<=TIMER_LINES ; i++)	// redraw all fields
+			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES; i++)	// redraw all fields
 			{
-				DisplayLine(i);
+				schEditDrawLine(i);
 			}
 		}
 
@@ -1702,25 +1683,25 @@ void schEditKeyHandler(dword key)
 	case RKEY_8:
 	case RKEY_9:
 
-		chosenEditLine = key - RKEY_0;			// direct keyboard selection of any line
-		if(chosenEditCell > schEditCellLimit[chosenEditLine])
+		schEditChosenLine = key - RKEY_0;			// direct keyboard selection of any line
+		if(schEditChosenCell > schEditCellLimit[schEditChosenLine])
 		{
-			chosenEditCell = schEditCellLimit[chosenEditLine];
+			schEditChosenCell = schEditCellLimit[schEditChosenLine];
 		}
-		DisplayLine( oldEditLine );
-		DisplayLine( chosenEditLine );
+		schEditDrawLine( oldEditLine );
+		schEditDrawLine( schEditChosenLine );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_0:
 
-		chosenEditLine = 10;				// make "0" select the last line
-		if(chosenEditCell > schEditCellLimit[chosenEditLine])
+		schEditChosenLine = 10;				// make "0" select the last line
+		if(schEditChosenCell > schEditCellLimit[schEditChosenLine])
 		{
-			chosenEditCell = schEditCellLimit[chosenEditLine];
+			schEditChosenCell = schEditCellLimit[schEditChosenLine];
 		}
-		DisplayLine( oldEditLine );
-		DisplayLine( chosenEditLine );
+		schEditDrawLine( oldEditLine );
+		schEditDrawLine( schEditChosenLine );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -1733,27 +1714,27 @@ void schEditKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_VolUp :
 
-		if(chosenEditCell < schEditCellLimit[chosenEditLine])
+		if(schEditChosenCell < schEditCellLimit[schEditChosenLine])
 		{
-			chosenEditCell++;
+			schEditChosenCell++;
 		}
-		DisplayLine( chosenEditLine );
+		schEditDrawLine( schEditChosenLine );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_VolDown : 
 
-		if(chosenEditCell > 0)
+		if(schEditChosenCell > 0)
 		{
-			chosenEditCell--;
+			schEditChosenCell--;
 		}
-		DisplayLine( chosenEditLine );
+		schEditDrawLine( schEditChosenLine );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Exit:
 
-		CloseSearchEditWindow();					// Close the edit window
+		schEditCloseWindow();					// Close the edit window
 		returnFromEdit = TRUE;					// will cause a redraw of timer list
 
 		break;
@@ -1775,11 +1756,11 @@ void schEditKeyHandler(dword key)
 }
 
 
-void editTimeKeyHandler(dword key)
+void schEditTimeKeyHandler(dword key)
 {
 	int	min = 0, hour = 0, temp = 0;
 
-	if(chosenEditCell == 1)
+	if(schEditChosenCell == 1)
 	{
 		hour = (schEdit.searchStartTime & 0xff00) >> 8;		// extract the time
 		min = (schEdit.searchStartTime & 0xff);
@@ -1976,7 +1957,7 @@ void editTimeKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	}
 
-	if(chosenEditCell == 1)
+	if(schEditChosenCell == 1)
 	{
 		schEdit.searchStartTime = ((hour & 0xff) << 8) | (min & 0xff);
 	}
@@ -1985,16 +1966,16 @@ void editTimeKeyHandler(dword key)
 		schEdit.searchEndTime = ((hour & 0xff) << 8) | (min & 0xff);
 	}
 
-	DisplayLine( chosenEditLine );
+	schEditDrawLine( schEditChosenLine );
 }
 
 
 
-void editPaddingKeyHandler(dword key)
+void schEditPaddingKeyHandler(dword key)
 {
 	int 	min = 0, hour = 0, temp = 0;
 
-	if(chosenEditCell == 0)
+	if(schEditChosenCell == 0)
 	{
 		hour = (schEdit.searchStartPadding & 0xff00) >> 8;		// extract the padding
 		min = (schEdit.searchStartPadding & 0xff);
@@ -2216,7 +2197,7 @@ void editPaddingKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	}
 
-	if(chosenEditCell == 0)
+	if(schEditChosenCell == 0)
 	{
 		schEdit.searchStartPadding = ((hour & 0xff) << 8) | (min & 0xff);
 	}
@@ -2225,7 +2206,7 @@ void editPaddingKeyHandler(dword key)
 		schEdit.searchEndPadding = ((hour & 0xff) << 8) | (min & 0xff);
 	}
 
-	DisplayLine( chosenEditLine );
+	schEditDrawLine( schEditChosenLine );
 }
 
 
@@ -2234,7 +2215,7 @@ void editPaddingKeyHandler(dword key)
 
 //------------
 //
-void initialiseSearchEdit(void)
+void schEditWindowInitialise(void)
 {
 	schEditWindowShowing = FALSE;
 	timeEditExitWindowShowing = FALSE;
@@ -2242,8 +2223,8 @@ void initialiseSearchEdit(void)
 	channelListWindowShowing = FALSE;
 	calendarWindowShowing = FALSE;
 
-	chosenEditLine = 0;
-	chosenEditCell = 0;
+	schEditChosenLine = 0;
+	schEditChosenCell = 0;
 
 	returnFromEdit = FALSE;
 

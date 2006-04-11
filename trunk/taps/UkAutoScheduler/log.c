@@ -4,13 +4,14 @@
 
 Name	: log.c
 Author	: sl8
-Version	: 0.1
+Version	: 0.2
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 sl8:	16-02-06 	Inception date
 	  v0.1 sl8:	09-03-06	Function added to log archive
+	  v0.2 sl8:	11-04-06	Improvements to file handling
 
 ************************************************************/
 
@@ -20,7 +21,7 @@ History	: v0.0 sl8:	16-02-06 	Inception date
 #define LOG_FILE_MAX_LENGTH		(100 * LOG_FILE_BLOCK_SIZE)
 #define LOG_EVENT_BUFFER_SIZE		256
 
-static dword logInfoLength = 0, logBufferOffset = 0, logNumberOfEvents = 0;
+static dword logInfoLength = 0, logBufferOffset = 0;
 static bool logFileError = FALSE;
 
 /*****************************************************************************/
@@ -30,9 +31,10 @@ void logInitialise(void)
 {
 #if LOG
 	char	logBuffer[LOG_FILE_BLOCK_SIZE];
-	char	hddBuffer[1];
+	char	*hddBuffer = NULL;
 	byte	i = 0;
 	static	bool logExitFL = FALSE;
+	dword	fileLength = 0;
 
 	TYPE_File*	fp = NULL;
 
@@ -49,16 +51,14 @@ void logInitialise(void)
 		{
 			for (i = 0; i < LOG_FILE_MAX_LENGTH / LOG_FILE_BLOCK_SIZE; i++)
 			{
-				TAP_Hdd_Fwrite (logBuffer, 1, LOG_FILE_BLOCK_SIZE, fp);
+				TAP_Hdd_Fwrite (logBuffer, LOG_FILE_BLOCK_SIZE, 1, fp);
 			}
 
 			TAP_Hdd_Fseek (fp, 0, 0);
 
-			TAP_Hdd_Fwrite (LOG_INFO, 1, sizeof(LOG_INFO), fp);
+			TAP_Hdd_Fwrite (LOG_INFO, sizeof(LOG_INFO), 1, fp);
 
 			logBufferOffset = sizeof(LOG_INFO) - 1;
-
-			logNumberOfEvents = 0;
 
 			TAP_Hdd_Fclose (fp);
 		}
@@ -67,38 +67,19 @@ void logInitialise(void)
 	{
 		if (fp = TAP_Hdd_Fopen (LOG_FILENAME))
 		{
-			logBufferOffset = 0;
-			logExitFL = FALSE;
+			hddBuffer = (char *)TAP_MemAlloc( LOG_FILE_MAX_LENGTH );
 
-			while
-			(
-				(logExitFL == FALSE)
-				&&
-				(logBufferOffset < LOG_FILE_MAX_LENGTH)
-			)
-			{
-				TAP_Hdd_Fseek (fp, logBufferOffset, 0);
+			fileLength = TAP_Hdd_Flen( fp );
+			if ( fileLength > LOG_FILE_MAX_LENGTH ) fileLength = LOG_FILE_MAX_LENGTH;
 
-				TAP_Hdd_Fread (hddBuffer, 1, 1, fp);
+			TAP_Hdd_Fread (hddBuffer, fileLength, 1, fp);
 
-				if(hddBuffer[0] != 0)
-				{
-					logBufferOffset++;
-
-					if(hddBuffer[0] == 0x0A)
-					{
-						logNumberOfEvents++;
-					}
-				}
-				else
-				{
-					logExitFL = TRUE;
-				}
-			}
-
-			logNumberOfEvents -= 2;
+			logBufferOffset = strlen(hddBuffer);
 
 			TAP_Hdd_Fclose (fp);
+
+			TAP_MemFree(hddBuffer);
+
 
 			if (logBufferOffset >= (LOG_FILE_MAX_LENGTH - LOG_EVENT_BUFFER_SIZE))
 			{
@@ -139,13 +120,11 @@ void logStoreEvent(char* logEvent)
 		{
 			TAP_Hdd_Fseek (fp, logBufferOffset, 0);
 
-			TAP_Hdd_Fwrite (logBuffer, 1, strlen(logBuffer), fp);
+			TAP_Hdd_Fwrite (logBuffer, strlen(logBuffer), 1, fp);
 
 			TAP_Hdd_Fclose (fp);
 
 			logBufferOffset += strlen(logBuffer);
-
-			logNumberOfEvents++;
 
 			if (logBufferOffset >= (LOG_FILE_MAX_LENGTH - LOG_EVENT_BUFFER_SIZE))
 			{
@@ -209,13 +188,11 @@ void logArchive(void)
 		{
 			TAP_Hdd_Fseek (fp, logBufferOffset, 0);
 
-			TAP_Hdd_Fwrite (logBuffer, 1, strlen(logBuffer), fp);
+			TAP_Hdd_Fwrite (logBuffer, strlen(logBuffer), 1, fp);
 
 			TAP_Hdd_Fclose (fp);
 
 			logBufferOffset += strlen(logBuffer);
-
-			logNumberOfEvents += totalFileCount;
 
 			if (logBufferOffset >= (LOG_FILE_MAX_LENGTH - LOG_EVENT_BUFFER_SIZE))
 			{

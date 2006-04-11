@@ -9,18 +9,19 @@ v0.2 sl8:	06-02-06	Use Project directory define
 v0.3 sl8:	15-02-06	Modified for new UkAutoSearch.txt file
 v0.4 sl8:	09-03-06	Rewirte to accommodate Move file and remote file.
 v0.5 sl8:	15-03-06	Bug Fix - Not saving the move file correctly
+v0.6 sl8:	11-04-06	Show window added and tidy up.
 
 **************************************************************/
 
-void schPrintSearchLine( int, TYPE_File* );
-void schPrintMoveLine( int, int, TYPE_File* );
-void schWriteFile( dword, TYPE_File*, char* );
-void WriteStrToBuf( char*, TYPE_File* );
-bool schConvertLcnToSvcNum(word, word*, bool);
+void	schPrintSearchLine( int, TYPE_File* );
+void	schPrintMoveLine( int, int, TYPE_File* );
+void	schWriteFile( dword, TYPE_File*, char* );
+void	WriteStrToBuf( char*, TYPE_File* );
+bool	schConvertLcnToSvcNum(word, word*, bool);
 
-void schFileParseString(char*, bool*, int*, char*, int*, int, bool);
-dword schFileParseHex(bool*, int*, char*, int*, int, dword);
-dword schFileParseTime(bool*, int*, char*, int*);
+void	schFileParseString(char*, bool*, int*, char*, int*, int, bool);
+dword	schFileParseHex(bool*, int*, char*, int*, int, dword);
+dword	schFileParseTime(bool*, int*, char*, int*);
 
 
 static char *dataBuffer_sr = NULL;
@@ -30,7 +31,7 @@ static int dataBufferPtr_sr = 0;
 #define DELIMIT_NL		0x0A
 #define DELIMIT_CR		0x0D
 
-byte schInitRetreiveData(void)
+byte schFileRetreiveSearchData(void)
 {
 	TYPE_File	*searchFile = NULL;
 	struct	schDataTag schTempUserData;
@@ -437,7 +438,7 @@ void WriteStrToBuf( char *str, TYPE_File *searchFile )					// add str to current
 }
 
 
-byte schInitRetreiveMoveData(void)
+byte schFileRetreiveMoveData(void)
 {
 
 	TYPE_File	*moveFile = NULL;
@@ -639,7 +640,7 @@ void schPrintMoveLine( int moveIndex, int totalMoves, TYPE_File *moveFile )
 }
 
 
-byte schInitRetreiveRemoteData(void)
+byte schFileRetreiveRemoteData(void)
 {
 	TYPE_File	*remoteFile = NULL;
 	struct	schDataTag schTempUserData;
@@ -966,8 +967,8 @@ dword schFileParseHex(bool* valid, int* newLineCount, char* buffer, int* bufferI
 dword schFileParseTime(bool* valid, int* newLineCount, char* buffer, int* bufferIndex)
 {
 	dword	bufferLength = 0;
-	int		elementIndex = 0;
-	int		hour = 0, min = 0;
+	int	elementIndex = 0;
+	int	hour = 0, min = 0;
 	char	tempBuffer[10];
 	dword	dwResult = 0;
 	

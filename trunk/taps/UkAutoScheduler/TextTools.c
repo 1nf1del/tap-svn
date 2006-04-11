@@ -4,13 +4,15 @@
 
 Name	: TextTools.c
 Author	: kidhazy
-Version	: 0.1
+Version	: 0.2
 For	: Topfield TF5x00 series PVRs
 Descr.	:
 Licence	:
 Usage	:
 History	: v0.0 kidhazy:
 	  v0.1 sl8:	20-01-06	All variables initialised
+	  v0.2 sl8:	11-04-06	Tidy up
+
 	
 **************************************************************/
 int     WrapPutStr_StartPos = 0;  	//KH Starting position to print string from
@@ -166,25 +168,29 @@ void WrapPutStr(word windowRgn, char *str, int x, int y, int w, int fgCol, int b
 	}
 
 	len = strlen(str);
-	if (len == 0)  return;
 	
-	p = WrapPutStr_StartPos;  //KH Set the starting position to print string from.
+	p = WrapPutStr_StartPos;			//KH Set the starting position to print string from.
+	if (len == 0)  
+	{
+		LastWrapPutStr_P = p;			//KH Keep track of the last string position.
+		return;
+	}
 
 	for (row=0; row<maxRows;row++)   
 	{
-    	LastWrapPutStr_Start = p;  //KH Keep track of the position of the first character on each line.
-		c = w/avgFontW;	// guess approx chars in line
+		LastWrapPutStr_Start = p;		//KH Keep track of the position of the first character on each line.
+		c = w/avgFontW;				// guess approx chars in line
 		if(p + c > len) c = len - p;
 		if(c > 99) c = 99;
 
-		strncpy(newStr,str+p, c); // copy approx chars per line to new string
-		newStr[c]= '\0'; //KH clean up the end of the new line.
+		strncpy(newStr,str+p, c);		// copy approx chars per line to new string
+		newStr[c]= '\0';			//KH clean up the end of the new line.
 
 		while(!done)
 		{
-			newStrW = TAP_Osd_GetW(newStr,0,fntSize); // see if it fits
-			if (newStrW > w && c > 0)  // Too big
-			{		 //remove some chars
+			newStrW = TAP_Osd_GetW(newStr,0,fntSize);	// see if it fits
+			if (newStrW > w && c > 0)			// Too big
+			{						//remove some chars
 				if(c > 4) c = c - 4;
 				else c--;
 
@@ -192,48 +198,47 @@ void WrapPutStr(word windowRgn, char *str, int x, int y, int w, int fgCol, int b
 			}
 			else
 			{
-				done = 1; // string short enough
+				done = 1;				// string short enough
 			}
-			
 		}
 
 		done = 0;
 
-		while (TAP_Osd_GetW(newStr,0,fntSize)<w-avgFontW)    //while the width of the text is less than a lines length
+		while (TAP_Osd_GetW(newStr,0,fntSize)<w-avgFontW)	//while the width of the text is less than a lines length
 		{
-			if (p + c + 1 > len)   //if the counter is larger than the string length of the orig string, we have really finished here 
+			if (p + c + 1 > len)				//if the counter is larger than the string length of the orig string, we have really finished here 
 			{
 				done=1;					
 				break;
 			}
-			strncat(newStr,str+p+c,1); //copy 1 char from str at a time.
-			c++;                 //get next char
+			strncat(newStr,str+p+c,1);			//copy 1 char from str at a time.
+			c++;						//get next char
 		}
 
-
-		if (!done ) //KH find wrap position unless finished
+		if (!done )						//KH find wrap position unless finished
 		{
-			c--; //reduce c by 1 as it is one too much from last while statement.
+			c--;						//reduce c by 1 as it is one too much from last while statement.
 			while (!isspace(newStr[c])&&!(newStr[c]=='-')&&(c>0))
-		 	{   //look for a space or hyphen (or underflow).
+		 	{						//look for a space or hyphen (or underflow).
 				c--;
 			}
-			c++; //add 1 to keep hyphen on right line
+			c++;						//add 1 to keep hyphen on right line
 		}
-		newStr[c]='\0';   //terminate str (early at wrap point if not done).
+		newStr[c]='\0';						//terminate str (early at wrap point if not done).
 
-		LastWrapPutStr_Y = y+((fontH+lineSep)*row); //KH Keep track of the Y coordinate of where we're printing.
+		LastWrapPutStr_Y = y+((fontH+lineSep)*row);		//KH Keep track of the Y coordinate of where we're printing.
 		TAP_Osd_PutStringAf(windowRgn, x, LastWrapPutStr_Y, x+w, newStr, fgCol, bgCol, 0, fntSize, 0);  //put multiple lines down if required.
 		p = p + c;   //store current position
-		LastWrapPutStr_P = p; //KH Keep track of the last string position.
-		newStr[0] = '\0';  //reset string.
-    	if (done) //KH if we've printed all the text, break out of loop.
-        {
-            LastWrapPutStr_P = 0;  //KH Reset to start of string.
-            break;
-        }
+		LastWrapPutStr_P = p;					//KH Keep track of the last string position.
+		newStr[0] = '\0';					//reset string.
+
+		if (done)						//KH if we've printed all the text, break out of loop.
+		{
+			LastWrapPutStr_P = 0;				//KH Reset to start of string.
+			break;
+		}
 	}    
-	LastWrapPutStr_Y = LastWrapPutStr_Y + fontH + lineSep;  //KH Store the last Y position.
-	WrapPutStr_StartPos = 0;  //KH Reset starting position to print string from
+	LastWrapPutStr_Y = LastWrapPutStr_Y + fontH + lineSep;		//KH Store the last Y position.
+	WrapPutStr_StartPos = 0;					//KH Reset starting position to print string from
 }
 

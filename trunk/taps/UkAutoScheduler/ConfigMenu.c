@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.5
+Version	: 0.6
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -15,6 +15,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.3 sl8:		06-02-06	Config menu enabled
 	  v0.4 sl8		16-02-06	Activation key enabled. 'Perform Search' option added
 	  v0.5 sl8		09-03-06	Option added to enable/disable firmware calls
+	  v0.6 sl8		11-04-06	Show window added and tidy up.
 
 **************************************************************/
 
@@ -28,9 +29,8 @@ void configTimeKeyHandler(dword);
 #define CONFIG_E1	275
 #define CONFIG_E2	627
 #define CONFIG_LINES 10
-#define DEFUALT_EXIT_OPTION 0
 #define Y1_OFFSET 36
-#define Y1_STEP 42					// was 44
+#define CONFIG_MENU_NUMBER_OF_LINES	10
 
 static keyCodes_Struct localKeyCodes;
 static dword CurrentActivationKey = 0;
@@ -53,18 +53,18 @@ void DisplayConfigLine(char lineNumber)
 	
 	if (( chosenConfigLine == lineNumber ) && ( lineNumber != 10 ))		// highlight the current cursor line
 	{																	// save, cancel, delete looks after itself
-		TAP_Osd_PutGd( rgn, 53, lineNumber*Y1_STEP+Y1_OFFSET-8, &_highlightGd, FALSE );
+		TAP_Osd_PutGd( rgn, 53, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, &_highlightGd, FALSE );
 	}
 	else
 	{
-		TAP_Osd_PutGd( rgn, 53, lineNumber * Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );
+		TAP_Osd_PutGd( rgn, 53, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );
 	}
 
 	switch ( lineNumber )
 	{
 	/*--------------------------------------------------*/
 	case 1 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if ( currentModelType == TF5800 )
 		{
@@ -75,20 +75,20 @@ void DisplayConfigLine(char lineNumber)
 			TAP_SPrint(str,"TF5000  (International)");
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 2 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1, "Language", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Language", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		TAP_SPrint(str, "English");
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, COLOR_DarkGray, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, COLOR_DarkGray, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 3 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( keyStage )
 		{
@@ -117,12 +117,12 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 4 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( schMainPerformSearchMode )
 		{
@@ -150,7 +150,7 @@ void DisplayConfigLine(char lineNumber)
 			else
 			{
 				TAP_SPrint( str, "Enter Time - " );
-				schDisplayDirectEdit(schDirectTimePos, ((schMainPerformSearchTime & 0xff00) >> 8), (schMainPerformSearchTime & 0xff), str2);
+				schEditDrawDirect(schDirectTimePos, ((schMainPerformSearchTime & 0xff00) >> 8), (schMainPerformSearchTime & 0xff), str2);
 				strcat(str, str2);
 			}
 
@@ -163,42 +163,42 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 5 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (FirmwareCallsEnabled == FALSE)
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
 		}
 
 		break;
 	/*--------------------------------------------------*/
 	case 10 :
-		TAP_Osd_PutGd( rgn, 53, lineNumber * Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
+		TAP_Osd_PutGd( rgn, 53, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
 
 		if (( configOption == 0 ) && ( chosenConfigLine == 10 ))
 		{
-			TAP_Osd_PutGd( rgn, 116, lineNumber * Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
-			PrintCenter(rgn, 144, lineNumber * Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			TAP_Osd_PutGd( rgn, 116, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
+			PrintCenter(rgn, 144, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		}
-		else PrintCenter(rgn, 144, lineNumber * Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		else PrintCenter(rgn, 144, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (( configOption == 1 ) && ( chosenConfigLine == 10 ))
 		{
-			TAP_Osd_PutGd( rgn, 278, lineNumber * Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
-			PrintCenter(rgn, 306, lineNumber * Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			TAP_Osd_PutGd( rgn, 278, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
+			PrintCenter(rgn, 306, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		}
-		else PrintCenter(rgn, 306, lineNumber * Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		else PrintCenter(rgn, 306, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		TAP_Osd_FillBox( rgn, 437, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );		// one extra column seperator for us
+		TAP_Osd_FillBox( rgn, 437, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );		// one extra column seperator for us
 
 		break;
 	/*--------------------------------------------------*/
@@ -207,8 +207,8 @@ void DisplayConfigLine(char lineNumber)
 	/*--------------------------------------------------*/
 	}
 
-	TAP_Osd_FillBox( rgn, CONFIG_E0, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );		// draw the column seperators
-	TAP_Osd_FillBox( rgn, CONFIG_E1, lineNumber*Y1_STEP+Y1_OFFSET-8, 3, Y1_STEP, FILL_COLOUR );
+	TAP_Osd_FillBox( rgn, CONFIG_E0, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+	TAP_Osd_FillBox( rgn, CONFIG_E1, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );
 }
 
 
@@ -236,7 +236,7 @@ void SaveConfiguration( void )
 void CreateConfigWindow(void)
 {
 	configWindowShowing = TRUE;
-	DrawGraphicBoarders();
+	sysDrawGraphicBorders();
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Configuration", TITLE_COLOUR, COLOR_Black );
 }
 
@@ -255,7 +255,7 @@ void RedrawConfigWindow( void )
 	UpdateListClock();
 	CopyConfiguration();
 
-	for ( i=1; i<=TIMER_LINES ; i++)
+	for ( i=1; i<=CONFIG_MENU_NUMBER_OF_LINES ; i++)
 	{
 		DisplayConfigLine(i);
 	}

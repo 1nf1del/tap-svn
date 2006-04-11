@@ -4,7 +4,7 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.3
+Version	: 0.4
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -13,7 +13,8 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.1 sl8:		05-02-06	Modified for UKAS
 	  v0.2 sl8:		15-02-06	'Perform Search' option added.
 	  v0.3 sl8:		09-03-06	Firmware enable/disable option added
-
+	  v0.4 sl8		11-04-06	SDK.
+	
 ************************************************************/
 
 #define OPTIONS_FILENAME "UkAuto.ini"
@@ -205,11 +206,9 @@ void LoadConfiguration( void )
 	if ( !ReadConfigurationFile() )
 	{
 		unitModelType = TF5800;
-#ifndef WIN32	
+
 		mainActivationKey = RKEY_Recall;
-#else
-		mainActivationKey = RKEY_F1;
-#endif
+
 		SaveConfigurationToFile();
 	}
 }

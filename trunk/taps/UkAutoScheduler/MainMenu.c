@@ -4,14 +4,16 @@
 
 Name	: MainMenu.c
 Author	: Darkmatter
-Version	: 0.2
-For		: Topfield TF5x00 series PVRs
+Version	: 0.3
+For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
 History	: v0.0 Darkmatter:	30-07-05	Split from menu.c as part of making the menu code generic
 v0.1	sl8:	06-02-06	Config menu enabled
 v0.2	sl8:	15-02-06	Credits modified.
+v0.3	sl8:	11-04-06	Tidy up.
+
 
 ************************************************************/
 
@@ -25,10 +27,10 @@ static menu_Struct	mainMenu;
 //
 void DisplayCredits( void )
 {
-    char	str[256];
+	char	str[256];
 	creditsShowing = TRUE;
 	
-    DrawGraphicBoarders();
+	sysDrawGraphicBorders();
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Credits", TITLE_COLOUR, COLOR_Black );
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 80, 650, __tap_program_name__ , MAIN_TEXT_COLOUR, 0 );

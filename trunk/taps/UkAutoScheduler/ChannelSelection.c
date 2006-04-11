@@ -4,7 +4,7 @@
 
 Name	: ChannelSelection.c
 Author	: Darkmatter
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -12,6 +12,7 @@ Usage	:
 History	: v0.0 Darkmatter:	27-07-05	Split from TimerEdit.c
 	  v0.1 sl8:		20-11-05	More generic
 	  v0.2 sl8		20-01-06	Modified for TAP_SDK. All variables initialised.
+	  v0.3 sl8		11-04-06	Tidy up.
 
 **************************************************************/
 
@@ -83,7 +84,7 @@ void DisplayChannelListWindow( int svcNum, byte svcType, void (*ReturningProcedu
 	selectedLogo = svcNum;
 	selectedSvc = svcType;
 
-	DrawGraphicBoarders();												// Draw the pretty graphical surround
+	sysDrawGraphicBorders();												// Draw the pretty graphical surround
 
 	TAP_SPrint( str, "Channel Selection" );
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
