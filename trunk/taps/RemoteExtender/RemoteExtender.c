@@ -28,6 +28,7 @@
 
 //#define MHEG 1
 //#define TOPPY2 1
+//#define DIAGNOSTIC 1
 
 #ifdef MHEG
 #define MHEG_TEXT "MHEG "
@@ -43,7 +44,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "0.7");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.0");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -52,7 +53,9 @@ TAP_ETCINFO(__DATE__);
 
 dword exitCount = 0;
 dword lastKey = 0;
-
+#ifdef DIAGNOSTIC
+int rgn = 0;
+#endif
 
 //-----------------------------------------------------------------------------
 // ReceiveKeyHook() stores the RC code received from the front panel processor to the
@@ -241,6 +244,10 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		TAP_Print("RemoteExtender: key=%X lastKey=%X\n", param1, lastKey);
 		if ( param1 == RKEY_Recall )
 		{
+#ifdef DIAGNOSTIC
+			if ( rgn )
+				TAP_Osd_Delete(rgn);
+#endif
 			UndoFirmwareHacks();
 			TAP_Exit();
 			TAP_Print("Exiting Remote Extender TAP\n");
@@ -253,6 +260,18 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	if ( event == EVT_KEY-1 )
 	{
 		int i;
+
+#ifdef DIAGNOSTIC
+		// display key codes on screen
+		{
+			char buffer[256];
+			TAP_Osd_FillBox( rgn, 50,250, 130,50, COLOR_DarkGray );
+			sprintf(buffer, "key=%X", param1);
+			TAP_Osd_PutS( rgn, 50,250, -1, buffer, COLOR_White, COLOR_DarkGray, 0, FNT_Size_1622, FALSE, ALIGN_LEFT );
+			sprintf(buffer, "rawkey=%X", lastKey);
+			TAP_Osd_PutS( rgn, 50,275, -1, buffer, COLOR_White, COLOR_DarkGray, 0, FNT_Size_1622, FALSE, ALIGN_LEFT );
+		}
+#endif
 
 #ifdef TOPPY2
 		// Don't pass on filtered Toppy2 keypresses
@@ -270,6 +289,10 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			++exitCount;
 		else
 		{
+#ifdef DIAGNOSTIC
+			if ( rgn )
+				TAP_Osd_Delete(rgn);
+#endif
 			UndoFirmwareHacks();
 			TAP_Exit();
 			ShowMessage("Remote Extender TAP shut down\n"
@@ -323,6 +346,20 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	return param1;
 }
 
+
+typedef struct {
+	Model	model;
+    int		firmwareVersion;
+	dword	eventTable;
+	dword	eventTableLength;
+} FirmwareDetail;
+
+
+FirmwareDetail firmware[] = 
+{
+	// Model		FW version,	register_group
+	TF5800t,		0x1225,		0x80427bfc		// 08 Dec 2005
+};
 
 //see  dtt mheg-5 spec. v1.06, section 3.6
 //if register_group == 0 then no mheg is running
@@ -396,18 +433,31 @@ bool TSRCommanderExitTAP()
 
 int TAP_Main()
 {
+	bool supported = FALSE;
+	int index;
+
 	TAP_Print( "Starting Remote Extender TAP\n" );
 
 #ifdef MHEG
-	if ( _appl_version != 0x1225 || GetModel() != TF5800t )
+	// Look up the current firmware
+	for ( index=0; index<sizeof(firmware)/sizeof(FirmwareDetail); ++index )
 	{
-		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 200 );
+		if ( GetModel() == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
+		{
+			supported = TRUE;
+			break;
+		}
+	}
+	if ( !supported )
+	{
+		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 750 );
+		return 0;
 	}
 #endif
 
 	if ( !StartTAPExtensions() )
 	{
-		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 200 );
+		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 750 );
 		return 0;
 	}
 
@@ -437,6 +487,10 @@ int TAP_Main()
 		HackFirmware( addr, J(GetStateHook) );
 		HackFirmware( addr+1, NOP_CMD );
 	}
+#endif
+
+#ifdef DIAGNOSTIC
+	rgn = TAP_Osd_Create(0, 0, 720, 576, 0, FALSE); // Define a region that covers the whole screen
 #endif
 
 	return 1;

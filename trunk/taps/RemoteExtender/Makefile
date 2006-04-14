@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2005 Simon Capewell. All Rights Reserved.
+#  Copyright (c) 2006 Simon Capewell. All Rights Reserved.
 #
 #  This file is part of the TAPs for Topfield PVRs project.
 #      http://tap.berlios.de/
@@ -21,17 +21,37 @@
 
 include ../../tools/build/tap.mk
 
-all: RemoteExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+TAPNAME=RemoteExtender
 
-# Copy files to the Toppy using tfcopy
-copy: all
-	@mips-objdump -D RemoteExtender.elf > RemoteExtender.asm
-	tfcopy RemoteExtender.tap '#:\ProgramFiles\'
+ifdef TOPPY2
+CFLAGS+=-DTOPPY2
+CXXFLAGS+=-DTOPPY2
+TAPNAME:=$(TAPNAME)Toppy2
+endif
+
+ifdef MHEG
+CFLAGS+=-DMHEG
+CXXFLAGS+=-DMHEG
+TAPNAME:=$(TAPNAME)MHEG
+endif
+
+all:
+	$(MAKE) single
+	$(MAKE) single MHEG=1
+	$(MAKE) single MHEG=1 TOPPY2=1
+	$(MAKE) single TOPPY2=1
+
+single: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+	tfcopy $(TAPNAME).tap '#:\ProgramFiles\'
 
 
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf *.map
+
+$(TAPNAME).tap: RemoteExtender.elf
+	$(OBJCOPY) -O binary $< $@
+	-rm -f *.o *.elf *.map
 
 RemoteExtender.elf::	RemoteExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 RemoteExtender.o:		RemoteExtender.c RemoteMap.h
@@ -39,7 +59,7 @@ RemoteExtender.o:		RemoteExtender.c RemoteMap.h
 CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 
 ../../libs/libutils/libutils.a::
-	$(MAKE) -C ../../libs/libutils
+	$(MAKE) -s -C ../../libs/libutils
 
 ../../libs/Firmware/libfirmware.a::
-	$(MAKE) -C ../../libs/Firmware
+	$(MAKE) -s -C ../../libs/Firmware

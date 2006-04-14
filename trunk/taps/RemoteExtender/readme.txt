@@ -1,19 +1,19 @@
-Remote Extender 0.7
+Remote Extender 1.0
 -------------------
 
-Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys.
+Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys. The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively. Just put the standard or MHEG version into AutoStart if you're running MyStuff.
 
-The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively. Just put the standard or MHEG version into AutoStart if you're running MyStuff.
+At any time, you can shut down Remote Extender by pressing the front panel OK button 5 times in succession. This is a good way to revert to the standard remote if you're running the Toppy2 version of Remote Extender.
 
-Remote Extender comes in 4 versions: Standard, MHEG and Toppy2 and Toppy2MHEG. 
+Remote Extender has no options screen and instead comes in 4 versions: Standard, MHEG and Toppy2 and Toppy2MHEG.
 
 MHEG
 ----
-MHEG is for the TF5800 only and fixes a bug in the firmware that prevents TAPs from detecting Teletext. This is particularly useful for Jag's EPG as it will allow OK to be used to activate the Channel List view without blocking entry of Teletext page numbers.
+MHEG versions are for the TF5800 only and fix a bug in the firmware that prevents TAPs from detecting Teletext. This is particularly useful for Jag's EPG as it will allow OK to be used to activate the Channel List view without blocking entry of Teletext page numbers.
 
 Toppy2
 ------
-Toppy2 translates codes from a programmable remotes into standard Topfield commands to allow you to run 2 Topfield PVRs in the same room without your remote operating both at the same time.
+Toppy2 will be of interest to people with 2 Topfield PVRs. It translates codes from a programmable remote into standard Topfield commands to allow you to operate each independently. All buttons except Power are supported. The codes to base your remote's programme on are listed below.
 
 5800/5000 key	Normal Remote	Toppy2 Second Remote
 Up				0x00			0x20 
@@ -75,7 +75,7 @@ Cmd_6			0x76	Jump to the start of timeshift/record buffer
 Cmd_7			0x77	?
 Cmd_8			0x78	?
 Cmd_9			0x79	?
-Cmd_a			0x7a	Unit stops responding
+Cmd_a			0x7a	CORRUPT HARD DISK - Overwrites the first 1024 bytes of the hard disk with 0xff
 Cmd_b			0x7b	Test bars – black and white split half screen
 Cmd_c			0x7c	Test bars – black and red split half screen
 Cmd_d			0x7d	Test bars – black and green split half screen
@@ -85,7 +85,7 @@ Cmd_f			0x7f	FACTORY RESET
 
 Information for TAP Developers
 ------------------------------
-Remote Extender patches the firmware to make the EVT/KEY event send the internal remote keycodes in param2. RawKey.h contains definitions of these codes. If the value of param2 is 0 then RemoteExtender is either not running, or does not have an internal keycode available (usually due to the keypress being caused by TAP/GenerateEvent) and param1 should be processed instead.
+Remote Extender patches the firmware to make the EVT_KEY event send the internal remote keycodes in param2. RawKey.h contains definitions of these codes. If the value of param2 is 0 then Remote Extender is either not running, or does not have an internal keycode available (usually due to the keypress being caused by TAP/GenerateEvent) and param1 should be processed instead.
 
 Suggested uses for this are:
 On the TF5800, for distinguishing between V+,V-, P+,P- and the arrow buttons and TV/Radio and List.
