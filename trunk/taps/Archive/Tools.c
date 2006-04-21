@@ -48,13 +48,8 @@ void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
 
     if ( width > msgScrWidth ) width = msgScrWidth;
 
-#ifdef WIN32  // If testing on WIN32 platform 
-TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, FILL_COLOUR );				// clear the screen
-#endif          
-
     // Display the pop-up window.
     TAP_Osd_PutGd( msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, &_msgpopup360x130Gd, TRUE );
-
 		
 	TAP_Osd_PutS(msgRgn, MSG_SCREEN_X+(msgScrWidth-width)/2, msgY, MSG_SCREEN_X+(msgScrWidth+width)/2, msg1,		
 		MSG_TITLE_COLOUR, 0, 0, FNT_Size_1926,

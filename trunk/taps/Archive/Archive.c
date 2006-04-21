@@ -202,7 +202,7 @@ dword My_KeyHandler(dword key, dword param2)
 {
 	dword state, subState ;
  
-
+ 
 	if ( yesnoWindowShowing ) { return( YesNoKeyHandler( key ) ); }
 																			
 	if ( configWindowShowing ) { return( ConfigKeyHandler( key ) ); }
@@ -263,6 +263,11 @@ void CheckFlags( void )
              fileReset = FALSE; 
              RefreshArchiveList( FALSE );
         }
+		if ( listMoved )        // If the list was changed during info, refresh the list.
+        {
+             listMoved = FALSE; 
+             RefreshArchiveList( FALSE );   // Redraw and reposition as we may have moved off the page.
+        }
 	}
 
 	if ( returnFromDelete == TRUE )											// Handle returning from delete.
@@ -296,7 +301,7 @@ void CheckFlags( void )
 	if ( returnFromRename == TRUE )									// Handle returning from rename.
 	{																// redraw the underlying window
 	    returnFromRename = FALSE;
-	}
+	} 
 
 	if ( returnFromMenu == TRUE )									// Handle returning from main menu.
 	{																// redraw the underlying window
@@ -582,7 +587,7 @@ int TAP_Main (void)
 
     return 1;
 }
-
+ 
 #ifdef WIN32
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,

@@ -193,9 +193,6 @@ void DisplayKeyBoardHelp( void )
         
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     keyboardHelpWindowCopy = TAP_Osd_SaveBox(rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIGHT);
-#ifdef WIN32  // If testing on WIN32 platform 
-TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIGHT, FILL_COLOUR );				// clear the screen
-#endif          
 
     // Display the pop-up window.
     if ( unitModelType==TF5800t) // Display the UK style remote
@@ -907,9 +904,6 @@ void RedrawKeyboard( void )
 
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     keyboardWindowCopy = TAP_Osd_SaveBox(rgn, KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT);
-    #ifdef WIN32  // If testing on WIN32 platform 
-       TAP_Osd_FillBox( rgn,KB_BASE_X, KB_BASE_Y, KB_WIDTH, KB_HEIGHT, FILL_COLOUR );				// clear the screen
-    #endif          
 
     // Display the pop-up window.
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Background, row, column);

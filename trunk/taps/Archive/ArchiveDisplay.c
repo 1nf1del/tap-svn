@@ -179,9 +179,6 @@ void DisplayArchiveHelp( void )
         
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     archiveHelpWindowCopy = TAP_Osd_SaveBox(rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, ARCHIVE_HELP_WIDTH, ARCHIVE_HELP_HEIGHT);
-#ifdef WIN32  // If testing on WIN32 platform 
-    TAP_Osd_FillBox( rgn,ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, ARCHIVE_HELP_WIDTH, ARCHIVE_HELP_HEIGHT, FILL_COLOUR );				// clear the screen
-#endif          
 
     // Display the pop-up window.
     if ( unitModelType==TF5800t) // Display the UK style remote
@@ -594,8 +591,9 @@ void DrawGraphicBorders(void)
                             TAP_Osd_FillBox( rgn, 0, 0, 720, 576, COLOR_DarkGray );				// clear the screen
                          #else    
                             TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );		      		        // clear the screen with transparency colour
-                            TAP_Osd_FillBox( rgn, INFO_AREA_X-COLUMN_GAP_W, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W+(2*COLUMN_GAP_W), (INFO_AREA_Y+INFO_AREA_H)-(Y1_STEP+Y1_OFFSET-11), FILL_COLOUR );	// Fill the center with black.
                          #endif
+                            TAP_Osd_FillBox( rgn, INFO_AREA_X-COLUMN_GAP_W, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W+(2*COLUMN_GAP_W), (INFO_AREA_Y+INFO_AREA_H)-(Y1_STEP+Y1_OFFSET-11), FILL_COLOUR );	// Fill the center with black.
+//                         #endif
                          TAP_Osd_PutGd( rgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
                          TAP_Osd_PutGd( clockRgn, 0, 0, &_top_blackGd, TRUE );					    // draw top graphics
                          TAP_Osd_PutGd( rgn, 0, 0, &_side_blackGd, TRUE );						// draw left side graphics
@@ -651,11 +649,7 @@ void DrawBackground(void)
 //
 void DrawColumnGap(int x, int y)
 {
-#ifdef WIN32    
-    TAP_Osd_FillBox( listRgn, x, y, COLUMN_GAP_W, Y1_STEP, COLOR_White );	// draw the column seperators
-#else
     TAP_Osd_FillBox( listRgn, x, y, COLUMN_GAP_W, Y1_STEP, FILL_COLOUR );	// draw the column seperators
-#endif       
 }
 
 
@@ -1176,10 +1170,6 @@ void DisplayArchiveLine(int line, int i)
     appendIntToLogfile("DisplayArchiveLine: Called with i=%d", i, WARNING);
 
 	if ( line == 0 ) return;											// bounds check
-
-#ifdef WIN32
-    TAP_Osd_FillBox( listRgn,INFO_AREA_X, Y1_STEP+Y1_OFFSET-8, INFO_AREA_W, ((NUMBER_OF_LINES)*42), FILL_COLOUR );				// clear the screen
-#endif          
 
 	if ( chosenLine == line )											// highlight the current cursor line
 	   TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_highlightGd, TRUE );

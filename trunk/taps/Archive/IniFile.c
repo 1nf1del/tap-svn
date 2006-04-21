@@ -126,6 +126,12 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (okPlayOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (folderDeleteOption) );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", (extInfoFontOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -210,6 +216,8 @@ void SetConfigurationVariables( void )
 	borderOption        = ReadIniDecimal();
 	recCheckOption      = ReadIniDecimal();
 	okPlayOption        = ReadIniDecimal();
+	folderDeleteOption  = ReadIniDecimal();
+	extInfoFontOption   = ReadIniDecimal();
 }
 
 
@@ -261,18 +269,20 @@ void LoadConfiguration( void )
             unitModelType = TF5000t;
             recordingRateOption = 2900;
         } 
-		mainActivationKey = RKEY_Slow;
-		sortOrderOption   = SORT_DATE_OPTION;         // Default to sort by date.
-		progressBarOption = PB_MULTI;
-		column1Option     = 0;
-		column2Option     = 0;
-		column3Option     = 0;
-		column4Option     = 0;
-		column5Option     = 0;
-		numberLinesOption = 9;
-		borderOption      = 1;
-		recCheckOption    = 0;
-		okPlayOption      = 0;
+		mainActivationKey  = RKEY_Slow;
+		sortOrderOption    = SORT_DATE_OPTION;         // Default to sort by date.
+		progressBarOption  = PB_MULTI;
+		column1Option      = 0;
+		column2Option      = 0;
+		column3Option      = 0;
+		column4Option      = 0;
+		column5Option      = 0;
+		numberLinesOption  = 9;
+		borderOption       = 1;
+		recCheckOption     = 0;
+		okPlayOption       = 0;
+		folderDeleteOption = 0;
+		extInfoFontOption  = 0;
 
 		SaveConfigurationToFile();
 	}

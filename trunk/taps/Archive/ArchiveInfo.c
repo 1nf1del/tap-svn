@@ -15,6 +15,7 @@ History	: v0.0 kidhazy 25-10-05  Inception date
 **************************************************************/
 
 static bool  returnFromInfo;
+static bool  listMoved;
 static byte* infoWindowCopy;
 
 
@@ -116,6 +117,7 @@ void DisplayInfoLine(void)
 void DisplayArchiveInfoWindow()
 {
     char title[50], str1[200], str2[200], str3[200];
+    int  fontHeight, fontSize;
     
     
     void DisplayFileInfo()
@@ -227,11 +229,11 @@ void DisplayArchiveInfoWindow()
          LastWrapPutStr_Start = 0;  // Reset "first character" pointer to start for Extended Event information.
          LastWrapPutStr_P = 0;      // Reset "last character" pointer to start for Extended Event information.
 
-         ExtInfoRows = ((INFO_WINDOW_Y + INFO_WINDOW_H) - LastWrapPutStr_Y - INFO_OPTION_H -20) / 19 ;   // Calculate how many lines are left available for Extended Info with a font height of 19.
+         ExtInfoRows = ((INFO_WINDOW_Y + INFO_WINDOW_H) - LastWrapPutStr_Y - INFO_OPTION_H -20) / fontHeight ;   // Calculate how many lines are left available for Extended Info with a font height of 19.
          if( currentFile.extInfo )
          {
             WrapPutStr_StartPos = LastWrapPutStr_P; // Set the start position of the string to where we got up to last time.
-            WrapPutStr( rgn, currentFile.extInfo, INFO_WINDOW_X+10, LastWrapPutStr_Y, INFO_WINDOW_W-15, MAIN_TEXT_COLOUR, 0, ExtInfoRows, FNT_Size_1419, 0);
+            WrapPutStr( rgn, currentFile.extInfo, INFO_WINDOW_X+10, LastWrapPutStr_Y, INFO_WINDOW_W-15, MAIN_TEXT_COLOUR, 0, ExtInfoRows, fontSize, 0);
          }
 	     
 
@@ -263,6 +265,19 @@ void DisplayArchiveInfoWindow()
     // Display the pop-up window - will also clear any old text if we are doing a refresh.
     TAP_Osd_PutGd( rgn, INFO_WINDOW_X, INFO_WINDOW_Y, &_popup476x416Gd, TRUE );
 	
+	switch (extInfoFontOption)
+	{
+           case 1:            //Large font
+                              fontHeight = 22;
+                              fontSize   = FNT_Size_1622;
+                              break;
+                              
+           default:            //Small font
+                              fontHeight = 19;
+                              fontSize   = FNT_Size_1419;
+                              break;
+    }
+                              
     
      	     
     // Display the appropriate info text.
@@ -287,12 +302,10 @@ void ActivateInfoWindow()
 	infoWindowShowing = TRUE;
 	infoCommandOption = 0; // Default to the "OK" option.
 	fileRenamed = FALSE;
+    listMoved   = FALSE;
 
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     infoWindowCopy = TAP_Osd_SaveBox(rgn, INFO_WINDOW_X, INFO_WINDOW_Y, INFO_WINDOW_W, INFO_WINDOW_H);
-#ifdef WIN32  // If testing on WIN32 platform 
-TAP_Osd_FillBox( rgn,INFO_WINDOW_X, INFO_WINDOW_Y, INFO_WINDOW_W, INFO_WINDOW_H, FILL_COLOUR );				// clear the screen
-#endif          
 
     DisplayArchiveInfoWindow();
 }
@@ -316,6 +329,111 @@ dword ArchiveInfoKeyHandler(dword key)
 
 	switch ( key )
 	{
+		case RKEY_ChDown :	if ( chosenLine < maxShown ) 
+                            {
+                                 chosenLine++;         // 0=hidden - can't hide once cursor moved
+                                 printLine++;
+                                 if (printLine > NUMBER_OF_LINES) printLine=1;
+                                 listMoved   = TRUE;
+                            }     
+                            else 
+                            {    // Roll past bottom to start again.
+                                 chosenLine=1;	
+                                 printLine=1;
+                                 listMoved   = TRUE;
+                            }
+							if ( maxShown == 0 ) chosenLine = 0;					// don't move the cursor if no files shown
+                            // Make sure we're not pointing to the parent directory, or a recording file entry.
+                            while ((myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR) || (myfiles[CurrentDirNumber][chosenLine]->isRecording))
+                            {
+                                 // If we are, then keep moving forward until we're not.                             
+                                 if ( chosenLine < maxShown ) 
+                                 {
+                                      chosenLine++;         // 0=hidden - can't hide once cursor moved
+                                      printLine++;
+                                      if (printLine == 0) printLine = NUMBER_OF_LINES;
+                                 }     
+                                 else 
+                                 {    // Roll past bottom to start again.
+                                      chosenLine=1;	
+                                      printLine=1;
+                                 }
+                            }     
+                            currentFile   = *myfiles[CurrentDirNumber][chosenLine];
+                            currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
+							DisplayArchiveInfoWindow();
+
+/*	
+						page = (chosenLine-1) / NUMBER_OF_LINES;
+                            
+		
+            				if (printLine!=1)  // We're still on the same page.
+							{
+								if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine,oldPrintLine);
+								DisplayArchiveLine(chosenLine,printLine);
+							}
+							else DrawArchiveList();
+                            UpdateListClock();
+							UpdateSelectionNumber();
+*/
+							break;
+
+		case RKEY_ChUp :	if ( chosenLine > 1 ) 
+                            {
+                                 chosenLine--; 
+                                 printLine--;
+                                 if (printLine == 0) printLine = NUMBER_OF_LINES;
+                                 listMoved   = TRUE;
+                            }     
+                            else 
+                            {    // Roll past top to start again.
+                                 chosenLine = maxShown;
+                                 printLine  = NUMBER_OF_LINES;
+                                 listMoved   = TRUE;
+                            }
+							if ( maxShown == 0 ) chosenLine = 0;					// not strictly needed - included in above logic
+
+                            // Make sure we're not pointing to the parent directory, or a recording file entry.
+                            while ((myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR) || (myfiles[CurrentDirNumber][chosenLine]->isRecording))
+                            {
+                                 // If we are, then keep moving back until we're not.                             
+                                 if ( chosenLine > 1 ) 
+                                 {
+                                     chosenLine--; 
+                                     printLine--;
+                                     if (printLine == 0) printLine = NUMBER_OF_LINES;
+                                 }     
+                                 else 
+                                 {    // Roll past top to start again.
+                                     chosenLine = maxShown;
+                                     printLine  = NUMBER_OF_LINES;
+                                 }
+                            }     
+                            currentFile   = *myfiles[CurrentDirNumber][chosenLine];
+                            currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
+
+							DisplayArchiveInfoWindow();
+/*							
+							page = (chosenLine-1) / NUMBER_OF_LINES;
+                            if (printLine == NUMBER_OF_LINES)    // We've scrolled off the top of the page, so determine where to start next.
+                            {
+                                if (chosenLine < NUMBER_OF_LINES) // But if we're right near the top with only a small number of entries, only
+                                {                                 // show the small list.
+                                     printLine = chosenLine;
+                                }
+                                DrawArchiveList();    // Since this is a page change, redraw the entire list. 
+                            }    
+                            else                        // Just unhighlight the old line, and redraw the new selection.
+							{
+								if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine, oldPrintLine);
+					      		DisplayArchiveLine(chosenLine, printLine);
+							}
+
+                            UpdateListClock();
+							UpdateSelectionNumber();
+*/
+							break;
+
 		case RKEY_VolUp:	if ( infoCommandOption < (INFO_COMMAND_OPTIONS-1) ) infoCommandOption++;
 							else infoCommandOption = 0;
 							DisplayInfoLine();

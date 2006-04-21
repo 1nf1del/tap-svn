@@ -63,6 +63,8 @@ static int currentNumberLinesOption;
 static int currentBorderOption;
 static int currentRecCheckOption;
 static int currentOkPlayOption;
+static int currentFolderDeleteOption;
+static int currentExtInfoFontOption;
 
 
 
@@ -353,6 +355,38 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
+		case 18 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Folder Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentFolderDeleteOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "Cannot delete non-empty folders" );
+								break;
+								
+					case 1 : 	sprintf( str, "Can delete non-empty folders" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
+		case 19 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Extra Info. Font", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentExtInfoFontOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "Small font size (5 lines)" );
+								break;
+								
+					case 1 : 	sprintf( str, "Large font size (4 lines)" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
 		case 10 :		
 		case 20 :
 				TAP_Osd_PutGd( rgn, 53, lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
@@ -411,6 +445,8 @@ void CopyConfiguration( void )
     currentBorderOption        = borderOption;
     currentRecCheckOption      = recCheckOption;
     currentOkPlayOption        = okPlayOption;
+    currentFolderDeleteOption  = folderDeleteOption;
+    currentExtInfoFontOption   = extInfoFontOption;
 }
 
 void SaveConfiguration( void )
@@ -431,6 +467,8 @@ void SaveConfiguration( void )
     borderOption        = currentBorderOption;
     recCheckOption      = currentRecCheckOption;
     okPlayOption        = currentOkPlayOption;
+    folderDeleteOption  = currentFolderDeleteOption;
+    extInfoFontOption   = currentExtInfoFontOption;
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -831,6 +869,40 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentOkPlayOption == 1 ) currentOkPlayOption--;
 		            	                    else currentOkPlayOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 18 :	switch ( key )										// Folder Delete option
+					{
+		            	case RKEY_VolUp:	if (currentFolderDeleteOption == 0 ) currentFolderDeleteOption++;
+		            	                    else currentFolderDeleteOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentFolderDeleteOption == 1 ) currentFolderDeleteOption--;
+		            	                    else currentFolderDeleteOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 19 :	switch ( key )										// Extended Info Font size option
+					{
+		            	case RKEY_VolUp:	if (currentExtInfoFontOption == 0 ) currentExtInfoFontOption++;
+		            	                    else currentExtInfoFontOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentExtInfoFontOption == 1 ) currentExtInfoFontOption--;
+		            	                    else currentExtInfoFontOption = 1;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 

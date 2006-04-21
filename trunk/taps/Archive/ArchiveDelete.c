@@ -74,12 +74,26 @@ void ActivateDeleteWindow(char* filename, dword attr)
 {
     char title[50], str1[200], str2[200], str3[200];
 
-	if (myfiles[CurrentDirNumber][chosenLine]->isRecording)  // We cannot delete a recording file.
-	{
-         ShowMessageWin( rgn, "File Delete Not Allowed.", "You cannot delete a file that is", "currently recording.", 400 );
-         return;
-    }     
-                                          
+    switch (attr)
+    {
+           case ATTR_FOLDER: 
+	                         if ((folderDeleteOption == 0) &&
+                             ((myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber]->numberOfRecordings > 0) || (myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber]->numberOfFolders > 0)))  // We cannot delete a non-empty folder
+	                         {
+                                ShowMessageWin( rgn, "Folder Delete Not Allowed.", "You cannot delete a folder that still", "contains recordings or subfolders.", 400 );
+                                return;
+                             }     
+                             break;
+                
+           default:          if (myfiles[CurrentDirNumber][chosenLine]->isRecording)  // We cannot delete a recording file.
+	                         {
+                                 ShowMessageWin( rgn, "File Delete Not Allowed.", "You cannot delete a file that is", "currently recording.", 400 );
+                                 return;
+                             }  
+                             break;
+    }
+	   
+
     deleteWindowShowing = TRUE;
     fileDeleted = FALSE;
 

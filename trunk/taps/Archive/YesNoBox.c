@@ -80,10 +80,6 @@ void DisplayYesNoWindow(char* title, char* line1, char* line2, char* button1, ch
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     YesNoWindowCopy = TAP_Osd_SaveBox(rgn, YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H);
 
-    #ifdef WIN32  // If testing on WIN32 platform 
-    TAP_Osd_FillBox( rgn,YESNO_WINDOW_X, YESNO_WINDOW_Y, YESNO_WINDOW_W, YESNO_WINDOW_H, FILL_COLOUR );				// clear the screen
-    #endif          
-
     // Display the pop-up window.
     TAP_Osd_PutGd( rgn, YESNO_WINDOW_X, YESNO_WINDOW_Y, &_popup360x180Gd, TRUE );
 	

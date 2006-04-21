@@ -317,6 +317,8 @@ static int borderOption;
 static int recCheckOption;
 static int yOffsetOption=36;
 static int okPlayOption;
+static int folderDeleteOption;
+static int extInfoFontOption;
        
 static char gstr[500];
        
