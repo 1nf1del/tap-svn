@@ -1,30 +1,43 @@
-Description Extender 1.1
+Description Extender 1.2
 ------------------------
+Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information.
 
-Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data which is normally blank in some countries. No special support for Description Extender is required by other TAPs to see this information.
+There are 2 versions of Description Extender, the only difference being whether a space is placed between the programme description and extended information. Choose the version most appropriate to your EPG data:
+Standard:	Adds a space.
+CT:			Doesn't add a space. Programme description and extended information are contiguous.
 
 This TAP currently only supports the following firmware
 TF5000/5500:	13/09/2005
 TF5010/5510:	05/10/2005
 TF5100c:		15/03/2006, 12/09/2005, 04/05/2005
+TF5100c MP:		15/03/2006, 05/10/2005
 TF5100t:		15/03/2006, 12/09/2005
+TF5100t MP:		15/03/2006, 04/10/2005
 TF5200c:		13/09/2005
 TF5800:			08/12/2005 (12.25), 14/10/2005 (12.09), 12.05, 12.04
-PC5101c/5102c:	05/10/2005
+
+Procaster PVRs:
+PC5101c/5102c:	15/03/2006*, 05/10/2005
+PC5101t/5102t:	15/03/2006*, 05/10/2005
+*These versions are crossflashed TF5100c and TF5100t firmwares as 05/10/2005 was the last Procaster firmware Topfield will provide.
 
 If your firmware isn't supported, run the TAP and email me the text that's displayed on screen.
 
-The TAP can be stopped using TAP Commander or TSR Commander. No configuration is necessary, just place the TAP in your Auto Start directory.
+The TAP can be stopped using TAP Commander or TSR Commander. No configuration is necessary, just place your chosen version in the Auto Start directory.
+
+Improbox, UKOZSurfer and Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
+
 
 History
 -------
+1.2		Support for TF5100 Masterpiece and Procaster models.
+		Additional version for EPGs where programme description flows into the extended information.
 1.1		Support for additional models and firmware versions.
 1.0		Initial release.
 
 
 For TAP Developers
 ------------------
-
 A brief overview of the implementation:
 The design of the TAP architecture prevents easy lengthening of the description field from its 128 limit without breaking all existing TAPs that request data from the EPG, which is probably the reason Topfield have not addressed the issue already.
 

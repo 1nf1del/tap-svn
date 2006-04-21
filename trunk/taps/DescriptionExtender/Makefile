@@ -21,16 +21,29 @@
 
 include ../../tools/build/tap.mk
 
-all: DescriptionExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+TAPNAME=DescriptionExtender
 
-# Copy files to the Toppy using tfcopy
-copy: all
-	tfcopy DescriptionExtender.tap '#:\ProgramFiles\'
-#	@mips-objdump -D DescriptionExtender.elf > DescriptionExtender.asm
+ifdef CT
+CFLAGS+=-DCT
+CXXFLAGS+=-DCT
+TAPNAME:=$(TAPNAME)CT
+endif
+
+all:
+	$(MAKE) single
+	$(MAKE) single CT=1
+
+single: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+	tfcopy $(TAPNAME).tap '#:\ProgramFiles\'
+
 
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf *.map
+
+$(TAPNAME).tap: DescriptionExtender.elf
+	$(OBJCOPY) -O binary $< $@
+	-rm -f *.o *.elf *.map
 
 DescriptionExtender.elf::	DescriptionExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 DescriptionExtender.o:		DescriptionExtender.c 
@@ -38,7 +51,7 @@ DescriptionExtender.o:		DescriptionExtender.c
 CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander -I../../libs/exTap
 
 ../../libs/libutils/libutils.a::
-	$(MAKE) -C ../../libs/libutils
+	$(MAKE) -s -C ../../libs/libutils
 
 ../../libs/Firmware/libfirmware.a::
-	$(MAKE) -C ../../libs/Firmware
+	$(MAKE) -s -C ../../libs/Firmware
