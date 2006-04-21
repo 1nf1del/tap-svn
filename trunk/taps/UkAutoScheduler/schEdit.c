@@ -10,6 +10,7 @@ v0.3: sl8	16-02-06	Short cut added. Record key saves search (if valid).
 				SearchFolder element added to the main search structure (not used yet)
 v0.4: sl8	09-03-06	Allow user to choose a destination folder. Removed debug info. Show selected days info
 v0.5: sl8	11-04-06	Show window added and tidy up.
+v0.6: sl8	19-04-06	Corrected positoning of screen. Changed colour of info area.
 
 **************************************************************/
 
@@ -54,8 +55,8 @@ static byte schDirectPaddingPos = 0;
 
 #define X1	190
 #define X2	300
-#define E0	51
-#define E1	161
+#define E0	53
+#define E1	163
 #define E2	627
 #define Y	57
 #define Y2	514
@@ -144,10 +145,10 @@ void schEditDrawLine(int lineNumber)
 
 	if( lineNumber != SCH_EDIT_SAVE)
 	{
-		TAP_Osd_PutGd( rgn, 54, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowadarkblueGd, FALSE );
+		TAP_Osd_PutGd( rgn, 53, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_rowadarkblueGd, FALSE );
 	}
 
-	TAP_Osd_FillBox( rgn, 53, 490, 614, 86, FILL_COLOUR );		// clear the bottom portion
+	TAP_Osd_FillBox( rgn, 53, 491, 614, 83, INFO_FILL_COLOUR );		// clear the bottom portion
 
 	switch ( lineNumber )
 	{
@@ -427,7 +428,7 @@ void schEditDrawLine(int lineNumber)
 		if((schEdit.searchDay & 0x20) == 0x20) strcat(str," Saturday");
 		if((schEdit.searchDay & 0x40) == 0x40) strcat(str," Sunday");
 
-		TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, TITLE_COLOUR, 0 );
+		TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -671,10 +672,7 @@ void schEditDrawLine(int lineNumber)
 	/* ---------------------------------------------------------------------------- */
 	}
 
-
-	TAP_Osd_FillBox( rgn, E0, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
 	TAP_Osd_FillBox( rgn, E1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );
-
 }
 
 
@@ -782,7 +780,7 @@ void CopySearchFields(int index)
 
 //------------
 //
-bool schEditWindowActivate (int line, int type)
+bool schEditWindowActivate (int index, int type)
 {
 	int i = 0;
 
@@ -799,7 +797,7 @@ bool schEditWindowActivate (int line, int type)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EXISTING_SEARCH:
 
-		searchIndex = line - 1;
+		searchIndex = index;
 		CopySearchFields(searchIndex);
 
 		schEditCreateWindow();

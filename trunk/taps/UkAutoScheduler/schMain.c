@@ -13,6 +13,7 @@ v0.3 sl8:	16-02-06	Bug fix - Searches were not performed correctly on current da
 v0.4 sl8:	09-03-06	Destination folder and remote search file mods
 v0.5 sl8:	22-03-06	Bug fix - Move failed if programme spanned midnight
 v0.6 sl8:	11-04-06	Show window added and tidy up.
+v0.7 sl8:	19-04-06	TRC option added. More work added for the Show window.
 
 **************************************************************/
 
@@ -24,11 +25,11 @@ v0.6 sl8:	11-04-06	Show window added and tidy up.
 
 #define SCH_MAX_FILE_LENGTH			30	// Max length of file name in archive - 4 (.rec)
 
-bool schCompareStrings(char *, char *);
-bool schPerformSearch(TYPE_TapEvent *, int, int);
-void schSetTimer(TYPE_TapEvent *, int, int, word);
-void schService(void);
-void schInitLcnToSvcNumMap(void);
+bool schMainCompareStrings(char *, char *);
+bool schMainPerformSearch(TYPE_TapEvent *, int, int);
+int schMainSetTimer(char*, dword, dword, int, word, byte);
+void schMainService(void);
+void schMainInitLcnToSvcNumMap(void);
 void schMainUpdateSearchList(void);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
@@ -43,6 +44,7 @@ static byte schMainTotalValidRemoteSearches = 0;
 static byte schMainPerformSearchMode = 0;
 static int schMainPerformSearchTime = 0;
 static byte schMainTotalValidMoves = 0;
+static bool schMainTRCEnabled = TRUE;
 
 word* schLcnToServiceTv = NULL;
 word* schLcnToServiceRadio = NULL;
@@ -50,7 +52,7 @@ word* schLcnToServiceRadio = NULL;
 byte* schEpgDataExtendedInfo = NULL;
 TYPE_TapEvent* schEpgData = NULL;
 
-void schService(void)
+void schMainService(void)
 {
 	static word schChannel = 0;
 	static byte schUserSearchIndex = 0;
@@ -136,9 +138,16 @@ void schService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES:
 
-		if(schFileRetreiveRemoteData() > 0)
+		if(schMainTRCEnabled == TRUE)
 		{
-			schServiceSV = SCH_SERVICE_UPDATE_SEARCH_LIST;
+			if(schFileRetreiveRemoteData() > 0)
+			{
+				schServiceSV = SCH_SERVICE_UPDATE_SEARCH_LIST;
+			}
+			else
+			{
+				schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+			}
 		}
 		else
 		{
@@ -152,7 +161,6 @@ void schService(void)
 		schMainUpdateSearchList();
 
 		schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
-
 
 		break;	
 	/*-------------------------------------------------*/
@@ -214,9 +222,9 @@ void schService(void)
 			(schEpgIndex < schEpgTotalEvents)
 		)
 		{
-			if((schPerformSearch(schEpgData, schEpgIndex, schUserSearchIndex)) == TRUE)
+			if((schMainPerformSearch(schEpgData, schEpgIndex, schUserSearchIndex)) == TRUE)
 			{
-				schSetTimer(schEpgData, schEpgIndex, schUserSearchIndex, schChannel);
+				schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD));
 			}
 
 			schEpgIndex++;
@@ -348,7 +356,7 @@ void schService(void)
 }
 
 
-bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
+bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 {
 	int eventNameIndex = 0;
 	bool foundSearchTerm = FALSE;
@@ -412,7 +420,7 @@ bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 			)
 		)
 		{
-			foundSearchTerm = schCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm);
+			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm);
 		}
 
 		if
@@ -422,7 +430,7 @@ bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION) == SCH_USER_DATA_OPTIONS_DESCRIPTION)
 		)
 		{
-			foundSearchTerm = schCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm);
+			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm);
 		}
 
 		if
@@ -441,7 +449,7 @@ bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 
 			if(schEpgDataExtendedInfo)
 			{
-				foundSearchTerm = schCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm);
+				foundSearchTerm = schMainCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm);
 			}
 		}
 	}
@@ -451,7 +459,7 @@ bool schPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 
 
 
-void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word svcNum)
+int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, int searchIndex, word svcNum, byte isRec)
 {
 	TYPE_TimerInfo schTimerInfo;
 	dword schStartTimeWithPadding = 0;
@@ -483,9 +491,9 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	attachPosition[1] = (schUserData[searchIndex].searchAttach >> 14) & 0x03;
 	attachType[1] = (schUserData[searchIndex].searchAttach >> 8) & 0x3F;
 
-	fileNameLen = strlen(epgData[epgDataIndex].eventName);
+	fileNameLen = strlen(eventName);
 
-	mjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
+	mjd = ((eventStartTime >> 16) & 0xFFFF);
 
 	TAP_ExtractMjd( mjd, &year, &month, &day, &weekDay);
 
@@ -507,7 +515,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			/* ---------------------------------------------------------------------------- */
 			case SCH_ATTACH_TYPE_NUMBER:
 
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				if((strlen(eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
 					strcat(prefixStr,numbStr);
 					strcat(prefixStr,"_");
@@ -517,7 +525,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			/* ---------------------------------------------------------------------------- */
 			case SCH_ATTACH_TYPE_DATE:
 
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				if((strlen(eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
 					strcat(prefixStr,dateStr);
 					strcat(prefixStr,"_");
@@ -541,7 +549,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			/* ---------------------------------------------------------------------------- */
 			case SCH_ATTACH_TYPE_NUMBER:
 
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				if((strlen(eventName) + (strlen(numbStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
 					strcat(appendStr,"_");
 					strcat(appendStr,numbStr);
@@ -551,7 +559,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			/* ---------------------------------------------------------------------------- */
 			case SCH_ATTACH_TYPE_DATE:
 
-				if((strlen(epgData[epgDataIndex].eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				if((strlen(eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
 					strcat(appendStr,"_");
 					strcat(appendStr,dateStr);
@@ -569,15 +577,15 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	strcat(fileNameStr,prefixStr);
 
 	longName = FALSE;
-	if((strlen(prefixStr) + strlen(epgData[epgDataIndex].eventName) + strlen(appendStr)) > SCH_MAX_FILE_LENGTH)
+	if((strlen(prefixStr) + strlen(eventName) + strlen(appendStr)) > SCH_MAX_FILE_LENGTH)
 	{
-		strncat(fileNameStr,epgData[epgDataIndex].eventName, (SCH_MAX_FILE_LENGTH - strlen(prefixStr) - strlen(appendStr)));
+		strncat(fileNameStr, eventName, (SCH_MAX_FILE_LENGTH - strlen(prefixStr) - strlen(appendStr)));
 
 		longName = TRUE;
 	}
 	else
 	{
-		strcat(fileNameStr,epgData[epgDataIndex].eventName);
+		strcat(fileNameStr, eventName);
 	}
 
 	strcat(fileNameStr,appendStr);
@@ -586,8 +594,8 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 	// ------------- Add padding to start time ----------------
 
-	hour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
-	min = (epgData[epgDataIndex].startTime & 0xFF);
+	hour = ((eventStartTime >> 8) & 0xFF);
+	min = (eventStartTime & 0xFF);
 
 	if(min >= schUserData[searchIndex].searchStartPadding)
 	{
@@ -613,9 +621,9 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 	// ------------- Add padding to end time ----------------
 
-	mjd = ((epgData[epgDataIndex].endTime >> 16) & 0xFFFF);
-	hour = ((epgData[epgDataIndex].endTime >> 8) & 0xFF);
-	min = (epgData[epgDataIndex].endTime & 0xFF);
+	mjd = ((eventEndTime >> 16) & 0xFFFF);
+	hour = ((eventEndTime >> 8) & 0xFF);
+	min = (eventEndTime & 0xFF);
 
 	if((min + schUserData[searchIndex].searchEndPadding) < 60)
 	{
@@ -647,20 +655,13 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 
 	// -------------------------------------------------------
 
-	if(schUserData[searchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
-	{
-		schTimerInfo.isRec = 1;						// Needs to be R or P
-	}
-	else
-	{
-		schTimerInfo.isRec = 0;
-	}
+	schTimerInfo.isRec = isRec;
 	schTimerInfo.tuner = 3;							// Next available tuner
 	schTimerInfo.svcType = schUserData[searchIndex].searchTvRadio;		// 0 TV, 1 Radio
 	schTimerInfo.reserved = 0;	
 	schTimerInfo.svcNum = svcNum;						// Channel number
 	schTimerInfo.reservationType = 0;					// ?
-	schTimerInfo.nameFix = 1;						// ?
+	schTimerInfo.nameFix = 1;
 	schTimerInfo.duration = (schEndTimeInMins - schStartTimeInMins);
 	schTimerInfo.startTime = schStartTimeWithPadding;
 	strcpy(schTimerInfo.fileName, fileNameStr);
@@ -689,7 +690,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 			if(longName == TRUE)
 			{
 				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set with Move (L): %s   %s", fileNameStr, epgData[epgDataIndex].eventName );
+				sprintf( logBuffer, "Timer Set with Move (L): %s   %s", fileNameStr, eventName );
 				logStoreEvent(logBuffer);
 			}
 			else
@@ -705,7 +706,7 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 /*			if(longName == TRUE)
 			{
 				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set without Move (L): %s   %s", fileNameStr,  epgData[epgDataIndex].eventName );
+				sprintf( logBuffer, "Timer Set without Move (L): %s   %s", fileNameStr,  eventName );
 				logStoreEvent(logBuffer);		
 			}
 			else
@@ -719,16 +720,18 @@ void schSetTimer(TYPE_TapEvent *epgData, int epgDataIndex, int searchIndex, word
 	}
 	else
 	{
-//		sprintf(buffer1,"Timer Failed - Error: %x\r\n\r\n",timerError);
-//		TAP_Print(buffer1);
+
+	
 	}
+
+	return timerError;
 }
 
 
 
 
 
-bool schCompareStrings(char *eventName, char *searchTerm)
+bool schMainCompareStrings(char *eventName, char *searchTerm)
 {
 	int eventNameIndex = 0;
 	bool foundSearchTerm = FALSE;
@@ -764,7 +767,7 @@ bool schCompareStrings(char *eventName, char *searchTerm)
 }
 
 
-void schInitLcnToSvcNumMap(void)
+void schMainInitLcnToSvcNumMap(void)
 {
 	int i = 0;
 	TYPE_TapChInfo chInfo;

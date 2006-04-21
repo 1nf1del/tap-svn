@@ -4,7 +4,7 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.4
+Version	: 0.5
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -14,6 +14,7 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.2 sl8:		15-02-06	'Perform Search' option added.
 	  v0.3 sl8:		09-03-06	Firmware enable/disable option added
 	  v0.4 sl8		11-04-06	SDK.
+	  v0.5 sl8		12-04-06	Make TRC optional (default - enabled)
 	
 ************************************************************/
 
@@ -90,7 +91,11 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", FirmwareCallsEnabled );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", schMainTRCEnabled );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );					// write all the data in one pass
+
 	TAP_MemFree( dataBuffer_ini );					// must return the memory back to the heap
 }
 
@@ -130,7 +135,7 @@ char *ReadIniField( void )
 
 
 
-dword ReadIniDecimal( void )
+dword ReadIniDecimal( dword defaultValue, bool *configPassed )
 {
 	char 	str[256];
 	dword	tmp = 0;
@@ -146,26 +151,43 @@ dword ReadIniDecimal( void )
 		i++;
 	}
 
-	return tmp;
+	if(i > 0)
+	{
+		return tmp;
+	}
+	else
+	{
+		*configPassed = FALSE;
+
+		return defaultValue;
+	}
 }
 
 
-void SetConfigurationVariables( void )
+bool SetConfigurationVariables( void )
 {
-	char *str = NULL;
+	char	*str = NULL;
+	bool	configPassed = TRUE;
 
 	str = ReadIniField();
 
-	if ( strcmp( str, "TF5000" ) == 0 ) unitModelType = TF5000;
-	else unitModelType = TF5800;
+	if( strcmp( str, "TF5000" ) == 0 )
+	{
+		unitModelType = TF5000;
+	}
+	else
+	{
+		unitModelType = TF5800;
+	}
 
-	mainActivationKey = ReadIniDecimal();
+	configPassed = TRUE;
+	mainActivationKey = ReadIniDecimal(RKEY_Recall, &configPassed);
+	schMainPerformSearchMode = ReadIniDecimal(SCH_CONFIG_SEARCH_PERIOD_TEN_MINS, &configPassed);
+	schMainPerformSearchTime = ReadIniDecimal(0, &configPassed);
+	FirmwareCallsEnabled = ReadIniDecimal(FALSE, &configPassed);
+	schMainTRCEnabled = ReadIniDecimal(TRUE, &configPassed);
 
-	schMainPerformSearchMode = ReadIniDecimal();
-
-	schMainPerformSearchTime = ReadIniDecimal();
-
-	FirmwareCallsEnabled = ReadIniDecimal();
+	return configPassed;
 }
 
 
@@ -193,9 +215,16 @@ bool ReadConfigurationFile( void )
 
 	TAP_Hdd_Fclose( readFile );
 
-	SetConfigurationVariables();
+	if(SetConfigurationVariables() == FALSE)
+	{
+		TAP_MemFree( dataBuffer_ini );						// must return the memory back to the heap
 
-	TAP_MemFree( dataBuffer_ini );							// must return the memory back to the heap
+		SaveConfigurationToFile();
+	}
+	else
+	{
+		TAP_MemFree( dataBuffer_ini );						// must return the memory back to the heap
+	}
 
 	return TRUE;
 }
@@ -208,6 +237,10 @@ void LoadConfiguration( void )
 		unitModelType = TF5800;
 
 		mainActivationKey = RKEY_Recall;
+		schMainPerformSearchMode = SCH_CONFIG_SEARCH_PERIOD_TEN_MINS;
+		schMainPerformSearchTime = 0;
+		FirmwareCallsEnabled = FALSE;
+		schMainTRCEnabled = TRUE;
 
 		SaveConfigurationToFile();
 	}

@@ -3,13 +3,14 @@ Part of the ukEPG project
 This module displays the schedules
 
   v0.0 sl8:	11-04-06	Inception date
+  v0.1 sl8:	20-04-06	Record added. General improvements.
 
 **************************************************************/
 
 void schShowDrawLegend(void);
 void schShowDrawList(void);
 void schShowDrawInfo(int);
-void schShowDrawProgress(int,int,int,int,int,int);
+void schShowDrawProgress(byte);
 void schShowCheckTimer(int,int);
 void schShowSortResults(int);
 
@@ -50,6 +51,7 @@ enum
 
 typedef struct
 {
+	int	searchIndex;
 	char	name[128];
 	char	description[SCH_SHOW_DESCRIPTION_SIZE];
 	dword	startTime;
@@ -58,6 +60,7 @@ typedef struct
 	int	svcNum;
 	int	svcType;
 	bool	timerSet;
+	bool	timerConflict;
 	byte	isRec;
 }schShowResultsStruct;
 
@@ -69,11 +72,13 @@ static	int	schShowEndSearchIndex = 0;
 static	byte	schShowServiceSV = SCH_SHOW_SERVICE_INITIALISE;
 static	int	schShowChosenLine = 0;
 static	int	schShowPage = 0;
-static	int	schShowMaxShown = 0;
 static	int	schShowSortOrder = 0;
+static	int	schShowFilter = 0;
+static	bool	schShowSelectAll = FALSE;
 
 static	schShowResultsStruct	*schShowResults = NULL;
 static	schShowResultsStruct	*schShowResultsPtr[SCH_SHOW_MAX_RESULTS];
+
 
 //------------
 //
@@ -93,11 +98,12 @@ void schShowWindowCreate(void)
 }
 
 
+//------------
+//
 void schShowWindowClose( void )
 {
 	schShowWindowShowing = FALSE;
 }
-
 
 
 //------------
@@ -113,35 +119,26 @@ void schShowDrawBackground(void)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_TIME:
 
-		strcat(str, " [by time]");
+		strcat(str, " [Time]");
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_CHANNEL:
 
-		strcat(str, " [by chan]");
+		strcat(str, " [Channel]");
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_NAME:
 	default:
-		strcat(str, " [by name]");
+		strcat(str, " [Name]");
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	}
 
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
-
-
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X0, 71, SCH_SHOW_DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X1, 71, SCH_SHOW_DIVIDER_X2, "Set", TITLE_COLOUR, 0, FNT_Size_1419 );
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X2, 71, SCH_SHOW_DIVIDER_X3, "Programme Name", TITLE_COLOUR, 0, FNT_Size_1419 );
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X3, 71, SCH_SHOW_DIVIDER_X4, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X4, 71, SCH_SHOW_DIVIDER_X5, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
-//	PrintCenter(rgn, SCH_SHOW_DIVIDER_X5, 71, SCH_SHOW_DIVIDER_X6, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
 }
-
 
 
 //------------
@@ -167,8 +164,12 @@ void schShowDrawText(int line, int dispLine)
 	memset(str,0,132);
 	TAP_SPrint(str,"\"%s\"", schShowResultsPtr[line-1]->name);
 
-// Record/Watch Icon
-	if(schShowResultsPtr[line-1]->timerSet == TRUE)
+// Record/Watch/Conflict Icon
+	if(schShowResultsPtr[line-1]->timerConflict == TRUE)
+	{
+		TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_conflictcircleGd, TRUE );
+	}
+	else if(schShowResultsPtr[line-1]->timerSet == TRUE)
 	{
 		if(schShowResultsPtr[line-1]->isRec == 1)
 		{
@@ -181,7 +182,9 @@ void schShowDrawText(int line, int dispLine)
 			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
 		}
 	}
-
+	else
+	{
+	}
 
 // Programme Name
 	TAP_Osd_PutStringAf1622( rgn, (SCH_SHOW_DIVIDER_X2 + SCH_SHOW_OFFSET + SCH_SHOW_DIVIDER_WIDTH), (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X3 - SCH_SHOW_OFFSET, schShowResultsPtr[line-1]->name, MAIN_TEXT_COLOUR, 0 );
@@ -194,9 +197,6 @@ void schShowDrawText(int line, int dispLine)
 				
 	TAP_SPrint(str, "%02d:%02d ~ %02d:%02d", startHour, startMin, endHour, endMin);
 	PrintCenter( rgn, (SCH_SHOW_DIVIDER_X3 + SCH_SHOW_DIVIDER_WIDTH), (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X4, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-
-
-
 
 // Day
 
@@ -224,7 +224,6 @@ void schShowDrawText(int line, int dispLine)
 }
 
 
-
 //------------
 //
 void schShowDrawLine(int line)
@@ -235,7 +234,18 @@ void schShowDrawLine(int line)
 	
 	dispLine = ((line-1) % SCH_SHOW_NUMBER_OF_LINES) + 1;				// calculate position on page
 
-	if ( schShowChosenLine == line )											// highlight the current cursor line
+	if
+	(
+		(schShowChosenLine == line)											// highlight the current cursor line
+		||
+		(
+			(schShowSelectAll == TRUE)
+			&&
+			(schShowNumberOfResults > 0)
+			&&
+			(line <= schShowNumberOfResults)
+		)
+	)
 	{
 		TAP_Osd_PutGd( rgn, 53, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_highlightGd, FALSE );
 	}
@@ -267,7 +277,8 @@ void schShowDrawLine(int line)
 }
 
 
-
+//------------
+//
 void schShowDrawInfo(int line)
 {
 	int	schIndex = 0;
@@ -281,7 +292,7 @@ void schShowDrawInfo(int line)
 
 	schIndex = line - 1;
 
-	TAP_Osd_FillBox( rgn, 53, 430, 614, 91, INFO_FILL_COLOUR );		// clear the bottom portion
+	TAP_Osd_FillBox( rgn, 53, 430, 614, 120, INFO_FILL_COLOUR );		// clear the bottom portion
 
 	startHour = (schShowResultsPtr[line-1]->startTime & 0xff00) >> 8;
 	startMin = (schShowResultsPtr[line-1]->startTime & 0xff);
@@ -294,7 +305,7 @@ void schShowDrawInfo(int line)
 	
 	if (durHour > 0)
 	{	
-		sprintf( str2, "%d hour", durHour);
+		sprintf( str2, "%d hr", durHour);
 		strcat(str, str2);
 
 		if (durHour > 1)
@@ -310,7 +321,7 @@ void schShowDrawInfo(int line)
 			strcat(str, " ");
 		}
 
-		sprintf( str2, "%d minute", durMin);
+		sprintf( str2, "%d min", durMin);
 		strcat(str, str2);
 
 		if (durMin > 1)
@@ -323,28 +334,8 @@ void schShowDrawInfo(int line)
 
 	WrapPutStr( rgn, str, 60, 434, 602, INFO_COLOUR, INFO_FILL_COLOUR, 1, FNT_Size_1622, 0);
 
-//	strcpy(str, schShowResults[schIndex].description);
-//	strcat(str, schShowResults[schIndex].description);
-
-//	WrapPutStr( rgn, str, 60, 460, 602, TITLE_COLOUR, COLOR_Black, 3, FNT_Size_1419, 0);
-	WrapPutStr( rgn, schShowResultsPtr[schIndex]->description, 60, 460, 602, INFO_COLOUR, INFO_FILL_COLOUR, 3, FNT_Size_1419, 0);
-
-//	TAP_Osd_PutStringAf1419( rgn, 106, 523, 666, "???????", TITLE_COLOUR, 0 );
-
-/*
-	ExtInfoRows = ((EVENT_Y + EVENT_H) - LastWrapPutStr_Y ) / extInfoRowSize ;   //KH Calculate how many lines are left available for Extended Info with a font height of 19.
-	if( extInfo )
-	{
-		WrapPutStr_StartPos = LastWrapPutStr_P; //KH Set the start position of the string to where we got up to last time.
-		WrapPutStr( MemRgn, extInfo, EVENT_X+8, LastWrapPutStr_Y, EVENT_W-8, MAIN_TEXT_COLOUR, EVENT_FILL_COLOUR, ExtInfoRows, extInfoFontSize, 0);
-		TAP_MemFree( extInfo );
-	}
-*/
-
-
-
+	WrapPutStr( rgn, schShowResultsPtr[schIndex]->description, 60, 468, 602, INFO_COLOUR, INFO_FILL_COLOUR, 3, FNT_Size_1622, 0);
 }
-
 
 
 //------------
@@ -357,14 +348,11 @@ void schShowDrawList(void)
 
 	start = (schShowPage * SCH_SHOW_NUMBER_OF_LINES)+1;
 
-	for ( i=start; i < (start + SCH_SHOW_NUMBER_OF_LINES) ; i++)
+	for (i = start; i < (start + SCH_SHOW_NUMBER_OF_LINES); i++)
 	{
 		schShowDrawLine(i);
 	}
 }
-
-
-
 
 
 //------------
@@ -372,182 +360,367 @@ void schShowDrawList(void)
 void schShowKeyHandler(dword key)
 {
 	int	oldPage = 0, oldChosenLine = 0;
-	char buffer1[256];
+	int	i = 0;
+	char	buffer1[256];
 
 	oldPage = schShowPage;
 	oldChosenLine = schShowChosenLine;
 
-	switch ( key )
+	switch(schShowServiceSV)
 	{
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Exit:
+	/*--------------------------------------------------*/
+	case SCH_SHOW_SERVICE_COMPLETE:
 
-		if( schShowResults )
+		switch ( key )
 		{
-			TAP_MemFree( schShowResults );
-			schShowResults = NULL;
-		}
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Exit:
 
-		schShowWindowClose();					// Close the show window
-		returnFromEdit = TRUE;					// will cause a redraw of timer list
-
-		break;													// and enter the normal state
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_ChDown:
-
-		if ( schShowNumberOfResults > 0)
-		{
-			if ( schShowChosenLine < schShowNumberOfResults )
+			if( schShowResults )
 			{
-				schShowChosenLine++;			// 0=hidden - can't hide once cursor moved
-			}
-			else
-			{
-				schShowChosenLine = 1;
+				TAP_MemFree( schShowResults );
+				schShowResults = NULL;
 			}
 
-			schShowPage = (schShowChosenLine - 1) / SCH_SHOW_NUMBER_OF_LINES;
+			schShowWindowClose();					// Close the show window
+			returnFromEdit = TRUE;					// will cause a redraw of timer list
 
-			if ( schShowPage == oldPage )			// only redraw what's nessesary
+			break;													// and enter the normal state
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_ChDown:
+
+			if ( schShowNumberOfResults > 0)
 			{
-				if ( oldChosenLine > 0 )
+				if ( schShowChosenLine < schShowNumberOfResults )
 				{
-					schShowDrawLine(oldChosenLine);
+					schShowChosenLine++;			// 0=hidden - can't hide once cursor moved
+				}
+				else
+				{
+					schShowChosenLine = 1;
 				}
 
-				schShowDrawLine(schShowChosenLine);
+				schShowPage = (schShowChosenLine - 1) / SCH_SHOW_NUMBER_OF_LINES;
+
+				if(schShowSelectAll == TRUE)
+				{
+					schShowSelectAll = FALSE;
+
+					schShowDrawList();
+				}
+				else if (schShowPage == oldPage)			// only redraw what's nessesary
+				{
+					if (oldChosenLine > 0)
+					{
+						schShowDrawLine(oldChosenLine);
+					}
+
+					schShowDrawLine(schShowChosenLine);
+				}
+				else
+				{
+					schShowDrawList();
+				}
 			}
-			else
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_ChUp:
+
+			if ( schShowNumberOfResults > 0)
 			{
+				if ( schShowChosenLine > 1 )
+				{
+					schShowChosenLine--;
+				}
+				else
+				{
+					schShowChosenLine = schShowNumberOfResults;
+				}
+
+				schShowPage = (schShowChosenLine - 1) / SCH_SHOW_NUMBER_OF_LINES;
+
+				if(schShowSelectAll == TRUE)
+				{
+					schShowSelectAll = FALSE;
+
+					schShowDrawList();
+				}
+				else if (schShowPage == oldPage)					// only redraw what's nessesary
+				{
+					if (oldChosenLine > 0)
+					{
+						schShowDrawLine(oldChosenLine);
+					}
+
+					schShowDrawLine(schShowChosenLine);
+				}
+				else
+				{
+					schShowDrawList();
+				}
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Forward:
+
+			if(schShowNumberOfResults > 1)
+			{
+				if ( schShowPage == ((schShowNumberOfResults - 1) / SCH_SHOW_NUMBER_OF_LINES) )			// page down
+				{
+					schShowChosenLine = schShowNumberOfResults;
+
+					if(schShowSelectAll == TRUE)
+					{
+						schShowSelectAll = FALSE;
+
+						schShowDrawList();
+					}
+					else
+					{
+						if ( oldChosenLine > 0 )
+						{
+							schShowDrawLine(oldChosenLine);
+						}
+					
+						schShowDrawLine(schShowChosenLine);
+					}
+				}
+				else
+				{
+					schShowSelectAll = FALSE;
+
+					schShowPage = schShowPage + 1;
+					schShowChosenLine = (schShowPage * SCH_SHOW_NUMBER_OF_LINES) + 1;		// will land only on top of page
+					schShowDrawList();
+				}
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Rewind:
+
+			if(schShowNumberOfResults > 1)
+			{
+				schShowSelectAll = FALSE;
+
+				if ( schShowPage > 0 )							// page up
+				{
+					schShowPage = schShowPage - 1;
+					schShowChosenLine = (schShowPage * SCH_SHOW_NUMBER_OF_LINES) + 1;		// will land only on bottom of page
+					schShowDrawList();
+				}
+				else
+				{
+					schShowPage = 0;
+					schShowChosenLine = 1;
+
+					if(schShowSelectAll == TRUE)
+					{
+						schShowSelectAll = FALSE;
+
+						schShowDrawList();
+					}
+					else
+					{
+						if ( oldChosenLine > 0 )
+						{
+							schShowDrawLine(oldChosenLine);
+						}
+					
+						schShowDrawLine(schShowChosenLine);
+					}
+				}
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_1:
+		case RKEY_2:
+		case RKEY_3:
+		case RKEY_4:
+		case RKEY_5:
+		case RKEY_6:
+		case RKEY_7:
+		case RKEY_8:
+
+			if (schShowNumberOfResults > 0)
+			{
+				schShowChosenLine = (key - RKEY_0) + (schShowPage * SCH_SHOW_NUMBER_OF_LINES);		// direct keyboard selection of any line
+
+				if (schShowChosenLine > schShowNumberOfResults) schShowChosenLine = schShowNumberOfResults;
+
+				if(schShowSelectAll == TRUE)
+				{
+					schShowSelectAll = FALSE;
+
+					schShowDrawList();
+				}
+				else
+				{
+					schShowDrawLine( oldChosenLine );
+					schShowDrawLine( schShowChosenLine );
+				}
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Ok:
+		case RKEY_Red:
+		case RKEY_Green:
+		case RKEY_Info:
+			
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Yellow:
+
+			if(schShowNumberOfResults > 0)
+			{
+				if(schShowSelectAll == FALSE)
+				{
+					schShowSelectAll = TRUE;
+				}
+				else
+				{
+					schShowSelectAll = FALSE;
+				}
+
 				schShowDrawList();
 			}
-		}
 
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_ChUp:
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Blue:
 
-		if ( schShowNumberOfResults > 0)
-		{
-			if ( schShowChosenLine > 1 )
+			if ( schShowNumberOfResults > 1)
 			{
-				schShowChosenLine--;
-			}
-			else
-			{
-				schShowChosenLine = schShowNumberOfResults;
-			}
+				if(schShowSortOrder == SCH_SHOW_SORT_ORDER_TIME)
+				{
+					schShowSortOrder = SCH_SHOW_SORT_ORDER_CHANNEL;
+				}
+				else if(schShowSortOrder == SCH_SHOW_SORT_ORDER_CHANNEL)
+				{
+					schShowSortOrder = SCH_SHOW_SORT_ORDER_NAME;
+				}
+				else if(schShowSortOrder == SCH_SHOW_SORT_ORDER_NAME)
+				{
+					schShowSortOrder = SCH_SHOW_SORT_ORDER_TIME;
+				}
+				else
+				{
+				}
+				
+				schShowSortResults(schShowSortOrder);
 
-			schShowPage = (schShowChosenLine - 1) / SCH_SHOW_NUMBER_OF_LINES;
+				schShowSelectAll = FALSE;
 
-			if ( schShowPage == oldPage )					// only redraw what's nessesary
-			{
-				if ( oldChosenLine > 0 ) schShowDrawLine(oldChosenLine);
-				schShowDrawLine(schShowChosenLine);
-			}
-			else
-			{
 				schShowDrawList();
 			}
+			
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Record:
+
+			if(schShowNumberOfResults > 0)
+			{
+				switch(schShowSelectAll)
+				{
+				/* ---------------------------------------------------------------------------- */
+				case TRUE:
+
+					for(i = 0; i < schShowNumberOfResults; i++)
+					{
+						if
+						(
+							(schShowResultsPtr[i]->timerSet == FALSE)
+							&&
+							(schShowResultsPtr[i]->timerConflict == FALSE)
+						)
+						{
+							if(schMainSetTimer(schShowResultsPtr[i]->name, schShowResultsPtr[i]->startTime, schShowResultsPtr[i]->endTime, schShowResultsPtr[i]->searchIndex, schShowResultsPtr[i]->svcNum, 1) == 0)
+							{
+								schShowResultsPtr[i]->timerSet = TRUE;
+								schShowResultsPtr[i]->isRec = TRUE;
+							}
+							else
+							{
+								schShowResultsPtr[i]->timerConflict = TRUE;
+							}
+						}
+					}
+
+					schShowSelectAll = FALSE;
+
+					schShowDrawList();
+
+					break;
+				/* ---------------------------------------------------------------------------- */
+				case FALSE:
+				default:
+
+					if
+					(
+						(schShowChosenLine > 0)
+						&&
+						(schShowResultsPtr[schShowChosenLine - 1]->timerSet == FALSE)
+						&&
+						(schShowResultsPtr[schShowChosenLine - 1]->timerConflict == FALSE)
+					)
+					{
+						if(schMainSetTimer(schShowResultsPtr[schShowChosenLine - 1]->name, schShowResultsPtr[schShowChosenLine - 1]->startTime, schShowResultsPtr[schShowChosenLine - 1]->endTime, schShowResultsPtr[schShowChosenLine - 1]->searchIndex, schShowResultsPtr[schShowChosenLine - 1]->svcNum, 1) == 0)
+						{
+							schShowResultsPtr[schShowChosenLine - 1]->timerSet = TRUE;
+							schShowResultsPtr[schShowChosenLine - 1]->isRec = TRUE;
+
+							schShowDrawLine(schShowChosenLine);
+						}
+						else
+						{
+							schShowResultsPtr[schShowChosenLine - 1]->timerConflict = TRUE;
+
+							schShowDrawLine(schShowChosenLine);
+						}
+					}
+
+					break;
+				/* ---------------------------------------------------------------------------- */
+				}
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		default:
+
+			break;
+		/* ---------------------------------------------------------------------------- */
 		}
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Forward:
-
-		if ( schShowPage == ((schShowMaxShown-1) / SCH_SHOW_NUMBER_OF_LINES) )			// page down
-		{
-			schShowChosenLine = schShowMaxShown;
-		}
-		else
-		{
-			schShowPage = schShowPage + 1;
-			schShowChosenLine = (schShowPage * SCH_SHOW_NUMBER_OF_LINES) + 1;		// will land only on top of page
-			schShowDrawList();
-		}
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Rewind:
-
-		if ( schShowPage > 0 )							// page up
-		{
-			schShowPage = schShowPage - 1;
-			schShowChosenLine = (schShowPage * SCH_SHOW_NUMBER_OF_LINES) + 1;		// will land only on bottom of page
-			schShowDrawList();
-		}
-		else
-		{
-			schShowPage = 0;
-			schShowChosenLine = 1;
-		}
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_1:
-	case RKEY_2:
-	case RKEY_3:
-	case RKEY_4:
-	case RKEY_5:
-	case RKEY_6:
-	case RKEY_7:
-	case RKEY_8:
-
-		if ( schShowNumberOfResults > 0)
-		{
-			schShowChosenLine = (key - RKEY_0) + (schShowPage * SCH_SHOW_NUMBER_OF_LINES);		// direct keyboard selection of any line
-
-			if ( schShowChosenLine > schShowMaxShown ) schShowChosenLine = schShowMaxShown;
-
-			schShowDrawLine( oldChosenLine );
-			schShowDrawLine( schShowChosenLine );
-		}
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Ok:
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Red:
-
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Yellow:
-	case RKEY_Green:
-	case RKEY_Info:
-		
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Blue:
-
-		if(schShowSortOrder == SCH_SHOW_SORT_ORDER_TIME)
-		{
-			schShowSortOrder = SCH_SHOW_SORT_ORDER_CHANNEL;
-		}
-		else if(schShowSortOrder == SCH_SHOW_SORT_ORDER_CHANNEL)
-		{
-			schShowSortOrder = SCH_SHOW_SORT_ORDER_NAME;
-		}
-		else if(schShowSortOrder == SCH_SHOW_SORT_ORDER_NAME)
-		{
-			schShowSortOrder = SCH_SHOW_SORT_ORDER_TIME;
-		}
-		else
-		{
-		}
-		
-		schShowSortResults(schShowSortOrder);
-
-		schShowDrawList();
-	
-		break;
-	/* ---------------------------------------------------------------------------- */
-	case RKEY_Menu:
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	default:
+
+		switch ( key )
+		{
+		/* ---------------------------------------------------------------------------- */
+		case RKEY_Exit:
+
+			if( schShowResults )
+			{
+				TAP_MemFree( schShowResults );
+				schShowResults = NULL;
+			}
+
+			schShowWindowClose();					// Close the show window
+			returnFromEdit = TRUE;					// will cause a redraw of timer list
+
+			break;													// and enter the normal state
+		/* ---------------------------------------------------------------------------- */
+		default:
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -555,17 +728,13 @@ void schShowKeyHandler(dword key)
 }
 
 
-
-
-
-
-
 //---------------------------
 //
-void schShowWindowActivate( int startSearch, int endSearch )
+void schShowWindowActivate( int startSearch, int endSearch, int filter )
 {
-	schShowStartSearchIndex = startSearch - 1;
+	schShowStartSearchIndex = startSearch;
 	schShowEndSearchIndex = endSearch;
+	schShowFilter = filter;
 
 	schShowSearchIndex = schShowStartSearchIndex;
 
@@ -573,6 +742,9 @@ void schShowWindowActivate( int startSearch, int endSearch )
 	schShowWindowShowing = TRUE;
 }
 
+
+//---------------------------
+//
 void schShowWindowInitialise( void )
 {
 	schShowWindowShowing = FALSE;
@@ -580,32 +752,39 @@ void schShowWindowInitialise( void )
 	schShowPage = 0;
 }
 
+
+//---------------------------
+//
 void schShowRefresh( void )
 {
 	sysDrawGraphicBorders();
 	schShowDrawList();
-	schShowDrawLegend();
 	UpdateListClock();
 }
 
+
+//---------------------------
+//
 void schShowDrawLegend( void )
 {
 	TAP_Osd_FillBox( rgn, 53, 430, 614, 140, INFO_FILL_COLOUR );		// clear the bottom portion
 
-	TAP_Osd_PutGd( rgn, LEG_START + (0 * LEG_SPACING), 523, &_redoval38x19Gd, TRUE );
+//	TAP_Osd_PutGd( rgn, LEG_START + (0 * LEG_SPACING), 523, &_redoval38x19Gd, TRUE );
 //	TAP_Osd_PutStringAf1419( rgn, LEG_START + (0 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Spare", INFO_COLOUR, 0 );
 
-	TAP_Osd_PutGd( rgn, LEG_START + (1 * LEG_SPACING), 523, &_greenoval38x19Gd, TRUE );
+//	TAP_Osd_PutGd( rgn, LEG_START + (1 * LEG_SPACING), 523, &_greenoval38x19Gd, TRUE );
 //	TAP_Osd_PutStringAf1419( rgn, LEG_START + (1 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Spare", INFO_COLOUR, 0 );
 
 	TAP_Osd_PutGd( rgn, LEG_START + (2 * LEG_SPACING), 523, &_yellowoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Sellect All", INFO_COLOUR, 0 );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Select All", INFO_COLOUR, 0 );
 
 	TAP_Osd_PutGd( rgn, LEG_START + (3 * LEG_SPACING), 523, &_blueoval38x19Gd, TRUE );
 	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Sort", INFO_COLOUR, 0 );
 }
 
 
+//---------------------------
+//
 void schShowService( void )
 {
 	static word schShowChannelIndex = 0;
@@ -613,9 +792,12 @@ void schShowService( void )
 	static word schShowEndChannelIndex = 0;
 	static int schShowEpgIndex = 0;
 	static int schShowEpgTotalEvents = 0;
+	static byte schShowProgress = 0;
+	static dword schShowLastTickCount;
+	dword schShowTickCount = 0;
+	int len = 0;
 	char str[128];
 	char buffer1[128];
-
 
 	switch(schShowServiceSV)
 	{
@@ -627,17 +809,21 @@ void schShowService( void )
 		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  58, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, "0 %", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  104, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, "(Press EXIT to cancel search)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
 
+		schShowProgress = 0;
+		schShowDrawProgress(schShowProgress);
+
+		schShowLastTickCount = TAP_GetTick();
+
 		schShowResults = (schShowResultsStruct*)TAP_MemAlloc(sizeof(schShowResultsStruct) * SCH_SHOW_MAX_RESULTS);
 
 		schShowNumberOfResults = 0;
+		schShowSelectAll = FALSE;
 
 		schShowServiceSV = SCH_SHOW_SERVICE_BEGIN_SEARCH;
-TAP_Print("Show - Init\r\n");
+
 		break;
 	/*-------------------------------------------------*/
 	case SCH_SHOW_SERVICE_BEGIN_SEARCH:
-
-TAP_Print("Show - Begin\r\n");
 
 		schShowEpgIndex = 0;
 
@@ -667,7 +853,6 @@ TAP_Print("Show - Begin\r\n");
 		break;
 	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_INITIALISE_EPG_DATA:
-TAP_Print("Show - Init epg data\r\n");
 
 #ifndef WIN32
 		if( schEpgData )
@@ -685,11 +870,6 @@ TAP_Print("Show - Init epg data\r\n");
 		break;	
 	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_PERFORM_SEARCH:
-//TAP_Print("Show - Perform Search\r\n");
-
-//		schShowDrawProgress(schShowEpgIndex, schShowEpgTotalEvents);
-
-		schShowDrawProgress(schShowSearchIndex, schShowStartSearchIndex, schShowEndSearchIndex, schShowChannelIndex, schShowStartChannelIndex, schShowEndChannelIndex);
 
 		if
 		(
@@ -702,54 +882,52 @@ TAP_Print("Show - Init epg data\r\n");
 			(schShowNumberOfResults < SCH_SHOW_MAX_RESULTS)
 		)
 		{
-			if((schPerformSearch(schEpgData, schShowEpgIndex, schShowSearchIndex)) == TRUE)
-//			if(0)
+			if((schMainPerformSearch(schEpgData, schShowEpgIndex, schShowSearchIndex)) == TRUE)
 			{
-TAP_Print("Show - Found\r\n");
+				schShowResults[schShowNumberOfResults].searchIndex = schShowSearchIndex;
 
-			strcpy(schShowResults[schShowNumberOfResults].name, schEpgData[schShowEpgIndex].eventName);
+				strcpy(schShowResults[schShowNumberOfResults].name, schEpgData[schShowEpgIndex].eventName);
 
-			if( schEpgDataExtendedInfo )
-			{
-				TAP_MemFree( schEpgDataExtendedInfo );
-				schEpgDataExtendedInfo = 0;
-			}
+				if( schEpgDataExtendedInfo )
+				{
+					TAP_MemFree( schEpgDataExtendedInfo );
+					schEpgDataExtendedInfo = 0;
+				}
 
-			schEpgDataExtendedInfo = TAP_EPG_GetExtInfo(&schEpgData[schShowEpgIndex]);
+				schEpgDataExtendedInfo = TAP_EPG_GetExtInfo(&schEpgData[schShowEpgIndex]);
 
-			if
-			(
-				(schEpgDataExtendedInfo)
-				&&
-				(strncmp(schEpgData[schShowEpgIndex].description, schEpgDataExtendedInfo, 127) == 0)
-			)
-			{
-				strncpy(schShowResults[schShowNumberOfResults].description, schEpgDataExtendedInfo, SCH_SHOW_DESCRIPTION_SIZE);
-			}
-			else
-			{
-				strcpy(schShowResults[schShowNumberOfResults].description, schEpgData[schShowEpgIndex].description);
-			}
+				if
+				(
+					(schEpgDataExtendedInfo)
+					&&
+					(strncmp(schEpgData[schShowEpgIndex].description, schEpgDataExtendedInfo, 127) == 0)
+				)
+				{
+					len = strlen(schEpgDataExtendedInfo);
+					if(len > (SCH_SHOW_DESCRIPTION_SIZE - 1))
+					{
+						len = (SCH_SHOW_DESCRIPTION_SIZE - 1);
+					}
+					memset( schShowResults[schShowNumberOfResults].description, '\0', SCH_SHOW_DESCRIPTION_SIZE );
+					strncpy(schShowResults[schShowNumberOfResults].description, schEpgDataExtendedInfo, len);
+				}
+				else
+				{
+					strcpy(schShowResults[schShowNumberOfResults].description, schEpgData[schShowEpgIndex].description);
+				}
 
-			schShowResults[schShowNumberOfResults].startTime = schEpgData[schShowEpgIndex].startTime;
-			schShowResults[schShowNumberOfResults].endTime = schEpgData[schShowEpgIndex].endTime;
-			schShowResults[schShowNumberOfResults].duration = schEpgData[schShowEpgIndex].duration;
-			schShowResults[schShowNumberOfResults].svcNum = schShowChannelIndex;
-			schShowResults[schShowNumberOfResults].svcType = schUserData[schShowSearchIndex].searchTvRadio;
+				schShowResults[schShowNumberOfResults].startTime = schEpgData[schShowEpgIndex].startTime;
+				schShowResults[schShowNumberOfResults].endTime = schEpgData[schShowEpgIndex].endTime;
+				schShowResults[schShowNumberOfResults].duration = schEpgData[schShowEpgIndex].duration;
+				schShowResults[schShowNumberOfResults].svcNum = schShowChannelIndex;
+				schShowResults[schShowNumberOfResults].svcType = schUserData[schShowSearchIndex].searchTvRadio;
+				schShowResults[schShowNumberOfResults].timerConflict = FALSE;
 
-			schShowCheckTimer(schShowNumberOfResults, schShowSearchIndex);
+				schShowCheckTimer(schShowNumberOfResults, schShowSearchIndex);
 
-			schShowResultsPtr[schShowNumberOfResults] = &schShowResults[schShowNumberOfResults];
+				schShowResultsPtr[schShowNumberOfResults] = &schShowResults[schShowNumberOfResults];
 
-
-			schShowNumberOfResults++;
-
-//	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
-//	eventHour = (( >> 8) & 0xFF);
-//	eventMin = (epgData[epgDataIndex].startTime & 0xFF);
-
-
-//				schSetTimer(schEpgData, schShowEpgIndex, schShowSearchIndex, schShowChannelIndex);
+				schShowNumberOfResults++;
 			}
 
 			schShowEpgIndex++;
@@ -763,13 +941,12 @@ TAP_Print("Show - Found\r\n");
 	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_NEXT_CHANNEL:
 
-TAP_Print("Show - Next Channel\r\n");
 		schShowChannelIndex++;
 		schShowEpgIndex = 0;
 
 		if(schShowNumberOfResults >= SCH_SHOW_MAX_RESULTS)
 		{
-			schShowServiceSV = SCH_SHOW_SERVICE_DISPLAY_RESULTS;
+			schShowServiceSV = SCH_SHOW_SERVICE_WAIT_FOR_PROGRESS;
 		}
 		else if((schUserData[schShowSearchIndex].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
 		{
@@ -811,17 +988,36 @@ TAP_Print("Show - Next Channel\r\n");
 	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_NEXT_SEARCH:
 
-TAP_Print("Show - Next Search\r\n");
-
 		schShowSearchIndex++;
 
 		schShowEpgIndex = 0;
 
-		if(schShowSearchIndex >= schShowEndSearchIndex)
+		if(schShowSearchIndex > schShowEndSearchIndex)
 		{
-			schShowServiceSV = SCH_SHOW_SERVICE_DISPLAY_RESULTS;
+			schShowServiceSV = SCH_SHOW_SERVICE_WAIT_FOR_PROGRESS;
 		}
-		else if(schUserData[schShowSearchIndex].searchStatus != SCH_USER_DATA_STATUS_DISABLED)
+		else if
+		(
+			(schShowFilter == SCH_DISP_FILTER_ALL)
+			||
+			(
+				(schShowFilter == SCH_DISP_FILTER_RECORD)
+				&&
+				(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+			)
+			||
+			(
+				(schShowFilter == SCH_DISP_FILTER_WATCH)
+				&&
+				(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_WATCH)
+			)
+			||
+			(
+				(schShowFilter == SCH_DISP_FILTER_DISABLED)
+				&&
+				(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
+			)
+		)
 		{
 			if((schUserData[schShowSearchIndex].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
 			{
@@ -841,22 +1037,35 @@ TAP_Print("Show - Next Search\r\n");
 
 		break;	
 	/*--------------------------------------------------*/
+	case SCH_SHOW_SERVICE_WAIT_FOR_PROGRESS:
+
+		if(schShowProgress >= 100)
+		{
+			schShowServiceSV = SCH_SHOW_SERVICE_DISPLAY_RESULTS;
+		}	
+		
+		break;	
+	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_DISPLAY_RESULTS:
 
-TAP_Print("Show - Display\r\n");
+		schShowSortOrder = SCH_SHOW_SORT_ORDER_TIME;
 
 		if(schShowNumberOfResults > 1)
 		{
-			schShowSortResults(SCH_SHOW_SORT_ORDER_TIME);
+			schShowSortResults(schShowSortOrder);
 		}
 
 		schShowWindowCreate();
 		schShowDrawList();
 		schShowDrawLegend();
 
-		sprintf(str, "Found %d Matches", schShowNumberOfResults);
+		sprintf(str, "Found %d Match", schShowNumberOfResults);
+		if(schShowNumberOfResults != 1)
+		{
+			strcat(str, "es");
+		}
+
 		PrintCenter( rgn, SCH_SHOW_DIVIDER_X1, 450, SCH_SHOW_DIVIDER_X6, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-//		WrapPutStr( rgn, str, 60, 434, 602, INFO_COLOUR, INFO_FILL_COLOUR, 1, FNT_Size_1622, 0);
 
 		UpdateListClock();
 
@@ -870,34 +1079,77 @@ TAP_Print("Show - Display\r\n");
 		break;
 	/*--------------------------------------------------*/
 	}
+
+	switch(schShowServiceSV)
+	{
+	/*--------------------------------------------------*/
+	case SCH_SHOW_SERVICE_DISPLAY_RESULTS:
+	case SCH_SHOW_SERVICE_COMPLETE:
+
+		break;
+	/*--------------------------------------------------*/
+	default:
+
+		schShowTickCount = TAP_GetTick();
+		if
+		(
+			(
+				(schShowTickCount > schShowLastTickCount)
+				&&
+				((schShowTickCount - schShowLastTickCount) >= 20)
+			)
+			||
+			(schShowLastTickCount > schShowTickCount)
+		)
+		{
+			if(schShowServiceSV == SCH_SHOW_SERVICE_WAIT_FOR_PROGRESS)
+			{
+				schShowProgress += 10;
+			}
+			else
+			{
+				if(schShowEndSearchIndex > schShowStartSearchIndex)
+				{
+					schShowProgress = ((schShowSearchIndex - schShowStartSearchIndex) * 100) / (schShowEndSearchIndex - schShowStartSearchIndex);
+				}
+				else if(schShowEndChannelIndex > schShowStartChannelIndex)
+				{
+					schShowProgress = ((schShowChannelIndex - schShowStartChannelIndex) * 100) / (schShowEndChannelIndex - schShowStartChannelIndex);
+				}
+				else if(schShowEpgTotalEvents > schShowEpgIndex)
+				{
+					schShowProgress = (schShowEpgIndex * 100) / schShowEpgTotalEvents;
+				}
+				else
+				{
+				}
+			}
+				
+			if(schShowProgress > 100)
+			{
+				schShowProgress = 100;
+			}
+
+			schShowDrawProgress(schShowProgress);
+
+			schShowLastTickCount = schShowTickCount;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	}
 }
 
 
-void schShowDrawProgress(int schShowSearchIndex, int  schShowStartSearchIndex, int  schShowEndSearchIndex, int schShowChannelIndex, int schShowStartChannelIndex, int schShowEndChannelIndex)
+//---------------------------
+//
+void schShowDrawProgress(byte progress)
 {
-	int	progress = 0;
+	static	byte	oldProgress = 100;
 	char	str[128];
-	word	mjd = 0;
-	byte	hour = 0, min = 0, sec = 0;
-	static	byte	lastSec = 0;
 
-	if(schShowStartSearchIndex >= schShowEndSearchIndex)
+	if(progress != oldProgress)
 	{
-		return;
-	}
-
-	TAP_GetTime( &mjd, &hour, &min, &sec);
-
-	if(sec != lastSec)
-	{
-		progress = ((schShowSearchIndex - schShowStartSearchIndex) * 100) / (schShowEndSearchIndex - schShowStartSearchIndex);
-
-//		progress = ((schShowSearchIndex - schShowStartSearchIndex) * 100 * 10) / (schShowEndSearchIndex - schShowStartSearchIndex);
-
-//		progress += ((schShowChannelIndex - schShowStartChannelIndex) * 100) / (schShowEndChannelIndex - schShowStartChannelIndex);
-
-//		progress /= 10;
-
 		TAP_Osd_FillBox( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 40, SCH_SHOW_PROGRESS_WINDOW_Y + 54, SCH_SHOW_PROGRESS_WINDOW_W - 80, 36, POPUP_FILL_COLOUR );
 
 		sprintf(str, "%d", progress);
@@ -905,10 +1157,13 @@ void schShowDrawProgress(int schShowSearchIndex, int  schShowStartSearchIndex, i
 
 		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y + 58, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-		lastSec = sec;
+		oldProgress = progress;
 	}
 }
 
+
+//---------------------------
+//
 void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 {
 	dword	resultStartTimeInMins = 0, resultDurationTimeInMins = 0;
@@ -943,8 +1198,8 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 				(timerDurationTimeInMins == (resultDurationTimeInMins + searchStartPaddingInMins + searchEndPaddingInMins))
 				&&
 				(timerInfo.svcNum == schShowResults[schShowResultIndex].svcNum)
-//				&&
-// must enable this !!!!!	(timerInfo.svcType == schShowResults[schShowResultIndex].svcType)
+				&&
+				(timerInfo.svcType == schShowResults[schShowResultIndex].svcType)
 			)
 			{
 				schShowResults[schShowResultIndex].timerSet = TRUE;
@@ -958,7 +1213,8 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 }
 
 
-
+//---------------------------
+//
 void schShowSortResults(int sortOrder)
 {
 	int	i = 0, j = 0;
@@ -972,7 +1228,7 @@ void schShowSortResults(int sortOrder)
 			{
 			/*--------------------------------------------------*/
 			case SCH_SHOW_SORT_ORDER_TIME:
-//schShowResultsPtr
+
 				if(schShowResultsPtr[j]->startTime < schShowResultsPtr[j-1]->startTime)
 				{
 					tempResult = schShowResultsPtr[j];

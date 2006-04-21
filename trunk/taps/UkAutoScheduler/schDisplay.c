@@ -11,6 +11,8 @@ v0.5 sl8:	15-02-06	Modified for new 'Perform Search' config option.
 				Bug fix - No longer possible to edit a deleted search.
 v0.6 sl8:	08-03-06	Allow the activation key to exit to TV
 v0.7 sl8:	11-04-06	Show window added and tidy up.
+v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
+				Filter search option added.
 
 **************************************************************/
 
@@ -27,35 +29,50 @@ v0.7 sl8:	11-04-06	Show window added and tidy up.
 #define ALL_OFFSET	23
 #define SET_OFFSET	20
 
-enum
-{
-	SCH_DISP_SORT_ORDER_ALL = 0,
-	SCH_DISP_SORT_ORDER_RECORD,
-	SCH_DISP_SORT_ORDER_WATCH,
-	SCH_DISP_SORT_ORDER_DISABLE
-};
-
-
 void schDispDrawLegend(void);
+void schDispDrawColumnText(void);
+void schDispFilterPopulateList(void);
+
 
 static	bool	schDispWindowShowing = 0;
 static	bool	schDispSaveToFile = 0;
 static	int	schDispChosenLine = 0;
 static	int	schDispPage = 0;
-static	int	schDispMaxShown = 0;
-static	int	schDispSortOrder = 0;
+static	int	schDispFilter = 0;
+static	byte	schDispFilterListTotal = 0;
+static	byte	schDispFilterList[SCH_MAX_SEARCHES];
+static	byte	schDispLastTotalValidSearches = 0;
 
+enum
+{
+	SCH_DISP_FILTER_ALL = 0,
+	SCH_DISP_FILTER_RECORD,
+	SCH_DISP_FILTER_WATCH,
+	SCH_DISP_FILTER_DISABLED
+};
 	
 //------------
 //
 void schDispWindowCreate(void)
 {
+	int	i = 0;
+
 	schDispWindowShowing = TRUE;
 
 	sysDrawGraphicBorders();
 
+	schDispDrawColumnText();
+
 	schDispChosenLine = 0;														// default: highlight the 1st timer
 	schDispPage = 0;
+
+	schDispFilter = SCH_DISP_FILTER_ALL;
+	schDispFilterListTotal = schMainTotalValidSearches;
+
+	for(i = 0; i < schMainTotalValidSearches; i++)
+	{
+		schDispFilterList[i] = i;
+	}
 }
 
 
@@ -70,13 +87,40 @@ void schDispWindowClose( void )
 //
 void schDispDrawBackground(void)
 {
-	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Auto Schedule", TITLE_COLOUR, COLOR_Black );
+	char	str[128];
 
-	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, 71, SCH_DISP_DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_DISP_DIVIDER_X1, 71, SCH_DISP_DIVIDER_X2, "Search Term", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_DISP_DIVIDER_X2, 71, SCH_DISP_DIVIDER_X3, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_DISP_DIVIDER_X3, 71, SCH_DISP_DIVIDER_X4, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_DISP_DIVIDER_X4, 71, SCH_DISP_DIVIDER_X5, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
+	strcpy(str, "Auto Schedule");
+
+	switch(schDispFilter)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case SCH_DISP_FILTER_ALL:
+
+		strcat(str, " [All]");
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_DISP_FILTER_RECORD:
+
+		strcat(str, " [Record Only]");
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_DISP_FILTER_WATCH:
+
+		strcat(str, " [Watch Only]");
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_DISP_FILTER_DISABLED:
+	default:
+		strcat(str, " [Disabled Only]");
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	}
+
+	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
 }
 
 
@@ -87,19 +131,22 @@ void schDispDrawText(int line, int dispLine)
 {
 	char	str[132];
 	int	textColour = 0;
+	int	index = 0;
 
 	if ( line == 0 ) return;											// bounds check
 
+	index = schDispFilterList[line-1];
+
 // Number
 	memset(str,0,132);
-	TAP_SPrint(str,"%d", line);
+	TAP_SPrint(str,"%d", (index + 1));
 
 	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X1, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 	memset(str,0,132);
-	TAP_SPrint(str,"\"%s\"", schUserData[line-1].searchTerm);
+	TAP_SPrint(str,"\"%s\"", schUserData[index].searchTerm);
 
-	if(schUserData[line-1].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
+	if(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
 	{
 		if( schDispChosenLine == line )
 		{
@@ -116,7 +163,7 @@ void schDispDrawText(int line, int dispLine)
 	{
 
 	// Record/Watch Icon
-		if(schUserData[line-1].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+		if(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_RECORD)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redcircleGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
@@ -131,7 +178,7 @@ void schDispDrawText(int line, int dispLine)
 		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, MAIN_TEXT_COLOUR, 0 );
 
 	// Channel
-		if((schUserData[line-1].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
+		if((schUserData[index].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
 		{
 			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X2 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X2 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
@@ -143,7 +190,7 @@ void schDispDrawText(int line, int dispLine)
 		}
 
 	// Days
-		if(schUserData[line-1].searchDay == 0x7F)
+		if(schUserData[index].searchDay == 0x7F)
 		{
 			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X3 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X3 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 600, "All", MAIN_TEXT_COLOUR, 0 );
@@ -155,7 +202,7 @@ void schDispDrawText(int line, int dispLine)
 		}
 
 	// Time
-		if(schUserData[line-1].searchStartTime == schUserData[line-1].searchEndTime)
+		if(schUserData[index].searchStartTime == schUserData[index].searchEndTime)
 		{
 			TAP_Osd_PutGd( rgn, SCH_DISP_DIVIDER_X4 + 7, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_greenovalGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, SCH_DISP_DIVIDER_X4 + ALL_OFFSET, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X5, "All", MAIN_TEXT_COLOUR, 0 );
@@ -194,28 +241,12 @@ void schDispDrawLine(int line)
 
 	if
 	(
-		(schMainTotalValidSearches > 0)
+		(schDispFilterListTotal > 0)
 		&&
-		(line <= schMainTotalValidSearches)
+		(line <= schDispFilterListTotal)
 	)
 	{
-		schDispDrawText(line, dispLine);						// anything to display ?
-
-//		found = FALSE;
-//		foundCount = 0;
-//		for(i = 0; ((i < schMainTotalValidSearches) && (found == FALSE)); i++)
-//		{
-//			if(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD)
-//			{
-//				foundCount++;
-//				if(foundCount == line)
-//				{
-//					schDispDrawText(i+1, line);
-//
-//					found = TRUE;
-//				}
-//			}
-//		}
+		schDispDrawText(line, dispLine);
 	}
 
 	TAP_Osd_FillBox( rgn, SCH_DISP_DIVIDER_X1, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, 3, SYS_Y1_STEP, FILL_COLOUR );	// draw the column seperators
@@ -302,9 +333,12 @@ void schDisplayKeyHandler(dword key)
 {
 	int	oldPage = 0, oldChosenLine = 0;
 	struct	schDataTag schDisplay;
+	char	buffer1[128];
 
 	oldPage = schDispPage;
 	oldChosenLine = schDispChosenLine;
+
+	schDispLastTotalValidSearches = schMainTotalValidSearches;
 
 	switch ( key )
 	{
@@ -332,6 +366,8 @@ void schDisplayKeyHandler(dword key)
 			(schDispChosenLine < (schMainTotalValidSearches))
 			&&
 			(schDispChosenLine > 0)
+			&&
+			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)
 		{
 			schDisplay = schUserData[schDispChosenLine];
@@ -368,6 +404,8 @@ void schDisplayKeyHandler(dword key)
 			(schDispChosenLine > 1)
 			&&
 			(schDispChosenLine <= schMainTotalValidSearches)
+			&&
+			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)
 		{
 			schDisplay = schUserData[schDispChosenLine - 2];
@@ -397,9 +435,9 @@ void schDisplayKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_ChDown:
 
-		if ( schMainTotalValidSearches > 0)
+		if ( schDispFilterListTotal > 0)
 		{
-			if ( schDispChosenLine < schMainTotalValidSearches )
+			if ( schDispChosenLine < schDispFilterListTotal )
 			{
 				schDispChosenLine++;			// 0=hidden - can't hide once cursor moved
 			}
@@ -429,7 +467,7 @@ void schDisplayKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_ChUp:
 
-		if ( schMainTotalValidSearches > 0)
+		if ( schDispFilterListTotal > 0)
 		{
 			if ( schDispChosenLine > 1 )
 			{
@@ -437,7 +475,7 @@ void schDisplayKeyHandler(dword key)
 			}
 			else
 			{
-				schDispChosenLine = schMainTotalValidSearches;
+				schDispChosenLine = schDispFilterListTotal;
 			}
 
 			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
@@ -457,15 +495,25 @@ void schDisplayKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Forward:
 
-		if ( schDispPage == ((schDispMaxShown-1) / SCH_DISP_NUMBER_OF_LINES) )			// page down
+		if(schDispFilterListTotal > 1)
 		{
-			schDispChosenLine = schDispMaxShown;
-		}
-		else
-		{
-			schDispPage = schDispPage + 1;
-			schDispChosenLine = (schDispPage * SCH_DISP_NUMBER_OF_LINES) + 1;		// will land only on top of page
-			schDispDrawList();
+			if ( schDispPage == ((schDispFilterListTotal - 1) / SCH_DISP_NUMBER_OF_LINES) )			// page down
+			{
+				schDispChosenLine = schDispFilterListTotal;
+
+				if ( oldChosenLine > 0 )
+				{
+					schDispDrawLine(oldChosenLine);
+				}
+
+				schDispDrawLine(schDispChosenLine);
+			}
+			else
+			{
+				schDispPage = schDispPage + 1;
+				schDispChosenLine = (schDispPage * SCH_DISP_NUMBER_OF_LINES) + 1;		// will land only on top of page
+				schDispDrawList();
+			}
 		}
 
 		break;
@@ -482,6 +530,13 @@ void schDisplayKeyHandler(dword key)
 		{
 			schDispPage = 0;
 			schDispChosenLine = 1;
+
+			if ( oldChosenLine > 0 )
+			{
+				schDispDrawLine(oldChosenLine);
+			}
+
+			schDispDrawLine(schDispChosenLine);		
 		}
 
 		break;
@@ -496,11 +551,11 @@ void schDisplayKeyHandler(dword key)
 	case RKEY_8:
 	case RKEY_9:
 
-		if ( schMainTotalValidSearches > 0)
+		if ( schDispFilterListTotal > 0)
 		{
 			schDispChosenLine = (key - RKEY_0) + (schDispPage * SCH_DISP_NUMBER_OF_LINES);		// direct keyboard selection of any line
 
-			if ( schDispChosenLine > schDispMaxShown ) schDispChosenLine = schDispMaxShown;
+			if ( schDispChosenLine > schDispFilterListTotal ) schDispChosenLine = schDispFilterListTotal;
 
 			schDispDrawLine( oldChosenLine );
 			schDispDrawLine( schDispChosenLine );
@@ -510,10 +565,10 @@ void schDisplayKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_0:
 
-		if ( schMainTotalValidSearches > 0)
+		if ( schDispFilterListTotal > 0)
 		{
 			schDispChosenLine = (10) + (schDispPage * SCH_DISP_NUMBER_OF_LINES);			// make "0" select the 10th (last) line
-			if ( schDispChosenLine > schDispMaxShown ) schDispChosenLine = schDispMaxShown;
+			if ( schDispChosenLine > schDispFilterListTotal ) schDispChosenLine = schDispFilterListTotal;
 
 			schDispDrawLine( oldChosenLine );
 			schDispDrawLine( schDispChosenLine );
@@ -525,14 +580,14 @@ void schDisplayKeyHandler(dword key)
 
 		if
 		(
-			( schDispChosenLine > 0 )
+			(schDispChosenLine > 0)
 			&&
-			( schMainTotalValidSearches > 0)
+			(schDispFilterListTotal > 0)
 			&&
-			( schDispChosenLine <= schMainTotalValidSearches)
+			(schDispChosenLine <= schDispFilterListTotal)
 		)
 		{
-			schEditWindowActivate(schDispChosenLine,SCH_EXISTING_SEARCH);
+			schEditWindowActivate(schDispFilterList[schDispChosenLine - 1], SCH_EXISTING_SEARCH);
 		}
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -549,52 +604,59 @@ void schDisplayKeyHandler(dword key)
 
 		if
 		(
-			(schMainTotalValidSearches > 0)
+			(schDispFilterListTotal > 0)
 			&&
 			(schDispChosenLine > 0)
 		)
 		{
-			schShowWindowActivate(schDispChosenLine, schDispChosenLine);
+			schShowWindowActivate(schDispFilterList[schDispChosenLine - 1], schDispFilterList[schDispChosenLine-1], SCH_DISP_FILTER_ALL);
 		}
 		
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Yellow:
 
-		if(schMainTotalValidSearches > 0)
+		if(schDispFilterListTotal > 0)
 		{
-			schShowWindowActivate(1, schMainTotalValidSearches);
+			schShowWindowActivate(schDispFilterList[0], schDispFilterList[schDispFilterListTotal - 1], schDispFilter);
 		}
 		
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Blue:
 
-		if(schDispSortOrder == SCH_DISP_SORT_ORDER_ALL)
+		if(schDispFilter == SCH_DISP_FILTER_ALL)
 		{
-			schDispSortOrder = SCH_DISP_SORT_ORDER_RECORD;
+			schDispFilter = SCH_DISP_FILTER_RECORD;
 		}
-		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_RECORD)
+		else if(schDispFilter == SCH_DISP_FILTER_RECORD)
 		{
-			schDispSortOrder = SCH_DISP_SORT_ORDER_WATCH;
+			schDispFilter = SCH_DISP_FILTER_WATCH;
 		}
-		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_WATCH)
+		else if(schDispFilter == SCH_DISP_FILTER_WATCH)
 		{
-			schDispSortOrder = SCH_DISP_SORT_ORDER_DISABLE;
+			schDispFilter = SCH_DISP_FILTER_DISABLED;
 		}
-		else if(schDispSortOrder == SCH_DISP_SORT_ORDER_DISABLE)
+		else if(schDispFilter == SCH_DISP_FILTER_DISABLED)
 		{
-			schDispSortOrder = SCH_DISP_SORT_ORDER_ALL;
+			schDispFilter = SCH_DISP_FILTER_ALL;
 		}
 		else
 		{
 		}
 
+		schDispFilterPopulateList();
+
+		schDispPage = 0;
+		schDispChosenLine = 0;
+
+		schDispDrawList();
+
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Info:
 
-		/* Reserved keys */
+		/* Reserved key */
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -646,7 +708,32 @@ void schDispWindowInitialise( void )
 
 void schDispRefresh( void )
 {
+
+	if(schMainTotalValidSearches > schDispLastTotalValidSearches)		// Sched added
+	{
+		schDispFilter = SCH_DISP_FILTER_ALL;
+
+		schDispFilterPopulateList();
+
+		schDispChosenLine = schDispFilterListTotal;
+
+		schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+	}
+	else if(schDispLastTotalValidSearches > schMainTotalValidSearches)	// Sched deleted
+	{
+		schDispFilterPopulateList();
+
+		if(schDispChosenLine > schDispFilterListTotal)
+		{
+			schDispChosenLine = schDispFilterListTotal;
+		}
+	}
+	else
+	{
+	}
+
 	sysDrawGraphicBorders();
+	schDispDrawColumnText();
 
 	schDispDrawList();
 	schDispDrawLegend();
@@ -671,5 +758,56 @@ void schDispDrawLegend( void )
 	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Search All", INFO_COLOUR, 0 );
 
 	TAP_Osd_PutGd( rgn, LEG_START + (3 * LEG_SPACING), 523, &_blueoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Spare", INFO_COLOUR, 0 );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Filter", INFO_COLOUR, 0 );
 }
+
+
+void schDispDrawColumnText(void)
+{
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, 71, SCH_DISP_DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X1, 71, SCH_DISP_DIVIDER_X2, "Search Term", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X2, 71, SCH_DISP_DIVIDER_X3, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X3, 71, SCH_DISP_DIVIDER_X4, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_DISP_DIVIDER_X4, 71, SCH_DISP_DIVIDER_X5, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
+}
+
+
+void schDispFilterPopulateList(void)
+{
+	int	i = 0;
+
+	schDispFilterListTotal = 0;
+	for(i = 0; i < schMainTotalValidSearches; i++)
+	{
+		schDispFilterList[i] = 0;
+
+		if
+		(
+			(schDispFilter == SCH_DISP_FILTER_ALL)
+			||
+			(
+				(schDispFilter == SCH_DISP_FILTER_RECORD)
+				&&
+				(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+			)
+			||
+			(
+				(schDispFilter == SCH_DISP_FILTER_WATCH)
+				&&
+				(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_WATCH)
+			)
+			||
+			(
+				(schDispFilter == SCH_DISP_FILTER_DISABLED)
+				&&
+				(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
+			)
+		)
+		{
+			schDispFilterList[schDispFilterListTotal] = i;
+
+			schDispFilterListTotal++;
+		}
+	}
+}
+

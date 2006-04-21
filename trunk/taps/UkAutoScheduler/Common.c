@@ -75,6 +75,7 @@ v0.6 sl8		11-04-06	Show window added and tidy up.
 	#include "graphics/InfoOval44x22.gd"
 	#include "graphics/DateHighlight.gd"
 	#include "graphics/DateOverStamp.gd"
+	#include "graphics/conflictcircle.gd"
 #else
 	#include "graphics/win32/graphics.inc"
 	TYPE_TapEvent* TAP_GetEvent_SDK( byte, word, int* );
@@ -138,7 +139,7 @@ void schWriteSearchList(void);
 void schWriteMoveList(void);
 
 bool schEditWindowActivate(int, int);
-void schShowWindowActivate(int, int);
+void schShowWindowActivate(int, int, int);
 
 void logInitialise(void);
 void logStoreEvent(char*);

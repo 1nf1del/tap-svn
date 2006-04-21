@@ -46,7 +46,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.32x"
+#define VERSION "0.40"
 
 TAP_ID( ID_UKAUTO );
 
@@ -290,7 +290,7 @@ dword My_IdleHandler(void)
 		(schShowWindowShowing == FALSE)
 	)
 	{
-		schService();
+		schMainService();
 
 		if
 		(
@@ -377,7 +377,7 @@ int TAP_Main(void)
 	FindTapDir();
 	LoadConfiguration();
 	CacheLogos();
-	schInitLcnToSvcNumMap();
+	schMainInitLcnToSvcNumMap();
 	schDispWindowInitialise();
 	schEditWindowInitialise();
 	initialiseMenu();

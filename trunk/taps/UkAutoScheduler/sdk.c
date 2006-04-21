@@ -155,26 +155,16 @@ bool sdkRetreiveXmlData(void)
 		{
 		}
 	}
-//sprintf(buffer1,"Numb of channels: %d\r\n", schXmlNumberOfChannels );
-//TAP_Print(buffer1);
-
-//TAP_Print("here3\r\n");		
+/*
+	sprintf(buffer1,"Numb of channels: %d\r\n", schXmlNumberOfChannels );
+	TAP_Print(buffer1);
 
 	for (i = 0; i < schXmlNumberOfChannels; i++)
 	{
 		sprintf(buffer1,"id: %s     Events: %d\r\n", sdkEpgData[i].name, sdkEpgData[i].numbOfEvents );
 		TAP_Print(buffer1);
 	}
-
-/*
-sprintf(buffer1,"title: %s\r\n", sdkEpgData[0].eventData[1].eventName );
-TAP_Print(buffer1);
-sprintf(buffer1,"startTime: %x\r\n", sdkEpgData[0].eventData[1].startTime );
-TAP_Print(buffer1);
-sprintf(buffer1,"endTime: %x\r\n", sdkEpgData[0].eventData[1].endTime );
-TAP_Print(buffer1);
 */
-
 	TAP_MemFree( buffer );
 
 	return TRUE;
