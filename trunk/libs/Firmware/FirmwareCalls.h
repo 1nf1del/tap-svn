@@ -23,8 +23,15 @@
 #ifndef __FIRMWARECALLS_H
 #define __FIRMWARECALLS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-bool TAP_Hdd_Move( char* filename, char* destination );
+bool TAP_Hdd_Move_Available();
+bool TAP_Hdd_Move( char* fromDir, char* toDir, char* filename );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

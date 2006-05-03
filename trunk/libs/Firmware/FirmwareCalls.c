@@ -25,7 +25,7 @@
 #include "Firmware.h"
 
 
-dword moveSignature[] =
+dword debuggerMoveSignature[] =
 {
 	0x27bdffd0,
 	0xafb3001c,
@@ -51,32 +51,88 @@ dword moveSignature[] =
 	0x00002825
 };
 
-dword moveAddress = 0;
+dword moveAddressDebugger = 0;
 
+typedef dword  (*TAP_Hdd_MoveFn)(char *from_dir, char *to_dir, char *filename);
+TAP_Hdd_MoveFn  moveAddressAPI;
 
-bool TAP_Hdd_Move( char* filename, char* destination )
+enum
 {
-	if ( !moveAddress )
+    oTAP_Hdd_unknown0          = 0x00,  //hdd related, called by debug functions 'rs', 'rc'     -- read sector?
+    oTAP_Hdd_unknown1          = 0x01,  //hdd related, called by debug functions 'ws', 'wc'     -- write sector?
+    oTAP_unknown2              = 0x02,  //writes to eeprom? @ 0xa3ffffe0, 0xa3ffffe1
+    oTAP_Hdd_unknown3          = 0x03,  //ata/dma related, ???
+    oTAP_Hdd_SetBookmark       = 0x04,
+    oTAP_Hdd_GotoBookmark      = 0x05,
+    oTAP_Hdd_ChangePlaybackPos = 0x06,
+    oTAP_ControlEit            = 0x07,
+    oTAP_SetBk                 = 0x08,
+    oTAP_EPG_UpdateEvent       = 0x09,
+    oTAP_EPG_DeleteEvent       = 0x0a,
+    oTAP_EPG_GetExtInfo        = 0x0b,
+    oTAP_Channel_IsStarted     = 0x0c,
+    oTAP_Vfd_GetStatus         = 0x0d,
+    oTAP_Vfd_Control           = 0x0e,
+    oTAP_Vfd_SendData          = 0x0f,
+    oTAP_Win_SetAvtice         = 0x10,
+    oTAP_Win_SetDrawItemFunc   = 0x11,
+    oTAP_SysOsdControl         = 0x12,
+    oTAP_Hdd_Move              = 0x13,
+    oTAP_Osd_unknown20         = 0x14,  //osd related, ???
+};
+
+extern void* (*TAP_GetSystemProc)( int );
+
+
+bool TAP_Hdd_Move_Available()
+{
+	if ( !moveAddressAPI && !moveAddressDebugger )
 	{
-		TAP_Print("Searching for firmware Move function...");
-		moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x800f8000, 0x80108000 );
-		if ( !moveAddress )
-			moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x80230000, 0x80238000 );
-
-		if ( !moveAddress )
-		{
-			TAP_Print("not found\n");
-			//ShowMessage( "Sorry, this firmware does not allow TAPs to move files.", 200 );
-			return FALSE;
-		}
-
-		TAP_Print("found at %08X\n", moveAddress);
+		moveAddressAPI = (TAP_Hdd_MoveFn)TAP_GetSystemProc(oTAP_Hdd_Move);
+		TAP_Print("API Move function %08X\n", moveAddressAPI);
 	}
 
-	if ( !filename || !destination )
+	if ( !moveAddressAPI && !moveAddressDebugger )
+	{
+		moveAddressDebugger = FindFirmwareFunction( debuggerMoveSignature, sizeof(debuggerMoveSignature), 0x800f8000, 0x80108000 );
+		if ( !moveAddressDebugger )
+			moveAddressDebugger = FindFirmwareFunction( debuggerMoveSignature, sizeof(debuggerMoveSignature), 0x80230000, 0x80238000 );
+
+		TAP_Print("Debugger Move function %08X\n", moveAddressDebugger);
+	}
+
+	return moveAddressDebugger || moveAddressAPI;
+}
+
+
+bool TAP_Hdd_Move( char* fromDir, char* toDir, char* filename )
+{
+	if ( !CanMove() )
 		return FALSE;
 
-	CallFirmware( moveAddress, (dword)filename, (dword)destination, 0,0 );
+	if ( !fromDir || !toDir || !filename )
+		return FALSE;
+
+	if ( moveAddressAPI )
+		moveAddressAPI( fromDir, toDir, filename );
+	else if ( moveAddressDebugger )
+	{
+		// The debugger move function overwrites the inputs, so we need to copy to temporary buffers
+		// it also requires 2 parameters rather than 3 and no preceeding / on paths to specify root
+		char src[1000];
+		char dest[1000];
+
+		if ( fromDir[0] == '/' )
+			++fromDir;
+		strcpy( src, fromDir );
+		strcat( src, "/" );
+		strcat( src, filename );
+
+		if ( toDir[0] == '/' )
+			++toDir;
+		strcpy( dest, toDir );
+		CallFirmware( moveAddressDebugger, (dword)src, (dword)dest, 0,0 );
+	}
 
 	return TRUE;
 }

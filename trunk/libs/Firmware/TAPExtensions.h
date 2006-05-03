@@ -22,6 +22,10 @@
 #ifndef __TAPEXTENSIONS_H
 #define __TAPEXTENSIONS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef dword (*TAP_EventHandlerFn)( word event, dword param1, dword param2 );
 typedef int (*TAP_MainFn)();
@@ -44,13 +48,13 @@ typedef struct
 
 typedef struct
 {
-	byte signature[32];
+	char signature[32];
 	dword id;
 	byte padding1[28];
-	const char name[MAX_PROGRAM_NAME];
-	const char authorName[MAX_AUTHOR_NAME];
-    const char description[MAX_DESCRIPTION];
-	const char etcStr[MAX_ETCINFO_STR];
+	char name[MAX_PROGRAM_NAME];
+	char authorName[MAX_AUTHOR_NAME];
+    char description[MAX_DESCRIPTION];
+	char etcStr[MAX_ETCINFO_STR];
 } TAPHeader;
 
 
@@ -83,9 +87,8 @@ dword TAP_BroadcastEvent( word event, dword param1, dword param2 );
 #define EVT_TAPHASCONFIG	0x8001
 #define EVT_TAPCONFIG		0x8002
 
-
-//typedef dword (*TAP_Launch)(TYPE_File* file);
-//TAP_Launch tapLaunch = NULL;
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

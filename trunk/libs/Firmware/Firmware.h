@@ -22,8 +22,12 @@
 #ifndef __FIRMWARE_H
 #define __FIRMWARE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern dword _appl_version;
+
+extern int _appl_version;
 extern word* sysID;
 
 typedef enum
@@ -44,6 +48,8 @@ typedef enum
 	TF5200c,
 	TF5100c,
 	TF5100,
+	TF5100c_MP,
+	TF5100t_MP,
 	PC5101c_5102c,
 	PC5101t_5102t
 } Model;
@@ -58,5 +64,9 @@ dword HackFirmware( dword* address, dword value );
 dword* FindAndHackFirmware( dword* start, dword length, dword oldOpCode, dword newOpCode );
 void UndoFirmwareHacks();
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
