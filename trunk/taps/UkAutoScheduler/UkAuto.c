@@ -14,27 +14,28 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.9
+Version	: 0.10
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
-History	: v0.1 sl8: 11-11-05	Initial release
-	  v0.2 sl8: 11-11-05 	Uses common UI (graphical design by Quixotic)
-	  v0.3 sl8: 05-12-05 	Uses kidhazy's keyboard.
-				Start/End time can now be entered directly via the number keys
-				Will not highlight a line when number of schedules equal zero.
-	  v0.4 sl8: 21-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
-				All variables initialised
-				Save searchlist file when TAP exits.
-	  v0.5 sl8: 06-02-06	Activiation key can now be changed
-				Initialise schInitLcnToSvcNumMap from TAP_Main
-	  v0.6 sl8: 07-02-06	Reload searchlist file each time TAP is activated
-	  v0.7 sl8: 16-02-06	Added logging.
-				Modified for 'Perform Search' config option.
-				Bug fix - Clock not updating when UKAS screen/menu showing.
-	  v0.8 sl8: 09-03-06	Destination folder mods
-	  v0.9 sl8: 11-04-06	Show window added and tidy up.
+History	: v0.1  sl8:	11-11-05	Initial release
+	  v0.2  sl8:	11-11-05 	Uses common UI (graphical design by Quixotic)
+	  v0.3  sl8:	05-12-05 	Uses kidhazy's keyboard.
+					Start/End time can now be entered directly via the number keys
+					Will not highlight a line when number of schedules equal zero.
+	  v0.4  sl8:	21-01-06	Uses Kidhazy's method of changing directories. Modified for TAP_SDK
+					All variables initialised
+					Save searchlist file when TAP exits.
+	  v0.5  sl8:	06-02-06	Activiation key can now be changed
+					Initialise schInitLcnToSvcNumMap from TAP_Main
+	  v0.6  sl8:	07-02-06	Reload searchlist file each time TAP is activated
+	  v0.7  sl8:	16-02-06	Added logging.
+					Modified for 'Perform Search' config option.
+					Bug fix - Clock not updating when UKAS screen/menu showing.
+	  v0.8  sl8:	09-03-06	Destination folder mods
+	  v0.9  sl8:	11-04-06	Show window added and tidy up.
+	  v0.10 sl8:	08-05-06	API move added.
 
 **************************************************************/
 
@@ -46,7 +47,7 @@ History	: v0.1 sl8: 11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.41"
+#define VERSION "0.42"
 
 TAP_ID( ID_UKAUTO );
 
@@ -296,7 +297,11 @@ dword My_IdleHandler(void)
 		(
 			(FirmwareCallsEnabled == TRUE)
 			&&
-			(TAP_Hdd_Move_Available == TRUE)
+			(
+				(schMainApiMoveAvailable == TRUE)
+				||
+				(schMainDebugMoveAvailable == TRUE)
+			)
 		)
 		{
 			schMoveService();
@@ -385,11 +390,20 @@ int TAP_Main(void)
 	schShowWindowInitialise();
 	logInitialise();
 
+	schMainApiMoveAvailable = FALSE;
+	schMainDebugMoveAvailable = FALSE;
+
 #ifndef WIN32
 	if( FirmwareCallsEnabled == TRUE )
 	{
-		StartTAPExtensions();
-		TAP_Hdd_Move_Available = Is_TAP_Hdd_Move_Available();
+		schMainApiMoveAvailable = fcCheckApiMoveAvailability();
+
+		if(schMainApiMoveAvailable == FALSE)
+		{
+			StartTAPExtensions();
+
+			schMainDebugMoveAvailable = fcCheckDebugMoveAvailability();
+		}
 	}
 #endif
 

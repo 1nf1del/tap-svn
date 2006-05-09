@@ -25,7 +25,7 @@
 #include "Firmware.h"
 
 
-dword moveSignature[] =
+dword fcDebugMethodMoveSignature[] =
 {
 	0x27bdffd0,
 	0xafb3001c,
@@ -51,41 +51,95 @@ dword moveSignature[] =
 	0x00002825
 };
 
-dword moveAddress = 0;
+dword fcDebugMethodMoveAddress = 0;
 
+typedef dword (*TAP_Hdd_ApiMoveFn)(char *from_dir, char *to_dir, char *filename);
+TAP_Hdd_ApiMoveFn TAP_Hdd_ApiMove;
 
-
-bool Is_TAP_Hdd_Move_Available( void )
+enum
 {
-//	TAP_Print("Searching for firmware Move function...");
-	moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x800f8000, 0x80108000 );
-	if ( !moveAddress )
-		moveAddress = FindFirmwareFunction( moveSignature, sizeof(moveSignature), 0x80230000, 0x80238000 );
+	oTAP_Hdd_unknown0 = 0x00,
+	oTAP_Hdd_unknown1 = 0x01,
+	oTAP_unknown2 = 0x02,
+	oTAP_Hdd_unknown3 = 0x03,
+	oTAP_Hdd_SetBookmark = 0x04,
+	oTAP_Hdd_GotoBookmark = 0x05,
+	oTAP_Hdd_ChangePlaybackPos = 0x06,
+	oTAP_ControlEit = 0x07,
+	oTAP_SetBk = 0x08,
+	oTAP_EPG_UpdateEvent = 0x09,
+	oTAP_EPG_DeleteEvent = 0x0a,
+	oTAP_EPG_GetExtInfo = 0x0b,
+	oTAP_Channel_IsStarted = 0x0c,
+	oTAP_Vfd_GetStatus = 0x0d,
+	oTAP_Vfd_Control = 0x0e,
+	oTAP_Vfd_SendData = 0x0f,
+	oTAP_Win_SetAvtice = 0x10,
+	oTAP_Win_SetDrawItemFunc = 0x11,
+	oTAP_SysOsdControl = 0x12,
+	oTAP_Hdd_Move = 0x13,
+	oTAP_Osd_unknown20 = 0x14,
+};
 
-	if ( !moveAddress )
+extern void* (*TAP_GetSystemProc)( int );
+
+
+
+
+
+
+
+bool fcCheckDebugMoveAvailability( void )
+{
+	fcDebugMethodMoveAddress = FindFirmwareFunction( fcDebugMethodMoveSignature, sizeof(fcDebugMethodMoveSignature), 0x800f8000, 0x80108000 );
+
+	if ( !fcDebugMethodMoveAddress )
 	{
-//		TAP_Print("not found\n");
-		//ShowMessage( "Sorry, this firmware does not allow TAPs to move files.", 200 );
-		return FALSE;
+		fcDebugMethodMoveAddress = FindFirmwareFunction( fcDebugMethodMoveSignature, sizeof(fcDebugMethodMoveSignature), 0x80230000, 0x80238000 );
 	}
 
-//	TAP_Print("found at %08X\n", moveAddress);
+	if ( !fcDebugMethodMoveAddress )
+	{
+		return FALSE;
+	}
 
 	return TRUE;
 }
 
-
-bool TAP_Hdd_Move( char* filename, char* destination )
+bool TAP_Hdd_DebugMove( char* filename, char* destination )
 {
-	if ( moveAddress )
+	if ( fcDebugMethodMoveAddress )
 	{
-		if ( !filename || !destination )
+		if
+		(
+			(!filename)
+			||
+			(!destination)
+		)
+		{
 			return FALSE;
+		}
 
-		CallFirmware( moveAddress, (dword)filename, (dword)destination, 0,0 );
+		CallFirmware( fcDebugMethodMoveAddress, (dword)filename, (dword)destination, 0,0 );
 
 		return TRUE;
 	}
 
 	return FALSE;
 }
+
+
+
+
+bool fcCheckApiMoveAvailability( void )
+{
+	TAP_Hdd_ApiMove = (TAP_Hdd_ApiMoveFn)TAP_GetSystemProc(oTAP_Hdd_Move);
+
+	if ( TAP_Hdd_ApiMove != NULL )
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
+

@@ -24,8 +24,6 @@
 #define __FIRMWARECALLS_H
 
 
-bool Is_TAP_Hdd_Move_Available( void );
-bool TAP_Hdd_Move( char* filename, char* destination );
 
 
 #endif

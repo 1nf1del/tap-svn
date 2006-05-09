@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.6
+Version	: 0.7
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -17,6 +17,7 @@ v0.3 sl8:		06-02-06	Added UK Project directory define
 v0.4 sl8:		15-02-06	Modified to allow for 'Perform Search' config option
 v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 v0.6 sl8		11-04-06	Show window added and tidy up.
+v0.7 sl8		08-05-06	API move added.
 
 ************************************************************/
 
@@ -184,7 +185,8 @@ static byte schMoveServiceSV = SCH_MOVE_SERVICE_INITIALISE;
 static byte schStartUpCounter = 0;
 
 static bool FirmwareCallsEnabled = FALSE;
-static bool TAP_Hdd_Move_Available = FALSE;
+static bool schMainDebugMoveAvailable = FALSE;
+static bool schMainApiMoveAvailable = FALSE;
 
 enum
 {

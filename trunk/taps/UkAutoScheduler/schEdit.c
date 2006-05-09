@@ -11,6 +11,7 @@ v0.3: sl8	16-02-06	Short cut added. Record key saves search (if valid).
 v0.4: sl8	09-03-06	Allow user to choose a destination folder. Removed debug info. Show selected days info
 v0.5: sl8	11-04-06	Show window added and tidy up.
 v0.6: sl8	19-04-06	Corrected positoning of screen. Changed colour of info area.
+v0.7: sl8	08-05-06	API move added.
 
 **************************************************************/
 
@@ -627,7 +628,12 @@ void schEditDrawLine(int lineNumber)
 
 		if(FirmwareCallsEnabled == TRUE)
 		{
-			if( TAP_Hdd_Move_Available == TRUE)
+			if
+			(
+				( schMainApiMoveAvailable == TRUE)
+				||
+				( schMainDebugMoveAvailable == TRUE)
+			)
 			{
 				TAP_SPrint(str,"/%s/", schEdit.searchFolder);
 
@@ -1382,7 +1388,11 @@ void EditLineKeyHandler(dword key)
 			&&
 			( FirmwareCallsEnabled == TRUE )
 			&&
-			( TAP_Hdd_Move_Available == TRUE)
+			(
+				( schMainApiMoveAvailable == TRUE)
+				||
+				( schMainDebugMoveAvailable == TRUE)
+			)
 		)
 		{
 			ActivateKeyboard( schEdit.searchFolder, SEARCHFOLDER_LENGTH, &ReturnFromKeyboardSearchFolder );

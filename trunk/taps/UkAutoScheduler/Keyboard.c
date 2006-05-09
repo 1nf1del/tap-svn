@@ -5,7 +5,7 @@
 
 Name	: Keyboard.c
 Author	: Darkmatter
-Version	: 0.3
+Version	: 0.4
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -14,6 +14,7 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 	  v0.1 sl8:		04-12-05	Accept empty string
 	  v0.2 sl8:		20-01-06	All variables initialised
 	  v0.3 sl8:		09-02-06	Colon added
+	  v0.4 sl8:		08-05-06	'/' added
 
 **************************************************************/
 
@@ -278,7 +279,7 @@ char KeyboardSelection( int row, int column )
 	
 	switch ( keyboardListType )												// set up the selections strings
 	{																		// avoid windows characters of \/:*?"<>|
-		case 0 :	strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ); break;
+		case 0 :	strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ  /" ); break;
 		
 		case 1 :	strcpy( str, "abcdefghijklmnopqrstuvwxyz" ); break;
 

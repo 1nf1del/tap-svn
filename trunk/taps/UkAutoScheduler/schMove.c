@@ -4,6 +4,7 @@ This module moves a file to a specified directory
 
 v0.0 sl8:	09-03-06	Inception date
 v0.1 sl8:	11-04-06	Tidy up.
+v0.2 sl8:	08-05-06	API move added.
 
 **************************************************************/
 
@@ -32,6 +33,7 @@ void schMoveService(void)
 	static	bool	schMoveSuccessful = FALSE;
 	static	bool	moveFailed = FALSE;
 	int	result = 0;
+	bool	schMoveResult = FALSE;
 
 	switch(schMoveServiceSV)
 	{
@@ -152,10 +154,21 @@ void schMoveService(void)
 					sprintf( fileStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFileName );
 					sprintf( folderStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
 #ifndef WIN32
-					if(TAP_Hdd_Move( fileStr, folderStr ) == TRUE)
+					if(schMainApiMoveAvailable == TRUE)
+					{
+						schMoveResult = TAP_Hdd_ApiMove( "/DataFiles", folderStr, schMoveData[schMoveIndex].moveFileName );
+					}
+					else if(schMainDebugMoveAvailable == TRUE)
+					{
+						schMoveResult = TAP_Hdd_DebugMove( fileStr, folderStr );
+					}
+					else
+					{
+					}
 #else
-					if(1)
+					schMoveResult = TRUE;	// For the SDK
 #endif
+					if(schMoveResult == TRUE)
 					{
 						schMoveSuccessful = TRUE;
 
