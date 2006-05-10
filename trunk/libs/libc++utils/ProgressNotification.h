@@ -27,7 +27,7 @@ public:
 	ProgressNotification();
 	virtual ~ProgressNotification();
 	virtual void Start();
-	virtual void Step(int iPercent);
+	virtual void Step(short int iPercent);
 	virtual void Finish();
 };
 #endif

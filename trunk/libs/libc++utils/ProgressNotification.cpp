@@ -29,7 +29,7 @@ ProgressNotification::~ProgressNotification()
 void ProgressNotification::Start()
 {
 }
-void ProgressNotification::Step(int iPercent)
+void ProgressNotification::Step(short int iPercent)
 {
 	iPercent; // be silent, compiler
 }

@@ -63,7 +63,18 @@ public:
 
 	bool CanRecord() const;
 	bool IsScheduledToRecord() const;
-	int Recordability() const;
+
+	enum RecordabilityCalculationFlags
+	{
+		CareAboutProgramStarted=0x01,
+		CareAboutClashingTimers=0x02,
+		PreferLateNightShowings=0x04,
+		CareIfScheduledToRecord=0x08,
+
+		DefaultRecordabilityFlags = 0x0F
+	};
+
+	int Recordability(RecordabilityCalculationFlags flags = DefaultRecordabilityFlags) const;
 	string GetFileName() const;
 		
 	static void SetFlags(dword dwNewFlags);

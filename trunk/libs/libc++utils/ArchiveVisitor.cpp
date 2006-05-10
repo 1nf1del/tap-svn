@@ -32,5 +32,6 @@ ArchiveVisitor::~ArchiveVisitor()
 
 bool ArchiveVisitor::VisitProgram(const ArchivedProgram *pProgram)
 {
+	(pProgram);
 	return true;
 }

@@ -27,10 +27,35 @@
 Archive::Archive(const string& sCacheFile)
 {
 	m_sCacheFile = sCacheFile;
+	m_pDeletedPrograms = NULL;
 	if (m_sCacheFile == "")
 		m_sCacheFile = "/ProgramFiles/Archive.cache";
 	Populate();
 }
+
+Archive::Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>& deletedStuff)
+{
+	m_pDeletedPrograms = NULL;
+	m_sCacheFile = sDeletedCacheFile;
+	LoadCache();
+	for (unsigned int i=0; i<m_cachedArchive.size(); i++)
+	{
+		m_theArchive.push_back(m_cachedArchive[i]);
+	}
+	m_cachedArchive.clear();
+	for (unsigned int i=0; i<deletedStuff.size(); i++)
+	{
+		const ArchivedProgram* pProg = deletedStuff[i];
+		if (m_theArchive.containsvalue(pProg))
+		{
+			delete pProg;
+			continue;
+		}
+		m_theArchive.push_back(pProg);
+	}
+	SaveCache();
+}
+
 
 Archive::~Archive()
 {
@@ -40,6 +65,14 @@ Archive::~Archive()
 	for (unsigned int i=0; i<m_cachedArchive.size(); i++)
 		delete m_cachedArchive[i];
 
+	delete m_pDeletedPrograms;
+}
+
+void Archive::BuildDeletedArchive()
+{
+	string sDelCache = m_sCacheFile + ".deleted";
+	m_pDeletedPrograms = new Archive(sDelCache, m_cachedArchive);
+	m_cachedArchive.clear();
 }
 
 void Archive::Populate()
@@ -47,6 +80,7 @@ void Archive::Populate()
 	LoadCache();
 	PopulateFromFolder("/DataFiles");
 	SaveCache();
+	BuildDeletedArchive();
 }
 
 void Archive::LoadCache()
@@ -127,6 +161,7 @@ void Archive::PopulateFromFolder(const string& sFolderName)
 	}
 }
 
+
 const array<const ArchivedProgram*>& Archive::GetPrograms()
 {
 	return m_theArchive;
@@ -143,6 +178,17 @@ bool Archive::Visit(ArchiveVisitor* pVisitor) const
 
 	return true;
 }
+
+const array<const ArchivedProgram*>& Archive::GetDeletedPrograms()
+{
+	return m_pDeletedPrograms->GetPrograms();
+}
+
+bool Archive::VisitDeletedPrograms(ArchiveVisitor* pVisitor) const
+{
+	return m_pDeletedPrograms->Visit(pVisitor);
+}
+
 
 const ArchivedProgram* Archive::FindInCache(const string& folderName, TYPE_File& file)
 {

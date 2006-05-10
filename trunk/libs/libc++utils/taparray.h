@@ -79,8 +79,10 @@ public:
 	void sort();
 
 	int find(const T& item) const;
+	int findvalue(const T& pItem) const;
 
 	bool contains(const T& item) const;
+	bool containsvalue(const T& pItem) const;
 	const T& nullObject() const;
 
 private:
@@ -244,9 +246,25 @@ template<typename T> int array<T>::find(const T& item) const
 	return -1;
 }
 
+template<typename T> int array<T>::findvalue(const T& pItem) const
+{
+	for (unsigned int i=0; i<m_iLen; i++)
+	{
+		if (*m_pArray[i]==*pItem)
+			return i;
+	}
+	return -1;
+}
+
+
 template<typename T> bool array<T>::contains(const T& item) const
 {
 	return find(item)!=-1;
+}
+
+template<typename T> bool array<T>::containsvalue(const T& pItem) const
+{
+	return findvalue(pItem)!=-1;
 }
 
 template<typename T> const T& array<T>::nullObject() const

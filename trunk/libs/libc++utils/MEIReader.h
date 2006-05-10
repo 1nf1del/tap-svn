@@ -36,7 +36,7 @@ public:
 	~MEIReader(void);
 
 	bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
-	int GetPercentDone();
+	short int GetPercentDone();
 	bool CanRead();
 private:
 	bool Init();

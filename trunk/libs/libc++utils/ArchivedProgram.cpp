@@ -159,3 +159,11 @@ bool ArchivedProgram::Represents(const string& folderName, TYPE_File& file) cons
 	return true;
 
 }
+
+bool ArchivedProgram::operator==(const ArchivedProgram& other) const
+{
+	return (m_sFileName == other.m_sFileName) &&
+		(m_sFolderName == other.m_sFolderName) &&
+		(m_sTitle == other.m_sTitle) &&
+		(m_sDescription == other.m_sDescription);
+}

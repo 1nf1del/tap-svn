@@ -31,7 +31,7 @@ class IEPGReader
 public:
 	virtual ~IEPGReader();
 	virtual bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
-	virtual int GetPercentDone();
+	virtual short int GetPercentDone();
 	virtual bool CanRead() ;
 };
 
@@ -42,7 +42,7 @@ public:
 	~EPGReader(void);
 
 	bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
-	int GetPercentDone();
+	short int GetPercentDone();
 	bool CanRead();
 private:
 	EPGevent* BuildEvent(TYPE_TapEvent* pTapEvent, int iChannelNum);

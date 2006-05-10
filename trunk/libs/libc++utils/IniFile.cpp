@@ -27,7 +27,7 @@
 #include "file.h"
 #include "DirectoryUtils.h"
 
-const int maxIniLength = 32768;
+const int maxIniLength = 32768*8;
 
 IniFile::IniFile()
 {

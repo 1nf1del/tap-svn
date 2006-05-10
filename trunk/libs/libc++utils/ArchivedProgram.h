@@ -41,6 +41,7 @@ public:
 	string Serialize() const;
 	static ArchivedProgram DeSerialize(const string& data);
 	bool Represents(const string& folderName, TYPE_File& file) const;
+	bool operator==(const ArchivedProgram& other) const;
 
 private:
 	void Init();

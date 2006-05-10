@@ -32,6 +32,7 @@ OptionUpdateNotifier::~OptionUpdateNotifier(void)
 
 void OptionUpdateNotifier::OnUpdate(const Option* pOpt) const
 {
+	(pOpt);
 }
 
 OptionUpdateFunctionNotifier::OptionUpdateFunctionNotifier(OptionUpdateNotificationFuncPtr pFunc, void* pObj)

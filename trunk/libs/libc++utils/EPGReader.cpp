@@ -36,7 +36,7 @@ bool IEPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 	maxRowsThisChunk;
 	return false;
 }
-int IEPGReader::GetPercentDone()
+short int IEPGReader::GetPercentDone()
 {
 	return 0;
 }
@@ -102,8 +102,8 @@ bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 	return false;
 }
 
-int EPGReader::GetPercentDone()
+short int EPGReader::GetPercentDone()
 {
-	return m_iCurrentChan * 100 / (m_iTotalChan+1);
+	return (short int) ( m_iCurrentChan * 100 / (m_iTotalChan+1));
 }
 

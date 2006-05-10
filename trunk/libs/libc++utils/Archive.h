@@ -34,16 +34,23 @@ public:
 	const array<const ArchivedProgram*>& GetPrograms();
 	bool Visit(ArchiveVisitor* pVisitor) const;
 
+	const array<const ArchivedProgram*>& GetDeletedPrograms();
+	bool VisitDeletedPrograms(ArchiveVisitor* pVisitor) const;
+
 private:
+
+	Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>& deletedStuff);
 	void Populate();
 	void PopulateFromFolder(const string & sFolderName);
 	void LoadCache();
 	const ArchivedProgram* FindInCache(const string& folderName, TYPE_File& file);
 	void SaveCache();
+	void BuildDeletedArchive();
 
 	array<const ArchivedProgram*> m_theArchive;
 	array<const ArchivedProgram*> m_cachedArchive;
 	string m_sCacheFile;
+	Archive* m_pDeletedPrograms;
 };
 
 #endif

@@ -88,12 +88,12 @@ bool MEIReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 	return false;
 }
 
-int MEIReader::GetPercentDone()
+short int MEIReader::GetPercentDone()
 {
 	int fpos = TAP_Hdd_Ftell(m_pFile->fd) / 1024;
 	int fsize = m_pFile->size / 1024;
 
-	return (fpos * 100) / fsize;
+	return (short int)((fpos * 100) / fsize);
 }
 
 string MEIReader::GetFileName()

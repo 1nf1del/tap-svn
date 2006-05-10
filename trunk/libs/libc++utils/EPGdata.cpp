@@ -77,6 +77,7 @@ void EPGdata::CheckForContinuedPrograms()
 array<string> EPGdata::GetGenres()
 {
 	array<string> results;
+	array<string> lresults;
 	for (unsigned int i = 0; i< m_channels.size(); i++)
 	{
 		const array<EPGevent*>& events = m_channels[i]->GetEvents();
@@ -84,7 +85,13 @@ array<string> EPGdata::GetGenres()
 		{
 			string genre = events[j]->GetGenre();
 			if (!results.contains(genre))
+			{
+				string lgenre = genre.tolower();
+				if (lresults.contains(lgenre))
+					continue;
 				results.push_back(genre);
+				lresults.push_back(lgenre);
+			}
 		}
 	}
 	return results;

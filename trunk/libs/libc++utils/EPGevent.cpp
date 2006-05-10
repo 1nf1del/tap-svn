@@ -386,22 +386,35 @@ bool EPGevent::IsScheduledToRecord() const
 	return (Globals::GetTimers()->IsScheduled(this));
 }
 
-int EPGevent::Recordability() const
+int EPGevent::Recordability(RecordabilityCalculationFlags flags) const
 {
-	if (m_TimeSlot.Start().IsInPast())
-		return -100;
+	if (flags & CareAboutProgramStarted)
+	{
+		if (m_TimeSlot.Start().IsInPast())
+			return -100;
+	}
 
-	if (IsScheduledToRecord())
-		return 200;
+	if (flags & CareIfScheduledToRecord)
+	{
+		if (IsScheduledToRecord())
+			return 200;
+	}
 
 	int iCount = Globals::GetTimers()->GetClashingTimers(this).size();
 
-	int iScore = 100 - (iCount * 100);
+	int iScore = 0;
+		
+	if (flags & CareAboutClashingTimers)
+		iScore = 100 - (iCount * 100);
 
-	int hour = (m_TimeSlot.Start().AsDateTime() & 0xFF00) >> 8;
 
-	if (hour < 6) 
-		iScore += 50;
+	if (flags & PreferLateNightShowings)
+	{
+		int hour = (m_TimeSlot.Start().AsDateTime() & 0xFF00) >> 8;
+
+		if (hour < 6) 
+			iScore += 50;
+	}
 
 	return iScore;
 }
