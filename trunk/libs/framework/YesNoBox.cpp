@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Decorator.h"
 
 
-YesNoBox::YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption, Decorator* pDecorator) 
+YesNoBox::YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, char defaultOption, Decorator* pDecorator) 
 : DialogBox(title, line1, line2, pDecorator)
 {
 	option		= defaultOption;
@@ -55,7 +55,7 @@ void YesNoBox::CreateDialog()
 //
 void YesNoBox::DisplayLine()
 {
-	int offset = 0;
+	short int offset = 0;
 	if (button2.empty())
 	{
 		offset = YESNO_OPTION_X_SPACE/2;
@@ -93,6 +93,7 @@ void YesNoBox::DisplayLine()
 //
 dword YesNoBox::OnKey( dword key, dword extKey )
 {
+	(extKey);
 	switch ( key )
 	{
 	case RKEY_VolUp:	
@@ -137,7 +138,7 @@ dword YesNoBox::OnKey( dword key, dword extKey )
 	return 0;
 }
 
-int YesNoBox::Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption, Decorator* pDecorator)
+int YesNoBox::Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, char defaultOption, Decorator* pDecorator)
 {
 	YesNoBox theBox(title, line1, line2, button1, button2, defaultOption, pDecorator);
 	return theBox.DoModal();

@@ -34,7 +34,7 @@ SimpleTextListItem::~SimpleTextListItem(void)
 {
 }
 
-void SimpleTextListItem::DrawSubItem(int iColumn, Rect rcBounds)
+void SimpleTextListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
 	DrawSubItemString(iColumn, rcBounds, m_asItemText[iColumn]);
 }

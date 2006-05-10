@@ -11,7 +11,7 @@ SkinDecorator::~SkinDecorator(void)
 {
 }
 
-void SkinDecorator::DrawDialogFrame(int x, int y, int w, int h)
+void SkinDecorator::DrawDialogFrame(short int x, short int y, short int w, short int h)
 {
 	Rect rect(x,y,w,h);
 	Tapplication* pApp = Tapplication::GetTheApplication();
@@ -31,7 +31,7 @@ void SkinDecorator::DrawDialogFrame(int x, int y, int w, int h)
 	//DrawCorner(x+w-2,y+h-2, cols.frameColor,0);
 }
 
-void SkinDecorator::DrawCorner(int x, int y, word colour, byte direction)
+void SkinDecorator::DrawCorner(short int x, short int y, word colour, byte direction)
 {
 	for (int i=0; i<4; i++)
 	{
@@ -41,7 +41,7 @@ void SkinDecorator::DrawCorner(int x, int y, word colour, byte direction)
 	}
 }
 
-void SkinDecorator::DrawButtonBackground(int x, int y, int w, int h, bool bSel)
+void SkinDecorator::DrawButtonBackground(short int x, short int y, short int w, short int h, bool bSel)
 {
 	Tapplication* pApp = Tapplication::GetTheApplication();
 	ListColors cols = pApp->GetColorDef(bSel ? highlightColors : normalColors);
@@ -50,7 +50,7 @@ void SkinDecorator::DrawButtonBackground(int x, int y, int w, int h, bool bSel)
 	rect.DrawBox(m_wRegion, 2, cols.frameColor);
 }
 
-void SkinDecorator::PrintText(int x, int y, int maxX, const char* text, int fontSize, colorSets whichColors)
+void SkinDecorator::PrintText(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichColors)
 {
 	Tapplication* pApp = Tapplication::GetTheApplication();
 	ListColors cols = pApp->GetColorDef(whichColors);
@@ -58,7 +58,7 @@ void SkinDecorator::PrintText(int x, int y, int maxX, const char* text, int font
 
 }
 
-void SkinDecorator::DrawProgress(int x, int y, int w, int h, int percent)
+void SkinDecorator::DrawProgress(short int x, short int y, short int w, short int h, short int percent)
 {
 	Tapplication* pApp = Tapplication::GetTheApplication();
 	ListColors hcols = pApp->GetColorDef(highlightColors);

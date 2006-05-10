@@ -31,7 +31,7 @@ public:
 	virtual ~OptionListItem(void);
 
 	virtual dword OnKey( dword key, dword extKey );
-	virtual void DrawSubItem(int iColumn, Rect rcBounds);
+	virtual void DrawSubItem(short int iColumn, Rect rcBounds);
 
 private:
 	void ChangeValue(int iOffset);

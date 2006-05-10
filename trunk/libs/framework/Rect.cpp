@@ -49,15 +49,15 @@ Rect::Rect()
 	x=y=w=h=-1;
 }
 
-void Rect::Shrink(int i)
+void Rect::Shrink(short int i)
 {
 	this->h -= 2*i;
 	this->w -= 2*i;
-	this->x += i;
-	this->y += i;
+	this->x += 1*i;
+	this->y += 1*i;
 }
 
-int GetHeightForFontSize(byte fntSize)
+short int GetHeightForFontSize(byte fntSize)
 {
 	switch (fntSize)
 	{
@@ -211,15 +211,17 @@ word Rect::CreateRegion(bool bMemRegion)
 
 void Rect::DrawLowerBorder(word regionIndex, short int thickness, word color) const
 {
+	(thickness);
 	TAP_Osd_DrawRectangle(regionIndex, x, y + h - 2 , w, 2,  1, color);
 }
 
 void Rect::DrawRightBorder(word regionIndex, short int thickness, word color) const
 {
+	(thickness);
 	TAP_Osd_DrawRectangle(regionIndex, x + w -2, y , 2, h,  1, color);
 }
 
-int Rect::GetWidth(const char* text, byte fntSize) const
+short int Rect::GetWidth(const char* text, byte fntSize) const
 {
-	return TAP_Osd_GetW(text, 0, fntSize);
+	return (short int) TAP_Osd_GetW(text, 0, fntSize);
 }

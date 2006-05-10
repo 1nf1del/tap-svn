@@ -29,14 +29,14 @@ class Decorator;
 class YesNoBox : public DialogBox
 {
 public:
-	static int Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2 = 0, int defaultOption = 0, Decorator* pDecorator = 0);
-	template <class D> static int Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2 = 0, int defaultOption = 0)
+	static int Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2 = 0, char defaultOption = 0, Decorator* pDecorator = 0);
+	template <class D> static int Show(const char* title, const char* line1, const char* line2, const char* button1, const char* button2 = 0, char defaultOption = 0)
 	{
 		Show(title, line1, line2, button1, button2, defaultOption, new D());
 	}
 
 
-	YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, int defaultOption, Decorator* pDecorator = NULL);
+	YesNoBox(const char* title, const char* line1, const char* line2, const char* button1, const char* button2, char defaultOption, Decorator* pDecorator = NULL);
 	virtual ~YesNoBox();
 
 	virtual dword OnKey( dword key, dword extKey );

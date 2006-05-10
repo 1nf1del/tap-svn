@@ -40,11 +40,13 @@ class ListColumn;
 
 #define SCROLLBAR_WIDTH 8
 
+#define FIXINT2SHORTWARNING(x) ((x)*1)
+
 class ListPage : public Page
 {
 public:
 
-	ListPage(dword dwFlags, Rect rcPosition, int itemHeight, int headerHeight, int footerHeight);
+	ListPage(dword dwFlags, Rect rcPosition, short itemHeight, short headerHeight, short footerHeight);
 	~ListPage();
 
 // Page interface overrides
@@ -60,7 +62,7 @@ public:
 	void RemoveItem(ListItem* pItem);
 	ListItem* GetSelectedItem() const;
 	int GetSelectedIndex() const;
-	dword MoveSelection(int iOffset, bool bWrap = true);
+	dword MoveSelection(short int iOffset, bool bWrap = true);
 
 	bool Show();
 
@@ -89,13 +91,13 @@ private:
 	void DrawVisibleItems();
 	void DrawHeader();
 	void DrawFooter();
-	void PartialDraw(int iOldSel, int iOldFirstInView);
-	int CountItemsInView();
+	void PartialDraw(short int iOldSel, short int iOldFirstInView);
+	short int CountItemsInView();
 
-	int DrawFrame(Rect drawRect, colorSets whichColors = normalColors);
-	int DrawHeaderFrame(Rect drawRect);
-	int DrawFooterFrame(Rect drawRect);
-	int DrawBodyFrame(Rect drawRect);
+	short int DrawFrame(Rect drawRect, colorSets whichColors = normalColors);
+	short int DrawHeaderFrame(Rect drawRect);
+	short int DrawFooterFrame(Rect drawRect);
+	short int DrawBodyFrame(Rect drawRect);
 	void DrawHeaderItem(int iColumn, Rect drawRect);
 	void DrawScrollBar();
 	Rect ItemsRect();
@@ -103,15 +105,15 @@ private:
 	Rect FooterRect();
 	Rect HeaderRect();
 	Rect ScrollBarRect();
-	void DrawItem(Rect rcItems, unsigned int iIndex);
+	void DrawItem(Rect rcItems, unsigned short int iIndex);
 	void DrawFooterAndScrollBar();
-	void CalcFirstInView(int iOffset);
+	void CalcFirstInView(short int iOffset);
 
 	dword m_dwFlags;
 	Rect m_rcList;
 	unsigned short int m_itemHeight;
-	int m_selectedItem;
-	int m_firstItemInView;
+	unsigned short int m_selectedItem;
+	unsigned short int m_firstItemInView;
 	byte m_columnCount;
 	unsigned short m_headerHeight;
 	unsigned short m_footerHeight;

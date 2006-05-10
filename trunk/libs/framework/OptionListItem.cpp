@@ -61,7 +61,7 @@ dword OptionListItem::OnKey( dword key, dword extKey )
 	return key;
 }
 
-void OptionListItem::DrawSubItem(int iColumn, Rect rcBounds)
+void OptionListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
 	if (iColumn == 0)
 		DrawSubItemString(0, rcBounds, m_index>-1 ? m_option->GetChoices()[m_index] : string("????") );

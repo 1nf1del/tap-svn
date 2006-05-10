@@ -1,3 +1,7 @@
+#ifdef WIN32
+#pragma warning (disable : 4214)
+#endif
+
 #include "tap.h"
 
 static byte _bigkeyblueCpm[] = 

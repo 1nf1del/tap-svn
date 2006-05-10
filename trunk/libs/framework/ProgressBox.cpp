@@ -39,7 +39,7 @@ void ProgressBox::CreateDialog()
 
 }
 
-void ProgressBox::UpdateProgress(int percent, const char* step1, const char* step2 )
+void ProgressBox::UpdateProgress(short int percent, const char* step1, const char* step2 )
 {
 	if (step1 || step2)
 	{

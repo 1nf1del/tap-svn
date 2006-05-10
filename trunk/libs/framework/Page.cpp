@@ -58,6 +58,7 @@ void Page::OnIdle()
 
 dword Page::OnKey( dword key, dword extKey )
 {
+	(extKey);
 	return key;
 }
 

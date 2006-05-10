@@ -27,7 +27,7 @@ class OptionsPage :
 	public ListPage
 {
 public:
-	OptionsPage(const string& title, Options* pOptions, int itemHeight = 50, int headerHeight = 50);
+	OptionsPage(const string& title, Options* pOptions, short int itemHeight = 50, short int headerHeight = 50);
 	virtual ~OptionsPage(void);
 
 	virtual dword OnKey( dword key, dword extKey );

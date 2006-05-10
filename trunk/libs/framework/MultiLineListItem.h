@@ -28,7 +28,7 @@ class MultiLineListItem :
 public:
 	MultiLineListItem(const string& sText, ListPage* pPage);
 	virtual ~MultiLineListItem(void);
-	virtual void DrawSubItem(int iColumn, Rect rcBounds);
+	virtual void DrawSubItem(short int iColumn, Rect rcBounds);
 
 private:
 	string m_sText;

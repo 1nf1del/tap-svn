@@ -29,8 +29,8 @@ public:
 	Rect(short x, short y, short w, short h);
 	Rect();
 
-	void Shrink(int i);
-	int GetWidth(const char* text, byte fntSize) const;
+	void Shrink(short int i);
+	short int GetWidth(const char* text, byte fntSize) const;
 	void PutString(word regionIndex, const char* text, word foreground, word background, byte fntSize, bool bCenter = false) const;
 	void PutStringCenter(word regionIndex, const char* text, word foreground, word background, byte fntSize) const;
 	void PutMultiLineString(word regionIndex, const char* text, word foreground, word background, byte fntSize) const;

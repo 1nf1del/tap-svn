@@ -12,17 +12,21 @@ Decorator::~Decorator()
 {
 }
 
-void Decorator::DrawButtonBackground(int x, int y, int w, int h, bool bSel)
+void Decorator::DrawButtonBackground(short int  x, short int  y, short int  w, short int  h, bool bSel)
 {
+	(h);
+	(w);
 	TAP_Osd_PutGd( m_wRegion, x, y, bSel ? &_bigkeygreenGd : &_bigkeyblueGd, FALSE );
 }
 
-void Decorator::DrawDialogFrame(int x, int y, int w, int h)
+void Decorator::DrawDialogFrame(short int  x, short int  y, short int  w, short int  h)
 {
+	(h);
+	(w);
     TAP_Osd_PutGd( m_wRegion, x, y, &_popup360x180Gd, TRUE );
 }
 
-void Decorator::PrintText(int x, int y, int maxX, const char* text, int fontSize, colorSets whichArea)
+void Decorator::PrintText(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, colorSets whichArea)
 {
 	word textColor = 0;
 	switch (whichArea)
@@ -39,19 +43,19 @@ void Decorator::PrintText(int x, int y, int maxX, const char* text, int fontSize
 	PrintTextImpl(x,y,maxX, text, fontSize, textColor, 0);
 }
 
-void Decorator::DrawProgress(int x, int y, int w, int h, int percent)
+void Decorator::DrawProgress(short int  x, short int  y, short int  w, short int  h, short int  percent)
 {
 	DrawProgressImpl(x,y,w,h, percent, HEADING_TEXT_COLOUR, TITLE_COLOUR);
 }
 
-void Decorator::PrintTextImpl(int x, int y, int maxX, const char* text, int fontSize, word textColor, word bgColor)
+void Decorator::PrintTextImpl(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, word textColor, word bgColor)
 {
 	PrintCenter( m_wRegion, x, y, maxX, text, textColor, bgColor, fontSize );
 }
 
-void Decorator::DrawProgressImpl(int x, int y, int w, int h, int percent, word doneColor, word todoColor)
+void Decorator::DrawProgressImpl(short int  x, short int  y, short int  w, short int  h, short int  percent, word doneColor, word todoColor)
 {
-	int split = (w * percent) / 100;
+	short int  split = (w * percent) / 100;
 
 	if (split>0)
 		TAP_Osd_FillBox( m_wRegion, x, y, split, h,  doneColor);

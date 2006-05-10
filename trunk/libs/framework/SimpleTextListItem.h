@@ -28,7 +28,7 @@ class SimpleTextListItem :
 public:
 	SimpleTextListItem(ListPage* pParentList, dword dwFlags, const char* pszCol1, const char* pszCol2 = 0, const char* pszCol3 = 0, const char* pszCol4 = 0, const char* pszCol5 = 0);
 	virtual ~SimpleTextListItem(void);
-	virtual void DrawSubItem(int iColumn, Rect rcBounds);
+	virtual void DrawSubItem(short int iColumn, Rect rcBounds);
 
 	string m_asItemText[LIST_MAX_COLUMNS];
 };

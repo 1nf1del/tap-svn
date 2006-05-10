@@ -35,8 +35,8 @@ class ListPage;
 class ListColumn
 {
 public:
-	ListColumn(ListPage* pParentList, int percentWidth, dword dwFlags, const char* pHeaderText);
-	int DrawBackground(Rect rcBounds, colorSets whatColors);
+	ListColumn(ListPage* pParentList, short int percentWidth, dword dwFlags, const char* pHeaderText);
+	short int DrawBackground(Rect rcBounds, colorSets whatColors);
 
 	const string& GetText() const;
 	dword GetFlags() const;

@@ -33,11 +33,13 @@ ListItem::~ListItem()
 {
 }
 
-void ListItem::DrawSubItem(int iColumn, Rect rcBounds)
+void ListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
+	(iColumn);
+	(rcBounds);
 }
 
-void ListItem::DrawSubItemString(int iColumn, Rect rcBounds, const char* text)
+void ListItem::DrawSubItemString(short int iColumn, Rect rcBounds, const char* text)
 {
 	ListColors theColors = m_theList->GetColorDef( 
 		m_theList->GetSelectedItem() == this ? highlightColors : normalColors);
@@ -46,18 +48,22 @@ void ListItem::DrawSubItemString(int iColumn, Rect rcBounds, const char* text)
 		, GetFontSize(iColumn), m_theList->GetColumnFlags(iColumn) & LCF_CENTER_TEXT);
 }
 
-int ListItem::GetFontSize(int iColumn)
+byte ListItem::GetFontSize(short int iColumn)
 {
+	(iColumn);
 	return m_theList->GetBodyFontSize();
 }
 
 dword ListItem::OnKey( dword key, dword extKey )
 {
+	(extKey);
 	return key;
 }
 
-int ListItem::MeasureSubItem(int iColumn, Rect rcBounds)
+int ListItem::MeasureSubItem(short int iColumn, Rect rcBounds)
 {
+	(iColumn);
+	(rcBounds);
 	return m_theList->GetDefaultItemHeight();
 }
 

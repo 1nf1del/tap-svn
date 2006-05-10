@@ -46,6 +46,7 @@ int Dialog::DoModal()
 
 dword Dialog::OnKey( dword key, dword extKey )
 {
+	(extKey);
 	if (key == RKEY_Exit)
 		m_iModalResult = Dialog_Exited;
 	return key;

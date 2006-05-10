@@ -29,7 +29,7 @@ MultiLineListItem::~MultiLineListItem(void)
 {
 }
 
-void MultiLineListItem::DrawSubItem(int iColumn, Rect rcBounds)
+void MultiLineListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
 	if (iColumn == 0)
 	{

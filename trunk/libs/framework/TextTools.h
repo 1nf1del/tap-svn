@@ -23,10 +23,10 @@
 #define __TEXTTOOLS_H
 
 
-void PrintCenter( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize);
-void PrintRight( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize);
-void PrintLeft( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize);
-void WrapPutStr(word windowRgn, char *str, int x, int y, int w, int fgCol, int bgCol, int maxRows, byte fntSize, int lineSep);
+void PrintCenter( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize);
+void PrintRight( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize);
+void PrintLeft( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize);
+void WrapPutStr(word windowRgn, char *str, short int x, short int y, short int w, word fgCol, word bgCol, int maxRows, byte fntSize, int lineSep);
 
 
 #endif

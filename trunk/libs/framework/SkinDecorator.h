@@ -8,12 +8,12 @@ public:
 	SkinDecorator(void);
 	virtual ~SkinDecorator(void);
 
-	virtual void DrawButtonBackground(int x, int y, int w, int h, bool bSel);
-	virtual void DrawDialogFrame(int x, int y, int w, int h);
-	virtual void PrintText(int x, int y, int maxX, const char* text, int fontSize, colorSets whichColors);
-	virtual void DrawProgress(int x, int y, int w, int h, int percent);
+	virtual void DrawButtonBackground(short int x, short int y, short int w, short int h, bool bSel);
+	virtual void DrawDialogFrame(short int x, short int y, short int w, short int h);
+	virtual void PrintText(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichColors);
+	virtual void DrawProgress(short int x, short int y, short int w, short int h, short int percent);
 
 private:
 
-	void DrawCorner(int x, int y, word colour, byte direction);
+	void DrawCorner(short int x, short int y, word colour, byte direction);
 };

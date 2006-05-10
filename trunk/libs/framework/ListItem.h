@@ -39,13 +39,13 @@ public:
 	virtual ~ListItem();
 
 	virtual dword OnKey( dword key, dword extKey );
-	virtual int MeasureSubItem(int iColumn, Rect rcBounds);
-	virtual void DrawSubItem(int iColumn, Rect rcBounds);
+	virtual int MeasureSubItem(short int iColumn, Rect rcBounds);
+	virtual void DrawSubItem(short int iColumn, Rect rcBounds);
 	virtual string GetFooterText();
-	virtual int GetFontSize(int iColumn);
+	virtual byte GetFontSize(short int iColumn);
 
 protected:
-	void DrawSubItemString(int iColumn, Rect rcBounds, const char* text);
+	void DrawSubItemString(short int iColumn, Rect rcBounds, const char* text);
 	ListPage* m_theList;
 
 private:

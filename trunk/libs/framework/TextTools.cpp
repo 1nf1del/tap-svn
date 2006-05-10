@@ -31,11 +31,11 @@ int     ExtInfoRows = 1;  			// Keep track of how many lines available for exten
 
 //------------
 //
-void PrintCenter( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize)
+void PrintCenter( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize)
 {
-	dword width, offset;
+	word width, offset;
 
-	width = TAP_Osd_GetW( str, 0, fntSize );
+	width = (word)TAP_Osd_GetW( str, 0, fntSize );
 
 	if ( width <= (maxX-x) ) offset = (maxX - x - width)/2;				// centralise text
 	else offset = 5;													// too wide - fill width
@@ -62,11 +62,11 @@ void PrintCenter( word windowRgn, dword x, dword y, dword maxX, const char *str,
 
 //------------
 //
-void PrintRight( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize)
+void PrintRight( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize)
 {
-	dword width, offset;
+	word width, offset;
 
-	width = TAP_Osd_GetW( str, 0, fntSize );
+	width = (word)TAP_Osd_GetW( str, 0, fntSize );
 
 	if ( width <= (maxX-x) ) offset = (maxX - width);				// right justify text
 	else offset = x;												// too wide - fill width
@@ -93,11 +93,11 @@ void PrintRight( word windowRgn, dword x, dword y, dword maxX, const char *str, 
 
 //------------
 //
-void PrintLeft( word windowRgn, dword x, dword y, dword maxX, const char *str, dword fcolor, dword bcolor, byte fntSize)
+void PrintLeft( word windowRgn, word x, word y, word maxX, const char *str, word fcolor, word bcolor, byte fntSize)
 {
-	dword width, offset;
+	word width, offset;
 
-	width = TAP_Osd_GetW( str, 0, fntSize );
+	width = (word) TAP_Osd_GetW( str, 0, fntSize );
 
 	if ( width <= (maxX-x) ) offset = (maxX - width);				// right justify text
 	else offset = x;												// too wide - fill width
@@ -135,7 +135,7 @@ for overprinting).
 
 Control characters (cariage return, new line etc.) are not supported.
 ******************************************************************************/
-void WrapPutStr(word windowRgn, char *str, int x, int y, int w, int fgCol, int bgCol, int maxRows, byte fntSize, int lineSep)
+void WrapPutStr(word windowRgn, char *str, short int x, short int y, short int w, word fgCol, word bgCol, int maxRows, byte fntSize, int lineSep)
 {
 	int row=0,c=0,p=0;
 	int done = 0;
@@ -150,7 +150,7 @@ void WrapPutStr(word windowRgn, char *str, int x, int y, int w, int fgCol, int b
 		case FNT_Size_1419 : fontH = 19; avgFontW = 6; break;
 		case FNT_Size_1622 : fontH = 22; avgFontW = 8; break;
 		case FNT_Size_1926 : fontH = 26; avgFontW = 10; break;
-		default : fontH = 19; break;
+		default : fontH = 19; avgFontW=6; break;
 	}
 
 	len = strlen(str);

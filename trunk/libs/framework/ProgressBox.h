@@ -34,7 +34,7 @@ public:
 	virtual ~ProgressBox(void);
 	virtual void CreateDialog();
 
-	void UpdateProgress(int percent, const char* step1 = NULL, const char* step2 = NULL);
+	void UpdateProgress(short int percent, const char* step1 = NULL, const char* step2 = NULL);
 };
 
 

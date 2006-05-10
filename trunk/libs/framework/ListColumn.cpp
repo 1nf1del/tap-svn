@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "listcolumn.h"
 #include "ListPage.h"
 
-ListColumn::ListColumn(ListPage* pParentList, int percentWidth, dword dwFlags, const char* pHeaderText)
+ListColumn::ListColumn(ListPage* pParentList, short int percentWidth, dword dwFlags, const char* pHeaderText)
 {
 	m_theList = pParentList;
 	m_width = percentWidth;
@@ -31,7 +31,7 @@ ListColumn::ListColumn(ListPage* pParentList, int percentWidth, dword dwFlags, c
 }
 
 
-int ListColumn::DrawBackground(Rect rcBounds, enum colorSets whatColors)
+short int ListColumn::DrawBackground(Rect rcBounds, enum colorSets whatColors)
 {
 	// need to know if selected!
 	ListColors theColors = m_theList->GetColorDef(whatColors);

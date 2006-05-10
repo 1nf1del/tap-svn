@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 word ListPage::m_osdRegionIndex = 0;
 int ListPage::m_iPageCount = 0;
 
-ListPage::ListPage(dword dwFlags, Rect rcPosition, int itemHeight,  int headerHeight, int footerHeight)
+ListPage::ListPage(dword dwFlags, Rect rcPosition, short itemHeight,  short headerHeight, short footerHeight)
 {
 	TRACE_MEMORY();
 	m_dwFlags = dwFlags;
@@ -72,7 +72,7 @@ ListPage::~ListPage()
 	TRACE("Finished destroying list page\n");
 }
 
-int ListPage::DrawFrame(Rect drawRect, colorSets whichColors)
+short int ListPage::DrawFrame(Rect drawRect, colorSets whichColors)
 {
 	if (m_osdRegionIndex == 0)
 		return 0;
@@ -103,7 +103,7 @@ void ListPage::DrawFooter()
 	if (m_osdRegionIndex == 0)
 		return;
 
-	int iWidth = DrawFooterFrame(drawRect);
+	short int iWidth = DrawFooterFrame(drawRect);
 	drawRect.Shrink(iWidth);
 
 	string sFooterText = GetFooterText();
@@ -148,10 +148,7 @@ bool ListPage::AddColumn(ListColumn* pNewColumn)
 
 void ListPage::AddItem(ListItem* pNewItem)
 {
-	unsigned int i=m_items.size();
-	
 	m_items.push_back(pNewItem);
-
 }
 
 void ListPage::RemoveItem(ListItem* pItem)
@@ -171,19 +168,19 @@ void ListPage::RemoveItem(ListItem* pItem)
 
 void ListPage::CalcRealColumnWidths()
 {
-	int iTotPercent = 0;
-	int iWidth = ItemsRect().w;
-	int iRemain = iWidth;
+	short int iTotPercent = 0;
+	short int iWidth = ItemsRect().w;
+	short int iRemain = iWidth;
 
 	for (int i=0; i<m_columnCount; i++)
 	{
-		iTotPercent += m_columnInfo[i]->GetWidth();
+		iTotPercent += FIXINT2SHORTWARNING(m_columnInfo[i]->GetWidth());
 	}
 
 	for (int i=0; i<m_columnCount-1; i++)
 	{
 		m_columnInfo[i]->SetWidth((m_columnInfo[i]->GetWidth() * (iWidth)) / iTotPercent);
-		iRemain -= m_columnInfo[i]->GetWidth();
+		iRemain -= FIXINT2SHORTWARNING(m_columnInfo[i]->GetWidth());
 	}
 	
 	m_columnInfo[m_columnCount-1]->SetWidth(iRemain);
@@ -206,17 +203,17 @@ bool ListPage::Show()
 	return Draw();
 }
 
-int ListPage::CountItemsInView()
+short int ListPage::CountItemsInView()
 {
-	int screenHeight = ItemsRect().h;
+	short int screenHeight = ItemsRect().h;
 
 	return screenHeight / m_itemHeight;
 }
 
-void ListPage::DrawItem(Rect rcItems, unsigned int iIndex)
+void ListPage::DrawItem(Rect rcItems, unsigned short int iIndex)
 {
 	// crashes in here
-	int i = iIndex - m_firstItemInView;
+	short i = iIndex - m_firstItemInView;
 	unsigned int iThisItem = i + m_firstItemInView;
 	ListItem* pThisItem = 0;
 	if (iThisItem < m_items.size())
@@ -226,31 +223,31 @@ void ListPage::DrawItem(Rect rcItems, unsigned int iIndex)
 	Rect rcSubItem = rcItems;
 	rcSubItem.y += i * m_itemHeight;
 
-	for (int j = 0; j< m_columnCount; j++)
+	for (short int j = 0; j< m_columnCount; j++)
 	{
-		enum colorSets whatColors = iThisItem == m_selectedItem ? highlightColors : normalColors;
+		enum colorSets whatColors = (iThisItem == m_selectedItem) ? highlightColors : normalColors;
 		rcSubItem.w = m_columnInfo[j]->GetWidth();
-		int iBorderW = m_columnInfo[j]->DrawBackground(rcSubItem, whatColors);
+		short int iBorderW = m_columnInfo[j]->DrawBackground(rcSubItem, whatColors);
 		if (pThisItem)
 		{
 			Rect rcContent = rcSubItem;
 			rcContent.Shrink(iBorderW);
 			pThisItem->DrawSubItem(j, rcContent);
 		}
-		rcSubItem.x += m_columnInfo[j]->GetWidth();
+		rcSubItem.x += FIXINT2SHORTWARNING(m_columnInfo[j]->GetWidth());
 	}
 
-	rcItems.y += m_itemHeight;
+	rcItems.y += 1 * m_itemHeight;
 }
 
 
 void ListPage::DrawVisibleItems()
 {
 	Rect rcItems = ItemsRect();
-	int itemCount = ListPage::CountItemsInView();
+	short int itemCount = ListPage::CountItemsInView();
 
 //	TRACE("Got items count\n");
-	for (int i=0; i<itemCount; i++)
+	for (short int i=0; i<itemCount; i++)
 	{
 		DrawItem(rcItems, i + m_firstItemInView);
 //		TRACE1("Drawn item %d\n", i); 
@@ -260,7 +257,7 @@ void ListPage::DrawVisibleItems()
 void ListPage::DrawHeader()
 {
 	Rect r = HeaderRect();
-	int iFrameWidth = DrawHeaderFrame(r);
+	short int iFrameWidth = DrawHeaderFrame(r);
 	r.Shrink(iFrameWidth);
 	if (m_dwFlags & LF_COLUMNS_IN_HEADER)
 	{
@@ -269,7 +266,7 @@ void ListPage::DrawHeader()
 		{
 			rcSubItem.w = m_columnInfo[j]->GetWidth();
 			DrawHeaderItem(j, rcSubItem);
-			rcSubItem.x += m_columnInfo[j]->GetWidth();
+			rcSubItem.x += FIXINT2SHORTWARNING(m_columnInfo[j]->GetWidth());
 		}
 	}
 	else
@@ -314,8 +311,8 @@ Rect ListPage::ItemsRect()
 
 	if (m_dwFlags & LF_SHOW_HEADER)
 	{
-		r.y += m_headerHeight;
-		r.h -= m_headerHeight;
+		r.y += 1*m_headerHeight;
+		r.h -= 1*m_headerHeight;
 	}
 	else
 	{
@@ -324,7 +321,7 @@ Rect ListPage::ItemsRect()
 	}
 
 	if (m_dwFlags & LF_SHOW_FOOTER)
-		r.h -= m_footerHeight;
+		r.h -= 1*m_footerHeight;
 	
 	if (m_dwFlags & LF_SCROLLBAR)
 	{
@@ -383,9 +380,9 @@ ListItem* ListPage::GetSelectedItem() const
 	return m_items[m_selectedItem];
 }
 
-void ListPage::CalcFirstInView(int iOffset)
+void ListPage::CalcFirstInView(short int iOffset)
 {
-	int iItemsInView = CountItemsInView();
+	short int iItemsInView = CountItemsInView();
 
 	if (m_selectedItem < m_firstItemInView)
 	{
@@ -405,28 +402,30 @@ void ListPage::CalcFirstInView(int iOffset)
 		}
 		else
 		{
-			m_firstItemInView = min((int)m_items.size()-1, m_firstItemInView + iOffset);
+			m_firstItemInView = min((short int)m_items.size()-1, m_firstItemInView + iOffset);
 		}
 	}
 
 }
 
-dword ListPage::MoveSelection(int iOffset, bool bWrap)
+dword ListPage::MoveSelection(short int iOffset, bool bWrap)
 {
 	if (m_items.size() == 0)
 		return 0;
 
-	int iOldSel = m_selectedItem;
-	int iOldFirst = m_firstItemInView;
+	short int iOldSel = m_selectedItem;
+	short int iOldFirst = m_firstItemInView;
+
+	short int iSize = (short int) m_items.size();
 
 	if (bWrap)
 	{
-		m_selectedItem = (m_selectedItem + m_items.size() + iOffset) % m_items.size();
+		m_selectedItem = (m_selectedItem + iSize + iOffset) % iSize;
 	}
 	else
 	{
 		int newPos = m_selectedItem + iOffset;
-		m_selectedItem = (unsigned int) min(max((newPos),0),(int)(m_items.size()-1));
+		m_selectedItem = (unsigned short int) min(max((newPos),0),(int)(m_items.size()-1));
 	}
 
 	CalcFirstInView(iOffset);
@@ -514,7 +513,7 @@ void ListPage::SetFontSizes(byte fsHeader, byte fsBody, byte fsFooter)
 
 }
 
-int ListPage::DrawHeaderFrame(Rect drawRect)
+short int ListPage::DrawHeaderFrame(Rect drawRect)
 {
 	if (m_osdRegionIndex == 0)
 		return 0;
@@ -527,12 +526,12 @@ int ListPage::DrawHeaderFrame(Rect drawRect)
 	return 2;
 }
 
-int ListPage::DrawFooterFrame(Rect drawRect)
+short int ListPage::DrawFooterFrame(Rect drawRect)
 {
 	return DrawFrame(drawRect);
 }
 
-int ListPage::DrawBodyFrame(Rect drawRect)
+short int ListPage::DrawBodyFrame(Rect drawRect)
 {
 	return DrawFrame(drawRect);
 }
@@ -566,14 +565,14 @@ void ListPage::DrawScrollBar()
 	Rect r = ScrollBarRect();
 	DrawFrame(r, scrollBarColors);
 
-	int iItemCount = m_items.size() ? m_items.size() : 1;
-	int iBarHeight = r.h;
-	int iBarSize = (CountItemsInView() * iBarHeight)/iItemCount;
+	short int iItemCount = m_items.size() ? (short int) m_items.size() : 1;
+	short int iBarHeight = r.h;
+	short int iBarSize = (CountItemsInView() * iBarHeight)/iItemCount;
 	iBarSize = max(iBarSize,6);
 	iBarSize = min(iBarSize,iBarHeight);
-	int iBarPos = (m_firstItemInView * iBarHeight) / iItemCount;
+	short int iBarPos = (m_firstItemInView * iBarHeight) / iItemCount;
 
-	r.y += iBarPos;
+	r.y += FIXINT2SHORTWARNING(iBarPos);
 	r.h = iBarSize;
 	r.x += 2;
 	r.w = SCROLLBAR_WIDTH - 4;
@@ -581,11 +580,11 @@ void ListPage::DrawScrollBar()
 	r.Fill(m_osdRegionIndex, GetColorDef(scrollBarColors).textColor);
 }
 
-void ListPage::PartialDraw(int iOldSel, int iOldFirstInView)
+void ListPage::PartialDraw(short int iOldSel, short int iOldFirstInView)
 {
 	Rect r = ItemsRect();
 
-	int iDiff = m_firstItemInView - iOldFirstInView;
+	short int iDiff = m_firstItemInView - iOldFirstInView;
 	if (iDiff !=0)
 	{
 		if (abs(iDiff)>1)
@@ -630,10 +629,12 @@ void ListPage::DiscardItems()
 		delete m_items[i];
 
 	m_items.clear();
+	m_selectedItem = 0;
+	m_firstItemInView = 0;
 	TRACE("Deleted items\n");
 }
 
 void ListPage::OnItemAboutToDelete(ListItem* pItem)
 {
-
+	(pItem);
 }
