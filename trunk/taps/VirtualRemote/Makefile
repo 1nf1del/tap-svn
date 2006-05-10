@@ -32,12 +32,11 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-VirtualRemote.elf::	VirtualRemote.o ScreenCapture.o ../../libs/extap/extap.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+VirtualRemote.elf::	VirtualRemote.o ScreenCapture.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 VirtualRemote.o:	VirtualRemote.c
 ScreenCapture.o:	ScreenCapture.c
-../../libs/extap/extap.o:	../../libs/extap/extap.c
 
-CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../../libs/extap
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -C ../../libs/libutils

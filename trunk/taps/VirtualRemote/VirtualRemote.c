@@ -21,7 +21,6 @@
 
 #include <string.h>
 #include <tap.h>
-#include "extap.h"
 #include "Firmware.h"
 #include "tapapifix.h"
 #include "TAPExtensions.h"
@@ -103,7 +102,7 @@ void ProcessInput()
 			{
 				if ( cmd.param2 & 0x100 )
 					cmd.param2 = 0x10000 | (cmd.param2 & 0xff);
-				exTAP_CallFirmware( (void*)0x80005bb4, 0xe300, cmd.param2, 0, 0 );
+				TAP_GenerateKeypress( cmd.param2 );
 			}
 			break;
 		case 2:
@@ -118,7 +117,7 @@ void ProcessInput()
 		{
 			// no check for running recordings needed, this has the same effect as
 			// pressing the power button
-			exTAP_Shutdown();
+			TAP_Shutdown();
 			break;
 		}
 		case 4:
@@ -126,12 +125,7 @@ void ProcessInput()
 			if ( IsRecording(0) || IsRecording(1) )
 				TAP_Print("Not rebooting, recording in progress\n");
 			else
-			{
-				dword cmdBlock[10];
-				cmdBlock[0] = 1;
-				cmdBlock[1] = 4;
-				exTAP_CallFirmware( (void*)0x80000c68, 14, (dword)cmdBlock, 0, 0);
-			}
+				TAP_Reboot(FALSE);
 			break;
 		}
 		case 5:
@@ -212,7 +206,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 //-----------------------------------------------------------------------------
 int TAP_Main()
 {
-	exTAP_Init();
+	StartTAPExtensions();
 
 	// print start message
 	TAP_Print("\nVirtual Remote TAP started\n\n");
