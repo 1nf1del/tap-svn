@@ -65,20 +65,34 @@ Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
-Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h taparray.h
-Archive.o: /usr/include/memory.h /usr/include/string.h
-Archive.o: /usr/include/sys/string.h quicksort.h DirectoryUtils.h
-Archive.o: ../libutils/file.h ../libutils/Utils.h /usr/local/include/stdarg.h
-ArchivedProgram.o: archivedprogram.h tapstring.h
+Archive.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h timeslot.h
+Archive.o: PackedDateTime.h taparray.h /usr/include/memory.h
+Archive.o: /usr/include/string.h /usr/include/sys/string.h quicksort.h
+Archive.o: DirectoryUtils.h ../libutils/file.h ../libutils/Utils.h
+Archive.o: /usr/local/include/stdarg.h ArchiveVisitor.h inifile.h Logger.H
+ArchiveVisitor.o: ArchiveVisitor.h /usr/include/stdlib.h /usr/include/_ansi.h
+ArchiveVisitor.o: /usr/include/newlib.h /usr/include/sys/config.h
+ArchiveVisitor.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
+ArchiveVisitor.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
+ArchiveVisitor.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+ArchiveVisitor.o: /usr/include/alloca.h
+ArchivedProgram.o: archivedprogram.h /usr/include/stdlib.h
+ArchivedProgram.o: /usr/include/_ansi.h /usr/include/newlib.h
+ArchivedProgram.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
+ArchivedProgram.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
+ArchivedProgram.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
+ArchivedProgram.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+ArchivedProgram.o: tapstring.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-ArchivedProgram.o: /usr/local/include/stddef.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ArchivedProgram.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-ArchivedProgram.o: ../libutils/file.h ../libutils/Utils.h
-ArchivedProgram.o: /usr/local/include/stdarg.h
+ArchivedProgram.o: timeslot.h PackedDateTime.h ../libutils/file.h
+ArchivedProgram.o: ../libutils/Utils.h /usr/local/include/stdarg.h
+ArchivedProgram.o: /usr/include/string.h /usr/include/sys/string.h
+ArchivedProgram.o: RecHeader.h stringarchive.h logger.h
 Channels.o: .\channels.h /usr/include/stdlib.h /usr/include/_ansi.h
 Channels.o: /usr/include/newlib.h /usr/include/sys/config.h
 Channels.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
@@ -108,7 +122,7 @@ DirectoryUtils.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 DirectoryUtils.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 DirectoryUtils.o: tapstring.h ../libutils/file.h ../libutils/Utils.h
 DirectoryUtils.o: /usr/local/include/stdarg.h taparray.h
-DirectoryUtils.o: /usr/include/memory.h quicksort.h
+DirectoryUtils.o: /usr/include/memory.h quicksort.h Logger.h
 EPGReader.o: EPGreader.h /usr/include/stdlib.h /usr/include/_ansi.h
 EPGReader.o: /usr/include/newlib.h /usr/include/sys/config.h
 EPGReader.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
@@ -209,7 +223,8 @@ Globals.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Globals.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h taparray.h
 Globals.o: /usr/include/memory.h /usr/include/string.h
 Globals.o: /usr/include/sys/string.h quicksort.h tapstring.h Timers.h
-Globals.o: EPGData.h Channels.h Archive.h ArchivedProgram.h
+Globals.o: EPGData.h Channels.h Archive.h ArchivedProgram.h timeslot.h
+Globals.o: PackedDateTime.h Logger.H /usr/local/include/stdarg.h
 IniFile.o: /usr/include/stdlib.h /usr/include/_ansi.h /usr/include/newlib.h
 IniFile.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
 IniFile.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
@@ -223,7 +238,8 @@ IniFile.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 IniFile.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 IniFile.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 IniFile.o: ../libutils/tapapifix.h inifile.h taparray.h /usr/include/memory.h
-IniFile.o: quicksort.h tapstring.h
+IniFile.o: quicksort.h tapstring.h ../libutils/file.h ../libutils/Utils.h
+IniFile.o: /usr/local/include/stdarg.h DirectoryUtils.h
 JagCSVReader.o: JagCSVreader.h MEIReader.h /usr/include/stdlib.h
 JagCSVReader.o: /usr/include/_ansi.h /usr/include/newlib.h
 JagCSVReader.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
@@ -260,7 +276,6 @@ KeyOption.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 KeyOption.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h tapstring.h
 KeyOption.o: taparray.h /usr/include/memory.h /usr/include/string.h
 KeyOption.o: /usr/include/sys/string.h quicksort.h KeyDef.h
-KeyOption.o: ..\..\..\trunk\libs\Firmware\RawKey.h
 Logger.o: .\logger.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 Logger.o: /usr/local/include/stddef.h
 Logger.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h

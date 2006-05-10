@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include ".\keyoption.h"
-#include "..\..\..\trunk\libs\Firmware\RawKey.h"
+#include "..\..\..\trunk\libs\libutils\morekeys.h"
 
 KeyOption::KeyOption(Options* pContainer, const string& key, const string& defaultValue, const string& name, const string& description,OptionUpdateNotifier* pNotifier) :
 Option(pContainer, key, defaultValue, name, description, pNotifier)
