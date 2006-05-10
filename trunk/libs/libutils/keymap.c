@@ -23,6 +23,11 @@
 #include "tap.h"
 #define printf TAP_Print
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
+#include <string.h>
 #include "ini.h"
 #include "keymap.h"
 #include "Utils.h"    /* for logMessage  */
@@ -75,7 +80,6 @@ int loadKeyMap(char* appname, char* keymapfile)
 	int retHandle;
 	KEYVALNODE *binKey;
 	LOGKEYNODE *headKey = NULL;
-	KEYDATA *keyData;
 
 	if (nextEntry == -1) return 0;   //max'ed out the keymap list - error out
 
@@ -178,6 +182,8 @@ void freeKeyData(KEYDATA kd)
 
 int getKey(int handle, char* key)
 {
+	handle;
+	key;
 	return 1;
 }
 

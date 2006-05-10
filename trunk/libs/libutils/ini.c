@@ -4,6 +4,10 @@
 #include "file.h"
 #include "strtok.h"
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
 static	char	temp[MAX_STR_LEN];
 
 void getDir(char* dir, char* fname)
@@ -256,6 +260,7 @@ int GetPrivateProfileSectionNames(char* buffer, int bufflen, char* path)
 {
 UFILE	*input;
 int		length;
+//(bufflen);
 
 	logMessage( _INFO, "GetPrivateProfileSectionNames start" );
 
@@ -273,9 +278,10 @@ int GetPrivateProfileString(char* section, char* key, char* def, char* buffer, i
 {
 UFILE	*input;
 char	*outptr, *stmp, *send;
-int	l, i=0, length = 0, found = 0;
+int	l, length = 0;
 char	fullsection[53];
 char	msg[MAX_MESSAGE_SIZE];
+//(bufflen);
 
 	logMessage( _INFO, "GetPrivateProfileString: starting" );
 

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <tap.h>
 #include "strtok.h"
 #include "messagewin.h"
@@ -8,7 +9,7 @@ void ShowMessage( const char* message, dword delay )
 {
 	dword rgn;
 	const int lineHeight = 26;
-	int width, height, lines, x,y;
+	int width, height, x,y;
 	char* c;
 	char buffer[1024];
 
@@ -32,14 +33,14 @@ void ShowMessage( const char* message, dword delay )
 	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );						// create rgn-handle
 	x = (720-width)/2;
 	y = (578-height)/2;
-	TAP_Osd_FillBox( rgn, x-5,y-5, width+10,height+10, RGB(19,19,19) );		// draw background-box for border
+	TAP_Osd_FillBox( (word)rgn, (word)(x-5),(word)(y-5), (word)(width+10),(word)(height+10), RGB(19,19,19) );		// draw background-box for border
 
 	strncpy( buffer, message, sizeof(buffer)-1 );
 	buffer[1023] = 0;
 	c = strtok( buffer, "\n" );
 	while ( c )
 	{
-		TAP_Osd_PutS( rgn, x,y, x+width, c,		
+		TAP_Osd_PutS( (word)rgn, x,y, x+width, c,		
 			RGB(31,31,31), RGB(3,5,10), 0, FNT_Size_1926,
 			FALSE, ALIGN_CENTER );
 		y += lineHeight;
@@ -47,5 +48,5 @@ void ShowMessage( const char* message, dword delay )
 	}
 
 	TAP_Delay( delay );														// show it for dwDelay /100 seconds
-	TAP_Osd_Delete( rgn );													// release rgn-handle
+	TAP_Osd_Delete( (word) rgn );													// release rgn-handle
 }

@@ -5,6 +5,7 @@ Do all init stuff here. The calling tap should call this first to init the libra
 
 */
 
+#include <string.h>
 #include <tap.h>
 #define printf TAP_Print
 #include "Utils.h"

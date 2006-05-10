@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <tap.h>
 #include "tapapifix.h"
 

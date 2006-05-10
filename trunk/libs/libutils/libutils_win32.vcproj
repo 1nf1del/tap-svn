@@ -144,10 +144,13 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
+				WarnAsError="TRUE"
 				Detect64BitPortabilityProblems="FALSE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4214"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -182,9 +185,21 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
 				RelativePath=".\dlmalloc.c">
+				<FileConfiguration
+					Name="Tapulator Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						WarningLevel="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\file.c">
+				<FileConfiguration
+					Name="Tapulator Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						WarningLevel="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\ini.c">
@@ -209,6 +224,18 @@
 			</File>
 			<File
 				RelativePath=".\vsprintf.c">
+				<FileConfiguration
+					Name="Tapulator Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Tapulator Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
