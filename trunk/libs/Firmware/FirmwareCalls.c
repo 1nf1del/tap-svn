@@ -25,7 +25,10 @@
 #include "Firmware.h"
 
 
-dword debuggerMoveSignature[] =
+//----------------------------------------------------------------------------
+// File move functions
+
+static dword debuggerMoveSignature[] =
 {
 	0x27bdffd0,
 	0xafb3001c,
@@ -51,10 +54,10 @@ dword debuggerMoveSignature[] =
 	0x00002825
 };
 
-dword moveAddressDebugger = 0;
+static dword moveAddressDebugger = 0;
 
 typedef dword  (*TAP_Hdd_MoveFn)(char *from_dir, char *to_dir, char *filename);
-TAP_Hdd_MoveFn  moveAddressAPI;
+static TAP_Hdd_MoveFn  moveAddressAPI;
 
 enum
 {
@@ -107,7 +110,7 @@ bool TAP_Hdd_Move_Available()
 
 bool TAP_Hdd_Move( char* fromDir, char* toDir, char* filename )
 {
-	if ( !CanMove() )
+	if ( !TAP_Hdd_Move_Available() )
 		return FALSE;
 
 	if ( !fromDir || !toDir || !filename )
@@ -135,4 +138,101 @@ bool TAP_Hdd_Move( char* fromDir, char* toDir, char* filename )
 	}
 
 	return TRUE;
+}
+
+
+//----------------------------------------------------------------------------
+// Reboot and shutdown functions
+
+static dword addTaskSignature[] =
+{
+	0x27bdffd8,
+	0xafb30014,
+	0xafb40018,
+	0xafb5001c,
+	0xafb60020,
+	0xafbe0024,
+	0xafbf0010,
+	0x0080f025,
+	0x00a0b025,
+	0x0000a025,
+	0x0c0000ff,
+	0x00000000,
+	0x0040a825,
+	0x3c1980ff,
+	0x8f39ffff,
+	0x27390001,
+	0x333301ff,
+	0x3c1880ff,
+	0x8f18ffff,
+	0x13130014,
+	0x00000000
+};
+
+static dword rebootSignature[] =
+{
+	0x27bdffd0,
+	0xafb20018,
+	0xafb3001c,
+	0xafb40020,
+	0xafb50024,
+	0xafb60028,
+	0xafbe002c,
+	0xafbf0014,
+	0x0080f025,
+	0x00a0b025,
+	0x2fc10014,
+	0x14200004,
+	0x00000000,
+	0x24020090,
+	0x100000ff,
+	0x00000000,
+	0x24120002,
+	0x0c0000ff,
+	0x00000000
+};
+
+static dword addTaskAddress = 0;
+static dword rebootAddress = 0;
+
+static bool IsRecording( int slot )
+{
+	TYPE_RecInfo recInfo;
+	memset( &recInfo, 0, sizeof(recInfo) );
+	return TAP_Hdd_GetRecInfo(slot, &recInfo) &&
+		(recInfo.recType == RECTYPE_Normal || recInfo.recType == RECTYPE_Copy);
+}
+
+
+void TAP_Shutdown()
+{
+	if ( !addTaskAddress )
+		addTaskAddress = FindFirmwareFunction( addTaskSignature, sizeof(addTaskSignature), 0x80005000, 0x80007000 );
+	if ( addTaskAddress )
+		CallFirmware( addTaskAddress, 0xef00, 0,0,0 );
+}
+
+
+void TAP_Reboot( bool force )
+{
+	if ( !rebootAddress )
+		rebootAddress = FindFirmwareFunction( rebootSignature, sizeof(rebootSignature), 0x80000b00, 0x80001000 );
+	if ( rebootAddress && (force || (!IsRecording(0) && !IsRecording(1))) )
+	{
+		dword cmdBlock[10];
+		cmdBlock[0] = 1;
+		cmdBlock[1] = 4;
+		CallFirmware( rebootAddress, 14, (dword)cmdBlock, 0, 0);
+	}
+}
+
+
+//----------------------------------------------------------------------------
+// Keypress functions
+void TAP_GenerateKeypress( dword rawkey )
+{
+	if ( !addTaskAddress )
+		addTaskAddress = FindFirmwareFunction( addTaskSignature, sizeof(addTaskSignature), 0x80005000, 0x80007000 );
+	if ( addTaskAddress )
+		CallFirmware( addTaskAddress, 0xe300, rawkey,0,0 );
 }

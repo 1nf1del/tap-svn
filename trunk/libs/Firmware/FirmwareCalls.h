@@ -27,8 +27,22 @@
 extern "C" {
 #endif
 
+// Check for Move file function availability. Returns true if the firmware supports file move.
 bool TAP_Hdd_Move_Available();
+
+// Move a file. Returns true if parameters are valid and the firmware supports file move
+// Does *not* return false if the file fails to move. You must check manually with TAP_Hdd_Exist
 bool TAP_Hdd_Move( char* fromDir, char* toDir, char* filename );
+
+// Shut down the unit
+void TAP_Shutdown();
+
+// Reboot the unit
+// force=true to unconditionally shut down, terminating recordings
+void TAP_Reboot( bool force );
+
+// Generate a keypress using a hardware keycode
+void TAP_GenerateKeypress( dword rawkey );
 
 #ifdef __cplusplus
 }
