@@ -27,7 +27,7 @@
 				RuntimeLibrary="3"
 				TreatWChar_tAsBuiltInType="FALSE"
 				UsePrecompiledHeader="3"
-				WarningLevel="3"
+				WarningLevel="4"
 				WarnAsError="TRUE"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"/>
