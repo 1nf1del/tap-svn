@@ -1,4 +1,4 @@
-Description Extender 1.2
+Description Extender 1.3
 ------------------------
 Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information.
 
@@ -9,10 +9,10 @@ CT:			Doesn't add a space. Programme description and extended information are co
 This TAP currently only supports the following firmware
 TF5000/5500:	13/09/2005
 TF5010/5510:	05/10/2005
-TF5100c:		15/03/2006, 12/09/2005, 04/05/2005
-TF5100c MP:		15/03/2006, 05/10/2005
-TF5100t:		15/03/2006, 12/09/2005
-TF5100t MP:		15/03/2006, 04/10/2005
+TF5100c:		15/03/2006, 12/09/2005, 04/05/2005, 19/04/2006
+TF5100c MP:		15/03/2006, 05/10/2005, 24/04/2006
+TF5100t:		15/03/2006, 12/09/2005, 19/04/2006
+TF5100t MP:		15/03/2006, 04/10/2005, 24/04/2006
 TF5200c:		13/09/2005
 TF5800:			08/12/2005 (12.25), 14/10/2005 (12.09), 12.05, 12.04
 
@@ -30,6 +30,7 @@ Improbox, UKOZSurfer and Jag's EPG 3.0 and EPG Navigator all support Description
 
 History
 -------
+1.3		Support for latest 5100 firmware.
 1.2		Support for TF5100 Masterpiece and Procaster models.
 		Additional version for EPGs where programme description flows into the extended information.
 1.1		Support for additional models and firmware versions.

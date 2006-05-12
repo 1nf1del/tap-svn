@@ -34,7 +34,7 @@
 #endif
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 1.2" POSTFIX);
+TAP_PROGRAM_NAME("DescriptionExtender 1.3" POSTFIX);
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);
@@ -100,17 +100,21 @@ FirmwareDetail firmware[] =
 	
 	TF5010_5510,	0x1212,		0x802d84e0,		4000,		// 05 Oct 2005
 	
+	TF5100c,		0x1264,		0x802b5be4,		5000,		// 19 Apr 2006
 	TF5100c,		0x1260,		0x802b5498,		5000,		// 15 Mar 2006
 	TF5100c,		0x1248,		0x802b5120,		5000,		// 20 Feb 2006
 	TF5100c,		0x1205,		0x802ad730,		5000,		// 12 Sept 2005
 	TF5100c,		0x1170,		0x802c27b0,		5000,		// 04 May 2005
 	
+	TF5100,			0x1264,		0x802ae9a0,		5000,		// 19 Apr 2006
 	TF5100,			0x1260,		0x802ae474,		5000,		// 15 Mar 2006
 	TF5100,			0x1205,		0x802a5cac,		5000,		// 12 Sept 2005
 
+	TF5100c_MP,		0x1266,		0x802d823c,		5000,		// 24 Apr 2006
 	TF5100c_MP,		0x1260,		0x802d7b60,		5000,		// 15 Mar 2006
 	TF5100c_MP,		0x1212,		0x802cf550,		5000,		// 05 Oct 2005
 
+	TF5100t_MP,		0x1266,		0x802d1040,		5000,		// 24 Apr 2006
 	TF5100t_MP,		0x1260,		0x802d0b9c,		5000,		// 15 Mar 2006
 	TF5100t_MP,		0x1212,		0x802c7ab4,		5000,		// 04 Oct 2005
 
@@ -250,7 +254,7 @@ int TAP_Main(void)
 	{
 		// Try and get some helpful information of users with unsupported firmware
 		char buffer[300];
-		sprintf( buffer, "Sorry, this TAP is not compatible with your firmware\n"
+		sprintf( buffer, "Description Extender is not compatible with your firmware\n"
 			"For an update, please contact the author quoting\n"
 			"%d, %04X, %X and %X for an update", *sysID, _appl_version, TAP_GetCurrentEvent-0x80000000, TAP_EPG_GetExtInfo-0x80000000 );
 		ShowMessage( buffer, 750 );
