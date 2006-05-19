@@ -92,7 +92,6 @@ bool TAP_Hdd_Move_Available()
 	if ( !moveAddressAPI && !moveAddressDebugger )
 	{
 		moveAddressAPI = (TAP_Hdd_MoveFn)TAP_GetSystemProc(oTAP_Hdd_Move);
-		TAP_Print("API Move function %08X\n", moveAddressAPI);
 	}
 
 	if ( !moveAddressAPI && !moveAddressDebugger )
@@ -100,8 +99,6 @@ bool TAP_Hdd_Move_Available()
 		moveAddressDebugger = FindFirmwareFunction( debuggerMoveSignature, sizeof(debuggerMoveSignature), 0x800f8000, 0x80108000 );
 		if ( !moveAddressDebugger )
 			moveAddressDebugger = FindFirmwareFunction( debuggerMoveSignature, sizeof(debuggerMoveSignature), 0x80230000, 0x80238000 );
-
-		TAP_Print("Debugger Move function %08X\n", moveAddressDebugger);
 	}
 
 	return moveAddressDebugger || moveAddressAPI;
