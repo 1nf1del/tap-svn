@@ -14,6 +14,7 @@ v0.4 sl8:	09-03-06	Destination folder and remote search file mods
 v0.5 sl8:	22-03-06	Bug fix - Move failed if programme spanned midnight
 v0.6 sl8:	11-04-06	Show window added and tidy up.
 v0.7 sl8:	19-04-06	TRC option added. More work added for the Show window.
+v0.8 sl8:	07-06-06	Bug fix - 1 hour padding caused incorrect start/end times.
 
 **************************************************************/
 
@@ -462,13 +463,14 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, int searchIndex, word svcNum, byte isRec)
 {
 	TYPE_TimerInfo schTimerInfo;
-	dword schStartTimeWithPadding = 0;
-	dword schEndTimeWithPadding = 0;
-	word schStartTimeInMins = 0;
-	word schEndTimeInMins = 0;
+	dword schEventStartInMins = 0, schEventEndInMins = 0;
+	word schPaddingStartInMins = 0, schPaddingEndInMins = 0;
+	dword schTimerStartInMins = 0, schTimerEndInMins = 0;
+	word schTimerStartMjd = 0, schTimerEndMjd = 0;
+	byte schTimerStartHour = 0, schTimerEndHour = 0;
+	byte  schTimerStartMin = 0, schTimerEndMin = 0;
 	word mjd = 0,year = 0;
 	byte month = 0, day = 0, weekDay = 0, weekDayBit = 0;
-	byte hour = 0, min = 0;
 	byte attachPosition[2];
 	byte attachType[2];
 	char prefixStr[64];
@@ -594,64 +596,23 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 
 	// ------------- Add padding to start time ----------------
 
-	hour = ((eventStartTime >> 8) & 0xFF);
-	min = (eventStartTime & 0xFF);
+	schEventStartInMins = ((((eventStartTime >> 16) & 0xFFFF) * 24 * 60) + (((eventStartTime >> 8) & 0xFF) * 60) + (eventStartTime & 0xFF));
+	schPaddingStartInMins = (((schUserData[searchIndex].searchStartPadding >> 8) & 0xFF) * 60) + (schUserData[searchIndex].searchStartPadding & 0xFF);
+	schTimerStartInMins = schEventStartInMins - schPaddingStartInMins;
 
-	if(min >= schUserData[searchIndex].searchStartPadding)
-	{
-		min -= schUserData[searchIndex].searchStartPadding;
-	}
-	else
-	{
-		min = (min + 60) - schUserData[searchIndex].searchStartPadding;
-
-		if(hour > 0)
-		{
-			hour -= 1;
-		}
-		else
-		{
-			hour = 23;
-			mjd--;
-		}
-	}
-
-	schStartTimeWithPadding = (mjd << 16) + (hour << 8) + min;
-	schStartTimeInMins = (hour * 60) + min;
+	schTimerStartMjd = (schTimerStartInMins / (24 * 60)) & 0xFFFF;
+	schTimerStartHour = ((schTimerStartInMins % (24 * 60)) / 60) & 0xFF;
+	schTimerStartMin = ((schTimerStartInMins % (24 * 60)) % 60) & 0xFF;
 
 	// ------------- Add padding to end time ----------------
 
-	mjd = ((eventEndTime >> 16) & 0xFFFF);
-	hour = ((eventEndTime >> 8) & 0xFF);
-	min = (eventEndTime & 0xFF);
+	schEventEndInMins = ((((eventEndTime >> 16) & 0xFFFF) * 24 * 60) + (((eventEndTime >> 8) & 0xFF) * 60) + (eventEndTime & 0xFF));
+	schPaddingEndInMins = (((schUserData[searchIndex].searchEndPadding >> 8) & 0xFF) * 60) + (schUserData[searchIndex].searchEndPadding & 0xFF);
+	schTimerEndInMins = schEventEndInMins + schPaddingEndInMins;
 
-	if((min + schUserData[searchIndex].searchEndPadding) < 60)
-	{
-		min += schUserData[searchIndex].searchEndPadding;
-	}
-	else
-	{
-		min = (min + schUserData[searchIndex].searchEndPadding) - 60;
-
-		if(hour < 23)
-		{
-			hour++;
-		}
-		else
-		{
-			hour = 0;
-			mjd++;
-		}
-	}
-
-	schEndTimeInMins = (hour * 60) + min;
-
-	if(schEndTimeInMins < schStartTimeInMins)
-	{
-		schEndTimeInMins += (24 * 60);
-	}
-
-	schEndTimeWithPadding = (mjd << 16) + (hour << 8) + min;
+	schTimerEndMjd = (schTimerEndInMins / (24 * 60)) & 0xFFFF;
+	schTimerEndHour = ((schTimerEndInMins % (24 * 60)) / 60) & 0xFF;
+	schTimerEndMin = ((schTimerEndInMins % (24 * 60)) % 60) & 0xFF;
 
 	// -------------------------------------------------------
 
@@ -662,8 +623,8 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	schTimerInfo.svcNum = svcNum;						// Channel number
 	schTimerInfo.reservationType = 0;					// ?
 	schTimerInfo.nameFix = 1;
-	schTimerInfo.duration = (schEndTimeInMins - schStartTimeInMins);
-	schTimerInfo.startTime = schStartTimeWithPadding;
+	schTimerInfo.duration = (schTimerEndInMins - schTimerStartInMins);
+	schTimerInfo.startTime = (schTimerStartMjd << 16) + (schTimerStartHour << 8) + schTimerStartMin;
 	strcpy(schTimerInfo.fileName, fileNameStr);
 
 	timerError = TAP_Timer_Add(&schTimerInfo);
@@ -679,8 +640,8 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 			schMoveData[schMainTotalValidMoves].moveEnabled = TRUE;
 			strcpy(schMoveData[schMainTotalValidMoves].moveFileName, fileNameStr);
 			strcpy(schMoveData[schMainTotalValidMoves].moveFolder, schUserData[searchIndex].searchFolder);
-			schMoveData[schMainTotalValidMoves].moveStartTime = schStartTimeWithPadding;
-			schMoveData[schMainTotalValidMoves].moveEndTime = schEndTimeWithPadding;
+			schMoveData[schMainTotalValidMoves].moveStartTime = (schTimerStartMjd << 16) + (schTimerStartHour << 8) + schTimerStartMin;
+			schMoveData[schMainTotalValidMoves].moveEndTime = (schTimerEndMjd << 16) + (schTimerEndHour << 8) + schTimerEndMin;
 			schMoveData[schMainTotalValidMoves].moveFailedCount = 0;
 
 			schMainTotalValidMoves++;

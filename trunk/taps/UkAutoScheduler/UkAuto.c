@@ -47,7 +47,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.42"
+#define VERSION "0.43"
 
 TAP_ID( ID_UKAUTO );
 
