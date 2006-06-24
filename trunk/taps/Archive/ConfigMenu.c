@@ -47,7 +47,7 @@ static bool returnFromConfig;
 
 static keyCodes_Struct localKeyCodes;
 static dword CurrentActivationKey;
-static TYPE_ModelType currentModelType;
+static Model currentModelType;
 
 static int currentGMToffsetOption;
 static int currentRecordingRateOption;

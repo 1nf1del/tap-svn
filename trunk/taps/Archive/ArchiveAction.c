@@ -208,6 +208,7 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
 {
      dword lastPos;
      dword   curPercent;
+char str1[200], str2[200];     
      
      appendIntToLogfile("JumpToLastPosition: currentBlock=%d", currentBlock, WARNING);
      appendIntToLogfile("JumpToLastPosition: totalBlock=%d", totalBlock, WARNING);
@@ -226,6 +227,9 @@ void JumpToLastPosition(dword currentBlock, dword totalBlock)
      
      appendIntToLogfile("JumpToLastPosition: jumping to lastPos=%d", lastPos, WARNING);
      TAP_Hdd_ChangePlaybackPos( lastPos );
+TAP_SPrint(str1,"curPercent=%d lastPos=%d",curPercent,lastPos);
+TAP_SPrint(str2,"cBlock=%d tBlock=%d",currentBlock, totalBlock);
+ShowMessageWin( rgn, "Restarted playback", str1, str2, 500 );
 }
 
 

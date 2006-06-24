@@ -118,6 +118,7 @@ void DisplayArchiveInfoWindow()
 {
     char title[50], str1[200], str2[200], str3[200];
     int  fontHeight, fontSize;
+//    byte* keyboardWindowCopy;
     
     
     void DisplayFileInfo()

@@ -34,7 +34,7 @@ typedef struct
 	int		count;
 	key_Struct	*keys[MAX_NUMBER_OF_KEYS];						// an array of pointers
 } keyCodes_Struct;
-
+/*
 typedef enum
 {
         TFOther,
@@ -56,7 +56,7 @@ typedef enum
         PC5101c_5102c,
         PC5101t_5102t
 } TYPE_ModelType;
-
+*/
 //----------
 // external procedures
 //

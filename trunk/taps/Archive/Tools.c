@@ -43,8 +43,8 @@ void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
       
     //  Calculate width of message window
     width = TAP_Osd_GetW( msg1, 0, FNT_Size_1926 );     
-    if ( TAP_Osd_GetW( msg2, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg2, 0, FNT_Size_1622 );
-    if ( TAP_Osd_GetW( msg3, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg3, 0, FNT_Size_1622 );
+    if ( TAP_Osd_GetW( msg2, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg2, 0, FNT_Size_1622 ) + 10;
+    if ( TAP_Osd_GetW( msg3, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg3, 0, FNT_Size_1622 ) + 10;
 
     if ( width > msgScrWidth ) width = msgScrWidth;
 
@@ -408,7 +408,7 @@ char* GetCurrentDir(void)
 }
 
 
-
+/*
 // Return the Topfield model number
 TYPE_ModelType GetModel()
 {
@@ -429,6 +429,7 @@ TYPE_ModelType GetModel()
 12406 TF5100c
 13406 TF5100
 */
+/*
 #ifdef WIN32
 return TF5000_BP_WP;
 #endif               
@@ -456,7 +457,7 @@ return TF5000_BP_WP;
         }
         return TFOther;
 }
-
+*/
 
 bool OsdActive (int startCol, int startRow, int endCol, int endRow)
 {

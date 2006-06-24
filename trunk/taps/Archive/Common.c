@@ -265,7 +265,7 @@ void ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3);
 //
 
 static dword mainActivationKey;
-static TYPE_ModelType unitModelType;
+static Model unitModelType;
 
 static bool exitFlag;
 static bool terminateFlag;

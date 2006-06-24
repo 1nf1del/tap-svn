@@ -45,7 +45,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define VERSION "0.08a"       
 
 #include "tap.h"
-#include "morekeys.h"
+#include "TAPExtensions.c"
      
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
@@ -67,8 +67,11 @@ TAP_ETCINFO(__DATE__);
  
 char* TAPIniDir;
                         
+#include "FirmwareCalls.c"
+#include "morekeys.h"
 #include "TSRCommander.inc"
-                                                     
+
+                                                                                   
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"
@@ -88,7 +91,8 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-                               
+
+ 
                        
 static dword lastTick;
 static byte oldMin;
@@ -463,11 +467,14 @@ int TAP_Main (void)
     // Create a full screen region in case there are any messages to be displayed during the initial startup.
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 #endif
-     
+         
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
 
     appendToLogfile("Archive TAP Started.", INFO);
 
+    StartTAPExtensions();
+//	TAP_Print("%d\n", CallFirmware( 0,0,0,0, 0x80003a58, tapProcess, currentTAPIndex ));
+    
     if (GetModel() == TF5800t) 
     {
        unitModelType=TF5800t;
@@ -579,7 +586,7 @@ int TAP_Main (void)
 	generatedPlayList = FALSE;
 
     appendToLogfile("TAP_Main: Finished initial TAP_Main routine.", INFO);
-
+  
 #ifdef WIN32
 #else
     TAP_Osd_Delete( rgn );
