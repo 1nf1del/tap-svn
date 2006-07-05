@@ -19,6 +19,8 @@ Hisotry	: v0.0 Darkmatter: 11-08-05	Inception date. Constructed from calendar.c
 #include "graphics/KeyOverStamp.GD"
 #include "graphics/BigKeyGreen.GD"
 #include "graphics/BigKeyBlue.GD"
+#include "graphics/KeyBlue82x43.GD"
+#include "graphics/KeyGreen82x43.GD"
 
 #include "graphics/popup476x321.GD"
 #include "graphics/popup520x321.GD"

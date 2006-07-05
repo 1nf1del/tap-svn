@@ -13,7 +13,7 @@ void ShowMessage( const char* message, dword delay )
 	char* c;
 	char buffer[1024];
 
-	TAP_Print( message );
+//	TAP_Print( message );
 	strncpy( buffer, message, sizeof(buffer)-1 );
 	buffer[1023] = 0;
 

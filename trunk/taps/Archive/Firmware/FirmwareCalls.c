@@ -20,9 +20,9 @@
 */
 
 #include <tap.h>
-#include "MessageWin.h"
+#include "MessageWin.c"
 #include "FirmwareCalls.h"
-#include "Firmware.h"
+#include "Firmware.c"
 
 
 //----------------------------------------------------------------------------
@@ -84,8 +84,13 @@ enum
     oTAP_Osd_unknown20         = 0x14,  //osd related, ???
 };
 
+#ifdef WIN32
+int TAP_GetSystemProc( int add)
+{
+}
+#else
 extern void* (*TAP_GetSystemProc)( int );
-
+#endif
 
 bool TAP_Hdd_Move_Available()
 {

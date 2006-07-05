@@ -28,7 +28,7 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 
 #include "graphics/msgpopup360x130.GD"
 
-word* sysID = (word*)0xa3fffffa;
+//word* sysID = (word*)0xa3fffffa;
 
 //   ShowMessageBox 
 //

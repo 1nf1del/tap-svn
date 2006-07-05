@@ -155,6 +155,8 @@ bool PromoteTAP( dword tapID )
 
 static dword TAP_SendEventHelper( TAPProcess* tap, word event, dword param1, dword param2 )
 {
+#ifdef WIN32
+#else       
 	__asm__ __volatile__ (
 		"addiu	$sp, -4\n"
 		"sw		$31,0($sp)\n"		// save ra
@@ -169,6 +171,7 @@ static dword TAP_SendEventHelper( TAPProcess* tap, word event, dword param1, dwo
 		"lw		$31,0($sp)\n"		// restore ra
 		"addiu	$sp,4\n"
 	);
+#endif
 }
 
 
@@ -192,9 +195,11 @@ dword TAP_SendEvent( int index, word event, dword param1, dword param2 )
 
 		// restore gp for the calling TAP. This must be done within the loop so that
 		// currentTAPIndex can be accessed
+#ifdef WIN32
+#else       
 		asm volatile ( "or $28,%0,$00\n" : : "r"(tapGP));
 		*currentTAPIndex = thisTAPIndex;
-
+#endif
 		// any diagnostics must be placed *after* this line
 		// TAP_Print(" result %X\n", param1 );
 	}

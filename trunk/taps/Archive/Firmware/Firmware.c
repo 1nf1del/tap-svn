@@ -80,6 +80,8 @@ dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start,
 // Internal function based on TAP_GetTime to call the firmware with the correct value in $gp
 static dword CallFirmwareInternal( dword a0, dword a1, dword a2, dword a3, dword address, TAPProcess* tapTable, dword* tapIndex )
 {
+#ifdef WIN32
+#else       
 	__asm__ __volatile__ (
 		"lw		$08,16($29)\n"
 		"lw		$09,20($29)\n"
@@ -123,6 +125,7 @@ static dword CallFirmwareInternal( dword a0, dword a1, dword a2, dword a3, dword
 		"lw		$30,44($29)\n"
 		"addiu	$29,48\n"
 	);
+#endif	
 }
 
 

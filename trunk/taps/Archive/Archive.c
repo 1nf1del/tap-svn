@@ -7,7 +7,7 @@
  
 Name	: OZ Archive.c
 Author	: kidhazy
-Version	: 0.03
+Version	: 0.08
 For		: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -20,7 +20,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
           V0.08 kidhazy 
-
+ 
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
 #ifdef WIN32
@@ -46,6 +46,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 
 #include "tap.h"
 #include "TAPExtensions.c"
+#include "FirmwareCalls.c"
      
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
@@ -67,7 +68,6 @@ TAP_ETCINFO(__DATE__);
  
 char* TAPIniDir;
                         
-#include "FirmwareCalls.c"
 #include "morekeys.h"
 #include "TSRCommander.inc"
 
@@ -472,9 +472,17 @@ int TAP_Main (void)
 
     appendToLogfile("Archive TAP Started.", INFO);
 
+#ifdef WIN32
+#else
     StartTAPExtensions();
+#endif
 //	TAP_Print("%d\n", CallFirmware( 0,0,0,0, 0x80003a58, tapProcess, currentTAPIndex ));
-    
+
+#ifdef WIN32
+       appendToLogfile("TAP_Main: Detected model is NOT TF5800.", WARNING);
+       unitModelType=TF5000t;
+       headerOffset=0;        // Do not apply any offset when reading the header.
+#else
     if (GetModel() == TF5800t) 
     {
        unitModelType=TF5800t;
@@ -487,7 +495,8 @@ int TAP_Main (void)
        unitModelType=TF5000t;
        headerOffset=0;        // Do not apply any offset when reading the header.
     }
-     
+#endif
+    
     TSRCommanderInit( 0, TRUE );    // Include the TSR Commander function.  
 
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.

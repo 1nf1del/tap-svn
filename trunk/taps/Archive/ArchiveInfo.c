@@ -25,13 +25,13 @@ static byte* infoWindowCopy;
 #define INFO_WINDOW_X ((MAX_SCREEN_X-INFO_WINDOW_W)/2)   // Centre the info window
 #define INFO_WINDOW_Y ((MAX_SCREEN_Y-INFO_WINDOW_H)/2-10)   // Centre the info window
 
-#define INFO_OPTION_W 102                                  // Width  of Info Options Buttons
+#define INFO_OPTION_W 82                                  // Width  of Info Options Buttons
 #define INFO_OPTION_H 43                                   // Height of Info Options Buttons
 #define INFO_OPTION_X  (INFO_WINDOW_X + 30)              // Starting x-position for first Option button  82
 #define INFO_OPTION_Y  (INFO_WINDOW_Y + INFO_WINDOW_H - INFO_OPTION_H - 15)             // Starting y-position for Option buttons.
 #define INFO_OPTION_X_SPACE   (INFO_OPTION_W+3)         // Space between options on Info window.
 
-#define INFO_COMMAND_OPTIONS 4  // Number of command buttons in the info window.
+#define INFO_COMMAND_OPTIONS 5  // Number of command buttons in the info window.
 
 //------------
 //
@@ -70,41 +70,50 @@ void FormatInfoDuration(int dur, char* str)
 //
 void DisplayInfoLine(void)
 {
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
     PrintCenter(rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "OK", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
 	PrintCenter(rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeyblueGd, FALSE );
+	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
 	PrintCenter(rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Rename", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeyblueGd, FALSE );
-	PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-	PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", MAIN_TEXT_COLOUR, 0, FNT_Size_1622);
+	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
+	PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Move", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+
+	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
+	PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", MAIN_TEXT_COLOUR, 0, FNT_Size_1622);
+
 
 	switch ( infoCommandOption )
 	{
 
 		case 0 :
-					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keygreen82x43Gd, FALSE );
 				    PrintCenter(rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "OK", COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
 					
 		case 1 :
-					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keygreen82x43Gd, FALSE );
 					PrintCenter(rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Delete", COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
 					
 		case 2 :
-					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeygreenGd, FALSE );
+					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keygreen82x43Gd, FALSE );
 					PrintCenter(rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Rename", COLOR_Yellow, 0, FNT_Size_1926 );
                     break;
 				
 		case 3 :
-					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_bigkeygreenGd, FALSE );
-					PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", COLOR_Yellow, 0, FNT_Size_1622 );
-					PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", COLOR_Yellow, 0, FNT_Size_1622 );
+					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keygreen82x43Gd, FALSE );
+					PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Move", COLOR_Yellow, 0, FNT_Size_1926 );
+                    break;
+				
+		case 4 :
+					TAP_Osd_PutGd( rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keygreen82x43Gd, FALSE );
+					PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", COLOR_Yellow, 0, FNT_Size_1622 );
+					PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", COLOR_Yellow, 0, FNT_Size_1622 );
                     break;
 				
 	}
@@ -461,7 +470,11 @@ dword ArchiveInfoKeyHandler(dword key)
                                            EditFileName();
                                            break;
 
-								case 3 :   // RESET PROGRESS
+								case 3 :   // MOVE
+
+                                           break;
+
+								case 4 :   // RESET PROGRESS
                                            if ((myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER) || (myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR)) break;  // Ignore when looking at folders.
                                            DeleteProgressInfo(CurrentDirNumber, chosenLine, TRUE);
                                            fileReset = TRUE;
