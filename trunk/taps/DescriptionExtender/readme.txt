@@ -14,7 +14,7 @@ TF5100c MP:		15/03/2006, 05/10/2005, 24/04/2006
 TF5100t:		15/03/2006, 12/09/2005, 19/04/2006
 TF5100t MP:		15/03/2006, 04/10/2005, 24/04/2006
 TF5200c:		13/09/2005
-TF5800:			08/12/2005 (12.25), 14/10/2005 (12.09), 12.05, 12.04
+TF5800:			14/07/2006 (12.88), 08/12/2005 (12.25), 14/10/2005 (12.09), 12.05, 12.04
 
 Procaster PVRs:
 PC5101c/5102c:	15/03/2006*, 05/10/2005
@@ -30,6 +30,7 @@ Improbox, UKOZSurfer and Jag's EPG 3.0 and EPG Navigator all support Description
 
 History
 -------
+1.4		Support for 5800 14/07/2006 (12.88) firmware.
 1.3		Support for latest 5100 firmware.
 1.2		Support for TF5100 Masterpiece and Procaster models.
 		Additional version for EPGs where programme description flows into the extended information.

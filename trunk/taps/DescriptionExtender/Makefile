@@ -43,6 +43,7 @@ clean:
 
 $(TAPNAME).tap: DescriptionExtender.elf
 	$(OBJCOPY) -O binary $< $@
+#	@mips-objdump -D $(TAPNAME).elf > $(TAPNAME).asm
 	-rm -f *.o *.elf *.map
 
 DescriptionExtender.elf::	DescriptionExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
