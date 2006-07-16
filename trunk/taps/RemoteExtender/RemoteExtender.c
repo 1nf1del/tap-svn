@@ -44,7 +44,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.0");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.1");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -125,16 +125,16 @@ dword remoteReceiveSignature[] =
 	0x0c0000ff,
 	0x00000000,
 	0x0040b025,
-	0x3c198060,
+	0x3c1980ff,
 	0x8f39ffff,
-	0x3c188060,
+	0x3c1880ff,
 	0x8f18ffff,
 	0x13380018,
 	0x00000000,
-	0x3c198060,
+	0x3c1980ff,
 	0x2739ffff,
 	0x27390008,
-	0x3c188060,
+	0x3c1880ff,
 	0x8f18ffff,
 	0x0018c040,
 	0x0338c821,
@@ -350,16 +350,32 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 typedef struct {
 	Model	model;
     int		firmwareVersion;
-	dword	eventTable;
-	dword	eventTableLength;
+	dword	registerGroup;
 } FirmwareDetail;
 
 
 FirmwareDetail firmware[] = 
 {
-	// Model		FW version,	register_group
+	// Model		FW version,	registerGroup
+	TF5800t,		0x1288,		0x804cb11c,		// 14 July 2006
+//	TF5800t,		0x1277,		0x8057c60c,		// 25 May 2006
 	TF5800t,		0x1225,		0x80427bfc		// 08 Dec 2005
 };
+
+
+FirmwareDetail* GetFirmwareDetail()
+{
+	__asm__ __volatile__ (
+		"lui	$02,0x0\n"
+		"or		$02,$02,0x0\n"
+		"nop\n"
+		);
+}
+
+void FW_Print(const void *fmt, ...)
+{
+}
+
 
 //see  dtt mheg-5 spec. v1.06, section 3.6
 //if register_group == 0 then no mheg is running
@@ -369,19 +385,19 @@ FirmwareDetail firmware[] =
 int GetMHEGMode()
 {
 	dword v0;
-    int register_group = 0;
+    int registerGroup = 0;
 
-	v0 = *(dword*)0x80427bfc;
+	v0 = *(dword*)GetFirmwareDetail()->registerGroup;
     if (v0)
 	{
         dword v1 = *(dword*)(v0 + 0x8);
         if (v1)
 		{
-            register_group = *(dword*)(v1 + 0x34);
+            registerGroup = *(dword*)(v1 + 0x34);
 		}
 	}
 
-	return register_group;
+	return registerGroup;
 }
 
 
@@ -431,6 +447,17 @@ bool TSRCommanderExitTAP()
 }
 
 
+void ShowUnsupportedMessage()
+{
+	// Try and get some helpful information of users with unsupported firmware
+	char buffer[300];
+	sprintf( buffer, "Description Extender is not compatible with your firmware\n"
+		"For an update, please contact the author quoting\n"
+		"%d and %04X", *sysID, _appl_version );
+	ShowMessage( buffer, 750 );
+}
+
+
 int TAP_Main()
 {
 	bool supported = FALSE;
@@ -450,28 +477,37 @@ int TAP_Main()
 	}
 	if ( !supported )
 	{
-		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 750 );
+		ShowUnsupportedMessage();
 		return 0;
 	}
+	((dword*)FW_Print)[0] = J(TAP_Print);
+	((dword*)FW_Print)[1] = NOP_CMD;
+
+	// We need to know various firmware specific addresses without needing to use $gp
+	((word*)GetFirmwareDetail)[1] = ((dword)(firmware+index) >> 16) & 0xffff;
+	((word*)GetFirmwareDetail)[3] = (dword)(firmware+index) & 0xffff;
 #endif
 
 	if ( !StartTAPExtensions() )
 	{
-		ShowMessage( "Sorry, this version of Remote Extender is not compatible with your firmware", 750 );
+		ShowUnsupportedMessage();
 		return 0;
 	}
 
 	if ( !HookReceiveKeyFunction() )
 	{
 		UndoFirmwareHacks();
+		ShowUnsupportedMessage();
 		return 0;
 	}
 
 	if ( !AdjustDispatchKeyFunction() )
 	{
 		UndoFirmwareHacks();
+		ShowUnsupportedMessage();
 		return 0;
 	}
+
 
 	// patch TAP_GetState to return STATE_Ttx and SUBSTATE_Ttx when full screen MHEG is active
 #ifdef MHEG
