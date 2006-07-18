@@ -48,6 +48,8 @@ public:
 	string Description() const;
 	void SetRepeat(byte repeat);
 
+	TimeSlot GetFirstInstance() const;
+
 private:
 	word GetDaysOfWeek() const;
 	bool OverlapsBothRepeat(const TimeSlot& other) const;

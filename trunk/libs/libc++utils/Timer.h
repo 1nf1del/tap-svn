@@ -37,6 +37,7 @@ public:
 	int GetChannelNum() const;
 	string Description() const;
 	bool IsRecording() const;
+	array<EPGevent*> GetScheduledEvents() const;
 
 private:
 	// these are public for the Timers class
@@ -49,6 +50,7 @@ private:
 	static bool ScheduleEvent(const EPGevent* pEvent, bool bPadStart, bool bPadEnd);
 	bool UnSchedule();
 	bool TrimToExclude(const TimeSlot& timeSlot);
+	Timer GetFirstInstance() const;
 
 	// these are private for internal use
 	bool ExtendToCoverTime(const TimeSlot& timeSlot, bool bPad);

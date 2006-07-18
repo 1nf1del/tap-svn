@@ -39,7 +39,9 @@ ArchivedProgram::ArchivedProgram(const string& folderName, const string& fileNam
 string BuildStringFromChars(const char* pData, int iMaxLen)
 {
 	string result;
-	strncpy(result.getbuffer(iMaxLen), pData, iMaxLen);
+	char* buffer = result.getbuffer(iMaxLen);
+	strncpy(buffer, pData, iMaxLen);
+	buffer[iMaxLen] = 0;
 	result.releasebuffer();
 	return result;
 }

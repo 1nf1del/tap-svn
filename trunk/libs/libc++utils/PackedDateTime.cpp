@@ -76,6 +76,19 @@ string PackedDateTime::ShortDisplayRange(const PackedDateTime& end) const
 	return sResult;
 }
 
+string PackedDateTime::LongDisplayRange(const PackedDateTime& end) const
+{
+	word year;
+	byte month, day, dofy;
+	TAP_ExtractMjd(m_wMJD, &year, &month, &day, &dofy);
+
+	string sResult;
+	sResult.format("%s %d/%d %02d:%02d-%02d:%02d", DayOfWeek(true).c_str(), day, month, m_wTime>>8, m_wTime & 0xFF, 
+		end.m_wTime >> 8, end.m_wTime & 0xFF );
+
+	return sResult;
+}
+
 char* ShortWeekDay(byte dofy)
 {
 	switch(dofy)

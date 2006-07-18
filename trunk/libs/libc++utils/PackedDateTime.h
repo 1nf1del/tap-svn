@@ -35,6 +35,7 @@ public:
 	string ShortDisplay() const;
 	bool IsInPast() const;
 	string ShortDisplayRange(const PackedDateTime& end) const;
+	string LongDisplayRange(const PackedDateTime& end) const;
 	string DisplayTimeRange(const PackedDateTime& end) const;
 	string DayOfWeek(bool bShort) const;
 

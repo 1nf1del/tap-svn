@@ -171,6 +171,38 @@ short int Timer::GetMinProgramLength()
 	return 4;
 }
 
+Timer Timer::GetFirstInstance() const
+{
+	Timer t = *this;
+	t.m_time = GetTimeSlot().GetFirstInstance();
+
+	t.m_TimerInfo.reservationType = RESERVE_TYPE_Onetime;
+	return t;
+}
+
+
+array<EPGevent*> Timer::GetScheduledEvents() const
+{
+	if (this->IsRepeatingTimer())
+	{
+		return GetFirstInstance().GetScheduledEvents();
+	}
+
+	array<EPGevent*> results;
+	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(GetChannelNum());
+	if (pChannel)
+	{
+		const array<EPGevent*>& events = pChannel->GetEvents();
+		for (unsigned int i=0; i<events.size(); i++)
+		{
+			if (GetTimeSlot().Contains(events[i]->GetTimeSlot()))
+				results.push_back(events[i]);
+		}
+	}
+	return results;
+}
+
+
 EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iChannelNum)
 {
 	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(iChannelNum);

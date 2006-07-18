@@ -141,6 +141,14 @@ string TimeSlot::Description() const
 
 }	
 
+word GetDofw(word wMjd)
+{
+	word year;
+	byte month, day, dofw;
+	TAP_ExtractMjd(wMjd, &year, &month, &day, &dofw);
+	return dofw;
+}
+
 word TimeSlot::GetDaysOfWeek() const
 {
 	switch (m_repeat)
@@ -154,10 +162,7 @@ word TimeSlot::GetDaysOfWeek() const
 	case RESERVE_TYPE_Onetime:
 	case RESERVE_TYPE_Weekly:
 		{
-			word year;
-			byte month, day, dofw;
-			TAP_ExtractMjd(m_start.GetMJD(), &year, &month, &day, &dofw);
-			return (1<<dofw);
+			return (1<<GetDofw(m_start.GetMJD()));
 		}
 	}
 	return 0;
@@ -226,4 +231,41 @@ bool TimeSlot::SpansMidnight() const
 void TimeSlot::SetRepeat(byte repeat)
 {
 	m_repeat = (TYPE_ReservationType) repeat;
+}
+
+TimeSlot TimeSlot::GetFirstInstance() const
+{
+	// for a repeating slot this gets the first instance in the future
+	if (m_repeat == RESERVE_TYPE_Onetime)
+		return *this;
+
+	TimeSlot ts = *this;
+
+	word wMJD;
+	byte hour, min, sec;
+	TAP_GetTime(&wMJD, &hour, &min, &sec);
+
+	word wMJDend = wMJD + (SpansMidnight() ? 1 : 0);
+
+	ts.m_repeat = RESERVE_TYPE_Onetime;
+
+	word daysScheduled = GetDaysOfWeek();
+
+	for (int i=0; i<8; i++)
+	{
+		ts.m_start.SetMJD(wMJD);
+		ts.m_end.SetMJD(wMJDend);
+
+		if (!ts.m_start.IsInPast())
+		{
+			word wDofwMask = 1 << (GetDofw(wMJD));
+			if (wDofwMask & daysScheduled)
+				break;
+		}
+
+		wMJD++;
+		wMJDend++;
+	}
+
+	return ts;
 }
