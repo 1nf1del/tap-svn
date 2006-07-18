@@ -12,6 +12,8 @@ public:
 	virtual void DrawDialogFrame(short int x, short int y, short int w, short int h);
 	virtual void PrintText(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichColors);
 	virtual void DrawProgress(short int x, short int y, short int w, short int h, short int percent);
+	virtual void PrintTextLeft(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichArea);
+	virtual void DrawColoredButon(short int x, short int y, short int w, short int h, word fillColor);
 
 private:
 

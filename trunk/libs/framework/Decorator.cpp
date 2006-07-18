@@ -2,6 +2,7 @@
 #include "graphics.c"
 #include "TextTools.h"
 #include "Tapplication.h"
+#include "Rect.h"
 
 Decorator::Decorator()
 {
@@ -26,7 +27,7 @@ void Decorator::DrawDialogFrame(short int  x, short int  y, short int  w, short 
     TAP_Osd_PutGd( m_wRegion, x, y, &_popup360x180Gd, TRUE );
 }
 
-void Decorator::PrintText(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, colorSets whichArea)
+word GetTextColor(colorSets whichArea)
 {
 	word textColor = 0;
 	switch (whichArea)
@@ -40,7 +41,25 @@ void Decorator::PrintText(short int  x, short int  y, short int  maxX, const cha
 		break;
 	}
 
-	PrintTextImpl(x,y,maxX, text, fontSize, textColor, 0);
+	return textColor;
+
+}
+
+void Decorator::PrintText(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, colorSets whichArea)
+{
+	PrintTextImpl(x,y,maxX, text, fontSize, GetTextColor(whichArea), 0);
+}
+
+void Decorator::PrintTextLeft(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichArea)
+{
+	PrintTextLeftImpl( x, y, maxX, text, fontSize, GetTextColor(whichArea), 0 );
+}
+
+void Decorator::DrawColoredButon(short int x, short int y, short int w, short int h, word fillColor)
+{
+	Rect r(x,y,w,h);
+	r.Fill(m_wRegion, fillColor);
+	r.DrawBox(m_wRegion, 1, COLOR_White);
 }
 
 void Decorator::DrawProgress(short int  x, short int  y, short int  w, short int  h, short int  percent)
@@ -51,6 +70,11 @@ void Decorator::DrawProgress(short int  x, short int  y, short int  w, short int
 void Decorator::PrintTextImpl(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, word textColor, word bgColor)
 {
 	PrintCenter( m_wRegion, x, y, maxX, text, textColor, bgColor, fontSize );
+}
+
+void Decorator::PrintTextLeftImpl(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, word textColor, word bgColor)
+{
+	PrintLeft( m_wRegion, x, y, maxX, text, textColor, bgColor, fontSize );
 }
 
 void Decorator::DrawProgressImpl(short int  x, short int  y, short int  w, short int  h, short int  percent, word doneColor, word todoColor)

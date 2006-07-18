@@ -68,3 +68,19 @@ void SkinDecorator::DrawProgress(short int x, short int y, short int w, short in
 	r.DrawBox(m_wRegion, 2, cols.frameColor);
 	DrawProgressImpl(x,y,w,h,percent, hcols.bgColor, cols.bgColor);
 }
+
+void SkinDecorator::PrintTextLeft(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichArea)
+{
+	Tapplication* pApp = Tapplication::GetTheApplication();
+	ListColors cols = pApp->GetColorDef(whichArea);
+	PrintTextLeftImpl(x+2,y,maxX-2, text, fontSize, cols.textColor, cols.bgColor);
+}
+
+void SkinDecorator::DrawColoredButon(short int x, short int y, short int w, short int h, word fillColor)
+{
+	Tapplication* pApp = Tapplication::GetTheApplication();
+	ListColors cols = pApp->GetColorDef(normalColors);
+	Rect r(x,y,w,h);
+	r.Fill(m_wRegion, fillColor);
+	r.DrawBox(m_wRegion, 1, cols.frameColor);
+}
