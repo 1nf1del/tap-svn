@@ -26,10 +26,14 @@ class NumericOption :
 	public Option
 {
 public:
-	NumericOption(Options* pContainer, const string& key,int minValue, int maxValue, int defaultValue, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL);
+	NumericOption(Options* pContainer, const string& key,int minValue, int maxValue, int defaultValue, const string& name, const string& description, OptionUpdateNotifier* pNotifier = NULL, bool bPowersOfTwo = false, bool bImmediateUpdate = false);
 	~NumericOption(void);
 
+	virtual bool ImmediateUpdateNeeded() const;
+
 private:
-	static string IntToString(int value);
+	static string IntToString(int value, bool bPowerOfTwo);
+
+	bool m_bImmediateUpdate;
 };
 #endif

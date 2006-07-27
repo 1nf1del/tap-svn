@@ -22,6 +22,7 @@
 #define libcpputils_epgreader_h
 #include <stdlib.h>
 #include "tap.h"
+#include "PackedDateTime.h"
 
 class EPGdata;
 class EPGevent;
@@ -29,10 +30,17 @@ class EPGevent;
 class IEPGReader
 {
 public:
+	IEPGReader();
+
 	virtual ~IEPGReader();
 	virtual bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
 	virtual short int GetPercentDone();
 	virtual bool CanRead() ;
+
+protected:
+	bool IsEventWantedInEPG(EPGevent* pEvent);
+
+	PackedDateTime m_pdtNow;
 };
 
 class EPGReader : public IEPGReader

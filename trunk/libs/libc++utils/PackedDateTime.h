@@ -31,6 +31,7 @@ public:
 	~PackedDateTime(void);
 	PackedDateTime(const string& sYMDHM);
 	PackedDateTime(dword dwDateTime);
+	PackedDateTime(word wMJD, word wTime);
 
 	string ShortDisplay() const;
 	bool IsInPast() const;
@@ -53,6 +54,8 @@ public:
 
 	word GetMJD() const;
 	void SetMJD(word mjd); 
+
+	static PackedDateTime Now();
 
 private:
 

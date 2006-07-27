@@ -22,12 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 NumericOption::NumericOption(Options* pContainer, const string& key,
 							 int minValue, int maxValue, int defaultValue, const string& name, 
-							 const string& description, OptionUpdateNotifier* pNotifier) :
-Option(pContainer, key, IntToString(defaultValue), name, description, pNotifier)
+							 const string& description, OptionUpdateNotifier* pNotifier, bool bPowersOfTwo,
+							 bool bImmediateUpdate) :
+Option(pContainer, key, IntToString(defaultValue, bPowersOfTwo), name, description, pNotifier)
 {
+	m_bImmediateUpdate = bImmediateUpdate;
 	for (int i=minValue; i<=maxValue; i++)
 	{
-		m_choices.push_back(IntToString(i));
+		m_choices.push_back(IntToString(i, bPowersOfTwo));
 	}
 }
 
@@ -35,10 +37,18 @@ NumericOption::~NumericOption(void)
 {
 }
 
-string NumericOption::IntToString(int value)
+string NumericOption::IntToString(int value, bool bPowerOfTwo)
 {
+	if (bPowerOfTwo)
+		value = 1 << value;
+
 	string result;
 	result.format("%d", value);
 	return result;
 }
 
+
+bool NumericOption::ImmediateUpdateNeeded() const
+{
+	return m_bImmediateUpdate;
+}

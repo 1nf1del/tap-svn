@@ -50,6 +50,12 @@ PackedDateTime::PackedDateTime(dword dwDateTime)
 	m_wTime = (word)(dwDateTime & 0xFFFF);
 }
 
+PackedDateTime::PackedDateTime(word wMJD, word wTime)
+{
+	m_wMJD = wMJD;
+	m_wTime = wTime;
+}
+
 
 string PackedDateTime::ShortDisplay() const
 {
@@ -151,21 +157,17 @@ string PackedDateTime::DisplayTimeRange(const PackedDateTime& end) const
 	return sResult;
 }
 
-
-bool PackedDateTime::IsInPast() const
+PackedDateTime PackedDateTime::Now()
 {
 	word wMJD;
 	byte hour, min, sec;
 	TAP_GetTime(&wMJD, &hour, &min, &sec);
-	if (m_wMJD < wMJD)
-		return true;
+	return PackedDateTime(wMJD, (hour<<8) + min);
+}
 
-	if (m_wMJD > wMJD)
-		return false;
-
-	word wTime = (hour << 8) + min;
-
-	return (m_wTime < wTime);
+bool PackedDateTime::IsInPast() const
+{
+	 return (*this)<Now();
 }
 
 bool PackedDateTime::operator<(const PackedDateTime& right) const

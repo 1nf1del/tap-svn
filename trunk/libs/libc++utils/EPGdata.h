@@ -41,7 +41,21 @@ enum DataSources
 	FreeviewMEI,
 };
 
-#define EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS 0x00000001
+#define EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS	0x00000001
+#define EPGDATA_DAYSTOLOAD_MASK					0x0000001E // 4 bits gives 0..15, treat 0 as 15 for backward compat
+#define EPGDATA_DESCRIPTION_MAXLEN_MASK			0x000000E0 // 3 bits gives 0..7 1=64, 2=128, 3=256, 4=512, 5=1024, 6=2048, 7=0=4096
+
+enum DescriptionMaxLength
+{
+	Len_Unlimited,
+	Len_64,
+	Len_128,
+	Len_256,
+	Len_512,
+	Len_1024,
+	Len_2048,
+	Len_4096
+};
 
 class EPGdata
 {
@@ -59,6 +73,8 @@ public:
 	bool Visit(EPGVisitor* pVisitor) const;
 	bool ReadData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags);
 	bool HasData() const;	
+
+	static dword BuildFlags(unsigned short iDaysToLoad, DescriptionMaxLength iMaxDescrLength);
 
 private:
 	bool ReadData(IEPGReader& reader, ProgressNotification* pProgress); 

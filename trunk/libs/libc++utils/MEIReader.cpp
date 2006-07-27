@@ -68,7 +68,7 @@ bool MEIReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 		if (!s.empty())
 		{
 			EPGevent* pNewEvent = ConstructEvent(s);
-			if (pNewEvent->GetEnd().IsInPast())
+			if (!IsEventWantedInEPG(pNewEvent))
 			{
 				delete pNewEvent;
 			}

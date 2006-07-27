@@ -228,3 +228,12 @@ bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, 
 	}
 	return false;
 }
+
+dword EPGdata::BuildFlags(unsigned short iDaysToLoad, DescriptionMaxLength iMaxDescrLength)
+{
+	if (iDaysToLoad>15)
+		iDaysToLoad=15;
+
+	return (iMaxDescrLength<< 5) + (iDaysToLoad << 1);
+
+}

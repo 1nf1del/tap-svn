@@ -44,6 +44,7 @@ public:
 
 	word GetChannelNum() const;
 	const string& GetTitle() const;
+	string GetCleanTitle() const;
 	const string& GetGenre() const;
 	const string& GetSubTitle() const;
 	const string& GetDescription() const;
@@ -63,6 +64,7 @@ public:
 
 	bool CanRecord() const;
 	bool IsScheduledToRecord() const;
+	bool IsNew() const;
 
 	enum RecordabilityCalculationFlags
 	{
@@ -76,14 +78,18 @@ public:
 
 	int Recordability(RecordabilityCalculationFlags flags = DefaultRecordabilityFlags) const;
 	string GetFileName() const;
-		
+	bool WriteMyStuffControlTimer() const;	
+
 	static void SetFlags(dword dwNewFlags);
+	static unsigned short GetDaysToLoad();
+
 private:
 	
 	void Parse(const string& sMEIdata);
 	void ParseJags(const string& sJagData);
 	void Init();
 	void SetGenre();
+	void SetDescription();
 
 	enum jagfieldIndex
 	{
@@ -143,6 +149,7 @@ private:
 	word m_wRunningTime;
 	bool m_bWideScreen;
 	bool m_bBlackAndWhite;
+	bool m_bNewProgram;
 	subtitleType m_Subtitles; //?
 	string m_sEpisodeNum;
 	// ?? episode sys
@@ -152,6 +159,8 @@ private:
 
 	EPGevent* m_pContinuesAs;
 	bool m_bContinuation;
+
+	static unsigned short GetMaxDescriptionLength();
 
 	static dword sm_dwFlags;
 };

@@ -1,22 +1,22 @@
 /*
-	Copyright (C) 2006 Robin Glover
+Copyright (C) 2006 Robin Glover
 
-	This file is part of the TAPs for Topfield PVRs project.
-		http://tap.berlios.de/
+This file is part of the TAPs for Topfield PVRs project.
+http://tap.berlios.de/
 
-	This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either
-	version 2 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Lesser General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public
-	License along with this library; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include ".\epgevent.h"
 #include "globals.h"
@@ -27,6 +27,7 @@
 #ifdef WIN32
 #include <crtdbg.h>
 #endif
+#include "DirectoryUtils.h"
 
 dword EPGevent::sm_dwFlags = 0;
 
@@ -53,6 +54,7 @@ EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData)
 	m_TimeSlot.SetEnd(pEventData->endTime);
 	m_wChannelNum = (short)iChannelNum;
 	SetGenre();
+	SetDescription();
 	if (pExtData)
 	{
 		if (strncmp(pExtData, m_sDescription, m_sDescription.size()) == 0)
@@ -103,7 +105,7 @@ void EPGevent::ParseJags(const string& sJagData)
 				iNextPos = sJagData.size();
 			bLast = true;
 		}
-		
+
 		string sSub = sJagData.substr(iPos + 1, iNextPos - iPos - 1);
 		switch (iField)
 		{
@@ -147,6 +149,7 @@ void EPGevent::ParseJags(const string& sJagData)
 	_ASSERT(iField == JAGCSVend_of_fields);
 #endif
 
+	SetDescription();
 	m_sGenre = "No Genre";
 }
 
@@ -167,7 +170,7 @@ void EPGevent::Parse(const string& sMEIdata)
 				iNextPos = sMEIdata.size();
 			bLast = true;
 		}
-		
+
 		string sSub = sMEIdata.substr(iPos + 1, iNextPos - iPos - 1);
 		switch (iField)
 		{
@@ -194,6 +197,7 @@ void EPGevent::Parse(const string& sMEIdata)
 			m_bRepeat = (sSub == "TRUE");
 			break;
 		case newprog:
+			m_bNewProgram = (sSub == "TRUE");
 			break;
 		case year:
 			m_wYear = (word) atoi(sSub);
@@ -255,6 +259,18 @@ void EPGevent::Parse(const string& sMEIdata)
 #ifdef WIN32
 	_ASSERT(iField == end_of_fields);
 #endif
+	SetDescription();
+}
+
+void EPGevent::SetDescription()
+{
+	int iMaxLen = GetMaxDescriptionLength();
+	if (m_sDescription.size() > iMaxLen)
+	{
+		string sBit = m_sDescription.substr(0, iMaxLen);
+		m_sDescription.clear();
+		m_sDescription = sBit;
+	}
 }
 
 word EPGevent::GetChannelNum() const
@@ -304,7 +320,7 @@ bool EPGevent::IsContinuationOf(const EPGevent* other) const
 
 	int gap = GetStart() - other->GetEnd();
 	int duration = Duration() + other->Duration();
-		
+
 	if (gap>40)
 		return false;
 
@@ -403,7 +419,7 @@ int EPGevent::Recordability(RecordabilityCalculationFlags flags) const
 	int iCount = Globals::GetTimers()->GetClashingTimers(this).size();
 
 	int iScore = 0;
-		
+
 	if (flags & CareAboutClashingTimers)
 		iScore = 100 - (iCount * 100);
 
@@ -458,4 +474,90 @@ void EPGevent::SetGenre()
 void EPGevent::SetFlags(dword dwNewFlags)
 {
 	sm_dwFlags = dwNewFlags;
+}
+
+unsigned short EPGevent::GetMaxDescriptionLength()
+{
+	int iVal = (sm_dwFlags & EPGDATA_DESCRIPTION_MAXLEN_MASK) >> 5;
+	if (iVal == 0)
+		iVal = 7;
+
+	unsigned short iResult = (unsigned short) (32 << iVal);
+
+	return iResult;
+}
+
+unsigned short EPGevent::GetDaysToLoad()
+{
+	int iVal = (sm_dwFlags & EPGDATA_DAYSTOLOAD_MASK) >> 1;
+	if (iVal == 0)
+		iVal = 15;
+
+	return  (unsigned short) iVal;
+}
+
+bool EPGevent::IsNew() const
+{
+	return (m_bNewProgram || m_sEpisodeNum.substr(0,2) == "1/");
+}
+
+string EPGevent::GetCleanTitle() const
+{
+	string sTitle = m_sTitle;
+	if (sTitle.substr(0,5) == "Film:")
+		sTitle = sTitle.substr(5);
+	if (sTitle.substr(0,5) == "Movie:")
+		sTitle = sTitle.substr(5);
+
+	while (sTitle.reverseFind('*') == sTitle.size()-1)
+		sTitle = sTitle.substr(0, sTitle.size()-1);
+
+	return sTitle.trim();
+
+}
+
+bool EPGevent::WriteMyStuffControlTimer() const
+{
+
+	//	MST Format from BobD
+	// Each field separated by ascii 124
+	//
+	//1) Version Number - currently 9
+	//2) Keywords - as dispayed on CT edit screen eg "The Simpsons~Special" - but without the quotes!
+	//3) Priority - 1 is highest
+	//4) Ignore +1s - 1 => Yes ignore them, 0 => No don't ignore them
+	//5) Record - 0 => Watch, 1=> Record, 2=> Off
+	//6) Match - 1=> Exact, 2=> Anywhere, 3=> Start, 4=> End
+	//7) LCN - -1 => All (when combined with field 4), otherwise lcn to match
+	//8) - 0 => "All Days", 1=> "Mon-Fri", 2=> "Mon", "Tue","Wed","Thu","Fri","Sat","Sun", 9=> "Sat/Sun"
+	//9) Start time - hhmm
+	//10) Duration - Start 0000 duration 0 => 24 hours
+	//11) Pre Padding - 200 => use defaults
+	//12) Post Padding - 200 => use defaults
+	//13) AutoMove path 
+
+	// Notes from RWG:
+	// * terminate with a zero char in the file - mst files created by mystuff have typical toppy
+	//		junk padding to 512 bytes due to the firmware bugs associated with file writing/sizes
+	// * fields 3 & 4 seem to be reversed between the above docs and real MST files
+	// * should be OK just to drop the files (with any name) into the MST folder
+
+	string sMSTText;
+	sMSTText.format("9|%s|-1|1|1|1|-1|0|0000|0|200|200|", GetTitle().c_str());
+	string sFileName;
+	CreateDirectory("/ProgramFiles/MST");
+	sFileName.format("/ProgramFiles/MST/MeiSearch_%s.mst", GetCleanTitle().c_str());
+	TYPE_File* pFile = OpenRawFile(sFileName, "w");
+	if (pFile != NULL)
+	{
+		TAP_Hdd_Fwrite((void*)sMSTText.c_str(),sMSTText.size()+1, 1, pFile);
+		TAP_Hdd_Fclose(pFile);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+
 }

@@ -26,6 +26,11 @@
 #include "globals.h"
 #include "channels.h"
 
+IEPGReader::IEPGReader()
+{
+	m_pdtNow = PackedDateTime::Now();
+}
+
 IEPGReader::~IEPGReader() 
 {
 
@@ -45,6 +50,20 @@ bool IEPGReader::CanRead()
 	return false;
 }
 
+bool IEPGReader::IsEventWantedInEPG(EPGevent* pEvent)
+{
+	if (pEvent->GetEnd().IsInPast())
+		return false;
+
+	PackedDateTime pdtEnd = m_pdtNow;
+	pdtEnd.SetMJD(pdtEnd.GetMJD() + EPGevent::GetDaysToLoad());
+
+	if (pEvent->GetStart()>pdtEnd)
+		return false;
+
+	return true;
+
+}
 
 EPGReader::EPGReader(bool bUseExtendedInfo, dword dwFlags)
 {
@@ -77,10 +96,11 @@ bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 	int iCount = 0;
 	TYPE_TapEvent* pEvents = TAP_GetEvent(SVC_TYPE_Tv, m_iCurrentChan, &iCount);
 
+
 	for (int i=0; i<iCount; i++)
 	{
 		EPGevent* pNewEvent = BuildEvent(&pEvents[i], m_iCurrentChan);
-		if (pNewEvent->GetEnd().IsInPast())
+		if (!IsEventWantedInEPG(pNewEvent))
 		{
 			delete pNewEvent;
 		}
