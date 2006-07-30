@@ -26,36 +26,6 @@
 extern "C" {
 #endif
 
-
-extern int _appl_version;
-extern word* sysID;
-
-typedef enum
-{
-	TFOther,
-	TF5000_5500,
-	TF5000t,
-	TF5010_5510,
-	TF5000_BP_WP,
-	TF5800t,
-	TF5000t_BP_WP,
-	TF5010_SE,
-	TF5000CI_ME,
-	TF5000_MP,
-	TF5000t_MP,
-	TF5010_MP,
-	TF5000CI_EUR,
-	TF5200c,
-	TF5100c,
-	TF5100,
-	TF5100c_MP,
-	TF5100t_MP,
-	PC5101c_5102c,
-	PC5101t_5102t
-} Model;
-
-Model GetModel();
-
 dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end );
 dword CallFirmware( dword address, dword param1, dword param2, dword param3, dword param4 );
 dword* CreateAPIWrapper( dword functionAddress );

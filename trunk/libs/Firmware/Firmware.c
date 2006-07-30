@@ -24,36 +24,6 @@
 #include "TAPExtensions.h"
 #include "OpCodes.h"
 
-word* sysID = (word*)0x83fffffa;
-
-// Return the Topfield model number
-Model GetModel()
-{
-	switch ( *sysID )
-	{
-	case 406:	return TF5000_5500;
-	case 416:	return TF5000t;
-	case 436:	return TF5010_5510;
-	case 446:	return TF5000_BP_WP;	// Black Panther / White Polar
-	case 456:	return TF5800t;
-	case 466:	return TF5000t_BP_WP;	// Black Panther / White Polar 
-	case 486:	return TF5010_SE;		// Black Panther / White Polar
-	case 501:	return TF5000CI_ME;
-	case 1416:	return TF5000_MP;		// Masterpiece
-	case 1426:	return TF5000t_MP;		// Masterpiece (AUS)
-	case 1456:	return TF5010_MP;		// Masterpiece
-	case 1466:	return TF5100t_MP;		// Masterpiece
-	case 1486:	return TF5100c_MP;		// Masterpiece
-	case 1501:	return TF5000CI_EUR;
-	case 10416:	return PC5101c_5102c;	// Procaster
-	case 10426:	return PC5101t_5102t;	// Procaster
-	case 10446:	return TF5200c;
-	case 12406:	return TF5100c;
-	case 13406:	return TF5100;
-	}
-	return TFOther;
-}
-
 
 // Locate the address of a firmware function using a signature
 dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end )
