@@ -24,6 +24,7 @@
 #include <firmware.h>
 #include <OPCodes.h>
 #include <messagewin.h>
+#include <model.h>
 #include "epg.h"
 
 
@@ -34,7 +35,7 @@
 #endif
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 1.4" POSTFIX);
+TAP_PROGRAM_NAME("DescriptionExtender 1.5" POSTFIX);
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);
