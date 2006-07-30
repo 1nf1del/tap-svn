@@ -5,17 +5,13 @@
 extern "C" {
 #endif
 
-// Workaround for TAP_Hdd_GetPlayInfo and TAP_Hdd_GetRecInfo buffer overrun bugs
-#define TAP_Hdd_GetPlayInfo Safe_TAP_Hdd_GetPlayInfo
-#define TAP_Hdd_GetRecInfo Safe_TAP_Hdd_GetRecInfo
-// Workaround for TAP_Hdd_Flen multiple of 512 bytes bug
-#define TAP_Hdd_Flen Fixed_TAP_Hdd_Flen
-#define TAP_Hdd_Fseek Fixed_TAP_Hdd_Fseek
+void InitTAPAPIFix();
 
-bool Safe_TAP_Hdd_GetPlayInfo( TYPE_PlayInfo* playInfo );
-bool Safe_TAP_Hdd_GetRecInfo( byte recSlot, TYPE_RecInfo* recInfo );
-dword Fixed_TAP_Hdd_Flen( TYPE_File *file );
-dword Fixed_TAP_Hdd_Fseek( TYPE_File *file, long pos, long where );
+// missing items
+#define ATTR_PARENTFOLDER	0xf0
+#define ATTR_THISFOLDER		0xf1
+#define ATTR_RECYCLEFOLDER	0xf3
+#define ATTR_DELETEDFILE	0xff
 
 #ifdef  __cplusplus
 }
