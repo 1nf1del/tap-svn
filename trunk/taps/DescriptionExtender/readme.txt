@@ -2,9 +2,10 @@ Description Extender 1.5
 ------------------------
 Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information.
 
-There are 2 versions of Description Extender, the only difference being whether a space is placed between the programme description and extended information. Choose the version most appropriate to your EPG data:
-Standard:	Adds a space.
-CT:			Doesn't add a space. Programme description and extended information are contiguous.
+There are 3 versions of Description Extender. Choose the version most appropriate to your EPG data:
+Standard:	Adds a space between the programme description and extended information.
+CT:			Programme description and extended information are contiguous. A space is not inserted.
+NG:			Adds a space between the programme description and extended information. On the TF5800 does not add programme genre details to the extended information. Use this version if you are running Jag's EPG 3.0 beta 5.
 
 This TAP currently only supports the following firmware
 TF5000/5500:	13/09/2005

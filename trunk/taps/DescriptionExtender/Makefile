@@ -29,9 +29,16 @@ CXXFLAGS+=-DCT
 TAPNAME:=$(TAPNAME)CT
 endif
 
+ifdef NG
+CFLAGS+=-DNG
+CXXFLAGS+=-DNG
+TAPNAME:=$(TAPNAME)NG
+endif
+
 all:
 	$(MAKE) single
 	$(MAKE) single CT=1
+	$(MAKE) single NG=1
 
 single: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 	tfcopy $(TAPNAME).tap '#:\ProgramFiles\'

@@ -28,8 +28,10 @@
 #include "epg.h"
 
 
-#ifdef CT
+#if defined(CT)
 #define POSTFIX " CT"
+#elif defined(NG)
+#define POSTFIX " NG"
 #else
 #define POSTFIX ""
 #endif
@@ -319,6 +321,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 						if ( e->extended_length > 0 )
 							outputLength += e->extended_length + 1;
 
+#ifndef NG
 						// Add on the genre length, plus space for brackets and a zero terminator
 						genre = GetGenreName( e->char74 );
 						if ( genre )
@@ -326,7 +329,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 							genreLength = strlen( genre );
 							outputLength += genreLength + 3;
 						}
-
+#endif
 						// If there's going to be something worth returning
 						if ( outputLength > 0 )
 						{
@@ -356,6 +359,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 									p[e->extended_length] = '\0';
 									p += e->extended_length + 1;
 								}
+#ifndef NG
 								// Append the genre
 								if ( genre )
 								{
@@ -365,6 +369,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 									*p++ = ']';
 									*p++ = '\0';
 								}
+#endif
 								// And terminate with an additional terminator
 								p[0] = '\0';
 							}
