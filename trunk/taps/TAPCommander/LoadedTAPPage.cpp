@@ -25,6 +25,7 @@
 #include <tap.h>
 #include <string.h>
 #include <tapmap.h>
+#include <FirmwareCalls.h>
 #include <TAPExtensions.h>
 #include <Logger.h>
 #include <ProgressBox.h>
@@ -33,6 +34,7 @@
 #include "Tapplication.h"
 #include "ListColumn.h"
 #include "FooterListItem.h"
+#include "ConfigPage.h"
 
 typedef struct
 {
@@ -46,12 +48,13 @@ typedef struct
 } TYPE_TSRCommander;
 
 
+//-----------------------------------------------------------------------------
 // array of event handler pointer of disabled TAPs
 static TAP_EventHandlerFn disabledTAP[TAP_MAX];
 
 // Generic handler substituted for other TAPs when they're disabled
 // the real event handler address is stored in disabledTAP
-dword DisabledTAP_EventHandler(word event, dword param1, dword param2 )
+static dword DisabledTAP_EventHandler(word event, dword param1, dword param2 )
 {
 	// Do not be tempted do anything in this function.
 	// accessing globals or string literals will cause the Toppy to crash
@@ -80,23 +83,43 @@ void EnableTAP( int index, bool enable )
 
 
 // Return true if the TAP at index is enabled
-bool IsEnabled( int index )
+static bool IsEnabled( unsigned int index )
 {
 	return disabledTAP[index] == NULL;
 }
 
 
 // Return true if the TAP at index it this TAP
-bool IsThisTAP( int index )
+static bool IsThisTAP( unsigned int index )
 {
 	TAPProcess* process = &tapProcess[index];
 	return process->header && process->header->id == __tap_ud__;
 }
 
 
-// Return true if the TAP at index is TSR Commander compatible
-TYPE_TSRCommander* IsTSRCommanderTAP( int index )
+static bool CanDisable( unsigned int index )
 {
+	if ( IsThisTAP( index ) )
+		return false;
+	TAPProcess* process = &tapProcess[index];
+	if ( !process->header )
+		return false;
+#ifdef DEBUG
+	// don't disable Virtual Remote
+	if (process->header->id == 0x810a0013)
+		return false;
+#endif
+	return process->header->id != 0x814243a3 ; // Remote Extender mustn't be disabled
+}
+
+
+// Return true if the TAP at index is TSR Commander compatible
+static TYPE_TSRCommander* IsTSRCommanderTAP( unsigned int index )
+{
+#ifdef WIN32
+	return NULL;
+#endif
+
 	TAPProcess* tap = tapProcess+index;
 	if ( tap->entryPoints && tap->header )
 	{
@@ -132,41 +155,8 @@ TYPE_TSRCommander* IsTSRCommanderTAP( int index )
 }
 
 
-// List item  specific list item for setting up skip distance
-class TAPListItem :
-	public SimpleTextListItem
-{
-public:
-	TAPListItem(ListPage* pParentList, int index, dword dwFlags, const char* pszCol1) :
-		SimpleTextListItem(pParentList, dwFlags, pszCol1),
-		m_index(index)
-	{
-		Update();
-	}
-	virtual dword OnKey( dword key, dword extKey );
-	virtual string GetFooterText();
-
-private:
-	void Update()
-	{
-		TAPProcess* p = &tapProcess[m_index];
-		if ( p->entryPoints && p->header )
-		{
-			m_asItemText[1] = p->header->name;
-			m_asItemText[2] = IsEnabled(m_index) ? "enabled" : "disabled";
-		}
-		else
-		{
-			m_asItemText[1] = "(empty)";
-			m_asItemText[2] = "";
-		}
-	}
-
-	int m_index;
-};
-
-
-dword TAPListItem::OnKey( dword key, dword extKey )
+//-----------------------------------------------------------------------------
+dword LoadedTAPPage::TAPListItem::OnKey( dword key, dword extKey )
 {
 	switch ( key )
 	{
@@ -174,7 +164,9 @@ dword TAPListItem::OnKey( dword key, dword extKey )
 	{
 		if ( IsThisTAP( m_index ) )
 		{
-			// Configure
+			Page* p = new ConfigPage();
+			if ( p )
+				p->Open();
 		}
 		else
 		{
@@ -186,16 +178,16 @@ dword TAPListItem::OnKey( dword key, dword extKey )
 				tapBlock->ShowConfigDialog = TRUE;
 			}
 		}
-		return 0;
+		return 1;
 	}
 	case RKEY_NewF1:
 		// we don't want to disable ourselves
-		if ( !IsThisTAP( m_index ) )
+		if ( CanDisable( m_index ) )
 		{
 			EnableTAP( m_index, !IsEnabled( m_index ) );
-			Update();
+			m_theList->RedrawItem( m_index );
 		}
-		return 0;
+		return 1;
 
 	case RKEY_Stop:
 	case RKEY_Ab:
@@ -212,7 +204,7 @@ dword TAPListItem::OnKey( dword key, dword extKey )
 			m_theList->Close();
 			tapBlock->ExitTAP = TRUE;
 		}
-		return 0;
+		return 1;
 	}
 	}
 
@@ -220,29 +212,50 @@ dword TAPListItem::OnKey( dword key, dword extKey )
 }
 
 
-string TAPListItem::GetFooterText()
+void LoadedTAPPage::TAPListItem::DrawSubItem(short int iColumn, Rect rcBounds)
+{
+	TAPProcess* p = &tapProcess[m_index];
+	char buffer[15];
+	const char* text = 0;
+	switch (iColumn)
+	{
+	case 0:
+	{
+		sprintf( buffer, "%d.", m_index+1 );
+		text = buffer;
+		break;
+	}
+	case 1:
+		text = p->entryPoints && p->header ? p->header->name : "(empty)";
+		break;
+	case 2:
+		text = p->entryPoints && p->header ? (IsEnabled(m_index) ? "enabled" : "disabled") : "";
+		break;
+	}
+	if (text)
+		DrawSubItemString(iColumn, rcBounds, text);
+}
+
+
+string LoadedTAPPage::TAPListItem::GetFooterText()
 {
 	TAPProcess* p = &tapProcess[m_index];
 	if ( p->header )
 	{
 		string s;
-		s.format("%s\n%s\n%s\n", p->header->description, p->header->authorName, p->header->etcStr );
+		s.format("%s\n%s\n%s\nArchive=Reorder", p->header->description, p->header->authorName, p->header->etcStr );
 		// we don't want to disable ourselves
-		if ( !IsThisTAP( m_index ) )
+		if ( CanDisable( m_index ) )
 		{
-			s += IsEnabled( m_index ) ? "Red = disable" : "Red = enable";
-		}
-		else
-		{
-			s += "White = Exit TAP";
+			s += IsEnabled( m_index ) ? " | Red (Green)=Disable (all)" : " | Red (Green)=Enable (all)";
 		}
 
 		TYPE_TSRCommander* tapBlock = IsTSRCommanderTAP( m_index );
 		if ( tapBlock )
 		{
 			if ( tapBlock->HasConfigDialog )
-				s += ", OK = Configure";
-			s += ", White = Exit TAP";
+				s += " | OK=Options";
+			s += " | White=Exit TAP";
 		}
 		return s;
 	}
@@ -251,14 +264,15 @@ string TAPListItem::GetFooterText()
 }
 
 
-
+//-----------------------------------------------------------------------------
+// LoadedTAPPage
 LoadedTAPPage::LoadedTAPPage() :
 	ListPage( LF_SHOW_HEADER | LF_ROW_SEPARATORS | LF_SCROLLBAR | LF_COLUMN_SEPARATORS | LF_SHOW_FOOTER | LF_COLUMNS_IN_HEADER,
 			  Rect(50,50,620,465), 32, 45, 100 )
 {
     SetFontSizes(FNT_Size_1926, FNT_Size_1622, FNT_Size_1622);
 
-    AddColumn(new ListColumn(this, 3, 0, ""));
+    AddColumn(new ListColumn(this, 3));
     AddColumn(new ListColumn(this, 45, 0, "Running TAPs"));
 	dword size, free, available;
 	TAP_MemInfo( &size, &free, &available );
@@ -268,20 +282,11 @@ LoadedTAPPage::LoadedTAPPage() :
     AddColumn(new ListColumn(this, 7, 0, buffer));
 
 	TAPProcess* p = tapProcess;
-	int count = 1;
 	for ( int i = 0; i < TAP_MAX; ++p, ++i )
 	{
-		TAPProcess* p = &tapProcess[i];
 		if ( p->entryPoints && p->header )
-		{
-			char str[15];
-			sprintf(str, "%d.\n", count );
-			AddItem(new TAPListItem(this, i, 0, str ));
-			++count;
-		}
+			AddItem(new TAPListItem(this, i));
 	}
-
-	AddItem(new FooterActionListItem(this, &ExitTapKeyPress, "Press OK to shut down TAP Commander", 0, "", "Exit TAP Commander"));
 }
 
 
@@ -298,14 +303,36 @@ dword LoadedTAPPage::OnKey( dword key, dword extKey )
 		Close();
 		return 0;
 	case RKEY_Mute:
+		// pass Mute to the firmware
 		return key;
-	case RKEY_PlayList:
-		if ( AutoStartPage::IsAvailable() )
-		{
-			AutoStartPage* p = new AutoStartPage();
+	case RKEY_Menu:
+	{
+		Page* p = new ConfigPage();
+		if (p)
 			p->Open();
+		return 0;
+	}
+	case RKEY_PlayList:
+		// If the TAP_Hdd_Move isn't found then reordering on disk is not available
+		if ( TAP_Hdd_Move_Available() )
+			Replace(new AutoStartPage());
+		return 0;
+	case RKEY_F2:
+	{
+		unsigned int index = GetSelectedIndex();
+		bool enable = !IsEnabled( index );
+		// Toggle all
+		for (unsigned int i = 0; i < m_items.size() && i < TAP_MAX; ++i )
+		{
+			// we don't want to disable ourselves
+			if ( CanDisable( i ) )
+			{
+				EnableTAP( i, enable );
+				RedrawItem( i );
+			}
 		}
 		return 0;
+	}
 	}
 	ListPage::OnKey( key, extKey );
 

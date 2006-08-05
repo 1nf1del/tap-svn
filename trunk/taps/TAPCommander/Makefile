@@ -20,7 +20,7 @@
 #
 
 LIBRARIES=../../libs/Framework/libFramework.a ../../libs/libc++utils/libc++utils.a ../../libs/libutils/libutils.a 
-OBJECTS=tap.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o
+OBJECTS=tap.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o ConfigPage.o
 
 include ../../tools/build/tap.mk
 include ../../libs/libc++utils/tap++.mk
@@ -29,7 +29,7 @@ all: TAPCommander.tap
 
 # Copy files to the Toppy using tfcopy
 copy: all
-	tfcopy *.tap '#:\ProgramFiles\'
+	tfcopy.cmd TAPCommander.tap '#:\ProgramFiles\'
 
 # A target for removing generated files.
 clean:
@@ -45,3 +45,4 @@ tap.o:				tap.c
 TAPCommander.o:		TAPCommander.cpp
 LoadedTAPPage.o:	LoadedTAPPage.cpp LoadedTAPPage.h
 AutoStartPage.o:	AutoStartPage.cpp AutoStartPage.h
+ConfigPage.o:		ConfigPage.cpp ConfigPage.h

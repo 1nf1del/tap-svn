@@ -39,6 +39,24 @@ public:
 private:
 	static dword ExitTapKeyPress(ListPage* page, ListItem* item, dword key, dword extKey);
 	static dword CommitOrder(ListPage* page, ListItem* item, dword key, dword extKey);
+
+	// List item for displaying a running TAP
+	class TAPListItem :
+		public ListItem
+	{
+	public:
+		TAPListItem(ListPage* pParentList, unsigned int index) :
+			ListItem(pParentList),
+			m_index(index)
+		{
+		}
+		virtual dword OnKey( dword key, dword extKey );
+		virtual string GetFooterText();
+		virtual void DrawSubItem(short int iColumn, Rect rcBounds);
+
+	private:
+		unsigned int m_index;
+	};
 };
 
 

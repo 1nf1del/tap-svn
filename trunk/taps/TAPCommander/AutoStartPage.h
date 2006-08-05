@@ -31,16 +31,57 @@ public:
 	AutoStartPage();
 	~AutoStartPage();
 
-	static bool IsAvailable();
-
 	virtual void OnOpen();
 	virtual dword OnKey( dword key, dword extKey );
 
 private:
-	static dword Cancel(ListPage* page, ListItem* item, dword key, dword extKey);
-	static dword Commit(ListPage* page, ListItem* item, dword key, dword extKey);
+	void PopulateList();
+	void EnableTAP( unsigned int index, bool enable );
 
-	array<string> m_filenames;
+	static dword Commit(ListPage* page, ListItem* item, dword key, dword extKey);
+	static dword Backup(ListPage* page, ListItem* item, dword key, dword extKey);
+	static dword Restore(ListPage* page, ListItem* item, dword key, dword extKey);
+
+	class TAPListItem :
+		public ListItem
+	{
+	public:
+		TAPListItem(ListPage* pParentList, unsigned int index) :
+			ListItem(pParentList),
+			m_index(index)
+		{
+		}
+		virtual string GetFooterText();
+		virtual void DrawSubItem(short int iColumn, Rect rcBounds);
+
+	private:
+		unsigned int m_index;
+	};
+
+	struct AutoStartTAP
+	{
+		int index;
+		int spare;
+		string filename;
+		dword id;
+		string name;
+		string footer;
+		bool enabled;
+
+		bool operator==(const AutoStartTAP& right) const
+		{
+			return spare == right.spare;
+		}
+		bool operator<(const AutoStartTAP& right) const
+		{
+			return spare < right.spare;
+		}
+	};
+
+	array<AutoStartTAP> m_taps;
+	int m_dirty;
+
+	friend class TAPListItem;
 };
 
 

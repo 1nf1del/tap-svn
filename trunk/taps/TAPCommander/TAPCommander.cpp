@@ -21,8 +21,13 @@
 
 #include <stdlib.h>
 #include <tap.h>
+#include <osd.h>
 #include <Tapplication.h>
 #include <TAPExtensions.h>
+#include <morekeys.h>
+#include "Options.h"
+#include "SkinOption.h"
+#include "YesNoOption.h"
 #include "LoadedTAPPage.h"
 #include "AutoStartPage.h"
 
@@ -32,6 +37,8 @@ class TAPCommander : public Tapplication
 public:
 	TAPCommander()
 	{
+		m_showStartPage = false;
+		m_exitActivates = true;
 	}
 
 	~TAPCommander()
@@ -41,22 +48,53 @@ public:
 	}
 
 	virtual bool Start();
+	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );
 	virtual bool OnConfigure();
+	virtual const char* GetIniName() const;
+
+private:
+	bool m_showStartPage;
+	bool m_exitActivates;
 };
+
+
+const char* TAPCommander::GetIniName() const
+{
+	return "TAPCommander.ini";
+}
 
 
 bool TAPCommander::Start()
 {
 	// Initialise the firmware hack
 	if ( !StartTAPExtensions() )
-	{
 		return false;
-	}
+
+	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit Key Activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(m_exitActivates)));
 
 	Tapplication::Start();
 
+	// if started manually then immediately show the running TAPs page
+	// must be done in the idle loop or ExitNormal will not work
+	if (TAP_GetTick() > 3000) // 30 seconds since startup
+		m_showStartPage = true;
+
 	return true;
+}
+
+
+void TAPCommander::OnIdle()
+{
+	if ( m_showStartPage )
+	{
+		m_showStartPage = false;
+		LoadedTAPPage* p = new LoadedTAPPage;
+		if (p)
+			p->Open();
+	}
+
+	Tapplication::OnIdle();
 }
 
 
@@ -69,10 +107,12 @@ dword TAPCommander::OnKey( dword key, dword extKey )
 	{
 		dword state, subState;
 		TAP_GetState( &state, &subState );
-		if ( state == STATE_Menu && subState == SUBSTATE_MainMenu && key == RKEY_Menu )
+		if ( (state == STATE_Menu && subState == SUBSTATE_MainMenu && key == RKEY_Menu) ||
+			 (state == STATE_Normal && subState == SUBSTATE_Normal && m_exitActivates && key == RKEY_Exit && !OsdActive() ))
 		{
-			LoadedTAPPage* p = new LoadedTAPPage();
-			p->Open();
+			LoadedTAPPage* p = new LoadedTAPPage;
+			if (p)
+                p->Open();
 			return 0;
 		}
 	}
@@ -80,7 +120,8 @@ dword TAPCommander::OnKey( dword key, dword extKey )
 #ifdef DEBUG
 	if ( key == RKEY_Power )
 	{
-	//	return Close();
+		TAP_Print("Exiting TAP Commander\n");
+		return Close();
 	}
 #endif
 
