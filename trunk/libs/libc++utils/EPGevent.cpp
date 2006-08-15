@@ -358,6 +358,12 @@ bool EPGevent::IsDuplicateShowingOf(const EPGevent* pEvent) const
 	if (m_sSubtitle.compareNoCase(pEvent->m_sSubtitle)!=0)
 		return false;
 
+	if ((m_sGenre.compareNoCase("film") == 0) && (pEvent->GetGenre().compareNoCase("film") == 0))
+	{
+		if (m_wYear!=-1)
+			return m_wYear == pEvent->m_wYear;
+	}
+
 	if (m_sDescription.compareNoCase(pEvent->m_sDescription)!=0)
 		return false;
 
