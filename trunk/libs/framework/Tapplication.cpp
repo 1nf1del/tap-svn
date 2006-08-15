@@ -148,7 +148,10 @@ dword Tapplication::Close()
 void Tapplication::PushPage( Page* page )
 {
 	if ( pageCount == 0 )
+	{
+		BeforeExitNormal();
 		TAP_ExitNormal();
+	}
 	pageStack[ pageCount++ ] = page;
 }
 
@@ -158,7 +161,10 @@ Page* Tapplication::PopPage(bool bRedrawUnderlying)
 	if ( pageCount > 0 )
 	{
 		if ( pageCount == 1 )
+		{
 			TAP_EnterNormal();
+			AfterEnterNormal();
+		}
 
 		if (bRedrawUnderlying)
 		{
@@ -290,4 +296,12 @@ void Tapplication::SetDefaultColors()
 Decorator* Tapplication::GetDefaultDialogDecorator()
 {
 	return new Decorator();
+}
+
+void Tapplication::BeforeExitNormal()
+{
+}
+
+void Tapplication::AfterEnterNormal()
+{
 }

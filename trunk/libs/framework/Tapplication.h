@@ -40,6 +40,8 @@ public:
 	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );
 	dword EventHandler( word event, dword param1, dword param2 );
+	virtual void BeforeExitNormal();
+	virtual void AfterEnterNormal();
 
 	// Operations
 	void PushPage( Page* page );
