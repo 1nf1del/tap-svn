@@ -10,6 +10,7 @@ v0.3 sl8:	15-02-06	Modified for new UkAutoSearch.txt file
 v0.4 sl8:	09-03-06	Rewirte to accommodate Move file and remote file.
 v0.5 sl8:	15-03-06	Bug Fix - Not saving the move file correctly
 v0.6 sl8:	11-04-06	Show window added and tidy up.
+v0.7 sl8:	05-08-06	Keep added.
 
 **************************************************************/
 
@@ -45,8 +46,10 @@ byte schFileRetreiveSearchData(void)
 	byte	schUserDataSearches = 0;
 	int	maxBufferSize = 0;
 	byte	version = 0;
+	byte	type = 0;
 	char	versionStr[128];
 	dword	dwTemp = 0;
+	word	wTemp = 0;
 	char	buffer1[256];
 	int	schNewLineCount = 0;
 	
@@ -57,14 +60,15 @@ byte schFileRetreiveSearchData(void)
 
 	if ( TAP_Hdd_Exist( SEARCH_FILENAME ) )
 	{
-		version = 2;
+		type = 2;
 
 		searchFile = TAP_Hdd_Fopen( SEARCH_FILENAME );
 	}
 	else if ( TAP_Hdd_Exist( "SearchList.txt" ) )
 	{
+		type = 1;
 		version = 1;
-
+		
 		searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
 	}
 	else
@@ -91,9 +95,26 @@ byte schFileRetreiveSearchData(void)
 
 	schValidHeader = TRUE;
 
-	if(version == 2)
+	if(type == 2)
 	{
 		schFileParseString(&versionStr[0], &schValidHeader, &schNewLineCount, buffer, &bufferIndex, 128, FALSE);
+
+		if(strcmp(versionStr, "UK Auto Scheduler Search List v0.1") == 0)
+		{
+			version = 2;
+		}
+		else if(strcmp(versionStr, "UK Auto Scheduler Search List v0.2") == 0)
+		{		
+			version = 3;
+		}
+		else if(strcmp(versionStr, "UK Auto Scheduler Search List v0.3") == 0)
+		{		
+			version = 4;
+		}
+		else
+		{
+			schUserDataSearches = 0;
+		}
 	}
 	
 	schUserDataSearches = schFileParseHex(&schValidHeader, &schNewLineCount, &buffer[0], &bufferIndex, 2, SCH_MAX_SEARCHES);
@@ -182,9 +203,21 @@ byte schFileRetreiveSearchData(void)
 
 			// ----------------- Search Folder -----------------
 			memset(schTempUserData.searchFolder,0,132);
-			if(version == 2)
+			if(version > 2)
 			{
 				schFileParseString(&schTempUserData.searchFolder[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, TRUE);
+			}
+
+			// ----------------- Search Keep -----------------
+
+			schTempUserData.searchKeepMode = 0;
+			schTempUserData.searchKeepValue = 0;
+			if(version > 3)
+			{
+				wTemp = schFileParseHex(&schValidSearch, &schNewLineCount, buffer, &bufferIndex, 4, 0xFFFF);
+
+				schTempUserData.searchKeepMode = ((wTemp >> 8) & 0xFF);
+				schTempUserData.searchKeepValue = (wTemp & 0xFF);
 			}
 
 			// ----------------------------------------------
@@ -213,8 +246,6 @@ byte schFileRetreiveSearchData(void)
 	{
 		schWriteSearchList();
 	}
-//sprintf(buffer1,"Valid searches: %d\r\n", schMainTotalValidSearches );
-//TAP_Print(buffer1);		
 
 	return schMainTotalValidSearches;
 }
@@ -382,7 +413,7 @@ void schPrintSearchLine( int searchIndex, TYPE_File *searchFile )
 		WriteStrToBuf( str, searchFile );
 	}
 
-	sprintf(str, "%02x\t", schUserData[searchIndex].searchDay);		// Days
+	sprintf(str, "%02x\t", schUserData[searchIndex].searchDay);	// Days
 	WriteStrToBuf( str, searchFile );
 
 	hour = (schUserData[searchIndex].searchStartPadding & 0xff00) >> 8;
@@ -401,7 +432,10 @@ void schPrintSearchLine( int searchIndex, TYPE_File *searchFile )
 	sprintf(str, "%02x\t", schUserData[searchIndex].searchOptions);	// Options
 	WriteStrToBuf( str, searchFile );
 
-	sprintf(str, "%s", schUserData[searchIndex].searchFolder);	// Search Folder
+	sprintf(str, "%s\t", schUserData[searchIndex].searchFolder);	// Search Folder
+	WriteStrToBuf( str, searchFile );
+
+	sprintf(str, "%02x%02x", schUserData[searchIndex].searchKeepMode, schUserData[searchIndex].searchKeepValue);	// Keep info
 	WriteStrToBuf( str, searchFile );
 
 	WriteStrToBuf( "\r\n", searchFile );
@@ -467,16 +501,12 @@ byte schFileRetreiveMoveData(void)
 
 	if ( ! TAP_Hdd_Exist( MOVE_FILENAME ) )
 	{
-//TAP_Print("Failed - Doesn't exist\r\n");		
-	
 		return 0;
 	}
 	moveFile = TAP_Hdd_Fopen( MOVE_FILENAME );
 
 	if ( moveFile == NULL )
 	{
-//TAP_Print("Failed - Null\r\n");		
-	
 		return 0;
 	}
 
@@ -553,9 +583,6 @@ byte schFileRetreiveMoveData(void)
 
 	TAP_MemFree( buffer );
 
-//sprintf(buffer1,"Total Valid Moves: %d\r\n", schMainTotalValidMoves );
-//TAP_Print(buffer1);		
-
 	return schMainTotalValidMoves;
 }
 
@@ -586,9 +613,6 @@ void schWriteMoveList( void )
 			schNewTotalMoves++;
 		}
 	}
-
-//sprintf(buffer1,"schNewTotalMoves: %x\r\n", schNewTotalMoves );
-//TAP_Print(buffer1);		
 
 	sprintf(str, "%02x\r\n", schNewTotalMoves);		// Total number of moves
 	WriteStrToBuf( str, moveFile );
@@ -622,7 +646,6 @@ void schPrintMoveLine( int moveIndex, int totalMoves, TYPE_File *moveFile )
 
 	sprintf(str,"%02x\t", (totalMoves+1) );				// Move Number
 	WriteStrToBuf( str, moveFile );
-//TAP_Print("Move Number\r\n");
 
 	sprintf(str, "%s\t", schMoveData[moveIndex].moveFileName);		// File Name
 	WriteStrToBuf( str, moveFile );
@@ -695,10 +718,6 @@ byte schFileRetreiveRemoteData(void)
 	{
 		schUserRemoteSearches = 0;
 	}
-
-
-//sprintf(buffer1,"Unchecked Remotes Searches: %x\r\n", schUserRemoteSearches );
-//TAP_Print(buffer1);		
 
 	if(schUserRemoteSearches > 0)
 	{
@@ -805,11 +824,6 @@ byte schFileRetreiveRemoteData(void)
 
 	return schMainTotalValidRemoteSearches;
 }
-
-
-
-
-
 
 
 void schFileParseString(char* strResult, bool* valid, int* newLineCount, char* buffer, int* bufferIndex, int maxLength, bool zeroAllowed)

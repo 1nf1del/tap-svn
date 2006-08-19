@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.7
+Version	: 0.8
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -17,6 +17,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.5 sl8		09-03-06	Option added to enable/disable firmware calls
 	  v0.6 sl8		11-04-06	Show window added and tidy up.
 	  v0.7 sl8		19-04-06	TRC option added.
+	  v0.8 sl8		05-08-06	Search ahead, date and time format added.
 
 **************************************************************/
 
@@ -193,6 +194,155 @@ void DisplayConfigLine(char lineNumber)
 		{
 			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
 		}
+
+		break;
+	/*--------------------------------------------------*/
+	case 7 :
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Search Ahead", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		switch(schMainPerformSearchDays)
+		{
+		/*--------------------------------------------------*/
+		case 1:
+			TAP_SPrint( str,"%d Day", schMainPerformSearchDays);
+
+			break;
+		/*--------------------------------------------------*/
+		case 14:
+			TAP_SPrint( str,"Unlimited");
+
+			break;
+		/*--------------------------------------------------*/
+		default:
+			TAP_SPrint( str,"%d Days", schMainPerformSearchDays);
+
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+
+		break;
+	/*--------------------------------------------------*/
+	case 8 :
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Date Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		switch(schMainDateFormat)
+		{
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY:
+
+			TAP_SPrint( str,"DD.MM.YY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YYYY:
+
+			TAP_SPrint( str,"DD.MM.YYYY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YY_DOT_MM_DOT_DD:
+
+			TAP_SPrint( str,"YY.MM.DD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YYYY_DOT_MM_DOT_DD:
+
+			TAP_SPrint( str,"YYYY.MM.DD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DDMMYY:
+
+			TAP_SPrint( str,"DDMMYY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DDMMYYYY:
+
+			TAP_SPrint( str,"DDMMYYYY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YYMMDD:
+
+			TAP_SPrint( str,"YYMMDD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YYYYMMDD:
+
+			TAP_SPrint( str,"YYYYMMDD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YY:
+
+			TAP_SPrint( str,"DD/MM/YY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YYYY:
+
+			TAP_SPrint( str,"DD/MM/YYYY");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YY_SLASH_MM_SLASH_DD:
+
+			TAP_SPrint( str,"YY/MM/DD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD:
+
+			TAP_SPrint( str,"YYYY/MM/DD");
+
+			break;
+		/*--------------------------------------------------*/
+		default:
+
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+
+		break;
+	/*--------------------------------------------------*/		
+	case 9 :
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Time Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		switch(schMainTimeFormat)
+		{
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_TIME_FORMAT_HH_COLON_MM:
+
+			TAP_SPrint( str,"HH:MM");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_TIME_FORMAT_HH_DOT_MM:
+
+			TAP_SPrint( str,"HH.MM");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_TIME_FORMAT_HHMM:
+
+			TAP_SPrint( str,"HHMM");
+
+			break;
+		/*--------------------------------------------------*/
+		default:
+
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
@@ -511,6 +661,129 @@ void ConfigActionHandler(dword key)
 			else
 			{
 				schMainTRCEnabled = FALSE;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		default :
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case 7 :
+		switch ( key )						// Search Days
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+
+			if(schMainPerformSearchDays < 14)
+			{
+				schMainPerformSearchDays++;
+			}
+			else
+			{
+				schMainPerformSearchDays = 1;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		case RKEY_VolDown:
+
+			if(schMainPerformSearchDays > 1)
+			{
+				schMainPerformSearchDays--;
+			}
+			else
+			{
+				schMainPerformSearchDays = 14;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		default :
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case 8 :
+		switch ( key )						// Date Format
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+
+			if(schMainDateFormat < SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD)
+			{
+				schMainDateFormat++;
+			}
+			else
+			{
+				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		case RKEY_VolDown:
+
+			if(schMainDateFormat > SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY)
+			{
+				schMainDateFormat--;
+			}
+			else
+			{
+				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		default :
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case 9 :
+		switch ( key )						// Time Format
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+
+			if(schMainTimeFormat < SCH_CONFIG_TIME_FORMAT_HHMM)
+			{
+				schMainTimeFormat++;
+			}
+			else
+			{
+				schMainTimeFormat = SCH_CONFIG_TIME_FORMAT_HH_COLON_MM;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		case RKEY_VolDown:
+
+			if(schMainTimeFormat > SCH_CONFIG_TIME_FORMAT_HH_COLON_MM)
+			{
+				schMainTimeFormat--;
+			}
+			else
+			{
+				schMainTimeFormat = SCH_CONFIG_TIME_FORMAT_HHMM;
 			}
 
 			DisplayConfigLine( chosenConfigLine );

@@ -4,7 +4,7 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.5
+Version	: 0.6
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -15,7 +15,8 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.3 sl8:		09-03-06	Firmware enable/disable option added
 	  v0.4 sl8		11-04-06	SDK.
 	  v0.5 sl8		12-04-06	Make TRC optional (default - enabled)
-	
+	  v0.6 sl8		05-08-06	Search ahead, date and time format added.
+
 ************************************************************/
 
 #define OPTIONS_FILENAME "UkAuto.ini"
@@ -92,6 +93,15 @@ void SaveConfigurationToFile( void )
 	WriteStrToIniBuf( str );
 
 	TAP_SPrint(str, "%d\r\n", schMainTRCEnabled );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainPerformSearchDays );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainDateFormat );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainTimeFormat );
 	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );					// write all the data in one pass
@@ -186,6 +196,9 @@ bool SetConfigurationVariables( void )
 	schMainPerformSearchTime = ReadIniDecimal(0, &configPassed);
 	FirmwareCallsEnabled = ReadIniDecimal(FALSE, &configPassed);
 	schMainTRCEnabled = ReadIniDecimal(TRUE, &configPassed);
+	schMainPerformSearchDays = ReadIniDecimal(14, &configPassed);
+	schMainDateFormat = ReadIniDecimal(0, &configPassed);
+	schMainTimeFormat = ReadIniDecimal(0, &configPassed);
 
 	return configPassed;
 }

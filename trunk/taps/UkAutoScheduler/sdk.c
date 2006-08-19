@@ -155,16 +155,7 @@ bool sdkRetreiveXmlData(void)
 		{
 		}
 	}
-/*
-	sprintf(buffer1,"Numb of channels: %d\r\n", schXmlNumberOfChannels );
-	TAP_Print(buffer1);
 
-	for (i = 0; i < schXmlNumberOfChannels; i++)
-	{
-		sprintf(buffer1,"id: %s     Events: %d\r\n", sdkEpgData[i].name, sdkEpgData[i].numbOfEvents );
-		TAP_Print(buffer1);
-	}
-*/
 	TAP_MemFree( buffer );
 
 	return TRUE;
@@ -178,9 +169,6 @@ void sdkParseXml(char* buffer, int bufferIndex, char* startStr, char* endStr, ch
 	char	buffer1[128];
 
 	fileLength = strlen(buffer);
-
-//sprintf(buffer1,"bufferIndex: %d\r\n", bufferIndex );
-//TAP_Print(buffer1);		
 
 	memset(resultBuffer, 0, resultBufferLength);
 

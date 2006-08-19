@@ -13,6 +13,7 @@ v0.6 sl8:	08-03-06	Allow the activation key to exit to TV
 v0.7 sl8:	11-04-06	Show window added and tidy up.
 v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
 				Filter search option added.
+v0.9 sl8:	13-08-06	Copy schedule added
 
 **************************************************************/
 
@@ -32,7 +33,7 @@ v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
 void schDispDrawLegend(void);
 void schDispDrawColumnText(void);
 void schDispFilterPopulateList(void);
-
+void schDispRefresh(void);
 
 static	bool	schDispWindowShowing = 0;
 static	bool	schDispSaveToFile = 0;
@@ -663,6 +664,21 @@ void schDisplayKeyHandler(dword key)
 	case RKEY_Menu:
 
 		ActivateMenu();
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_Slow:
+
+		if(schMainTotalValidSearches < SCH_MAX_SEARCHES)
+		{
+			schMainTotalValidSearches++;
+
+			schUserData[schMainTotalValidSearches - 1] = schUserData[schDispChosenLine - 1];
+
+			schDispSaveToFile = TRUE;
+
+			schDispRefresh();
+		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */

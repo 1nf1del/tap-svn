@@ -14,7 +14,7 @@
 
 Name	: UkAuto.c
 Author	: sl8
-Version	: 0.10
+Version	: 0.11
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -36,18 +36,20 @@ History	: v0.1  sl8:	11-11-05	Initial release
 	  v0.8  sl8:	09-03-06	Destination folder mods
 	  v0.9  sl8:	11-04-06	Show window added and tidy up.
 	  v0.10 sl8:	08-05-06	API move added.
+	  v0.11 sl8:	05-08-06	Keep added. Search ahead, date and time format added. Load order changed.
 
 **************************************************************/
 
-#define DEBUG 0
-#define LOG 0
+#define DEBUG		0
+#define DEBUG_KEEP	0
+#define LOG		0
 
 #include "tap.h"
 #include "ukauto.h"
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.43"
+#define VERSION "0.50"
 
 TAP_ID( ID_UKAUTO );
 
@@ -74,11 +76,13 @@ void ShowMessageWin(char*, char*);
 #include "Tools.c"
 #include "logo.c"
 #include "TextTools.c"
+#include "YesNoBox.c"
 #include "schMain.c"
 #include "schDisplay.c"
 #include "schEdit.c"
 #include "schFile.c"
 #include "schMove.c"
+#include "schKeep.c"
 #include "schShow.c"
 #include "MainMenu.c"
 #include "ConfigMenu.c"
@@ -235,7 +239,9 @@ void CheckFlags( void )
 dword My_KeyHandler(dword key, dword param2)
 {
 	dword state = 0, subState = 0;
-																			
+
+	if ( yesnoWindowShowing ) { YesNoKeyHandler( key ); return 0; }
+
 	if ( configWindowShowing ) { ConfigKeyHandler( key ); return 0; }
 
 	if ( creditsShowing ) { CreditsKeyHandler( key ); return 0; }
@@ -272,78 +278,126 @@ dword My_IdleHandler(void)
 {
 	dword	currentTickTime = 0;
 	static	byte	oldMin = 100, oldSec = 0;
+	static	byte	schIdleHandlerSV = SCH_IDLE_HANDLER_INITIALISE;
 
-	currentTickTime = TAP_GetTick();				// only get the current tick time once
-	if ( keyboardWindowShowing ) KeyboardCursorBlink( currentTickTime );
-
-	schObtainCurrentTime();
-
-	if
-	(
-		(creditsShowing == FALSE)
-		&&
-		(menuShowing == FALSE)
-		&&
-		(schEditWindowShowing == FALSE)
-		&&
-		(schDispWindowShowing == FALSE)
-		&&
-		(schShowWindowShowing == FALSE)
-	)
+	switch(schIdleHandlerSV)
 	{
-		schMainService();
+	/*--------------------------------------------------*/
+	case SCH_IDLE_HANDLER_INITIALISE:
+
+		FindTapDir();
+		schMainDetermineChangeDirType();
+		LoadConfiguration();
+		CacheLogos();
+		schMainInitLcnToSvcNumMap();
+		schDispWindowInitialise();
+		schEditWindowInitialise();
+		initialiseMenu();
+		InitialiseConfigRoutines();
+		schShowWindowInitialise();
+		logInitialise();
+
+		schMainApiMoveAvailable = FALSE;
+		schMainDebugMoveAvailable = FALSE;
+
+#ifndef WIN32
+		if( FirmwareCallsEnabled == TRUE )
+		{
+			schMainApiMoveAvailable = fcCheckApiMoveAvailability();
+
+			if(schMainApiMoveAvailable == FALSE)
+			{
+				StartTAPExtensions();
+
+				schMainDebugMoveAvailable = fcCheckDebugMoveAvailability();
+			}
+		}
+#else
+		schMainApiMoveAvailable = TRUE;
+#endif
+
+		schIdleHandlerSV = SCH_IDLE_HANDLER_SERVICE;
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_IDLE_HANDLER_SERVICE:
+
+		currentTickTime = TAP_GetTick();				// only get the current tick time once
+		if ( keyboardWindowShowing ) KeyboardCursorBlink( currentTickTime );
+
+		schObtainCurrentTime();
 
 		if
 		(
-			(FirmwareCallsEnabled == TRUE)
+			(creditsShowing == FALSE)
 			&&
-			(
-				(schMainApiMoveAvailable == TRUE)
-				||
-				(schMainDebugMoveAvailable == TRUE)
-			)
+			(menuShowing == FALSE)
+			&&
+			(schEditWindowShowing == FALSE)
+			&&
+			(schDispWindowShowing == FALSE)
+			&&
+			(schShowWindowShowing == FALSE)
 		)
 		{
-			schMoveService();
-		}
-
-		oldMin = 100;
-	}
-	else
-	{
-		if(schShowWindowShowing == TRUE)
-		{
-			schShowService();
-		}
-
-		if ( schTimeMin != oldMin )
-		{
-			oldMin = schTimeMin;
+			schMainService();
 
 			if
 			(
-				( menuShowing == FALSE )
+				(FirmwareCallsEnabled == TRUE)
 				&&
-				( creditsShowing == FALSE )
+				(
+					(schMainApiMoveAvailable == TRUE)
+					||
+					(schMainDebugMoveAvailable == TRUE)
+				)
 			)
 			{
-				UpdateListClock();
+				schMoveService();
+
+				schKeepService();
+			}
+
+			oldMin = 100;
+		}
+		else
+		{
+			if(schShowWindowShowing == TRUE)
+			{
+				schShowService();
+			}
+
+			if ( schTimeMin != oldMin )
+			{
+				oldMin = schTimeMin;
+
+				if
+				(
+					( menuShowing == FALSE )
+					&&
+					( creditsShowing == FALSE )
+				)
+				{
+					UpdateListClock();
+				}
 			}
 		}
+
+		if
+		(
+			( schTimeSec != oldSec )
+			&&
+			( schStartUpCounter < 0xFF )
+		)
+		{
+			oldSec = schTimeSec;
+
+			schStartUpCounter++;
+		}
+
+		break;
+	/*--------------------------------------------------*/
 	}
-
-	if
-	(
-		( schTimeSec != oldSec )
-		&&
-		( schStartUpCounter < 0xFF )
-	)
-	{
-		oldSec = schTimeSec;
-
-		schStartUpCounter++;
-	}
-
 }
 
 dword TAP_EventHandler( word event, dword param1, dword param2 )
@@ -378,33 +432,6 @@ int TAP_Main(void)
 {
 #ifdef WIN32
 	sdkRetreiveXmlData();
-#endif
-	FindTapDir();
-	LoadConfiguration();
-	CacheLogos();
-	schMainInitLcnToSvcNumMap();
-	schDispWindowInitialise();
-	schEditWindowInitialise();
-	initialiseMenu();
-	InitialiseConfigRoutines();
-	schShowWindowInitialise();
-	logInitialise();
-
-	schMainApiMoveAvailable = FALSE;
-	schMainDebugMoveAvailable = FALSE;
-
-#ifndef WIN32
-	if( FirmwareCallsEnabled == TRUE )
-	{
-		schMainApiMoveAvailable = fcCheckApiMoveAvailability();
-
-		if(schMainApiMoveAvailable == FALSE)
-		{
-			StartTAPExtensions();
-
-			schMainDebugMoveAvailable = fcCheckDebugMoveAvailability();
-		}
-	}
 #endif
 
 	exitFlag = FALSE;

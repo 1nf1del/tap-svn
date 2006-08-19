@@ -5,6 +5,7 @@ This module moves a file to a specified directory
 v0.0 sl8:	09-03-06	Inception date
 v0.1 sl8:	11-04-06	Tidy up.
 v0.2 sl8:	08-05-06	API move added.
+v0.3 sl8:	05-08-06	Renames file if file name already exists in target folder.
 
 **************************************************************/
 
@@ -19,9 +20,17 @@ void schMoveService(void)
 	char	logBuffer[LOG_BUFFER_SIZE];
 	char	fileStr[200];
 	char	folderStr[200];
+	static	char	schMoveActualFileName[128];
+	static	char	schMoveNewFileName[128];
+	int	fileNumber = 0;
+	char	fileNumberStr[10];
 	int	totalFileCount = 0, i = 0;
 	TYPE_PlayInfo	CurrentPlaybackInfo;
-	TYPE_RecInfo	CurrentRecordInfo[2];
+	char	playInfoOverRun[512];
+	TYPE_RecInfo	CurrentRecordInfo0;
+	char	rec0InfoOverRun[512];
+	TYPE_RecInfo	CurrentRecordInfo1;
+	char	rec1InfoOverRun[512];
 	char	CurrentPlaybackFileName[TS_FILE_NAME_SIZE];
 	char	CurrentRecord0FileName[SCH_REC_FILE_NAME_SIZE];
 	char	CurrentRecord1FileName[SCH_REC_FILE_NAME_SIZE];
@@ -34,6 +43,8 @@ void schMoveService(void)
 	static	bool	moveFailed = FALSE;
 	int	result = 0;
 	bool	schMoveResult = FALSE;
+
+	char	buffer1[256];
 
 	switch(schMoveServiceSV)
 	{
@@ -49,10 +60,6 @@ void schMoveService(void)
 
 		schMoveServiceSV = SCH_MOVE_SERVICE_WAIT_TO_CHECK;
 
-//TAP_Print("MOVE - Initialised\r\n");		
-//sprintf(buffer1,"Numb of moves: %x\r\n", schMainTotalValidMoves );
-//TAP_Print(buffer1);		
-
 		break;
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_WAIT_TO_CHECK:
@@ -64,6 +71,8 @@ void schMoveService(void)
 			(schMainTotalValidMoves > 0)
 			&&
 			(schStartUpCounter > SCH_MAIN_DELAY_MOVE_ALARM)
+			&&
+			(schKeepServiceSV == SCH_KEEP_SERVICE_WAIT_TO_CHECK)
 		)
 		{
 			schMoveIndex = 0;
@@ -83,6 +92,8 @@ void schMoveService(void)
 
 		if (schMoveCurrentTime >= schMoveData[schMoveIndex].moveEndTime)
 		{
+			schMoveSuccessful = FALSE;
+
 			schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_ARCHIVE;
 		}
 		else
@@ -94,116 +105,199 @@ void schMoveService(void)
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_CHECK_ARCHIVE:
 
-		GotoDataFiles();
-		totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
+		memset(schMoveActualFileName, 0 , sizeof(schMoveActualFileName));
 
-		schMoveSuccessful = FALSE;
-		schFileFound = FALSE;
-		for ( i=1; ((i <= totalFileCount) && (schFileFound == FALSE)) ; i++ )
+		if(GotoDataFiles() == TRUE)
 		{
-			if
-			(
-				(schMoveData[schMoveIndex].moveStartTime == ((tempFile.mjd << 16) + (tempFile.hour << 8) + tempFile.min))
-				&&
-				(tempFile.attr == ATTR_TS)
-				&&
-				(strcmp(tempFile.name, schMoveData[schMoveIndex].moveFileName) == 0)
-			)
+			totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
+
+			schFileFound = FALSE;
+			for ( i=1; ((i <= totalFileCount) && (schFileFound == FALSE)) ; i++ )
 			{
-				TAP_Hdd_GetPlayInfo (&CurrentPlaybackInfo);
-				TAP_Hdd_GetRecInfo (0, &CurrentRecordInfo[0]);
-				TAP_Hdd_GetRecInfo (1, &CurrentRecordInfo[1]);
-
-				memset(CurrentPlaybackFileName,0,TS_FILE_NAME_SIZE);
-				if(CurrentPlaybackInfo.playMode == PLAYMODE_Playing)
-				{
-					strcpy(CurrentPlaybackFileName,CurrentPlaybackInfo.file->name);
-				}
-
-				memset(CurrentRecord0FileName,0,SCH_REC_FILE_NAME_SIZE);
 				if
 				(
-					(CurrentRecordInfo[0].recType == RECTYPE_Normal)
+					(schMoveData[schMoveIndex].moveStartTime == ((tempFile.mjd << 16) + (tempFile.hour << 8) + tempFile.min))
 					&&
-					(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo[0].startTime)
+					(tempFile.attr == ATTR_TS)
+					&&
+					(strlen(schMoveData[schMoveIndex].moveFileName) > 4)
+					&&
+					(strncmp(tempFile.name, schMoveData[schMoveIndex].moveFileName, (strlen(schMoveData[schMoveIndex].moveFileName) - 4)) == 0)
 				)
 				{
-					strcpy(CurrentRecord0FileName,CurrentRecordInfo[0].fileName);
+					strcpy(schMoveActualFileName, tempFile.name);
+
+					schFileFound = TRUE;			
 				}
-
-				memset(CurrentRecord1FileName,0,SCH_REC_FILE_NAME_SIZE);
-				if
-				(
-					(CurrentRecordInfo[1].recType == RECTYPE_Normal)
-					&&
-					(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo[1].startTime)
-				)
+				else
 				{
-					strcpy(CurrentRecord1FileName,CurrentRecordInfo[1].fileName);
+					TAP_Hdd_FindNext(&tempFile);
 				}
+			}
 
-				if
-				(
-					(strcmp(CurrentPlaybackFileName, schMoveData[schMoveIndex].moveFileName) != 0)
-					&&
-					(strcmp(CurrentRecord0FileName, schMoveData[schMoveIndex].moveFileName) != 0)
-					&&
-					(strcmp(CurrentRecord1FileName, schMoveData[schMoveIndex].moveFileName) != 0)
-				)
+			if(schFileFound == TRUE)
+			{
+				schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_TARGET_FOLDER;
+			}
+			else
+			{
+				schMoveServiceSV = SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL;
+			}
+		}
+		else
+		{
+			schMoveServiceSV = SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_MOVE_SERVICE_CHECK_TARGET_FOLDER:
+
+		memset(schMoveNewFileName, 0 , sizeof(schMoveNewFileName));
+
+		sprintf( folderStr, "DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
+		if(GotoPath(folderStr) == TRUE)
+		{
+			if (TAP_Hdd_Exist( schMoveActualFileName ) == FALSE)
+			{
+				schMoveServiceSV = SCH_MOVE_SERVICE_PERFORM_MOVE;
+			}
+			else
+			{
+				fileNumber = 2;
+
+				sprintf(fileNumberStr, "-%d", fileNumber);
+
+				if(strlen(schMoveActualFileName) > 4)
 				{
-					sprintf( fileStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFileName );
-					sprintf( folderStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
-#ifndef WIN32
-					if(schMainApiMoveAvailable == TRUE)
+					strncpy(schMoveNewFileName, schMoveActualFileName,(strlen(schMoveActualFileName) - 4));
+					strcat(schMoveNewFileName, fileNumberStr);
+					strcat(schMoveNewFileName, ".rec");
+			
+					while
+					(
+						(TAP_Hdd_Exist( schMoveNewFileName ) == TRUE)
+						&&
+						(fileNumber < 100)
+					)
 					{
-						schMoveResult = TAP_Hdd_ApiMove( "/DataFiles", folderStr, schMoveData[schMoveIndex].moveFileName );
-					}
-					else if(schMainDebugMoveAvailable == TRUE)
-					{
-						schMoveResult = TAP_Hdd_DebugMove( fileStr, folderStr );
-					}
-					else
-					{
-					}
-#else
-					schMoveResult = TRUE;	// For the SDK
-#endif
-					if(schMoveResult == TRUE)
-					{
-						schMoveSuccessful = TRUE;
+						fileNumber++;
 
-						schMoveData[schMoveIndex].moveEnabled = FALSE;
-
-						schMoveExpired = TRUE;				// Delete this move when all moves checked
-
-//						memset(logBuffer,0,LOG_BUFFER_SIZE);
-//						sprintf( logBuffer, "Found (Move Successful): %s    %d", schMoveData[schMoveIndex].moveFileName, result );
-//						logStoreEvent(logBuffer);			
-					}
-					else
-					{
-//						memset(logBuffer,0,LOG_BUFFER_SIZE);
-//						sprintf( logBuffer, "Found (Move Failed): %s    %d", schMoveData[schMoveIndex].moveFileName, result );
-//						logStoreEvent(logBuffer);
+						memset(fileNumberStr, 0 , sizeof(fileNumberStr));
+						sprintf(fileNumberStr, "-%d", fileNumber);
+						
+						memset(schMoveNewFileName, 0 , sizeof(schMoveNewFileName));
+						strncpy(schMoveNewFileName, schMoveActualFileName,(strlen(schMoveActualFileName) - 4));
+						strcat(schMoveNewFileName, fileNumberStr);
+						strcat(schMoveNewFileName, ".rec");
 					}
 				}
 				else
 				{
-//					memset(logBuffer,0,LOG_BUFFER_SIZE);
-//					sprintf( logBuffer, "Found (Failed second test): %s   %d,%d,%d,%d", schMoveData[schMoveIndex].moveFileName, (strcmp(CurrentPlaybackFileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(CurrentRecord0FileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(CurrentRecord1FileName, schMoveData[schMoveIndex].moveFileName) != 0), (strcmp(tempFile.name, schMoveData[schMoveIndex].moveFileName) == 0));
-//					logStoreEvent(logBuffer);
+					fileNumber = 100;
 				}
 
-				schFileFound = TRUE;			
+				if(fileNumber < 100)
+				{
+					schMoveServiceSV = SCH_MOVE_SERVICE_PERFORM_MOVE;
+				}
+				else
+				{
+					schMoveServiceSV = SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL;
+				}
 			}
-			else
+		}
+		else
+		{
+			schMoveServiceSV = SCH_MOVE_SERVICE_MOVE_NOT_SUCCESSFUL;
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case SCH_MOVE_SERVICE_PERFORM_MOVE:
+
+		schMoveSuccessful = FALSE;
+
+		if(GotoDataFiles() == TRUE)
+		{
+			TAP_Hdd_GetPlayInfo (&CurrentPlaybackInfo);
+			TAP_Hdd_GetRecInfo (0, &CurrentRecordInfo0);
+			TAP_Hdd_GetRecInfo (1, &CurrentRecordInfo1);
+
+			memset(CurrentPlaybackFileName,0,TS_FILE_NAME_SIZE);
+			if(CurrentPlaybackInfo.playMode == PLAYMODE_Playing)
 			{
-				TAP_Hdd_FindNext(&tempFile);
+				strcpy(CurrentPlaybackFileName,CurrentPlaybackInfo.file->name);
 			}
 
-#ifdef WIN32
-	WIN32_ReplaceTempFileData(&tempFile);
+			memset(CurrentRecord0FileName,0,SCH_REC_FILE_NAME_SIZE);
+			if
+			(
+				(CurrentRecordInfo0.recType == RECTYPE_Normal)
+				&&
+				(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo0.startTime)
+			)
+			{
+				strcpy(CurrentRecord0FileName,CurrentRecordInfo0.fileName);
+			}
+
+			memset(CurrentRecord1FileName,0,SCH_REC_FILE_NAME_SIZE);
+			if
+			(
+				(CurrentRecordInfo1.recType == RECTYPE_Normal)
+				&&
+				(schMoveData[schMoveIndex].moveStartTime == CurrentRecordInfo1.startTime)
+			)
+			{
+				strcpy(CurrentRecord1FileName,CurrentRecordInfo1.fileName);
+			}
+
+			if
+			(
+				(strcmp(CurrentPlaybackFileName, schMoveActualFileName) != 0)
+				&&
+				(strcmp(CurrentRecord0FileName, schMoveActualFileName) != 0)
+				&&
+				(strcmp(CurrentRecord1FileName, schMoveActualFileName) != 0)
+			)
+			{
+				if(strlen(schMoveNewFileName) > 0)
+				{
+					if(TAP_Hdd_Rename(schMoveActualFileName, schMoveNewFileName) == TRUE)
+					{
+						memset(schMoveActualFileName, 0 , sizeof(schMoveActualFileName));
+						strcpy(schMoveActualFileName, schMoveNewFileName);
+					}
+				}
+
+				sprintf( folderStr, "/DataFiles/%s", schMoveData[schMoveIndex].moveFolder );
+#ifndef WIN32
+				if(schMainApiMoveAvailable == TRUE)
+				{
+					schMoveResult = TAP_Hdd_ApiMove( "/DataFiles", folderStr, schMoveActualFileName );
+				}
+				else if(schMainDebugMoveAvailable == TRUE)
+				{
+					sprintf( fileStr, "/DataFiles/%s", schMoveActualFileName );
+
+					schMoveResult = TAP_Hdd_DebugMove( fileStr, folderStr );
+				}
+				else
+				{
+				}
+
+#else
+				schMoveResult = TRUE;	// For the SDK
 #endif
+				if(schMoveResult == TRUE)
+				{
+					schMoveSuccessful = TRUE;
+
+					schMoveData[schMoveIndex].moveEnabled = FALSE;
+
+					schMoveExpired = TRUE;				// Delete this move when all moves checked
+				}
+			}
 		}
 
 		if(schMoveSuccessful == TRUE)
@@ -310,38 +404,52 @@ void schMoveService(void)
 }
 
 
+
 void WIN32_ReplaceTempFileData(TYPE_File* tempFile)
 {
-	if(strcmp(tempFile->name,"Little Britain_S2E1.rec") == 0)
+	if(strcmp(tempFile->name,"test1.rec") == 0)
 	{
 		tempFile->attr = 0xd1;
 		tempFile->mjd = 53775;		// 09/02/06
-		tempFile->hour = 12;
-		tempFile->min = 00;
+		tempFile->hour = 01;
+		tempFile->min = 01;
+		tempFile->size = 6000;
 	}
 
-	if(strcmp(tempFile->name,"Little Britain_S2E2.rec") == 0)
+	if(strcmp(tempFile->name,"test2.rec") == 0)
 	{
 		tempFile->attr = 0xd1;
 		tempFile->mjd = 53775;		// 09/02/06
-		tempFile->hour = 13;
-		tempFile->min = 00;
+		tempFile->hour = 01;
+		tempFile->min = 02;
+		tempFile->size = 8000;
 	}
 
-	if(strcmp(tempFile->name,"Little Britain_S2E3.rec") == 0)
+	if(strcmp(tempFile->name,"test3.rec") == 0)
 	{
 		tempFile->attr = 0xd1;
 		tempFile->mjd = 53775;		// 09/02/06
-		tempFile->hour = 14;
-		tempFile->min = 00;
+		tempFile->hour = 01;
+		tempFile->min = 03;
+		tempFile->size = 10000;
 	}
 
-	if(strcmp(tempFile->name,"Little Britain_S2E4.rec") == 0)
+	if(strcmp(tempFile->name,"test4.rec") == 0)
 	{
 		tempFile->attr = 0xd1;
 		tempFile->mjd = 53775;		// 09/02/06
-		tempFile->hour = 15;
-		tempFile->min = 00;
+		tempFile->hour = 01;
+		tempFile->min = 04;
+		tempFile->size = 12000;
+	}
+
+	if(strcmp(tempFile->name,"test5.rec") == 0)
+	{
+		tempFile->attr = 0xd1;
+		tempFile->mjd = 53775;		// 09/02/06
+		tempFile->hour = 01;
+		tempFile->min = 05;
+		tempFile->size = 14000;
 	}
 
 

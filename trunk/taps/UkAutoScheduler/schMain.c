@@ -15,6 +15,7 @@ v0.5 sl8:	22-03-06	Bug fix - Move failed if programme spanned midnight
 v0.6 sl8:	11-04-06	Show window added and tidy up.
 v0.7 sl8:	19-04-06	TRC option added. More work added for the Show window.
 v0.8 sl8:	07-06-06	Bug fix - 1 hour padding caused incorrect start/end times.
+v0.9 sl8:	05-08-06	Search ahead, Date, Time format. Keep feature.
 
 **************************************************************/
 
@@ -32,6 +33,7 @@ int schMainSetTimer(char*, dword, dword, int, word, byte);
 void schMainService(void);
 void schMainInitLcnToSvcNumMap(void);
 void schMainUpdateSearchList(void);
+void schMainDetermineChangeDirType(void);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
 static struct schDataTag schRemoteData[SCH_MAX_SEARCHES];
@@ -44,8 +46,11 @@ static byte schMainTotalValidSearches = 0;
 static byte schMainTotalValidRemoteSearches = 0;
 static byte schMainPerformSearchMode = 0;
 static int schMainPerformSearchTime = 0;
+static int schMainPerformSearchDays = 14;
 static byte schMainTotalValidMoves = 0;
 static bool schMainTRCEnabled = TRUE;
+static byte schMainDateFormat = 0;
+static byte schMainTimeFormat = 0;
 
 word* schLcnToServiceTv = NULL;
 word* schLcnToServiceRadio = NULL;
@@ -53,12 +58,14 @@ word* schLcnToServiceRadio = NULL;
 byte* schEpgDataExtendedInfo = NULL;
 TYPE_TapEvent* schEpgData = NULL;
 
+
 void schMainService(void)
 {
 	static word schChannel = 0;
 	static byte schUserSearchIndex = 0;
 	static dword schEpgIndex = 0;
 	static int schEpgTotalEvents = 0;
+	dword schMainCurrentTime = 0;
 
 	char buffer1[128];
 
@@ -214,6 +221,8 @@ void schMainService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_PERFORM_SEARCH:
 
+		schMainCurrentTime = (schTimeMjd << 16) + (schTimeHour << 8) + schTimeMin;
+
 		if
 		(
 			(schEpgData)
@@ -221,6 +230,12 @@ void schMainService(void)
 			(schEpgTotalEvents > 0)
 			&&
 			(schEpgIndex < schEpgTotalEvents)
+			&&
+			(
+				((schMainCurrentTime + (schMainPerformSearchDays << 16)) > schEpgData[schEpgIndex].startTime)
+				||
+				(schMainPerformSearchDays == 14)
+			)
 		)
 		{
 			if((schMainPerformSearch(schEpgData, schEpgIndex, schUserSearchIndex)) == TRUE)
@@ -477,6 +492,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	char appendStr[64];
 	char dateStr[64];
 	char numbStr[64];
+	char timeStr[64];
 	char fileNameStr[132];
 	char logBuffer[LOG_BUFFER_SIZE];
 	int fileNameLen = 0;
@@ -500,7 +516,114 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	TAP_ExtractMjd( mjd, &year, &month, &day, &weekDay);
 
 	memset(dateStr,0,64);
-	sprintf(dateStr,"%02d.%02d.%02d", day, month, (year % 10));
+	switch(schMainDateFormat)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY:
+
+		sprintf(dateStr,"%02d.%02d.%02d", day, month, (year % 10));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YYYY:
+
+		sprintf(dateStr,"%02d.%02d.%04d", day, month, year);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YY_DOT_MM_DOT_DD:
+
+		sprintf(dateStr,"%02d.%02d.%02d", (year % 10), month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YYYY_DOT_MM_DOT_DD:
+
+		sprintf(dateStr,"%04d.%02d.%02d", year, month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DDMMYY:
+
+		sprintf(dateStr,"%02d%02d%02d", day, month, (year % 10));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DDMMYYYY:
+
+		sprintf(dateStr,"%02d%02d%04d", day, month, year);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YYMMDD:
+
+		sprintf(dateStr,"%02d%02d%02d", (year % 10), month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YYYYMMDD:
+
+		sprintf(dateStr,"%04d%02d%02d", year, month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YY:
+
+		sprintf(dateStr,"%02d/%02d/%02d", day, month, (year % 10));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YYYY:
+
+		sprintf(dateStr,"%02d/%02d/%04d", day, month, year);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YY_SLASH_MM_SLASH_DD:
+
+		sprintf(dateStr,"%02d/%02d/%02d", (year % 10), month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD:
+
+		sprintf(dateStr,"%04d/%02d/%02d", year, month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	default:
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	}
+
+	memset(timeStr,0,64);
+	switch(schMainTimeFormat)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_TIME_FORMAT_HH_COLON_MM:
+
+		sprintf(timeStr,"%02d:%02d", ((eventStartTime >> 8) & 0xFF), (eventStartTime & 0xFF));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_TIME_FORMAT_HH_DOT_MM:
+
+		sprintf(timeStr,"%02d.%02d", ((eventStartTime >> 8) & 0xFF), (eventStartTime & 0xFF));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_TIME_FORMAT_HHMM:
+
+		sprintf(timeStr,"%02d%02d", ((eventStartTime >> 8) & 0xFF), (eventStartTime & 0xFF));
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	default:
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	}
 
 	memset(numbStr,0,64);
 	sprintf(numbStr,"S#%d", (searchIndex + 1));
@@ -530,6 +653,16 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 				if((strlen(eventName) + (strlen(dateStr)+1) + strlen(fileNameStr)) < (128 - 6))
 				{
 					strcat(prefixStr,dateStr);
+					strcat(prefixStr,"_");
+				}
+
+				break;
+			/* ---------------------------------------------------------------------------- */
+			case SCH_ATTACH_TYPE_TIME:
+
+				if((strlen(eventName) + (strlen(timeStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				{
+					strcat(prefixStr,timeStr);
 					strcat(prefixStr,"_");
 				}
 
@@ -565,6 +698,16 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 				{
 					strcat(appendStr,"_");
 					strcat(appendStr,dateStr);
+				}
+
+				break;
+			/* ---------------------------------------------------------------------------- */
+			case SCH_ATTACH_TYPE_TIME:
+
+				if((strlen(eventName) + (strlen(timeStr)+1) + strlen(fileNameStr)) < (128 - 6))
+				{
+					strcat(appendStr,"_");
+					strcat(appendStr,timeStr);
 				}
 
 				break;
@@ -777,4 +920,37 @@ void schMainUpdateSearchList(void)
 
 	TAP_Hdd_Delete( REMOTE_FILENAME );
 }
+
+
+void schMainDetermineChangeDirType(void)
+{
+	int	totalFileCount = 0;
+	TYPE_File	tempFile;
+
+	schKeepAvailable = FALSE;
+
+	GotoRoot();
+	schMainChangeDirSuccess = TAP_Hdd_ChangeDir("DataFiles");
+
+	totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
+
+	if(strcmp(tempFile.name, "__ROOT__") != 0)
+	{
+		GotoRoot();
+		schMainChangeDirFail = TAP_Hdd_ChangeDir("ThisDirectoryDoesNotExist");
+
+		totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
+
+		if
+		(
+			(schMainChangeDirSuccess != schMainChangeDirFail)
+			&&
+			(strcmp(tempFile.name, "__ROOT__") == 0)
+		)
+		{
+			schKeepAvailable = TRUE;
+		}
+	}
+}
+
 

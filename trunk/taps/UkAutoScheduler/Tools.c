@@ -4,7 +4,7 @@
 
 Name	: Tools.c
 Author	: Kidhazy
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -12,6 +12,7 @@ Usage	:
 History	: v0.0 Kidhazy: 10-09-05	Inception Date
 	  v0.1 sl8:	20-01-06	All variable initialised
 	  v0.2 sl8:	16-02-06	sysID removed
+	  v0.3 sl8:	05-08-06	Modified to return result of change dir
 
 **************************************************************/
 
@@ -22,13 +23,6 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 //--------------------------------------------------------------------
 
 char _tapDir[512];
-char *_tapDirPtr = NULL;
-
-char _currentDir[512];
-char *_currentDirPtr = NULL;
-
-//char PROGRAMFILES[] = "ProgramFiles";
-//char AUTOSTART[] = "ProgramFiles\\Auto Start";
 
 
 //------------------------------ InDataFilesFolder --------------------------------------
@@ -73,31 +67,21 @@ void	ChangeDirRoot()
 // Run once to locate the TAP's directory and stored it in the global _tapDir
 //--------------------------------------------------------------------------------------
 
-char* FindTapDir()
+void FindTapDir(void)
 {
 	TYPE_File	fp;
-
-	if ( _tapDirPtr != NULL )
-		return _tapDirPtr;
 
 	TAP_Hdd_ChangeDir("..");
 	TAP_Hdd_FindFirst( &fp );
 
-//TAP_Print("Tapdir: fp.name = %s\r\n", fp.name);
-
 	if ( strcmp( fp.name, "__ROOT__" ) == 0 )
 	{
-		strcpy(_tapDir, "/ProgramFiles");
-		TAP_Hdd_ChangeDir("ProgramFiles");
-	} else {
-		strcpy(_tapDir, "/ProgramFiles/Auto Start");
-		TAP_Hdd_ChangeDir("Auto Start");
+		strcpy(_tapDir, "ProgramFiles");
 	}
-
-	_tapDirPtr = _tapDir;
-// TAP_Print("Tapdir: _tapDirPtr = %s\r\n", _tapDirPtr);
-
-	return _tapDirPtr;	
+	else
+	{
+		strcpy(_tapDir, "ProgramFiles/Auto Start");
+	}
 }
 
 
@@ -157,60 +141,51 @@ bool	IsFileRec( char *recFile, 	dword	attr )
 // 
 //--------------------------------------------------------------------------------------
 
-bool GotoPath(char *path){
-	char *startPos = NULL;
-	char *endPos = NULL;
-	bool ready = 0;
+bool GotoPath(char *path)
+{
+	bool result = FALSE;
 
-	ChangeDirRoot();
-
-	startPos=path;
-	if ((*startPos)!='/'){
-// TAP_Print("%s Doesn't start with a /\r\n",startPos);
-		return FALSE;
-	}
-	startPos=startPos+1;
-	ready=FALSE;
-	while (ready==FALSE){
-		endPos=startPos;
-		while (((*endPos)!=0) && ((*endPos)!='/')){
-			endPos=endPos+1;
-		}
-		if ((*endPos)==0){
-			ready=TRUE;
-// TAP_Print("GotoPath1: going to %s...\r\n", startPos);
-			TAP_Hdd_ChangeDir(startPos);
-		} else {
-			(*endPos)=0;
-// TAP_Print("GotoPath2: going to %s...\r\n", startPos);
-			TAP_Hdd_ChangeDir(startPos);
-			(*endPos)='/';
-			startPos=endPos+1;
+	if(GotoRoot() == TRUE)
+	{
+		if(TAP_Hdd_ChangeDir(path) == schMainChangeDirSuccess)
+		{
+			result = TRUE;
 		}
 	}
-	strcpy(_currentDir, path);
 
-	return TRUE;
-}	
+	return result;
+}
+
 	
-void GotoTapDir(){
-	char *tdir = FindTapDir();
-	GotoPath(tdir);
-	strcpy(_currentDir, tdir);
+bool GotoTapDir()
+{
+	return GotoPath(_tapDir);
 }
 
 bool GotoProgramFiles(){
-	return GotoPath("/ProgramFiles");
+	return GotoPath("ProgramFiles");
 }
 
 bool GotoDataFiles(){
-	return GotoPath("/DataFiles");
+	return GotoPath("DataFiles");
 }
 
-void GotoRoot(){
+bool GotoRoot(void)
+{
+	int	totalFileCount = 0;
+	TYPE_File	tempFile;
+	bool	result = FALSE;
+
 	TAP_Hdd_ChangeDir("/");
-	_currentDir[0] = '/';
-	_currentDir[1] = '\0';
+
+	totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
+
+	if(strcmp(tempFile.name, "__ROOT__") == 0)
+	{
+		result = TRUE;
+	}
+
+	return result;
 }
 
 

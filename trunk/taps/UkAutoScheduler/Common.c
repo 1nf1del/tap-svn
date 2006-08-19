@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.7
+Version	: 0.8
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -18,6 +18,7 @@ v0.4 sl8:		15-02-06	Modified to allow for 'Perform Search' config option
 v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 v0.6 sl8		11-04-06	Show window added and tidy up.
 v0.7 sl8		08-05-06	API move added.
+v0.8 sl8		05-08-06	Keep added.
 
 ************************************************************/
 
@@ -77,6 +78,11 @@ v0.7 sl8		08-05-06	API move added.
 	#include "graphics/DateHighlight.gd"
 	#include "graphics/DateOverStamp.gd"
 	#include "graphics/conflictcircle.gd"
+	#include "graphics/exitoval38x19.gd"
+	#include "graphics/recordoval38x19.gd"
+	#include "graphics/whiteoval38x19.gd"
+	#include "graphics/BigBlueButton.gd"
+	#include "graphics/BigGreenButton.gd"
 #else
 	#include "graphics/win32/graphics.inc"
 	TYPE_TapEvent* TAP_GetEvent_SDK( byte, word, int* );
@@ -146,6 +152,8 @@ void logInitialise(void);
 void logStoreEvent(char*);
 void logArchive(void);
 
+bool GotoRoot(void);
+
 struct _reent *_impure_ptr; 					// need this declared for reentrant functions in ANSI C library [comment by Sunstealer]
 
 
@@ -181,12 +189,18 @@ static word schTimeMjd = MJD_OFFSET;
 
 static byte schServiceSV = SCH_SERVICE_INITIALISE;
 static byte schMoveServiceSV = SCH_MOVE_SERVICE_INITIALISE;
+static byte schKeepServiceSV = SCH_KEEP_SERVICE_INITIALISE;
 
 static byte schStartUpCounter = 0;
 
 static bool FirmwareCallsEnabled = FALSE;
 static bool schMainDebugMoveAvailable = FALSE;
 static bool schMainApiMoveAvailable = FALSE;
+
+static word schMainChangeDirSuccess = 0;
+static word schMainChangeDirFail = 0;
+
+static bool schKeepAvailable = FALSE;
 
 enum
 {
