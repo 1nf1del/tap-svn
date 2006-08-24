@@ -44,8 +44,9 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #define DEBUG_KEEP	0
 #define LOG		0
 
+#include "morekeys.h"
 #include "tap.h"
-#include "ukauto.h"
+#include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"

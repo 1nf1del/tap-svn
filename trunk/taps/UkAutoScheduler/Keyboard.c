@@ -27,8 +27,8 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 #include "graphics/BigKeyGreen.gd"
 #include "graphics/BigKeyBlue.gd"
 */
-#include "graphics/PopUp476x321.gd"
-#include "graphics/PopUp520x321.gd"
+#include "graphics/popup476x321.GD"
+#include "graphics/popup520x321.GD"
 #include "tic.c"
 
 #define KB_STEP_X	60
