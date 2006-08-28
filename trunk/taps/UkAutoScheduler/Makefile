@@ -28,7 +28,7 @@ all: UkAuto.tap
 
 # A target for removing generated files.
 clean:
-	-rm -f *.tap *.o *.elf
+	-rm -f *.tap *.o *.elf *.map
 
 ###################
 #
