@@ -17,6 +17,7 @@ v0.7 sl8:	19-04-06	TRC option added. More work added for the Show window.
 v0.8 sl8:	07-06-06	Bug fix - 1 hour padding caused incorrect start/end times.
 v0.9 sl8:	05-08-06	Search ahead, Date, Time format. Keep feature.
 v0.10 SgtWilko:	28-08-06	Added conflict handling code.
+v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats added.
 
 **************************************************************/
 
@@ -67,6 +68,7 @@ void schMainService(void)
 	static word schChannel = 0;
 	static byte schUserSearchIndex = 0;
 	static dword schEpgIndex = 0;
+	static dword schLastEpgIndex = 0;
 	static int schEpgTotalEvents = 0;
 	dword schMainCurrentTime = 0;
 
@@ -246,7 +248,9 @@ void schMainService(void)
 				schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD));
 			}
 
-			schEpgIndex++;
+			schLastEpgIndex = schEpgIndex;
+
+			schServiceSV = SCH_SERVICE_NEXT_EVENT;
 		}
 		else
 		{
@@ -254,6 +258,24 @@ void schMainService(void)
 		}
 
 		break;
+	/*--------------------------------------------------*/
+	case SCH_SERVICE_NEXT_EVENT:
+
+		schEpgIndex++;
+
+		if(schEpgIndex < schEpgTotalEvents)
+		{
+			if(schEpgData[schEpgIndex].startTime != schEpgData[schLastEpgIndex].startTime)
+			{
+				schServiceSV = SCH_SERVICE_PERFORM_SEARCH;
+			}
+		}
+		else
+		{
+			schServiceSV = SCH_SERVICE_NEXT_CHANNEL;
+		}
+		
+		break;	
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_NEXT_CHANNEL:
 
@@ -383,6 +405,10 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 	byte eventHour = 0, eventMin = 0;
 	byte eventMonth = 0, eventDay = 0, eventWeekDay = 0, eventWeekDayBit = 0;
 	dword eventStartInMins = 0, currentTimeInMins = 0, startPaddingInMins = 0;
+	TYPE_RecInfo CurrentRecordInfo0;
+	char rec0InfoOverRun[512];
+	TYPE_RecInfo CurrentRecordInfo1;
+	char rec1InfoOverRun[512];
 
 	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
 	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
@@ -395,8 +421,31 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 	currentTimeInMins = (schTimeMjd * 24 * 60) + (schTimeHour * 60) + schTimeMin;
 	startPaddingInMins = (((schUserData[schSearch].searchStartPadding & 0xff00) >> 8) * 60) + (schUserData[schSearch].searchStartPadding & 0xff);
 
+	TAP_Hdd_GetRecInfo (0, &CurrentRecordInfo0);
+	TAP_Hdd_GetRecInfo (1, &CurrentRecordInfo1);
+
 	if
 	(
+		(
+			(CurrentRecordInfo0.recType != RECTYPE_Normal)
+			||
+			(
+				(CurrentRecordInfo0.recType == RECTYPE_Normal)
+				&&
+				(epgData[epgDataIndex].startTime >= CurrentRecordInfo0.endTime)
+			)
+		)
+		&&
+		(
+			(CurrentRecordInfo1.recType != RECTYPE_Normal)
+			||
+			(
+				(CurrentRecordInfo1.recType == RECTYPE_Normal)
+				&&
+				(epgData[epgDataIndex].startTime >= CurrentRecordInfo1.endTime)
+			)
+		)
+		&&
 		(
 			(eventStartInMins > (startPaddingInMins + 2))
 			&&
@@ -594,6 +643,42 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	case SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD:
 
 		sprintf(dateStr,"%04d/%02d/%02d", year, month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM:
+
+		sprintf(dateStr,"%02d.%02d", day, month);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_MM_DOT_DD:
+
+		sprintf(dateStr,"%02d.%02d", month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DDMM:
+
+		sprintf(dateStr,"%02d%02d", day, month);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_MMDD:
+		
+		sprintf(dateStr,"%02d%02d", month, day);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM:
+		
+		sprintf(dateStr,"%02d/%02d", day, month);
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD:
+
+		sprintf(dateStr,"%02d/%02d", month, day);
 		
 		break;
 	/* ---------------------------------------------------------------------------- */

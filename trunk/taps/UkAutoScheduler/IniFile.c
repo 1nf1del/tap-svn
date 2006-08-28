@@ -4,7 +4,7 @@
 
 Name	: IniFile.c
 Author	: Darkmatter
-Version	: 0.6
+Version	: 0.7
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -16,6 +16,7 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.4 sl8		11-04-06	SDK.
 	  v0.5 sl8		12-04-06	Make TRC optional (default - enabled)
 	  v0.6 sl8		05-08-06	Search ahead, date and time format added.
+	  v0.7 sl8		28-08-06	Keyboard types.
 
 ************************************************************/
 
@@ -102,6 +103,9 @@ void SaveConfigurationToFile( void )
 	WriteStrToIniBuf( str );
 
 	TAP_SPrint(str, "%d\r\n", schMainTimeFormat );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", keyboardLanguage );
 	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );					// write all the data in one pass
@@ -199,6 +203,7 @@ bool SetConfigurationVariables( void )
 	schMainPerformSearchDays = ReadIniDecimal(14, &configPassed);
 	schMainDateFormat = ReadIniDecimal(0, &configPassed);
 	schMainTimeFormat = ReadIniDecimal(0, &configPassed);
+	keyboardLanguage = ReadIniDecimal(0, &configPassed);
 
 	return configPassed;
 }

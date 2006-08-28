@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.8
+Version	: 0.9
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -18,6 +18,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.6 sl8		11-04-06	Show window added and tidy up.
 	  v0.7 sl8		19-04-06	TRC option added.
 	  v0.8 sl8		05-08-06	Search ahead, date and time format added.
+	  v0.9 sl8		28-08-06	Keyboard types.
 
 **************************************************************/
 
@@ -82,10 +83,30 @@ void DisplayConfigLine(char lineNumber)
 		break;
 	/*--------------------------------------------------*/
 	case 2 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Language", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Keyboard", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		TAP_SPrint(str, "English");
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, COLOR_DarkGray, 0 );
+		switch ( keyboardLanguage )
+		{
+		/*--------------------------------------------------*/
+		case KEYBOARD_ENGLISH:
+
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "English", MAIN_TEXT_COLOUR, 0 );
+		
+			break;
+		/*--------------------------------------------------*/
+		case KEYBOARD_FINNISH:
+
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Finnish", MAIN_TEXT_COLOUR, 0 );
+
+			break;
+		/*--------------------------------------------------*/
+		case KEYBOARD_GERMAN:
+
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "German", MAIN_TEXT_COLOUR, 0 );
+
+			break;
+		/*--------------------------------------------------*/
+		}
 
 		break;
 	/*--------------------------------------------------*/
@@ -299,6 +320,43 @@ void DisplayConfigLine(char lineNumber)
 		case SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD:
 
 			TAP_SPrint( str,"YYYY/MM/DD");
+
+			break;
+		/*--------------------------------------------------*/			
+		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM:
+
+			TAP_SPrint( str,"DD.MM");
+
+			break;
+
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_MM_DOT_DD:
+
+			TAP_SPrint( str,"MM.DD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DDMM:
+
+			TAP_SPrint( str,"DDMM");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_MMDD:
+
+			TAP_SPrint( str,"MMDD");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM:
+
+			TAP_SPrint( str,"DD/MM");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD:
+			
+			TAP_SPrint( str,"MM/DD");
 
 			break;
 		/*--------------------------------------------------*/
@@ -529,7 +587,45 @@ void ConfigActionHandler(dword key)
 
 		break;
 	/*--------------------------------------------------*/
-	case 2 :								// Language
+	case 2 :								// Keyboard
+
+		switch ( key )
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+
+			if(keyboardLanguage < KEYBOARD_GERMAN)
+			{
+				keyboardLanguage++;
+			}
+			else
+			{
+				keyboardLanguage = KEYBOARD_ENGLISH;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		case RKEY_VolDown:
+
+			if(keyboardLanguage > KEYBOARD_ENGLISH)
+			{
+				keyboardLanguage--;
+			}
+			else
+			{
+				keyboardLanguage = KEYBOARD_GERMAN;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
+		default :
+			break;
+		/*--------------------------------------------------*/
+		}
 
 		break;
 	/*--------------------------------------------------*/
@@ -721,7 +817,7 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(schMainDateFormat < SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD)
+			if(schMainDateFormat < SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD)
 			{
 				schMainDateFormat++;
 			}
@@ -742,7 +838,7 @@ void ConfigActionHandler(dword key)
 			}
 			else
 			{
-				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD;
+				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD;
 			}
 
 			DisplayConfigLine( chosenConfigLine );

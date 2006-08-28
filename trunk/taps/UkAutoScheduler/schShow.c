@@ -4,6 +4,8 @@ This module displays the schedules
 
   v0.0 sl8:	11-04-06	Inception date
   v0.1 sl8:	20-04-06	Record added. General improvements.
+  v0.2 sl8:	28-08-06	Display 'R!' if found programme will be recorded by a modified timer.
+				EPG qualifier. Prevent duplicate ITV programmes from being dipslayed.
 
 **************************************************************/
 
@@ -60,6 +62,7 @@ typedef struct
 	int	svcNum;
 	int	svcType;
 	bool	timerSet;
+	bool	modifiedTimerSet;
 	bool	timerConflict;
 	byte	isRec;
 }schShowResultsStruct;
@@ -175,6 +178,19 @@ void schShowDrawText(int line, int dispLine)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_redcircleGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
+		}
+		else
+		{
+			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_greencircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
+		}
+	}
+	else if(schShowResultsPtr[line-1]->modifiedTimerSet == TRUE)
+	{
+		if(schShowResultsPtr[line-1]->isRec == 1)
+		{
+			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_redcircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R!", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
@@ -791,6 +807,7 @@ void schShowService( void )
 	static word schShowStartChannelIndex = 0;
 	static word schShowEndChannelIndex = 0;
 	static int schShowEpgIndex = 0;
+	static int schShowLastEpgIndex = 0;
 	static int schShowEpgTotalEvents = 0;
 	static byte schShowProgress = 0;
 	static dword schShowLastTickCount;
@@ -930,7 +947,9 @@ void schShowService( void )
 				schShowNumberOfResults++;
 			}
 
-			schShowEpgIndex++;
+			schShowLastEpgIndex = schShowEpgIndex;			
+
+			schShowServiceSV = SCH_SHOW_SERVICE_NEXT_EVENT;
 		}
 		else
 		{
@@ -938,6 +957,24 @@ void schShowService( void )
 		}
 
 		break;
+	/*--------------------------------------------------*/
+	case SCH_SHOW_SERVICE_NEXT_EVENT:
+
+		schShowEpgIndex++;
+
+		if(schShowEpgIndex < schShowEpgTotalEvents)
+		{
+			if(schEpgData[schShowEpgIndex].startTime != schEpgData[schShowLastEpgIndex].startTime)
+			{
+				schShowServiceSV = SCH_SHOW_SERVICE_PERFORM_SEARCH;
+			}
+		}
+		else
+		{
+			schShowServiceSV = SCH_SHOW_SERVICE_NEXT_CHANNEL;
+		}
+		
+		break;	
 	/*--------------------------------------------------*/
 	case SCH_SHOW_SERVICE_NEXT_CHANNEL:
 
@@ -1175,6 +1212,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 	TYPE_TimerInfo	timerInfo;
 
 	schShowResults[schShowResultIndex].timerSet = FALSE;
+	schShowResults[schShowResultIndex].modifiedTimerSet = FALSE;
 
 	numberOfTimers = TAP_Timer_GetTotalNum();
 
@@ -1193,20 +1231,40 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 
 			if
 			(
-				(timerStartTimeInMins == (resultStartTimeInMins - searchStartPaddingInMins))
-				&&
-				(timerDurationTimeInMins == (resultDurationTimeInMins + searchStartPaddingInMins + searchEndPaddingInMins))
-				&&
 				(timerInfo.svcNum == schShowResults[schShowResultIndex].svcNum)
 				&&
 				(timerInfo.svcType == schShowResults[schShowResultIndex].svcType)
 			)
 			{
-				schShowResults[schShowResultIndex].timerSet = TRUE;
+				if
+				(
+					(timerStartTimeInMins == (resultStartTimeInMins - searchStartPaddingInMins))
+					&&
+					(timerDurationTimeInMins == (resultDurationTimeInMins + searchStartPaddingInMins + searchEndPaddingInMins))
+				)
+				{
+					schShowResults[schShowResultIndex].timerSet = TRUE;
 
-				schShowResults[schShowResultIndex].isRec = timerInfo.isRec;
+					schShowResults[schShowResultIndex].isRec = timerInfo.isRec;
 
-				found = TRUE;
+					found = TRUE;
+				}
+				else if
+				(
+					(timerStartTimeInMins <= resultStartTimeInMins)
+					&&
+					((timerStartTimeInMins + timerDurationTimeInMins) >= (resultStartTimeInMins + resultDurationTimeInMins))
+				)
+				{
+					schShowResults[schShowResultIndex].modifiedTimerSet = TRUE;
+
+					schShowResults[schShowResultIndex].isRec = timerInfo.isRec;
+
+					found = TRUE;
+				}
+				else
+				{
+				}
 			}
 		}
 	}

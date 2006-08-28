@@ -4,7 +4,7 @@
 
 Name	: Common.c
 Author	: Darkmatter
-Version	: 0.8
+Version	: 0.9
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -19,6 +19,7 @@ v0.5 sl8:		09-03-06	Folder, Remote and log archive modifications
 v0.6 sl8		11-04-06	Show window added and tidy up.
 v0.7 sl8		08-05-06	API move added.
 v0.8 sl8		05-08-06	Keep added.
+v0.9 sl8		28-08-06	Keyboard types.
 
 ************************************************************/
 
@@ -201,6 +202,9 @@ static word schMainChangeDirSuccess = 0;
 static word schMainChangeDirFail = 0;
 
 static bool schKeepAvailable = FALSE;
+
+static byte keyboardLanguage = KEYBOARD_ENGLISH;
+
 
 enum
 {

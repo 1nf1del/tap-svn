@@ -5,7 +5,7 @@
 
 Name	: Keyboard.c
 Author	: Darkmatter
-Version	: 0.4
+Version	: 0.5
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -15,6 +15,9 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 	  v0.2 sl8:		20-01-06	All variables initialised
 	  v0.3 sl8:		09-02-06	Colon added
 	  v0.4 sl8:		08-05-06	'/' added
+	  v0.5 sl8		28-08-06	Finnish and German keyboard added.
+						'/' now reverts next character back to a capital
+						 when 'Abc' mode selected.
 
 **************************************************************/
 
@@ -279,22 +282,93 @@ char KeyboardSelection( int row, int column )
 	
 	switch ( keyboardListType )												// set up the selections strings
 	{																		// avoid windows characters of \/:*?"<>|
-		case 0 :	strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ  /" ); break;
+	/* ---------------------------------------------------------------------------- */
+	case 0:
+		switch ( keyboardLanguage )												// set up the selections strings
+		{																		// avoid windows characters of \/:*?"<>|
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_ENGLISH:
+
+			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ      /" );
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_FINNISH:
+
+			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ   /" );
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_GERMAN:
+
+			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖßÜ  /" );
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		default:
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		}
 		
-		case 1 :	strcpy( str, "abcdefghijklmnopqrstuvwxyz" ); break;
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case 1:
+		switch ( keyboardLanguage )												// set up the selections strings
+		{																		// avoid windows characters of \/:*?"<>|
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_ENGLISH:
 
-		case 2 :	strcpy( str, "&!£$#%+-^~=(){}[]_.,;@'0123456789" ); break;
+			strcpy( str, "abcdefghijklmnopqrstuvwxyz      /" );
 
-		case 3 :	strcpy( str, "©®¢¥§µ¶°¹²³¼½¾«»¤·÷±¨¡¦¬­¯´ª¸º¿:" ); break;
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_FINNISH:
 
-		default :	break;
+			strcpy( str, "abcdefghijklmnopqrstuvwxyzåäö   /" );
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case KEYBOARD_GERMAN:
+
+			strcpy( str, "abcdefghijklmnopqrstuvwxyzäößü  /" );
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		default:
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		}
+				
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case 2:
+		strcpy( str, "&!£$#%+-^~=(){}[]_.,;@'0123456789" );
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case 3:
+		strcpy( str, "©®¢¥§µ¶°¹²³¼½¾«»¤·÷±¨¡¦¬­¯´ª¸º¿:" );
+		
+		break;
+	/* ---------------------------------------------------------------------------- */
+	default:
+
+		break;
+	/* ---------------------------------------------------------------------------- */
 	}
 
 	count = (row*7) + column;											// Calculate the offset of the requested character
 
-	if ( count < (strlen( str )) ) return str[count];					// bounds check before returning the character
-	else return ' ';
-
+	if( count < (strlen( str )) )
+	{
+		return str[count];					// bounds check before returning the character
+	}
+	else
+	{
+		return ' ';
+	}
 }
 
 
@@ -515,48 +589,94 @@ void AppendCharacter( char newCharacter, TYPE_EntryType entryType )
 	{
 #ifdef WIN32  // If testing on WIN32 platform don't include sound playback.
 #else
-       TAP_PlayPCM( (void *)_ticData, _ticSize, FREQ_48K, NULL );   	
+		TAP_PlayPCM( (void *)_ticData, _ticSize, FREQ_48K, NULL );   	
 #endif
-       remoteKeyActive = FALSE;  // Clear any number waiting flag.
-       return;
+		remoteKeyActive = FALSE;  // Clear any number waiting flag.
+		return;
 	}   
 
 	memset( str, '\0', sizeof(str) );									// much safer to capture any duff processing
 
-    switch (caseMode)
-    {
-         case 0:  // word case, i.e. upper if at start of buffer or previous char is space, else lower
-                  bLowerCase = FALSE;
-                  if (currentIndex > 0)
-                  {
-                      if (currentString[currentIndex - 1] != 32)
-                         bLowerCase = TRUE;
-                  }
-                  break;
-         
-         case 1: bLowerCase = FALSE; break;
-         
-         case 2: bLowerCase = TRUE; break;
-    }
+	switch (caseMode)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case 0:  // word case, i.e. upper if at start of buffer or previous char is space, else lower
 
-    if (bLowerCase)
-    {
-       if (newCharacter >= 65 && newCharacter <= 90)
-          newCharacter += 32;
-    }
+		bLowerCase = FALSE;
+		if (currentIndex > 0)
+		{
+			if
+			(
+				(currentString[currentIndex - 1] != ' ')
+				&&
+				(currentString[currentIndex - 1] != '/')
+			)
+			{
+				bLowerCase = TRUE;
+			}
+		}
 
-	if ( currentIndex > 0 )	strncpy( str, currentString, currentIndex);		// copy up to the cursor
+		break;
+	/* ---------------------------------------------------------------------------- */         
+	case 1:
+		bLowerCase = FALSE;
+		
+		break;
+	/* ---------------------------------------------------------------------------- */         
+	case 2:
+		bLowerCase = TRUE;
+		
+		break;
+	/* ---------------------------------------------------------------------------- */         
+	default:
+
+		break;
+	/* ---------------------------------------------------------------------------- */         
+	}
+
+	if (bLowerCase)
+	{
+		if(newCharacter >= 65 && newCharacter <= 90)
+		{
+			newCharacter += 32;
+		}
+		else if(newCharacter == 'Å')
+		{
+			newCharacter = 'å';
+		}
+		else if(newCharacter == 'Ä')
+		{
+			newCharacter = 'ä';
+		}
+		else if(newCharacter == 'Ö')
+		{
+			newCharacter = 'ö';
+		}
+		else if(newCharacter == 'Ü')
+		{
+			newCharacter = 'ü';
+		}
+		else
+		{
+		}
+	}
+
+	if ( currentIndex > 0 )
+	{
+		strncpy( str, currentString, currentIndex);		// copy up to the cursor
+	}
+
 	str[ currentIndex ] = newCharacter;										// Insert the new character
 
-    tempInsertMode = insertMode;
+	tempInsertMode = insertMode;
 
-    // If the key was entered via the numberpad and it is not the first press of this key, then switch to OVERWRITE mode.
-    if ((entryType == Remote)   && (!remoteKeyFirstPress)) tempInsertMode = OVERWRITE_MODE;  // If still waiting for remote digit key to clear, force overwrite mode.
+	// If the key was entered via the numberpad and it is not the first press of this key, then switch to OVERWRITE mode.
+	if ((entryType == Remote)   && (!remoteKeyFirstPress)) tempInsertMode = OVERWRITE_MODE;  // If still waiting for remote digit key to clear, force overwrite mode.
 
-    // If the letter was from the normal keyboard and there's still a key from the numberpad waiting, switch to OVERWRITE mode to clear it.
-    if ((entryType == Keyboard) && (remoteKeyActive)) tempInsertMode = OVERWRITE_MODE;  // If still waiting for remote digit key to clear, force overwrite mode.
+	// If the letter was from the normal keyboard and there's still a key from the numberpad waiting, switch to OVERWRITE mode to clear it.
+	if ((entryType == Keyboard) && (remoteKeyActive)) tempInsertMode = OVERWRITE_MODE;  // If still waiting for remote digit key to clear, force overwrite mode.
 
-    if (entryType == Keyboard)    remoteKeyActive=FALSE;   // Flag that we've cleared any waiting numberpad keys.
+	if (entryType == Keyboard)    remoteKeyActive=FALSE;   // Flag that we've cleared any waiting numberpad keys.
     
 	for ( i=currentIndex; i<len ;i++ )									// copy the rest of the string (if any)
 	{
@@ -566,7 +686,6 @@ void AppendCharacter( char newCharacter, TYPE_EntryType entryType )
 	strcpy( currentString, str );
 	if (entryType == Keyboard) currentIndex++;
 	DisplayCurrentString( TRUE );
-
 }
 
 

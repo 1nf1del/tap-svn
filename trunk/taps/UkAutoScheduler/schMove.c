@@ -6,6 +6,7 @@ v0.0 sl8:	09-03-06	Inception date
 v0.1 sl8:	11-04-06	Tidy up.
 v0.2 sl8:	08-05-06	API move added.
 v0.3 sl8:	05-08-06	Renames file if file name already exists in target folder.
+v0.4 sl8:	28-08-06	Process the move list in reverse order.
 
 **************************************************************/
 
@@ -75,7 +76,8 @@ void schMoveService(void)
 			(schKeepServiceSV == SCH_KEEP_SERVICE_WAIT_TO_CHECK)
 		)
 		{
-			schMoveIndex = 0;
+
+			schMoveIndex = schMainTotalValidMoves - 1;
 
 			schMoveCurrentTime = (schTimeMjd << 16) + (schTimeHour << 8) + schTimeMin;
 
@@ -340,9 +342,13 @@ void schMoveService(void)
 	/*--------------------------------------------------*/
 	case SCH_MOVE_SERVICE_NEXT_MOVE:
 
-		schMoveIndex++;
+		if(schMoveIndex > 0)
+		{
+			schMoveIndex--;
 
-		if(schMoveIndex >= schMainTotalValidMoves)
+			schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_MOVE;
+		}
+		else
 		{
 			if(schMoveExpired == TRUE)
 			{
@@ -352,10 +358,6 @@ void schMoveService(void)
 			{
 				schMoveServiceSV = SCH_MOVE_SERVICE_COMPLETE;
 			}
-		}
-		else
-		{
-			schMoveServiceSV = SCH_MOVE_SERVICE_CHECK_MOVE;
 		}
 
 		break;
