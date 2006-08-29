@@ -27,7 +27,6 @@
 #include <model.h>
 #include "epg.h"
 
-
 #if defined(CT)
 #define POSTFIX " CT"
 #elif defined(NG)
@@ -37,7 +36,7 @@
 #endif
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 1.5" POSTFIX);
+TAP_PROGRAM_NAME("DescriptionExtender 1.6" POSTFIX);
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);
@@ -101,10 +100,13 @@ FirmwareDetail firmware[] =
 	TF5800t,		0x1205,		0x8032e818,		5000,	1,		// 07 Sept 2005
 	TF5800t,		0x1204,		0x8032e698,		5000,	1,		// 01 Sept 2005
 	
+	TF5000t,		0x1212,		0x8028ebf4,		5000,	1,		// 05 Oct 2005
+
 	TF5000_5500,	0x1205,		0x802d6bb4,		5000,	1,		// 13 Sept 2005
 	
 	TF5010_5510,	0x1212,		0x802d84e0,		4000,	1,		// 05 Oct 2005
 	
+	TF5100c,		0x1281,		0x802b74c4,		5000,	1,		// 12 Jun 2006
 	TF5100c,		0x1264,		0x802b5be4,		5000,	1,		// 19 Apr 2006
 	TF5100c,		0x1260,		0x802b5498,		5000,	1,		// 15 Mar 2006
 	TF5100c,		0x1248,		0x802b5120,		5000,	1,		// 20 Feb 2006
@@ -157,38 +159,132 @@ FirmwareDetail* GetFirmwareDetail()
 		);
 }
 
-
-char* GetGenreName( byte genre )
+typedef struct
 {
-	return 
-		genre == 0 ?  "Unclassified" :
-		genre == 1 ?  "Movie/Drama" :
-		genre == 2 ?  "News" :
-		genre == 3 ?  "Show/Game" :
-		genre == 4 ?  "Sport" :
-		genre == 5 ?  "Children" :
-		genre == 6 ?  "Music/Dance" :
-		genre == 7 ?  "Arts/Culture" :
-		genre == 8 ?  "Social" :
-		genre == 9 ?  "Education" :
-		genre == 10 ? "Leisure" : "Unclassified";
+    byte genre;
+    byte subgenre;
+    byte description[0x40];
+} GenreTable;
 
-/*	switch (genre)
+GenreTable genres[] = {
+    { 0x0,0x00,"Unclassified" },
+
+    { 0x1,0x00,"Movie/Drama" },
+    { 0x1,0x01,"detective/thriller" },
+    { 0x1,0x02,"adventure/western/war" },
+    { 0x1,0x03,"science fiction/fantasy/horror" },
+    { 0x1,0x04,"comedy" },
+    { 0x1,0x05,"soap/melodrama/folkloric" },
+    { 0x1,0x06,"romance" },
+    { 0x1,0x07,"serious/classical/religious/historical movie/drama" },
+    { 0x1,0x08,"adult movie/drama" },
+
+    { 0x2,0x00,"News/Current Affairs" },
+    { 0x2,0x01,"news/weather report" },
+    { 0x2,0x02,"news magazine" },
+    { 0x2,0x03,"documentary" },
+    { 0x2,0x04,"discussion/interview/debate" },
+
+    { 0x3,0x00,"Show/Game Show" },
+    { 0x3,0x01,"game show/quiz/contest" },
+    { 0x3,0x02,"variety show" },
+    { 0x3,0x03,"talk show" },
+
+    { 0x4,0x00,"Sports" },
+    { 0x4,0x01,"special sports events" },
+    { 0x4,0x02,"sports magazines" },
+    { 0x4,0x03,"football/soccer" },
+    { 0x4,0x04,"tennis/squash" },
+    { 0x4,0x05,"team sports" },
+    { 0x4,0x06,"athletics" },
+    { 0x4,0x07,"motor sport" },
+    { 0x4,0x08,"water sport" },
+    { 0x4,0x09,"winter sports" },
+    { 0x4,0x0a,"equestrian" },
+    { 0x4,0x0b,"martial sports" },
+
+    { 0x5,0x00,"Children's/Youth Programmes" },
+    { 0x5,0x01,"pre-school children's programmes" },
+    { 0x5,0x02,"entertainment programmes for 6 to 14" },
+    { 0x5,0x03,"entertainment programmes for 10 to 16" },
+    { 0x5,0x04,"informational/educational/school programmes" },
+    { 0x5,0x05,"cartoons/puppets" },
+
+    { 0x6,0x00,"Music/Ballet/Dance" },
+    { 0x6,0x01,"rock/pop" },
+    { 0x6,0x02,"serious music/classical music" },
+    { 0x6,0x03,"folk/traditional music" },
+    { 0x6,0x04,"jazz" },
+    { 0x6,0x05,"musical/opera" },
+    { 0x6,0x06,"ballet" },
+
+    { 0x7,0x00,"Arts/Culture (without music)" },
+    { 0x7,0x01,"performing arts" },
+    { 0x7,0x02,"fine arts" },
+    { 0x7,0x03,"religion" },
+    { 0x7,0x04,"popular culture/traditional arts" },
+    { 0x7,0x05,"literature" },
+    { 0x7,0x06,"film/cinema" },
+    { 0x7,0x07,"experimental film/video" },
+    { 0x7,0x08,"broadcasting/press" },
+    { 0x7,0x09,"new media" },
+    { 0x7,0x0a,"arts/culture magazines" },
+    { 0x7,0x0b,"fashion" },
+
+    { 0x8,0x00,"Social/Political Issues/Economics" },
+    { 0x8,0x01,"magazines/reports/documentary" },
+    { 0x8,0x02,"economics/social advisory" },
+    { 0x8,0x03,"remarkable people" },
+
+    { 0x9,0x00,"Education/Science/Factual Topics" },
+    { 0x9,0x01,"nature/animals/environment" },
+    { 0x9,0x02,"technology/natural sciences" },
+    { 0x9,0x03,"medicine/physiology/psychology" },
+    { 0x9,0x04,"foreign countries/expeditions" },
+    { 0x9,0x05,"social/spiritual sciences" },
+    { 0x9,0x06,"further education" },
+    { 0x9,0x07,"languages" },
+
+    { 0xa,0x00,"Leisure Hobbies" },
+    { 0xa,0x01,"tourism/travel" },
+    { 0xa,0x02,"handicraft" },
+    { 0xa,0x03,"motoring" },
+    { 0xa,0x04,"fitness & health" },
+    { 0xa,0x05,"cooking" },
+    { 0xa,0x06,"advertisement/shopping" },
+    { 0xa,0x07,"gardening" },
+
+    { 0xb,0x00,"Original Language" },
+    { 0xb,0x01,"black and white" },
+    { 0xb,0x02,"unpublished" },
+    { 0xb,0x03,"live broadcast" },
+
+	{ 0xff, 0xff, "" }
+};
+
+
+GenreTable* GetGenreTable()
+{
+	__asm__ __volatile__ (
+		"lui	$02,0x0\n"
+		"or		$02,$02,0x0\n"
+		"nop\n"
+		);
+}
+
+
+
+char* GetGenreName( byte genre, byte subgenre )
+{
+	int i;
+	if (subgenre>0)
+		FW_Print("%d %d\n", genre,subgenre);
+    for ( i=0; genres[i].genre != 0xff; ++i )
 	{
-	case 0:		return "Unclassified";
-	case 1:		return "Film/Drama";
-	case 2:		return "News";
-	case 3:		return "Show/Game";
-	case 4:		return "Sport";
-	case 5:		return "Children";
-	case 6:		return "Music/Dance";
-	case 7:		return "Arts/Culture";
-	case 8:		return "Social";
-	case 9:		return "Education";
-	case 10:	return "Leisure";
-	}
-	return "Unclassified";
-*/
+        if ( genres[i].genre == genre && genres[i].subgenre == subgenre )
+            return genres[i].description;
+    }
+    return genres[0].description;
 }
 
 
@@ -307,32 +403,55 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 						int descriptionLength = 0;
 						char* genre;
 						int genreLength = 0;
+						bool addSpace = FALSE;
 
+						// Calculate how much memory will be needed for the text
 						// Description is in the 250 byte event name block immediately after event name (no zero terminator)
-						byte *description = e->event_name;
+						byte* description = e->event_name;
 						if ( description )
 						{
 							description += e->event_name_length;
 							descriptionLength = strlen(description);
 							if ( descriptionLength > 127 )
-								outputLength += descriptionLength + 1;
+							{
+								outputLength += descriptionLength;
+								addSpace = TRUE;
+							}
 						}
+
 						// Add on the extended info length, plus space for a zero terminator
 						if ( e->extended_length > 0 )
+						{
+#ifndef CT
+							// only append an additional space if there is already some extended info to append
+							if ( addSpace )
+								++outputLength;
+#endif
 							outputLength += e->extended_length + 1;
+							addSpace = FALSE;
+						}
 
 #ifndef NG
 						// Add on the genre length, plus space for brackets and a zero terminator
-						genre = GetGenreName( e->char74 );
+						genre = GetGenreName( e->genre, e->subgenre );
 						if ( genre )
 						{
-							genreLength = strlen( genre );
+							genreLength = strlen(genre);
+							if ( addSpace )
+								++outputLength;
 							outputLength += genreLength + 3;
+
 						}
 #endif
+
+						// Add one more for an additional terminator
+						++outputLength;
+
 						// If there's going to be something worth returning
 						if ( outputLength > 0 )
 						{
+							bool addSpace = FALSE;
+
 							// allocate memory, plus space for a zero terminator
 							result = FW_MemAlloc( outputLength+1 );
 							if ( result )
@@ -342,34 +461,37 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 								if ( descriptionLength > 127 )
 								{
 									memcpy( p, description, descriptionLength );
-#ifndef CT
-									// only append an additional space if there is extended info to append
-									if ( e->extended_length > 0 )
-									{
-										p[descriptionLength] = ' ';
-										++p;
-									}
-#endif
 									p += descriptionLength;
+									addSpace = TRUE;
 								}
+
 								// Append the existing extended infomation
 								if ( e->extended_length > 0 )
 								{
+#ifndef CT
+									// only append an additional space if there is extended info to append
+									if ( addSpace )
+										*p++ = ' ';
+#endif
 									memcpy( p, e->extended_event_name, e->extended_length );
 									p[e->extended_length] = '\0';
 									p += e->extended_length + 1;
+									addSpace = FALSE;
 								}
-#ifndef NG
+
 								// Append the genre
 								if ( genre )
 								{
+									if ( addSpace )
+										*p++ = ' ';
+
 									*p++ = '[';
 									memcpy( p, genre, genreLength );
 									p += genreLength;
 									*p++ = ']';
 									*p++ = '\0';
 								}
-#endif
+
 								// And terminate with an additional terminator
 								p[0] = '\0';
 							}
@@ -414,6 +536,9 @@ int TAP_Main(void)
 	// We need to know the address of the firmware event table without needing to use $gp
 	((word*)GetFirmwareDetail)[1] = ((dword)(firmware+index) >> 16) & 0xffff;
 	((word*)GetFirmwareDetail)[3] = (dword)(firmware+index) & 0xffff;
+
+	((word*)GetGenreTable)[1] = ((dword)genres >> 16) & 0xffff;
+	((word*)GetGenreTable)[3] = ((dword)genres) & 0xffff;
 
 	// Replace TAP_EPG_GetExtInfo with a jump to our GetEventDescription function
 	HackFirmware( (dword*)TAP_EPG_GetExtInfo, firmware[index].eventTableType == 1 ? J(GetEventDescriptionv1) : J(GetEventDescriptionv2) );
