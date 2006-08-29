@@ -18,6 +18,7 @@ v0.8 sl8:	07-06-06	Bug fix - 1 hour padding caused incorrect start/end times.
 v0.9 sl8:	05-08-06	Search ahead, Date, Time format. Keep feature.
 v0.10 SgtWilko:	28-08-06	Added conflict handling code.
 v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats added.
+v0.12 sl8	29-08-06	Ignore character table code in event name is present
 
 **************************************************************/
 
@@ -485,6 +486,12 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 				((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) != SCH_USER_DATA_OPTIONS_EXACT_MATCH)
 				||
 				(strlen(epgData[epgDataIndex].eventName) == strlen(schUserData[schSearch].searchTerm))
+				||
+				(
+					(epgData[epgDataIndex].eventName[0] <= 0x1F)	// Ignore character table code
+					&&
+					((strlen(epgData[epgDataIndex].eventName) - 1) == strlen(schUserData[schSearch].searchTerm))
+				)
 			)
 		)
 		{
