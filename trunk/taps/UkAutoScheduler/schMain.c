@@ -19,6 +19,7 @@ v0.9 sl8:	05-08-06	Search ahead, Date, Time format. Keep feature.
 v0.10 SgtWilko:	28-08-06	Added conflict handling code.
 v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats added.
 v0.12 sl8	29-08-06	Ignore character table code in event name is present
+v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
 
 **************************************************************/
 
@@ -28,8 +29,7 @@ v0.12 sl8	29-08-06	Ignore character table code in event name is present
 #define SCH_MAIN_DELAY_SEARCH_ALARM		1
 #endif
 
-#define SCH_MAX_FILE_LENGTH			30	// Max length of file name in archive - 4 (.rec)
-#define SCH_MAX_FILENAME_LENGTH			50	// Max Length of filename used for multi timers.
+#define SCH_MAX_FILENAME_LENGTH			40	// Max Length of filename - 4 (.rec)
 
 bool schMainCompareStrings(char *, char *);
 bool schMainPerformSearch(TYPE_TapEvent *, int, int);
@@ -820,9 +820,9 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	strcat(fileNameStr,prefixStr);
 
 	longName = FALSE;
-	if((strlen(prefixStr) + strlen(eventName) + strlen(appendStr)) > SCH_MAX_FILE_LENGTH)
+	if((strlen(prefixStr) + strlen(eventName) + strlen(appendStr)) > SCH_MAX_FILENAME_LENGTH)
 	{
-		strncat(fileNameStr, eventName, (SCH_MAX_FILE_LENGTH - strlen(prefixStr) - strlen(appendStr)));
+		strncat(fileNameStr, eventName, (SCH_MAX_FILENAME_LENGTH - strlen(prefixStr) - strlen(appendStr)));
 
 		longName = TRUE;
 	}
@@ -868,7 +868,11 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	schTimerInfo.startTime = (schTimerStartMjd << 16) + (schTimerStartHour << 8) + schTimerStartMin;
 	strcpy(schTimerInfo.fileName, fileNameStr);
 
+#ifndef WIN32
 	timerError = TAP_Timer_Add(&schTimerInfo);
+#else
+	timerError = TAP_Timer_Add_SDK(&schTimerInfo);
+#endif
 	if ((timerError==1) || (timerError==2)){
 		// 1 - Can't add
 		// 2 - Invalid Tuner
@@ -945,10 +949,18 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 					
 					//sprintf( logBuffer, "//New Timer includes all of old timer, remove old timer and add new timer.");
 					if (TAP_Timer_Delete((timerError&0x0000ffff))) {
+#ifndef WIN32
 						timerError = TAP_Timer_Add(&schTimerInfo);
+#else
+						timerError = TAP_Timer_Add_SDK(&schTimerInfo);
+#endif
 						//Did it add OK?
 						if (timerError!=0) { //No it didn't restore old timer (Run Away, Run Away!!!)
+#ifndef WIN32
 							if (TAP_Timer_Add(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
+#else
+							if (TAP_Timer_Add_SDK(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
+#endif
 								sprintf( logBuffer, "//bugger, unable to recreate deleted timer.");
 								logStoreEvent(logBuffer);
 							}
@@ -1013,7 +1025,11 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 				strcat(fileNameStr,appendStr);
 				strcat(fileNameStr,".rec");
 				strcpy(conflictTimerInfo.fileName, fileNameStr);
+#ifndef WIN32
 				timerError=TAP_Timer_Modify((timerError&0x0000ffff), &conflictTimerInfo);
+#else
+				timerError=TAP_Timer_Modify_SDK((timerError&0x0000ffff), &conflictTimerInfo);
+#endif
 				if (timerError!=0){
 					sprintf( logBuffer, "Modify timer error %d", timerError);
 					logStoreEvent(logBuffer);

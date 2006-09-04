@@ -35,7 +35,7 @@ bool sdkRetreiveXmlData(void)
 	word	startMjd = 0, endMjd = 0;
 	byte	startHour = 0, endHour = 0;
 	byte	startMin = 0, endMin = 0;
-	int	bufferIndex = 0;
+	int	bufferIndex = 0, numberOfTimers = 0;
 	int	elementIndex = 0;
 	int	i = 0, j = 0;
 	char	*buffer = NULL;
@@ -43,6 +43,19 @@ bool sdkRetreiveXmlData(void)
 	char	channelBuffer[128];
 	char	buffer1[256];
 	bool	found = FALSE;
+
+
+	// Delete all timers
+
+	numberOfTimers = TAP_Timer_GetTotalNum();
+
+	if(numberOfTimers > 0)
+	{
+		for(i = 0; (i < numberOfTimers); i++ )
+		{
+			TAP_Timer_Delete(i);
+		}
+	}
 
 	GotoProgramFiles();
 
@@ -300,4 +313,95 @@ void TAP_EPG_GetExtInfo_SDK(word channel, int schEpgIndex, byte* schExtInfo)
 //	return &(sdkEpgData[channel].eventData[schEpgIndex].description[0]);
 }
 
+int TAP_Timer_Add_SDK(TYPE_TimerInfo *newTimerInfo)
+{
+	int numberOfTimers = 0, i = 0, timerError = 0;
+	bool conflict = FALSE;
+	TYPE_TimerInfo setTimerInfo;
+	TYPE_TimerInfo	copyInfo;
+	dword	newTimerStartTimeInMins = 0, newTimerEndTimeInMins = 0;
+	dword	setTimerStartTimeInMins = 0, setTimerEndTimeInMins = 0;
+	char buffer1[256];
+
+
+	newTimerStartTimeInMins = (((newTimerInfo->startTime >> 16) & 0xFFFF) * 24 * 60) + (((newTimerInfo->startTime >> 8) & 0xFF) * 60) + (newTimerInfo->startTime & 0xFF);
+	newTimerEndTimeInMins = newTimerStartTimeInMins + (((newTimerInfo->duration >> 8) & 0xFF) * 60) + (newTimerInfo->duration & 0xFF);
+
+	numberOfTimers = TAP_Timer_GetTotalNum();
+
+	if(numberOfTimers > 0)
+	{
+		for(i = 0; ((i < numberOfTimers) && (conflict == FALSE)); i++ )
+		{
+			if(TAP_Timer_GetInfo(i, &setTimerInfo ))
+			{
+				setTimerStartTimeInMins = (((setTimerInfo.startTime >> 16) & 0xFFFF) * 24 * 60) + (((setTimerInfo.startTime >> 8) & 0xFF) * 60) + (setTimerInfo.startTime & 0xFF);
+				setTimerEndTimeInMins = setTimerStartTimeInMins + (((setTimerInfo.duration >> 8) & 0xFF) * 60) + (setTimerInfo.duration & 0xFF);
+
+				if
+				(
+					(setTimerInfo.svcNum == newTimerInfo->svcNum)
+					&&
+					(setTimerInfo.svcType == newTimerInfo->svcType)
+					&&
+					(
+						(
+							(newTimerStartTimeInMins > setTimerStartTimeInMins)
+							&&
+							(newTimerStartTimeInMins < setTimerEndTimeInMins)
+						)
+						||
+						(
+							(newTimerEndTimeInMins > setTimerStartTimeInMins)
+							&&
+							(newTimerEndTimeInMins < setTimerEndTimeInMins)
+						)
+					)
+				)
+				{
+					conflict = TRUE;
+
+					timerError = 0xFFFF0000 | i;
+				}
+			}
+		}
+	}
+
+	if(conflict == FALSE)
+	{
+		copyInfo.isRec = newTimerInfo->isRec;
+		copyInfo.tuner = 3;
+		copyInfo.svcType = newTimerInfo->svcType;
+		copyInfo.reserved = 0;	
+		copyInfo.svcNum = newTimerInfo->svcNum;
+		copyInfo.reservationType = 0;
+		copyInfo.nameFix = 1;
+		copyInfo.duration = newTimerInfo->duration;
+		copyInfo.startTime = newTimerInfo->startTime;
+		strcpy(copyInfo.fileName, newTimerInfo->fileName);
+
+		timerError = TAP_Timer_Add(&copyInfo);
+	}
+
+//sprintf(buffer1,"timerError - %x\r\n",timerError);
+//TAP_Print(buffer1);
+
+	return timerError;
+}
+
+
+
+int TAP_Timer_Modify_SDK(int entryNum, TYPE_TimerInfo *newTimerInfo)
+{
+	TYPE_TimerInfo setTimerInfo;
+
+	TAP_Timer_GetInfo(entryNum, &setTimerInfo );
+
+	TAP_Timer_Delete(entryNum);
+
+	if(TAP_Timer_Add_SDK(newTimerInfo) != 0)
+	{
+		TAP_Timer_Add_SDK(&setTimerInfo);
+	}
+}
 

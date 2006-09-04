@@ -6,6 +6,7 @@ This module displays the schedules
   v0.1 sl8:	20-04-06	Record added. General improvements.
   v0.2 sl8:	28-08-06	Display 'R!' if found programme will be recorded by a modified timer.
 				EPG qualifier. Prevent duplicate ITV programmes from being dipslayed.
+  v0.3 sl8:	02-09-06	Removed 'R!'. Display 'R-' if timer exists with less padding than requested by schedule.
 
 **************************************************************/
 
@@ -190,7 +191,7 @@ void schShowDrawText(int line, int dispLine)
 		if(schShowResultsPtr[line-1]->isRec == 1)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R!", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, 99, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R-", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
@@ -1203,9 +1204,9 @@ void schShowDrawProgress(byte progress)
 //
 void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 {
-	dword	resultStartTimeInMins = 0, resultDurationTimeInMins = 0;
+	dword	resultStartTimeInMins = 0, resultEndTimeInMins = 0;
 	dword	searchStartPaddingInMins = 0, searchEndPaddingInMins = 0;
-	dword	timerStartTimeInMins = 0, timerDurationTimeInMins = 0;
+	dword	timerStartTimeInMins = 0, timerEndTimeInMins = 0;
 	int	numberOfTimers = 0;
 	int	i = 0;
 	bool	found = FALSE;
@@ -1217,7 +1218,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 	numberOfTimers = TAP_Timer_GetTotalNum();
 
 	resultStartTimeInMins = (((schShowResults[schShowResultIndex].startTime >> 16) & 0xFFFF) * 24 * 60) + (((schShowResults[schShowResultIndex].startTime >> 8) & 0xFF) * 60) + (schShowResults[schShowResultIndex].startTime & 0xFF);
-	resultDurationTimeInMins = (((schShowResults[schShowResultIndex].duration >> 8) & 0xFF) * 60) + (schShowResults[schShowResultIndex].duration & 0xFF);
+	resultEndTimeInMins = resultStartTimeInMins + (((schShowResults[schShowResultIndex].duration >> 8) & 0xFF) * 60) + (schShowResults[schShowResultIndex].duration & 0xFF);
 
 	searchStartPaddingInMins = (((schUserData[schShowSearchIndex].searchStartPadding >> 8) & 0xFF) * 60) + (schUserData[schShowSearchIndex].searchStartPadding & 0xFF);
 	searchEndPaddingInMins = (((schUserData[schShowSearchIndex].searchEndPadding >> 8) & 0xFF) * 60) + (schUserData[schShowSearchIndex].searchEndPadding & 0xFF);
@@ -1227,7 +1228,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 		if(TAP_Timer_GetInfo(i, &timerInfo ))
 		{
 			timerStartTimeInMins = (((timerInfo.startTime >> 16) & 0xFFFF) * 24 * 60) + (((timerInfo.startTime >> 8) & 0xFF) * 60) + (timerInfo.startTime & 0xFF);
-			timerDurationTimeInMins = (((timerInfo.duration >> 8) & 0xFF) * 60) + (timerInfo.duration & 0xFF);
+			timerEndTimeInMins = timerStartTimeInMins + (((timerInfo.duration >> 8) & 0xFF) * 60) + (timerInfo.duration & 0xFF);
 
 			if
 			(
@@ -1238,9 +1239,9 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 			{
 				if
 				(
-					(timerStartTimeInMins == (resultStartTimeInMins - searchStartPaddingInMins))
+					(timerStartTimeInMins <= (resultStartTimeInMins - searchStartPaddingInMins))
 					&&
-					(timerDurationTimeInMins == (resultDurationTimeInMins + searchStartPaddingInMins + searchEndPaddingInMins))
+					(timerEndTimeInMins >= (resultEndTimeInMins + searchEndPaddingInMins))
 				)
 				{
 					schShowResults[schShowResultIndex].timerSet = TRUE;
@@ -1253,7 +1254,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 				(
 					(timerStartTimeInMins <= resultStartTimeInMins)
 					&&
-					((timerStartTimeInMins + timerDurationTimeInMins) >= (resultStartTimeInMins + resultDurationTimeInMins))
+					(timerEndTimeInMins >= resultEndTimeInMins)
 				)
 				{
 					schShowResults[schShowResultIndex].modifiedTimerSet = TRUE;
