@@ -44,7 +44,7 @@ public:
 	void RaiseEventToFirmware(unsigned short event, unsigned long param1, unsigned long param2 );
 	CMainFrame* GetMainFrame();
 	CConfiguration* GetConfig();
-	CString MakeRootPath(CString sPath);
+	CString MakeRootPath(const CString& sPath);
 
 	virtual	void Win_SetTitle( TYPE_Window *win, const char *str, BYTE fntType, BYTE fntSize );
 	virtual void Win_SetColor(TYPE_Window * win, WORD titleBack, WORD titleText, WORD bodyBack, WORD bodyText, WORD border, WORD shadow, WORD dark, WORD light);
@@ -162,6 +162,8 @@ public:
 	virtual bool Hdd_GotoBookmark(void );
 	virtual bool Hdd_SetBookmark(void );
 
+	virtual bool Hdd_Move( char *from_dir, char *to_dir, char *filename );
+
 	// -- STRING FUNCTION ---------------------
 	virtual int Osd_PutS(WORD rgn, DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE bDot, BYTE align);
 	virtual int Osd_GetW(const char *str, BYTE fntType, BYTE fntSize );
@@ -225,7 +227,8 @@ public:
 	bool IsTapExited();
 private:
 	bool NeedsRepaint();
-	CString MakePath(CString sName);
+	CString MakePath(const CString& sName);
+	CString MakeRelativePath(const CString& sName);
 	int CountFilesInCurrentFolder();
 	void PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData);
 	DWORD GetStartClusterHash(const CString& filename);

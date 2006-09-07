@@ -23,10 +23,42 @@
 #include "Iframework.h"
 static IFramework* spFramework = 0;
 
-void SetFramework(IFramework* pFramework)
+
+DWORD _appl_version;
+
+enum
+{
+    oTAP_Hdd_unknown0          = 0x00,  //hdd related, called by debug functions 'rs', 'rc'     -- read sector?
+    oTAP_Hdd_unknown1          = 0x01,  //hdd related, called by debug functions 'ws', 'wc'     -- write sector?
+    oTAP_unknown2              = 0x02,  //writes to eeprom? @ 0xa3ffffe0, 0xa3ffffe1
+    oTAP_Hdd_unknown3          = 0x03,  //ata/dma related, ???
+    oTAP_Hdd_SetBookmark       = 0x04,
+    oTAP_Hdd_GotoBookmark      = 0x05,
+    oTAP_Hdd_ChangePlaybackPos = 0x06,
+    oTAP_ControlEit            = 0x07,
+    oTAP_SetBk                 = 0x08,
+    oTAP_EPG_UpdateEvent       = 0x09,
+    oTAP_EPG_DeleteEvent       = 0x0a,
+    oTAP_EPG_GetExtInfo        = 0x0b,
+    oTAP_Channel_IsStarted     = 0x0c,
+    oTAP_Vfd_GetStatus         = 0x0d,
+    oTAP_Vfd_Control           = 0x0e,
+    oTAP_Vfd_SendData          = 0x0f,
+    oTAP_Win_SetAvtice         = 0x10,
+    oTAP_Win_SetDrawItemFunc   = 0x11,
+    oTAP_SysOsdControl         = 0x12,
+    oTAP_Hdd_Move              = 0x13,
+    oTAP_Osd_unknown20         = 0x14,  //osd related, ???
+};
+
+
+void SetFramework(IFramework* pFramework, DWORD firmwareVersion)
 {
 	spFramework = pFramework;
+	_appl_version = firmwareVersion;
 }
+
+void* impl_TAP_GetSystemProc( int index);
 
 void impl_TAP_SystemProc()
 {
@@ -542,6 +574,11 @@ bool impl_TAP_Hdd_SetBookmark()
 	return spFramework->Hdd_SetBookmark();
 }
 
+bool impl_TAP_Hdd_Move( char *from_dir, char *to_dir, char *filename )
+{
+	return spFramework->Hdd_Move( from_dir, to_dir, filename );
+}
+
 
 // -- STRING FUNCTION ---------------------
 int impl_TAP_Osd_PutS(word rgn, dword x, dword y, dword maxX, const char*  str, word fcolor, word bcolor, byte fntType, byte fntSize, byte bDot, byte align)
@@ -879,11 +916,10 @@ void impl_TAP_Vfd_SendData( byte* data, byte dataLen )
 }
 
 
-
-
 /// Set up the function pointers
 
 // -- SYSTEM FUNCTION ---------------------------------------------------
+extern "C" void*	(*TAP_GetSystemProc)( int ) = &impl_TAP_GetSystemProc;
 void	(*TAP_SystemProc)() = &impl_TAP_SystemProc;
 dword	(*TAP_GetState)( dword* state, dword* subState ) = &impl_TAP_GetState;
 void	(*TAP_ExitNormal)() = &impl_TAP_ExitNormal;
@@ -987,6 +1023,8 @@ bool		(*TAP_Hdd_ChangePlaybackPos)( dword blockPos ) = &impl_TAP_Hdd_ChangePlayb
 bool		(*TAP_Hdd_GotoBookmark)() = &impl_TAP_Hdd_GotoBookmark;
 bool		(*TAP_Hdd_SetBookmark)() = &impl_TAP_Hdd_SetBookmark;
 
+bool		(*TAP_Hdd_Move)(char *from_dir, char *to_dir, char *filename) = &impl_TAP_Hdd_Move;
+
 // -- STRING FUNCTION ---------------------
 int	(*TAP_Osd_PutS)(word rgn, dword x, dword y, dword maxX, const char*  str, word fcolor, word bcolor, byte fntType, byte fntSize, byte bDot, byte align) = &impl_TAP_Osd_PutS;
 int	(*TAP_Osd_GetW)( const char* str, byte fntType, byte fntSize ) = &impl_TAP_Osd_GetW;
@@ -1066,3 +1104,19 @@ void (*TAP_Vfd_Control)( bool underTapCtrl ) = &impl_TAP_Vfd_Control;
 void (*TAP_Vfd_SendData)( byte* data, byte dataLen ) = &impl_TAP_Vfd_SendData;
 
 DWORD _tap_startAddr = 0;
+
+// --- ADDITIONAL FUNCTIONS --------------------------------------------
+
+void* impl_TAP_GetSystemProc( int index)
+{
+	switch (index)
+	{
+	case oTAP_Hdd_SetBookmark:			return TAP_Hdd_SetBookmark;
+	case oTAP_Hdd_GotoBookmark:			return TAP_Hdd_GotoBookmark;
+	case oTAP_Hdd_ChangePlaybackPos:	return TAP_Hdd_ChangePlaybackPos;
+	case oTAP_Hdd_Move:					return TAP_Hdd_Move;
+	}
+	return NULL;
+}
+
+

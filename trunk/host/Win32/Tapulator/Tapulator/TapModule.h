@@ -22,7 +22,7 @@
 class IFramework;
 typedef unsigned long (*TAP_EventHandlerFunc) ( unsigned short event, unsigned long param1, unsigned long param2 );
 typedef int (*TAP_MainFunc) (void);
-typedef void (*SetFrameworkFunc) (IFramework* pFramework);
+typedef void (*SetFrameworkFunc) (IFramework* pFramework, DWORD firmwareVersion);
 #include "InfoLogger.h"
 
 class TapModule : InfoLogger
@@ -35,7 +35,7 @@ public:
 
 	CString GetError();
 
-	void SetFramework(IFramework* pFramework);
+	void SetFramework(IFramework* pFramework, DWORD firmwareVersion);
 	unsigned long TAP_Event(unsigned short event, unsigned long param1, unsigned long param2);
 	int TAP_Main();
 	long RaiseKeyEvent(int keyCode, int hardwareKeyCode);
@@ -45,6 +45,7 @@ private:
 	void UnloadExistingTap();
 	void Reset();
 	int TAP_Main_SEH();
+	int ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS *ep);
 
 	HMODULE m_hModule;
 	CString m_sError;

@@ -23,5 +23,4 @@ class IFramework;
 
 __declspec(dllexport) unsigned long TAP_EventHandler( unsigned short event, unsigned long param1, unsigned long param2 );
 __declspec(dllexport) int TAP_Main(void);
-__declspec(dllexport) void SetFramework(IFramework* pFramework);
-
+__declspec(dllexport) void SetFramework(IFramework* pFramework, DWORD firmwareVersion);

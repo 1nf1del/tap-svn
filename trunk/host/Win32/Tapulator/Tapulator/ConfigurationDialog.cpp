@@ -96,7 +96,8 @@ void CConfigurationDialog::OnBnClickedButtonBrowseFs()
 								 csFolder,		// start with current setting
 								 szFolder,
 								 sizeof(szFolder)/sizeof(TCHAR)-2);
-	m_FSPathEdit.SetWindowText(szFolder);
+	if ( bRet )
+		m_FSPathEdit.SetWindowText(szFolder);
 }
 
 void CConfigurationDialog::OnBnClickedButtonBrowseChannel()

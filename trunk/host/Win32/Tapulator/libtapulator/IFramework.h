@@ -145,6 +145,8 @@ public:
 	virtual bool Hdd_GotoBookmark(void ) = 0;
 	virtual bool Hdd_SetBookmark(void ) = 0;
 
+	virtual bool Hdd_Move( char *from_dir, char *to_dir, char *filename ) = 0;
+
 	// -- STRING FUNCTION ---------------------
 	virtual int Osd_PutS(WORD rgn, DWORD x, DWORD y, DWORD maxX, const char * str, WORD fcolor, WORD bcolor, BYTE fntType, BYTE fntSize, BYTE bDot, BYTE align) = 0;
 	virtual int Osd_GetW(const char *str, BYTE fntType, BYTE fntSize ) = 0;

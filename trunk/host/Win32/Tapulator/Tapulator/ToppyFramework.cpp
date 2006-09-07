@@ -78,7 +78,6 @@ void ToppyFramework::Draw(CDC* pDC)
 
 	if (NeedsRepaint())
 	{
-
 		m_TheState.Draw(pMemDC);
 
 		CDC osdDC;
@@ -130,14 +129,29 @@ CConfiguration* ToppyFramework::GetConfig()
 	return GetMainFrame()->GetConfig();
 }
 
-CString ToppyFramework::MakePath(CString sName)
+CString ToppyFramework::MakePath(const CString& sName)
 {
-	return GetConfig()->GetRootFolderPath() + (m_sCurrentFolder.GetLength() ? "\\" : "") + m_sCurrentFolder + "\\" + sName;
+	return GetConfig()->GetRootFolderPath() + m_sCurrentFolder + "\\" + sName;
 }
 
-CString ToppyFramework::MakeRootPath(CString sPath)
+CString ToppyFramework::MakeRootPath(const CString& sPath)
 {
 	return GetConfig()->GetRootFolderPath() + "\\" + sPath;
+}
+
+CString ToppyFramework::MakeRelativePath(const CString& sPath)
+{
+	CString result = m_sCurrentFolder;
+
+	if (sPath.IsEmpty() || sPath == ".")
+		return result;
+
+	if (sPath == "..")
+		result = "../";
+
+	if (sPath.Left(1) == "/")
+		return MakeRootPath(sPath.Mid(1));
+	return MakePath(sPath);
 }
 
 void ToppyFramework::Win_SetDefaultColor(TYPE_Window* win)
@@ -661,7 +675,16 @@ void ToppyFramework::PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findDat
 	ZeroMemory(file, sizeof(TYPE_File));
 	strncpy(file->name, findData.cFileName, 100);
 	file->size = findData.nFileSizeLow;
-	file->attr = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ATTR_FOLDER : ATTR_NORMAL;
+	if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+	{
+		if (strcmp(file->name, ".")==0)
+			file->attr = 0xf1;
+		else if (strcmp(file->name, "..")==0)
+			file->attr = 0xf0;
+		else file->attr = ATTR_FOLDER;
+	}
+	else
+		file->attr = ATTR_NORMAL;
 	file->startCluster = GetStartClusterHash(findData.cFileName);
 }
 
@@ -680,10 +703,9 @@ DWORD ToppyFramework::Hdd_FindFirst(TYPE_File *file )
 
 	if (m_sCurrentFolder.IsEmpty())
 	{
-		iCount -=2;
 		CString name = file->name;
 		if (name == ".." || name == ".")
-			Hdd_FindNext(file);
+			strcpy(file->name, "__ROOT__");
 	}
 	m_iFindCount = 0;
 	return iCount;
@@ -935,6 +957,14 @@ bool ToppyFramework::Hdd_GotoBookmark(void )
 bool ToppyFramework::Hdd_SetBookmark(void )
 {
 	LogUnimplemented(__FUNCTION__ "(" __FUNCSIG__ ")");
+	return 0;
+}
+
+bool ToppyFramework::Hdd_Move( char *from_dir, char *to_dir, char *filename )
+{
+	CString from = MakeRelativePath(from_dir) + "/" + filename;
+	CString to = MakeRelativePath(to_dir) + "/" + filename;
+	::MoveFile( from, to );
 	return 0;
 }
 

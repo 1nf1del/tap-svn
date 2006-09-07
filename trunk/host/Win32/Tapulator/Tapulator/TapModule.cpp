@@ -85,9 +85,9 @@ CString TapModule::GetError()
 	return sTemp;
 }
 
-void TapModule::SetFramework(IFramework* pFramework)
+void TapModule::SetFramework(IFramework* pFramework, DWORD firmwareVersion)
 {
-	m_pFramework(pFramework);
+	m_pFramework(pFramework, firmwareVersion);
 }
 
 unsigned long TapModule::TAP_Event(unsigned short event, unsigned long param1, unsigned long param2)
@@ -99,7 +99,7 @@ unsigned long TapModule::TAP_Event(unsigned short event, unsigned long param1, u
 		pFrame->UpdateStatusInfo();
 		return lResult;
 	}
-	__except(Regions::GetFrameBuffer().ExceptionFilter(GetExceptionCode(), GetExceptionInformation()))
+	__except(ExceptionFilter(GetExceptionCode(), GetExceptionInformation()))
 	{
 		return 0;
 	}
@@ -111,7 +111,7 @@ int TapModule::TAP_Main_SEH()
 	{
 		return m_pMain();
 	} 
-	__except(Regions::GetFrameBuffer().ExceptionFilter(GetExceptionCode(), GetExceptionInformation()))
+	__except(ExceptionFilter(GetExceptionCode(), GetExceptionInformation()))
 	{
 		return -1;
 	}
@@ -178,4 +178,13 @@ bool TapModule::IsInTSRMode()
 
 	return m_bTSR;
 
+}
+
+int TapModule::ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS *ep)
+{
+	int result = Regions::GetFrameBuffer().ExceptionFilter(code, ep);
+	if (result != EXCEPTION_CONTINUE_SEARCH)
+		return result;
+
+	return EXCEPTION_CONTINUE_SEARCH;
 }

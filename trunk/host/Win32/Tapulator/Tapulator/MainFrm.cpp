@@ -184,7 +184,7 @@ BOOL CMainFrame::LoadTap(CString sFileName)
 		return FALSE;
 	}
 
-	m_TapInfo.SetFramework(GetFramework());
+	m_TapInfo.SetFramework(GetFramework(), 0x1225);
 
 	this->PostMessage(WM_USER+123, 0,0);
 	return TRUE;
@@ -264,6 +264,7 @@ TapModule* CMainFrame::GetTapModule()
 void CMainFrame::LogEvent(CString sMessage)
 {
 	m_pInfoDialog->LogInfo(sMessage);
+	OutputDebugString(sMessage);
 }
 
 void CMainFrame::UpdateStatusInfo()
