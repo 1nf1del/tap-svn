@@ -14,6 +14,7 @@ v0.7 sl8:	11-04-06	Show window added and tidy up.
 v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
 				Filter search option added.
 v0.9 sl8:	13-08-06	Copy schedule added
+v0.10 sl8:	07-09-06	Schedule wrap around
 
 **************************************************************/
 
@@ -332,7 +333,7 @@ void UpdateListClock(void)
 //
 void schDisplayKeyHandler(dword key)
 {
-	int	oldPage = 0, oldChosenLine = 0;
+	int	oldPage = 0, oldChosenLine = 0, i = 0;
 	struct	schDataTag schDisplay;
 	char	buffer1[128];
 
@@ -364,33 +365,54 @@ void schDisplayKeyHandler(dword key)
 		(
 			(schMainTotalValidSearches > 1)
 			&&
-			(schDispChosenLine < (schMainTotalValidSearches))
-			&&
-			(schDispChosenLine > 0)
-			&&
 			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)
 		{
-			schDisplay = schUserData[schDispChosenLine];
-
-			schUserData[schDispChosenLine] = schUserData[schDispChosenLine - 1];
-
-			schUserData[schDispChosenLine - 1] = schDisplay;
-
-			schDispChosenLine++;
-
-			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
-
-			if ( schDispPage == oldPage )			// only redraw what's nessesary
+			if
+			(
+				(schDispChosenLine < (schMainTotalValidSearches))
+				&&
+				(schDispChosenLine > 0)
+			)
 			{
-				schDispDrawLine(schDispChosenLine);
-				schDispDrawLine(schDispChosenLine - 1);
+				schDisplay = schUserData[schDispChosenLine];
+
+				schUserData[schDispChosenLine] = schUserData[schDispChosenLine - 1];
+
+				schUserData[schDispChosenLine - 1] = schDisplay;
+
+				schDispChosenLine++;
+
+				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
+				if ( schDispPage == oldPage )			// only redraw what's nessesary
+				{
+					schDispDrawLine(schDispChosenLine);
+					schDispDrawLine(schDispChosenLine - 1);
+				}
+				else
+				{
+					schDispDrawList();
+				}
 			}
 			else
 			{
+				schDisplay = schUserData[schMainTotalValidSearches - 1];
+
+				for(i = schMainTotalValidSearches; i > 0; i--)
+				{
+					schUserData[i] = schUserData[i - 1];
+				}
+
+				schUserData[0] = schDisplay;
+
+				schDispChosenLine = 1;
+
+				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
 				schDispDrawList();
 			}
-
+			
 			schDispSaveToFile = TRUE;
 		}
 
@@ -402,30 +424,51 @@ void schDisplayKeyHandler(dword key)
 		(
 			(schMainTotalValidSearches > 1)
 			&&
-			(schDispChosenLine > 1)
-			&&
-			(schDispChosenLine <= schMainTotalValidSearches)
-			&&
 			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)
 		{
-			schDisplay = schUserData[schDispChosenLine - 2];
-
-			schUserData[schDispChosenLine - 2] = schUserData[schDispChosenLine - 1];
-
-			schUserData[schDispChosenLine - 1] = schDisplay;
-
-			schDispChosenLine--;
-
-			schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
-
-			if ( schDispPage == oldPage )			// only redraw what's nessesary
+			if
+			(
+				(schDispChosenLine > 1)
+				&&
+				(schDispChosenLine <= schMainTotalValidSearches)
+			)
 			{
-				schDispDrawLine(schDispChosenLine);
-				schDispDrawLine(schDispChosenLine + 1);
+				schDisplay = schUserData[schDispChosenLine - 2];
+
+				schUserData[schDispChosenLine - 2] = schUserData[schDispChosenLine - 1];
+
+				schUserData[schDispChosenLine - 1] = schDisplay;
+
+				schDispChosenLine--;
+
+				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
+				if ( schDispPage == oldPage )			// only redraw what's nessesary
+				{
+					schDispDrawLine(schDispChosenLine);
+					schDispDrawLine(schDispChosenLine + 1);
+				}
+				else
+				{
+					schDispDrawList();
+				}
 			}
 			else
 			{
+				schDisplay = schUserData[0];
+
+				for(i = 0; i < schMainTotalValidSearches; i++)
+				{
+					schUserData[i] = schUserData[i + 1];
+				}
+
+				schUserData[schMainTotalValidSearches - 1] = schDisplay;
+
+				schDispChosenLine = schMainTotalValidSearches;
+
+				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
 				schDispDrawList();
 			}
 
