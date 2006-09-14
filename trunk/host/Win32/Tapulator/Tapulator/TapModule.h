@@ -40,9 +40,9 @@ public:
 	int TAP_Main();
 	long RaiseKeyEvent(int keyCode, int hardwareKeyCode);
 	bool IsInTSRMode();
+	void UnloadExistingTap();
 
 private:
-	void UnloadExistingTap();
 	void Reset();
 	int TAP_Main_SEH();
 	int ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS *ep);

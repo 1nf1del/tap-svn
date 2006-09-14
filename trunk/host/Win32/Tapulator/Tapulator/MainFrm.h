@@ -65,6 +65,7 @@ public:
 	void RefreshFramework();
 	void RepaintIfNeeded();
 	CConfiguration* GetConfig();
+	bool IsClosing();
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
@@ -83,6 +84,7 @@ private:
 	CRemoteDialog* m_pRemote;
 	CInfoDialog* m_pInfoDialog;
 	CConfiguration* m_pConfigData;
+	bool m_bIsClosing;
 public:
 	afx_msg void OnClose();
 	afx_msg void OnSize(UINT nType, int cx, int cy);

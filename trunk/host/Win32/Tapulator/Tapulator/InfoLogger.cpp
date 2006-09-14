@@ -71,7 +71,8 @@ void InfoLogger::LogUser(LPCTSTR sFmt, va_list argList)
 void InfoLogger::LogSomething(LPCTSTR sMessage)
 {
 	CMainFrame* pMainFrame = (CMainFrame*) AfxGetMainWnd();
-	pMainFrame->LogEvent(sMessage);
+	if (!pMainFrame->IsClosing())
+		pMainFrame->LogEvent(sMessage);
 }
 
 void InfoLogger::LogUnimplemented(LPCTSTR sMsg)
@@ -92,6 +93,13 @@ void InfoLogger::LogVarArgs(LPCTSTR sFmt, LPCTSTR sPrefix, va_list argList)
 DWORD InfoLogger::GetFilter()
 {
 	CMainFrame* pFrame = (CMainFrame*) AfxGetMainWnd();
+
+	if (pFrame == NULL)
+		return 0;
+
+	if (pFrame->IsClosing())
+		return 0;
+
 	CConfiguration* pConfig = pFrame->GetConfig();
 	return pConfig->GetLoggingFilter();
 

@@ -68,6 +68,7 @@ static UINT indicators[] =
 
 CMainFrame::CMainFrame()
 {
+	m_bIsClosing = false;
 	m_pFramework = 0;
 	m_pConfigData = new CConfiguration();
 	m_pRemote = NULL;
@@ -75,11 +76,17 @@ CMainFrame::CMainFrame()
 
 CMainFrame::~CMainFrame()
 {	
+	m_bIsClosing = true;
+	m_TapInfo.UnloadExistingTap();
 	delete m_pFramework;
 	m_pFramework = NULL;
 	delete m_pConfigData;
 }
 
+bool CMainFrame::IsClosing()
+{
+	return m_bIsClosing;
+}
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
