@@ -44,6 +44,7 @@ public:
 
 	enum LogDests
 	{
+		None=0,
 		Serial=1,
 		Screen=2,
 		File=4

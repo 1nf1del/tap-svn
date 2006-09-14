@@ -183,6 +183,9 @@
 				RelativePath=".\Logger.cpp">
 			</File>
 			<File
+				RelativePath=".\LoggingOption.cpp">
+			</File>
+			<File
 				RelativePath=".\MEIReader.cpp">
 			</File>
 			<File
@@ -285,6 +288,9 @@
 			</File>
 			<File
 				RelativePath=".\Logger.h">
+			</File>
+			<File
+				RelativePath=".\LoggingOption.h">
 			</File>
 			<File
 				RelativePath=".\MEIReader.h">

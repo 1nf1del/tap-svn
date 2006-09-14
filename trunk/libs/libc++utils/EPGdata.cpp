@@ -221,6 +221,8 @@ bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, 
 	default:
 		if (TryReadingMei(pProgress))
 			return true;
+		if (TryReadingFreeViewMei(pProgress))
+			return true;
 		if (TryReadingJagsCSV(pProgress))
 			return true;
 		if (TryReadingBuiltin(pProgress))

@@ -18,55 +18,46 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include ".\epgsourceoption.h"
-#include "EPGdata.h"
+#include ".\LoggingOption.h"
+#include "Logger.h"
 
-EPGSourceOption::EPGSourceOption(Options* pContainer, const string& key, const string& name, const string& description, OptionUpdateNotifier* pNotifier) :
-Option(pContainer, key, "Auto", name, description, pNotifier)
+LoggingOption::LoggingOption(Options* pContainer, const string& key, const string& name, const string& description, OptionUpdateNotifier* pNotifier) :
+Option(pContainer, key, "None", name, description, pNotifier)
 {
-	m_choices.push_back("MEI");
-	m_choices.push_back("Jags CSV");
-	m_choices.push_back("Builtin");
-	m_choices.push_back("Builtin+");
-	m_choices.push_back("Auto");
-	m_choices.push_back("freeview.mei");
-
+	m_choices.push_back("None");
+	m_choices.push_back("Serial");
+	m_choices.push_back("Screen");
+	m_choices.push_back("Both");
 }
 
-EPGSourceOption::~EPGSourceOption()
+LoggingOption::~LoggingOption()
 {
 
 }
 
 
-int EPGSourceOption::ValueAsInteger() const
+int LoggingOption::ValueAsInteger() const
 {
 	const string& value = GetValue();
 
-	if (value == "MEI")
-		return Mei;
+	if (value == "None")
+		return Logger::None;
 
-	if (value == "Builtin")
-		return BuiltinEPG;
+	if (value == "Serial")
+		return Logger::Serial;
 
-	if (value == "Jags CSV")
-		return JagsCSV;
+	if (value == "Screen")
+		return Logger::Screen;
 
-	if (value == "Auto")
-		return Auto;
+	if (value == "Both")
+		return Logger::Serial+Logger::Screen;
 
-	if (value == "Builtin+")
-		return BuiltinExtendedEPG;
-
-	if (value == "freeview.mei")
-		return FreeviewMEI;
-
-	return Mei;
+	return Logger::Serial;
 
 
 }
 
-bool EPGSourceOption::ImmediateUpdateNeeded() const
+bool LoggingOption::ImmediateUpdateNeeded() const
 {
 	return true;
 }
