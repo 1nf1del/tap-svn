@@ -220,7 +220,7 @@ int string::compareNoCase(const string& other) const
 
 int string::reverseFind(char c) const
 {
-	char* result = strrchr(getstr(), c);
+	char* result = strrchr((char *)getstr(), c);
 	if (result == NULL)
 		return -1;
 
@@ -373,7 +373,7 @@ int string::indexof(const char* pToFind, int iStartAfterChar) const
 	if (iStartAfterChar>=size())
 		return -1;
 
-	char* result = strstr(getstr() + iStartAfterChar + 1, pToFind);
+	char* result = strstr((char *)getstr() + iStartAfterChar + 1, pToFind);
 	if (result == 0)
 		return -1;
 
@@ -385,7 +385,7 @@ int string::indexof(char c, int iStartAfterChar) const
 	if (iStartAfterChar>=size())
 		return -1;
 
-	char* result = strchr(getstr() + iStartAfterChar + 1, c);
+	char* result = strchr((char *)getstr() + iStartAfterChar + 1, c);
 	if (result == 0)
 		return -1;
 
