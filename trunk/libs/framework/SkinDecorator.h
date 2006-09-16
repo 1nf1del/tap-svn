@@ -14,6 +14,7 @@ public:
 	virtual void DrawProgress(short int x, short int y, short int w, short int h, short int percent);
 	virtual void PrintTextLeft(short int x, short int y, short int maxX, const char* text, byte fontSize, colorSets whichArea);
 	virtual void DrawColoredButon(short int x, short int y, short int w, short int h, word fillColor);
+	virtual void DrawInfoFrame(short int  x, short int  y, short int  w, short int  h);
 
 private:
 

@@ -35,7 +35,8 @@ Tapplication* Tapplication::tap = NULL;
 Tapplication::Tapplication() :
 	m_screenOffsetX(0),
 	m_screenOffsetY(0),
-	m_isClosing(false)
+	m_isClosing(false),
+	m_reshowUIKey(0)
 {
 
 #ifdef DEBUG
@@ -99,6 +100,8 @@ dword Tapplication::EventHandler( word event, dword param1, dword param2 )
 		OnIdle();
 		return 0;
 	case EVT_KEY:
+		if (m_reshowUIKey != 0)
+			return OnKeyWhenHidden(param1, param2);
 		return OnKey( param1, param2 );
 	}
 
@@ -114,6 +117,30 @@ void Tapplication::OnIdle()
 		pageStack[i]->OnIdle();
 }
 
+dword Tapplication::OnKeyWhenHidden( dword key, dword extKey )
+{
+	(extKey);
+
+	if ((key == m_reshowUIKey) && IsNormalState())
+	{
+		BeforeExitNormal();
+		TAP_ExitNormal();
+		BlankScreen();
+		ShowUI();
+		m_reshowUIKey = 0;
+		return 0;
+	}
+	return key;
+}
+
+void Tapplication::ShowUI()
+{
+	for (int i=0; i<pageCount; i++)
+		pageStack[i]->Redraw();
+
+
+
+}
 
 dword Tapplication::OnKey( dword key, dword extKey )
 {
@@ -155,6 +182,12 @@ void Tapplication::PushPage( Page* page )
 	pageStack[ pageCount++ ] = page;
 }
 
+void Tapplication::BlankScreen()
+{
+	TRACE("Blanking screen\n");
+	TAP_Osd_FillBox(screenRgn, 0, 0, MAX_SCREEN_X, MAX_SCREEN_Y, COLOR_None);
+}
+
 Page* Tapplication::PopPage(bool bRedrawUnderlying)
 {
 	TRACE("Popping Page \n");
@@ -162,16 +195,16 @@ Page* Tapplication::PopPage(bool bRedrawUnderlying)
 	{
 		if ( pageCount == 1 )
 		{
+			BlankScreen();
 			TAP_EnterNormal();
 			AfterEnterNormal();
 		}
 
 		if (bRedrawUnderlying)
 		{
-			TRACE("Blanking screen\n");
-			TAP_Osd_FillBox(screenRgn, 0, 0, MAX_SCREEN_X, MAX_SCREEN_Y, COLOR_None);
 			if (pageCount>1)
 			{
+				BlankScreen();
 				TRACE("Redrawing underlying page\n");
 				pageStack[pageCount-2]->Redraw();
 				TRACE("Redraw done\n");
@@ -181,6 +214,15 @@ Page* Tapplication::PopPage(bool bRedrawUnderlying)
 		return pageStack[ --pageCount ];
 	}
 	return NULL;
+}
+
+void Tapplication::HideUI(dword reshow_key)
+{
+	m_reshowUIKey = reshow_key;
+	BlankScreen();
+	DrawHiddenUIMessage();
+	TAP_EnterNormal();
+	AfterEnterNormal();
 }
 
 bool Tapplication::IsTopPage( Page* page)
@@ -304,4 +346,22 @@ void Tapplication::BeforeExitNormal()
 
 void Tapplication::AfterEnterNormal()
 {
+}
+
+
+bool Tapplication::IsNormalState()
+{
+	dword state, subState;
+	TAP_GetState(&state, &subState);
+
+	if (state==STATE_Normal && subState == SUBSTATE_Normal)
+	{
+		return true;
+	}
+	return false;
+}
+
+void Tapplication::DrawHiddenUIMessage()
+{
+
 }

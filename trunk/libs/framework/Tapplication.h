@@ -42,6 +42,7 @@ public:
 	dword EventHandler( word event, dword param1, dword param2 );
 	virtual void BeforeExitNormal();
 	virtual void AfterEnterNormal();
+	void HideUI(dword reshow_key);
 
 	// Operations
 	void PushPage( Page* page );
@@ -50,6 +51,7 @@ public:
 	bool IsClosing() const;
 	void SetActiveDialog(Dialog* pDialog);
 	bool IsTopPage( Page* page);
+	bool IsNormalState();
 
 	// Skinning support
 	bool LoadSkin( const char* filename );
@@ -69,6 +71,7 @@ public:
 protected:
 	Tapplication();
 	virtual ~Tapplication();
+	virtual void DrawHiddenUIMessage();
 	int pageCount;
 	word screenRgn;
 	// colours - protected so a tap can override the defaults
@@ -77,6 +80,11 @@ protected:
 private:
 	static Tapplication* CreateTapplication();
 	static void SetTheApplication(Tapplication*);
+	void BlankScreen();
+	void ShowUI();
+
+	dword OnKeyWhenHidden( dword key, dword extKey );
+
 
 	Page* pageStack[10];
 	Dialog* m_activeDialog;
@@ -84,6 +92,7 @@ private:
 	// colours
 	int m_screenOffsetX, m_screenOffsetY;
 
+	dword m_reshowUIKey;
 	bool m_isClosing;
 	static Tapplication* tap;
 };

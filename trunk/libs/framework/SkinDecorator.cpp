@@ -31,6 +31,15 @@ void SkinDecorator::DrawDialogFrame(short int x, short int y, short int w, short
 	//DrawCorner(x+w-2,y+h-2, cols.frameColor,0);
 }
 
+void SkinDecorator::DrawInfoFrame(short int  x, short int  y, short int  w, short int  h)
+{
+	Tapplication* pApp = Tapplication::GetTheApplication();
+	ListColors hcols = pApp->GetColorDef(headerColors);
+	Rect r(x,y,w,h);
+	r.Fill(m_wRegion, hcols.bgColor);
+	r.DrawBox(m_wRegion, 1, hcols.frameColor);
+}
+
 void SkinDecorator::DrawCorner(short int x, short int y, word colour, byte direction)
 {
 	for (int i=0; i<4; i++)
@@ -84,3 +93,4 @@ void SkinDecorator::DrawColoredButon(short int x, short int y, short int w, shor
 	r.Fill(m_wRegion, fillColor);
 	r.DrawBox(m_wRegion, 1, cols.frameColor);
 }
+

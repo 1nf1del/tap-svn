@@ -27,6 +27,7 @@ void Decorator::DrawDialogFrame(short int  x, short int  y, short int  w, short 
     TAP_Osd_PutGd( m_wRegion, x, y, &_popup360x180Gd, TRUE );
 }
 
+
 word GetTextColor(colorSets whichArea)
 {
 	word textColor = 0;
@@ -43,6 +44,13 @@ word GetTextColor(colorSets whichArea)
 
 	return textColor;
 
+}
+
+void Decorator::DrawInfoFrame(short int  x, short int  y, short int  w, short int  h)
+{
+	Rect r(x,y,w,h);
+	r.Fill(m_wRegion, COLOR_Gray);
+	r.DrawBox(m_wRegion, 1, GetTextColor(headerColors));
 }
 
 void Decorator::PrintText(short int  x, short int  y, short int  maxX, const char* text, byte  fontSize, colorSets whichArea)

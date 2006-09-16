@@ -54,14 +54,34 @@ dword TAP_Main()
     TRACE("Fixed VTables\n");
 	_cached_TAP_Exit = TAP_Exit;
 	TAP_Exit = &cpp_TAP_Exit;
-	return Tapplication::CreateTheApplication();
+	return 1;
 }
 
+Tapplication* CreateTapApplication()
+{
+	if (Tapplication::CreateTheApplication() == 0)
+	{
+		// the application failed to create or is non-tsr - this will be handled 
+		// in the else in eventhandler
+		return NULL;
+	}
+	return Tapplication::GetTheApplication();
+}
+
+int exiting = 0;
 
 extern "C"
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
+	if (exiting != 0)
+		return param1;
+
 	Tapplication* tap = Tapplication::GetTheApplication();
+	if (tap == NULL)
+	{
+		// do the creation in the first event, not on TAP_Main
+		tap = CreateTapApplication();
+	}
 	if (tap)
 	{
 		param1 = tap->EventHandler(event, param1, param2);
@@ -71,9 +91,18 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			Tapplication::DiscardTheApplication();
 			Logger::DoneWithLogger();
 			dlmalloc_exit();
+			exiting = 1;
 			_cached_TAP_Exit();
 			return 0;
 		}
+	}
+	else
+	{
+		TRACE("Unexpected or non-TSR! No Tapplication object - exiting\n");
+		dlmalloc_exit();
+		exiting = 1;
+		_cached_TAP_Exit();
+		return 0;
 	}
 
 	return param1;
