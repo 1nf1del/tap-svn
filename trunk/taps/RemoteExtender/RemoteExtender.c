@@ -23,6 +23,7 @@
 #include <messagewin.h>
 #include <Firmware.h>
 #include <TAPExtensions.h>
+#include <model.h>
 #include <OpCodes.h>
 #include <morekeys.h>
 
@@ -149,13 +150,13 @@ bool HookReceiveKeyFunction()
 	addr = (dword*)FindFirmwareFunction( remoteReceiveSignature, sizeof(remoteReceiveSignature), 0x80004000, 0x80007000 );
 	if ( !addr )
 	{
-		ShowMessage( "Receive key function not found\n", 200 );
+		ShowMessage( "Remote Extender\nReceive key function not found\n", 200 );
 		return FALSE;
 	}
 
 	if ( (addr[0x20] & 0xffffff00) != 0xafcf0000 || (addr[0x21] & 0xffffff00) != 0x3c198000 )
 	{
-		ShowMessage( "Firmware receive function has an unexpected structure\n", 200 );
+		ShowMessage( "Remote Extender\nFirmware receive function has an unexpected structure\n", 200 );
 		return FALSE;
 	}
 
@@ -163,7 +164,7 @@ bool HookReceiveKeyFunction()
 	// Validate receive hook function
 	if (hookFn[2] != LUI_T1_CMD || hookFn[3] != OR_T1_CMD)
 	{
-		ShowMessage( "TAP receive key hook function has an unexpected structure\n", 200 );
+		ShowMessage( "Remote Extender\nTAP receive key hook function has an unexpected structure\n", 200 );
 		return FALSE;
 	}
 
@@ -219,13 +220,13 @@ bool AdjustDispatchKeyFunction()
 	addr = (dword*)FindFirmwareFunction( dispatchKeySignature, sizeof(dispatchKeySignature), 0x80128000, 0x80148000 );
 	if ( !addr )
 	{
-		ShowMessage( "Dispatch key function not found\n", 200 );
+		ShowMessage( "Remote Extender\nDispatch key function not found\n", 200 );
 		return FALSE;
 	}
 
 	if ( addr[10] != 0x24040100 )
 	{
-		ShowMessage( "Dispatch key function has an unexpected structure\n", 200 );
+		ShowMessage( "Remote Extender\nDispatch key function has an unexpected structure\n", 200 );
 		return FALSE;
 	}
 
@@ -358,7 +359,6 @@ FirmwareDetail firmware[] =
 {
 	// Model		FW version,	registerGroup
 	TF5800t,		0x1288,		0x804cb11c,		// 14 July 2006
-//	TF5800t,		0x1277,		0x8057c60c,		// 25 May 2006
 	TF5800t,		0x1225,		0x80427bfc		// 08 Dec 2005
 };
 
@@ -451,7 +451,7 @@ void ShowUnsupportedMessage()
 {
 	// Try and get some helpful information of users with unsupported firmware
 	char buffer[300];
-	sprintf( buffer, "Description Extender is not compatible with your firmware\n"
+	sprintf( buffer, "Remote Extender is not compatible with your firmware\n"
 		"For an update, please contact the author quoting\n"
 		"%d and %04X", *sysID, _appl_version );
 	ShowMessage( buffer, 750 );
