@@ -94,15 +94,15 @@ typedef struct {
 FirmwareDetail firmware[] = 
 {
 	// Model		FW version,	Event Table,	Size	Type
-	TF5800t,		0x1288,		0x80333284,		14000,	2,		// 14 July 2006
+	TF5800t,		0x1288,		0x80333284,		14000,	2,		// 14 Jul 2006
 	TF5800t,		0x1225,		0x8032a7c8,		5000,	1,		// 08 Dec 2005
-	TF5800t,		0x1209,		0x80326c4c,		5000,	1,		// 15 Sept 2005 
-	TF5800t,		0x1205,		0x8032e818,		5000,	1,		// 07 Sept 2005
-	TF5800t,		0x1204,		0x8032e698,		5000,	1,		// 01 Sept 2005
+	TF5800t,		0x1209,		0x80326c4c,		5000,	1,		// 15 Sep 2005 
+	TF5800t,		0x1205,		0x8032e818,		5000,	1,		// 07 Sep 2005
+	TF5800t,		0x1204,		0x8032e698,		5000,	1,		// 01 Sep 2005
 	
 	TF5000t,		0x1212,		0x8028ebf4,		5000,	1,		// 05 Oct 2005
 
-	TF5000_5500,	0x1205,		0x802d6bb4,		5000,	1,		// 13 Sept 2005
+	TF5000_5500,	0x1205,		0x802d6bb4,		5000,	1,		// 13 Sep 2005
 	
 	TF5010_5510,	0x1212,		0x802d84e0,		4000,	1,		// 05 Oct 2005
 	
@@ -110,12 +110,12 @@ FirmwareDetail firmware[] =
 	TF5100c,		0x1264,		0x802b5be4,		5000,	1,		// 19 Apr 2006
 	TF5100c,		0x1260,		0x802b5498,		5000,	1,		// 15 Mar 2006
 	TF5100c,		0x1248,		0x802b5120,		5000,	1,		// 20 Feb 2006
-	TF5100c,		0x1205,		0x802ad730,		5000,	1,		// 12 Sept 2005
+	TF5100c,		0x1205,		0x802ad730,		5000,	1,		// 12 Sep 2005
 	TF5100c,		0x1170,		0x802c27b0,		5000,	1,		// 04 May 2005
 	
 	TF5100,			0x1264,		0x802ae9a0,		5000,	1,		// 19 Apr 2006
 	TF5100,			0x1260,		0x802ae474,		5000,	1,		// 15 Mar 2006
-	TF5100,			0x1205,		0x802a5cac,		5000,	1,		// 12 Sept 2005
+	TF5100,			0x1205,		0x802a5cac,		5000,	1,		// 12 Sep 2005
 
 	TF5100c_MP,		0x1266,		0x802d823c,		5000,	1,		// 24 Apr 2006
 	TF5100c_MP,		0x1260,		0x802d7b60,		5000,	1,		// 15 Mar 2006
@@ -125,7 +125,8 @@ FirmwareDetail firmware[] =
 	TF5100t_MP,		0x1260,		0x802d0b9c,		5000,	1,		// 15 Mar 2006
 	TF5100t_MP,		0x1212,		0x802c7ab4,		5000,	1,		// 04 Oct 2005
 
-	TF5200c,		0x1205,		0x802ac8e8,		5000,	1,		// 13 Sept 2005
+	TF5200c,		0x1296,		0x802b7710,		5000,	1,		// 29 Jul 2006
+	TF5200c,		0x1205,		0x802ac8e8,		5000,	1,		// 13 Sep 2005
 
 	// Dedicated Procaster firmware is no longer developed. Update with TF5100 firmwares instead
 	PC5101c_5102c,	0x1260,		0x802b5498,		5000,	1,		// TF5100c 15 Mar 2006 (crossflashed)
@@ -316,22 +317,42 @@ byte* GetEventDescriptionv1( TYPE_TapEvent* event )
 					{
 						int outputLength = 0;
 						int descriptionLength = 0;
+						bool addSpace = FALSE;
+
+						// Calculate how much memory will be needed for the text
 						// Description is in the 250 byte event name block immediately after event name (no zero terminator)
-						byte *description = e->event_name;
+						byte* description = e->event_name;
 						if ( description )
 						{
 							description += e->event_name_length;
 							descriptionLength = strlen(description);
 							if ( descriptionLength > 127 )
-								outputLength += descriptionLength + 1;
+							{
+								outputLength += descriptionLength;
+								addSpace = TRUE;
+							}
 						}
+
 						// Add on the extended info length, plus space for a zero terminator
 						if ( e->extended_length > 0 )
+						{
+#ifndef CT
+							// only append an additional space if there is already some extended info to append
+							if ( addSpace )
+								++outputLength;
+#endif
 							outputLength += e->extended_length + 1;
+							addSpace = FALSE;
+						}
+
+						// Add one more for an additional terminator
+						++outputLength;
 
 						// If there's going to be something worth returning
 						if ( outputLength > 0 )
 						{
+							bool addSpace = FALSE;
+
 							// allocate memory, plus space for a zero terminator
 							result = FW_MemAlloc( outputLength+1 );
 							if ( result )
@@ -341,23 +362,24 @@ byte* GetEventDescriptionv1( TYPE_TapEvent* event )
 								if ( descriptionLength > 127 )
 								{
 									memcpy( p, description, descriptionLength );
-#ifndef CT
-									// only append an additional space if there is extended info to append
-									if ( e->extended_length > 0 )
-									{
-										p[descriptionLength] = ' ';
-										++p;
-									}
-#endif
 									p += descriptionLength;
+									addSpace = TRUE;
 								}
+
 								// Append the existing extended infomation
 								if ( e->extended_length > 0 )
 								{
+#ifndef CT
+									// only append an additional space if there is extended info to append
+									if ( addSpace )
+										*p++ = ' ';
+#endif
 									memcpy( p, e->extended_event_name, e->extended_length );
 									p[e->extended_length] = '\0';
 									p += e->extended_length + 1;
+									addSpace = FALSE;
 								}
+
 								// And terminate with an additional terminator
 								p[0] = '\0';
 							}

@@ -82,8 +82,8 @@ typedef struct
 	word  short3a;                  //3a    //??? normally 0000
 	word  short3c;                  //3c    //??? normally 0000
 	word  short3e;                  //3e    //??? normally 0000
-	byte  char74;					//74	//??? genre
-	byte  char75;					//75	//???
+	byte  genre;					//74	// genre
+	byte  subgenre;					//75	// subgenre
 	byte  char76;					//76	//???
 	byte  char77;					//77	//???
 } type_eventtable_v2;
