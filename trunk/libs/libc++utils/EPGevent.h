@@ -49,6 +49,8 @@ public:
 	const string& GetSubTitle() const;
 	const string& GetDescription() const;
 	const string& GetEpisode() const;
+	string GetYear() const;
+	string GetStars() const;
 	int GetStarRating() const;
 	const PackedDateTime& GetStart() const;
 	const PackedDateTime& GetEnd() const;

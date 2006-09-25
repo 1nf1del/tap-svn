@@ -567,3 +567,27 @@ bool EPGevent::WriteMyStuffControlTimer() const
 
 
 }
+
+string EPGevent::GetYear() const
+{
+	string result;
+	if (m_wYear != -1)
+		result.format("%d", m_wYear);
+
+	return result;
+
+}
+
+string EPGevent::GetStars() const
+{
+	if (m_iStars>0 && m_iStars<6)
+	{
+		string sStars;
+		for (int i=0; i<m_iStars; i++)
+			sStars+="*";
+
+		if (m_sTitle.find(sStars) != m_sTitle.size() - m_iStars)
+			return sStars;
+	}
+	return "";
+}
