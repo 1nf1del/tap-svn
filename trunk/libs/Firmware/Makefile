@@ -25,7 +25,7 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: libfirmware.a
 
-libfirmware.a: Firmware.o TAPExtensions.o FirmwareCalls.o
+libfirmware.a: Firmware.o TAPExtensions.o FirmwareCalls.o StartTap.o
 	$(AR) cr $@ $^
 
 # A target for removing generated files.

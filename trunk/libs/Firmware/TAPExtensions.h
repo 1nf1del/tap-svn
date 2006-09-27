@@ -66,7 +66,7 @@ typedef struct
 	TAPHeader* header;
 	TAPEntryPoints* entryPoints;
 	dword loadAddress;
-	dword unknown2;
+	char* currentDirectory;
 	dword zero;
 } TAPProcess;
 
@@ -82,6 +82,26 @@ bool PromoteTAP( dword tapID );
 dword TAP_SendEvent( int index, word event, dword param1, dword param2 );
 dword TAP_SendEventByID( dword tapID, word event, dword param1, dword param2 );
 dword TAP_BroadcastEvent( word event, dword param1, dword param2 );
+
+// Start a TAP in the current directory
+int TAP_Start( char *pFilename );
+
+typedef struct
+{
+  byte Attr;
+  byte unused1 [7];     //MJD HH MM SS Offset for normal files
+  dword DirectoryCluster;
+  dword NrOfClusters;   //always 1 for directories
+  dword NrOfFreeBytes;  //If you know the cluster size, you can calculate the location of the last directory entry
+  char  FileName [64];  //. in this case
+  byte unused2 [31];    //ServiceName for normal files
+  byte unused3 [9];     //Several flags
+  byte Checksum;
+  byte unused4 [3];
+} tDirStruct;
+
+
+//tDirStruct* TAP_Hdd_GetCurrentDirectory();
 
 #define EVT_TAPCLOSE		0x8000
 #define EVT_TAPHASCONFIG	0x8001

@@ -23,6 +23,7 @@
 #include "TAPExtensions.h"
 #include "OpCodes.h"
 
+bool InitStartTapHook();
 
 TAPProcess* tapProcess;
 dword* currentTAPIndex;
@@ -56,6 +57,8 @@ bool StartTAPExtensions()
 	tapProcess = (TAPProcess*)start;
 	currentTAPIndex = (dword*)end;
 
+	InitStartTapHook();
+
 	return TRUE;
 }
 
@@ -65,36 +68,13 @@ void DumpRunningTAPs()
 {
 	int i;
 	TAPProcess* p = tapProcess;
+	TAP_Print( "firmware $gp %08X\n", p->firmwaregp );
 	for ( i = 0 ; i < TAP_MAX; ++i, ++p )
 	{
 		if ( p->entryPoints )
 		{
-			TAP_Print( "*** TAP Info ***\n" );
-			TAP_Print( "%s %08X\n", p->header->name, p->header->id );
-			TAP_Print( "%s\n", p->header->description );
-			TAP_Print( "%s\n", p->header->etcStr );
-			TAP_Print( "firmwaregp %08X\n", p->firmwaregp );
-			TAP_Print( "gp %08X\n", p->gp );
-			TAP_Print( "unknown1 %08X\n", p->unknown1 );
-			TAP_Print( "header %08X\n", p->header );
-			TAP_Print( "entry %08X\n", p->entryPoints );
-			TAP_Print( "load %08X\n", p->loadAddress );
-			TAP_Print( "unknown2 %08X\n", p->unknown2 );
-			TAP_Print( "z %08X\n", p->zero );
-/*
-			TAP_Print( "*** TAP Entry Points ***\n" );
-			TAP_Print( "_initData %08X\n", p->entryPoints->_initData );
-			TAP_Print( "TAP_Main %08X\n", p->entryPoints-> TAP_Main);
-			TAP_Print( "_tap_gotStart %08X\n", p->entryPoints-> _tap_gotStart);
-			TAP_Print( "_tap_gotEnd %08X\n", p->entryPoints-> _tap_gotEnd);
-			TAP_Print( "_tap_textEnd %08X\n", p->entryPoints-> _tap_textEnd);
-			TAP_Print( "_tap_fixupStart %08X\n", p->entryPoints-> _tap_fixupStart);
-			TAP_Print( "_tap_fixupEnd %08X\n", p->entryPoints-> _tap_fixupEnd);
-			TAP_Print( "TAP_EventHandler %08X\n", p->entryPoints-> TAP_EventHandler);
-			TAP_Print( "_gp %08X\n", p->entryPoints-> _gp);
-			TAP_Print( "_end %08X\n", p->entryPoints-> _end);
-			TAP_Print( "\n" );
-*/		}
+			TAP_Print( "%d. %s (%08X), $gp=%08X, load=%08X\n", i, p->header->name, p->header->id, p->gp, p->loadAddress );
+		}
 	}
 }
 
@@ -126,30 +106,6 @@ int GetTAPIndex( dword tapID )
 	}
 
 	return i;
-}
-
-
-// Promote a running TAP to the top of the TAP process list
-bool PromoteTAP( dword tapID )
-{
-	int i;
-	TAPProcess* p = tapProcess;
-	for ( i = 0 ; i <TAP_MAX; ++i, ++p )
-	{
-		if ( p->entryPoints && p->header && p->header->id == tapID )
-		{
-			if ( i ) // No point promoting the first item
-			{
-				TAPProcess temp;
-				memcpy( &temp, p, sizeof(TAPProcess) );
-				memcpy( tapProcess+1, tapProcess, sizeof(TAPProcess)*i );
-				memcpy( tapProcess, &temp, sizeof(TAPProcess) );
-			}
-			return TRUE;
-		}
-	}
-
-	return FALSE;
 }
 
 
@@ -237,3 +193,8 @@ dword TAP_BroadcastEvent( word event, dword param1, dword param2 )
 
 	return param1;
 }
+//
+//tDirStruct* TAP_Hdd_GetCurrentDirectory()
+//{
+//	return (tDirStruct*)tapProcess[*currentTAPIndex].currentDirectory;
+//}
