@@ -29,7 +29,7 @@
 
 
 TAP_ID( 0x810a0013 );
-TAP_PROGRAM_NAME("Virtual Remote 1.0");
+TAP_PROGRAM_NAME("Virtual Remote 1.1");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Control your Toppy from your PC via the serial cable");
 TAP_ETCINFO(__DATE__);
@@ -64,50 +64,61 @@ bool IsRecording(int slot)
 
 typedef struct _Command
 {
-	byte length;
-	byte crc;
-	word command;
 	dword param1;
 	dword param2;
-	byte id;
 } Command;
+
 
 // Process serial input
 void ProcessInput()
 {
 	int i;
-	Command cmd;
-	byte* buffer = (byte*)&cmd;
-	byte crc = 0;
-	for ( i=0; i<13; ++i )
-		buffer[i] = TAP_GetCh();
-	for ( i=3; i<13; ++i )
-		crc += buffer[i];
+	byte crc;
+	byte command;
+	byte commandLength;
+	byte parameters[256];
+	byte crcCheck;
+	crc = TAP_GetCh();
+	command = TAP_GetCh();
+	commandLength = TAP_GetCh();
+
+	crcCheck = command;
+	crcCheck += commandLength;
+	for ( i=0; i < commandLength; ++i )
+		crcCheck += (parameters[i] = TAP_GetCh());
+
+	if ( TAP_GetCh() != 237 )
+	{
+		TAP_Print("Virtual remote: Ignored bad command. No command terminator\n");
+		crcCheck = crc + 1;
+	}
 
 	// Send a reply
 	TAP_PutByte(236);
 	TAP_PutByte(10);
 	TAP_PutByte(0);
-	if ( cmd.crc == crc )
+	if ( crc == crcCheck )
 	{
+		Command* cmd = (Command*)parameters;
+
 		// Success reply
 		TAP_PutByte(1);
-		TAP_PutByte(236);
-		switch ( cmd.command )
+		TAP_PutByte(237);
+		switch ( command )
 		{
 		case 1:
-			if ( cmd.param2 == 0 )
-				TAP_GenerateEvent( EVT_KEY, cmd.param1, 0 );
+			if ( cmd->param2 == 0 )
+				TAP_GenerateEvent( EVT_KEY, cmd->param1, 0 );
 			else
 			{
-				if ( cmd.param2 & 0x100 )
-					cmd.param2 = 0x10000 | (cmd.param2 & 0xff);
-				TAP_GenerateKeypress( cmd.param2 );
+				if ( cmd->param2 & 0x100 )
+					cmd->param2 = 0x10000 | (cmd->param2 & 0xff);
+				TAP_GenerateKeypress( cmd->param2 );
 			}
 			break;
 		case 2:
 		{
-			ScreenCaptureFlags flags = cmd.param1;
+			ScreenCaptureFlags flags = cmd->param1;
 			if ( flags == 0 )
 				flags = SCREENCAP_TV | SCREENCAP_OSD | SCREENCAP_ALPHA;
 			CaptureScreenToFile(flags);
@@ -130,11 +141,14 @@ void ProcessInput()
 		}
 		case 5:
 		{
-			//dword addr = exTAP_TAP_Load(line+7);
-			//if ( addr )
-			//	TAP_Print("Loaded %s at %08X\n", line+7, addr);
-			//else
-			//	TAP_Print("Failed to load %s\n", line+7);
+			char* name = (char*)parameters;
+			dword addr;
+			TAP_Hdd_ChangeDir("/ProgramFiles");
+			addr = TAP_Start(name);
+			if ( addr )
+				TAP_Print("Loaded %s at %08X\n", name, addr);
+			else
+				TAP_Print("Failed to load %s\n", name);
 			break;
 		}
 		case 6:
@@ -153,21 +167,31 @@ void ProcessInput()
 		}
 		case 8:
 		{
-			TAP_Print("Virtual remote: TAP_SetSystemVar(%d,%d)\n", cmd.param1, cmd.param2);
-			TAP_SetSystemVar( cmd.param1, cmd.param2 );
+			TAP_Print("Virtual remote: TAP_SetSystemVar(%d,%d)\n", cmd->param1, cmd->param2);
+			TAP_SetSystemVar( cmd->param1, cmd->param2 );
+			break;
+		}
+		case 9:
+		{
+			DumpRunningTAPs();
 			break;
 		}
 		default:
-			TAP_Print("Virtual remote: Unknown command: %d (%d,%d)\n", cmd.command, cmd.param1, cmd.param2);
+			TAP_Print("Virtual remote: Unknown command: %d (%d,%d)\n", command, cmd->param1, cmd->param2);
 			break;
 		}
 	}
 	else
 	{
+		int i;
 		// Failure reply
 		TAP_PutByte(0);
-		TAP_PutByte(236);
+		TAP_PutByte(237);
 		TAP_Print("Virtual remote: Ignored command with bad CRC\n");
+		TAP_Print("%02X (!= %02X) %04X %02X\n", crc, crcCheck, command, commandLength);
+		for ( i = 0; i < commandLength; ++i )
+			TAP_Print("%02X ", parameters[i]);
+		TAP_Print("\n");
 	}
 }
 
@@ -206,6 +230,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 //-----------------------------------------------------------------------------
 int TAP_Main()
 {
+	InitTAPAPIFix();
 	StartTAPExtensions();
 
 	// print start message
