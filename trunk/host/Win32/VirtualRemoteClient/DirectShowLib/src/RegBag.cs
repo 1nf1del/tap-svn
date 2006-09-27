@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -27,26 +27,22 @@ using System.Runtime.InteropServices;
 
 namespace DirectShowLib
 {
+    #region Interfaces
 
-	#region Interfaces
+    [Guid("8A674B48-1F63-11d3-B64C-00C04F79498E"),
+    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    public interface ICreatePropBagOnRegKey
+    {
+        [PreserveSig]
+        int Create(
+            [In] IntPtr hkey,
+            [In, MarshalAs(UnmanagedType.LPWStr)] string subkey,
+            [In] int ulOptions,
+            [In] int samDesired,
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid iid,
+            [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppBag
+            );
+    }
 
-#if ALLOW_UNTESTED_INTERFACES
-
-	[Guid("8A674B48-1F63-11d3-B64C-00C04F79498E"),
-		InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	public interface ICreatePropBagOnRegKey
-	{
-		[PreserveSig]
-		int Create(
-			[In] IntPtr hkey,
-			[In, MarshalAs(UnmanagedType.LPWStr)] string subkey,
-			[In] int ulOptions,
-			[In] int samDesired,
-			[In] Guid iid,
-			[Out] IntPtr ppBag
-			);
-	}
-#endif
-
-		#endregion
+    #endregion
 }

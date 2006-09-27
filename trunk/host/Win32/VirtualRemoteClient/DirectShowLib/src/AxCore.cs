@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -27,10 +27,42 @@ using System.Runtime.InteropServices;
 
 namespace DirectShowLib
 {
-
     #region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
+
+    /// <summary>
+    /// From AM_GBF_* defines
+    /// </summary>
+    [Flags]
+    public enum AMGBF
+    {
+        PrevFrameSkipped = 1,
+        NotAsyncPoint = 2,
+        NoWait = 4,
+        NoDDSurfaceLock = 8
+    }
+
+#endif
+
+    /// <summary>
+    /// From AM_VIDEO_FLAG_* defines
+    /// </summary>
+    [Flags]
+    public enum AMVideoFlag
+    {
+        FieldMask         = 0x0003,
+        InterleavedFrame  = 0x0000,
+        Field1            = 0x0001,
+        Field2            = 0x0002,
+        Field1First       = 0x0004,
+        Weave             = 0x0008,
+        IPBMask           = 0x0030,
+        ISample           = 0x0000,
+        PSample           = 0x0010,
+        BSample           = 0x0020,
+        RepeatField       = 0x0040
+    }
 
     /// <summary>
     /// From AM_SAMPLE_PROPERTY_FLAGS
@@ -50,51 +82,6 @@ namespace DirectShowLib
         Media = 0,
         Control = 1
     }
-
-    /// <summary>
-    /// From AM_GBF_* defines
-    /// </summary>
-    [Flags]
-    public enum AMGBF
-    {
-        PrevFrameSkipped = 1,
-        NotAsyncPoint = 2,
-        NoWait = 4,
-        NoDDSurfaceLock = 8
-    }
-
-    /// <summary>
-    /// From ALLOCATOR_PROPERTIES
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct AllocatorProperties
-    {
-        public int cBuffers;
-        public int cbBuffer;
-        public int cbAlign;
-        public int cbPrefix;
-    }
-
-    /// <summary>
-    /// From AM_SAMPLE2_PROPERTIES
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct AMSample2Properties
-    {
-        public int cbData;
-        public int dwTypeSpecificFlags;
-        public int dwSampleFlags;
-        public int lActual;
-        public long tStart;
-        public long tStop;
-        public int dwStreamId;
-        [MarshalAs(UnmanagedType.LPStruct)] public AMMediaType pMediaType;
-        public IntPtr pbBuffer; // BYTE *
-        public int cbBuffer;
-    }
-
-
-#endif
 
     /// <summary>
     /// From PIN_INFO
@@ -188,6 +175,37 @@ namespace DirectShowLib
         NoFlush = 0x20
     }
 
+    /// <summary>
+    /// From ALLOCATOR_PROPERTIES
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public class AllocatorProperties
+    {
+        public int cBuffers;
+        public int cbBuffer;
+        public int cbAlign;
+        public int cbPrefix;
+    }
+
+    /// <summary>
+    /// From AM_SAMPLE2_PROPERTIES
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct AMSample2Properties
+    {
+        public int cbData;
+        public AMVideoFlag dwTypeSpecificFlags;
+        public AMSamplePropertyFlags dwSampleFlags;
+        public int lActual;
+        public long tStart;
+        public long tStop;
+        public int dwStreamId;
+        [MarshalAs(UnmanagedType.LPStruct)] public AMMediaType pMediaType;
+        public IntPtr pbBuffer; // BYTE *
+        public int cbBuffer;
+    }
+
+
     #endregion
 
     #region Interfaces
@@ -198,7 +216,7 @@ namespace DirectShowLib
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IReferenceClock2 : IReferenceClock
     {
-        #region IReferenceClock Methods
+    #region IReferenceClock Methods
 
         [PreserveSig]
         new int GetTime([Out] out long pTime);
@@ -222,89 +240,7 @@ namespace DirectShowLib
         [PreserveSig]
         new int Unadvise([In] int dwAdviseCookie);
 
-        #endregion
-    }
-
-
-    [Guid("36b73884-c2c8-11cf-8b46-00805f6cef60"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IMediaSample2 : IMediaSample
-    {
-        #region IMediaSample Methods
-
-        [PreserveSig]
-        new int GetPointer([Out] out IntPtr ppBuffer); // BYTE **
-
-        [PreserveSig]
-        new int GetSize();
-
-        [PreserveSig]
-        new int GetTime(
-            [Out] out long pTimeStart,
-            [Out] out long pTimeEnd
-            );
-
-        [PreserveSig]
-        new int SetTime(
-            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeStart,
-            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeEnd
-            );
-
-        [PreserveSig]
-        new int IsSyncPoint();
-
-        [PreserveSig]
-        new int SetSyncPoint([In, MarshalAs(UnmanagedType.Bool)] bool bIsSyncPoint);
-
-        [PreserveSig]
-        new int IsPreroll();
-
-        [PreserveSig]
-        new int SetPreroll([In, MarshalAs(UnmanagedType.Bool)] bool bIsPreroll);
-
-        [PreserveSig]
-        new int GetActualDataLength();
-
-        [PreserveSig]
-        new int SetActualDataLength([In] int len);
-
-        [PreserveSig]
-        new int GetMediaType([Out] out AMMediaType ppMediaType);
-
-        [PreserveSig]
-        new int SetMediaType([In] AMMediaType pMediaType);
-
-        [PreserveSig]
-        new int IsDiscontinuity();
-
-        [PreserveSig]
-        new int SetDiscontinuity([In, MarshalAs(UnmanagedType.Bool)] bool bDiscontinuity);
-
-        [PreserveSig]
-        new int GetMediaTime(
-            [Out] out long pTimeStart,
-            [Out] out long pTimeEnd
-            );
-
-        [PreserveSig]
-        new int SetMediaTime(
-            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeStart,
-            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeEnd
-            );
-
-        #endregion
-
-        [PreserveSig]
-        int GetProperties(
-            [In] int cbProperties,
-            [Out] IntPtr pbProperties // BYTE *
-            );
-
-        [PreserveSig]
-        int SetProperties(
-            [In] int cbProperties,
-            [In] IntPtr pbProperties // BYTE *
-            );
+    #endregion
     }
 
 
@@ -315,11 +251,13 @@ namespace DirectShowLib
         [PreserveSig]
         int SetProperties(
             [In] AllocatorProperties pRequest,
-            [Out] out AllocatorProperties pActual
+            [Out, MarshalAs(UnmanagedType.LPStruct)] out AllocatorProperties pActual
             );
 
         [PreserveSig]
-        int GetProperties([Out] AllocatorProperties pProps);
+        int GetProperties(
+            [Out, MarshalAs(UnmanagedType.LPStruct)] AllocatorProperties pProps
+            );
 
         [PreserveSig]
         int Commit();
@@ -336,7 +274,9 @@ namespace DirectShowLib
             );
 
         [PreserveSig]
-        int ReleaseBuffer([In] IMediaSample pBuffer);
+        int ReleaseBuffer(
+            [In] IMediaSample pBuffer
+            );
     }
 
 
@@ -344,7 +284,7 @@ namespace DirectShowLib
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IMemAllocatorCallbackTemp : IMemAllocator
     {
-        #region IMemAllocator Methods
+    #region IMemAllocator Methods
 
         [PreserveSig]
         new int SetProperties(
@@ -372,7 +312,7 @@ namespace DirectShowLib
         [PreserveSig]
         new int ReleaseBuffer([In] IMediaSample pBuffer);
 
-        #endregion
+    #endregion
 
         [PreserveSig]
         int SetNotify([In] IMemAllocatorNotifyCallbackTemp pNotify);
@@ -874,6 +814,88 @@ namespace DirectShowLib
         [PreserveSig]
         int Clone([Out] out IEnumMediaTypes ppEnum);
     }
+
+    [Guid("36b73884-c2c8-11cf-8b46-00805f6cef60"),
+    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    public interface IMediaSample2 : IMediaSample
+    {
+        #region IMediaSample Methods
+
+        [PreserveSig]
+        new int GetPointer([Out] out IntPtr ppBuffer); // BYTE **
+
+        [PreserveSig]
+        new int GetSize();
+
+        [PreserveSig]
+        new int GetTime(
+            [Out] out long pTimeStart,
+            [Out] out long pTimeEnd
+            );
+
+        [PreserveSig]
+        new int SetTime(
+            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeStart,
+            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeEnd
+            );
+
+        [PreserveSig]
+        new int IsSyncPoint();
+
+        [PreserveSig]
+        new int SetSyncPoint([In, MarshalAs(UnmanagedType.Bool)] bool bIsSyncPoint);
+
+        [PreserveSig]
+        new int IsPreroll();
+
+        [PreserveSig]
+        new int SetPreroll([In, MarshalAs(UnmanagedType.Bool)] bool bIsPreroll);
+
+        [PreserveSig]
+        new int GetActualDataLength();
+
+        [PreserveSig]
+        new int SetActualDataLength([In] int len);
+
+        [PreserveSig]
+        new int GetMediaType([Out] out AMMediaType ppMediaType);
+
+        [PreserveSig]
+        new int SetMediaType([In] AMMediaType pMediaType);
+
+        [PreserveSig]
+        new int IsDiscontinuity();
+
+        [PreserveSig]
+        new int SetDiscontinuity([In, MarshalAs(UnmanagedType.Bool)] bool bDiscontinuity);
+
+        [PreserveSig]
+        new int GetMediaTime(
+            [Out] out long pTimeStart,
+            [Out] out long pTimeEnd
+            );
+
+        [PreserveSig]
+        new int SetMediaTime(
+            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeStart,
+            [In, MarshalAs(UnmanagedType.LPStruct)] DsLong pTimeEnd
+            );
+
+        #endregion
+
+        [PreserveSig]
+        int GetProperties(
+            [In] int cbProperties,
+            [In] IntPtr pbProperties // BYTE *
+            );
+
+        [PreserveSig]
+        int SetProperties(
+            [In] int cbProperties,
+            [In] IntPtr pbProperties // BYTE *
+            );
+    }
+
 
     #endregion
 }

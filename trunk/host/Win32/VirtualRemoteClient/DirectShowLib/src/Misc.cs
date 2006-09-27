@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -25,34 +25,37 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using System;
 using System.Runtime.InteropServices;
 
+#if !USING_NET11
+using System.Runtime.InteropServices.ComTypes;
+#endif
+
 namespace DirectShowLib
 {
+    #region Declarations
 
-	#region Declarations
-
-	/// <summary>
-	/// From KSMULTIPLE_ITEM - Note that data is returned in the memory IMMEDIATELY following this struct.
-	/// The Size parm indicates ths size of the KSMultipleItem plus the extra bytes.
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public class KSMultipleItem
-	{
-		public int Size;
-		public int Count;
-	}
+    /// <summary>
+    /// From KSMULTIPLE_ITEM - Note that data is returned in the memory IMMEDIATELY following this struct.
+    /// The Size parm indicates ths size of the KSMultipleItem plus the extra bytes.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public class KSMultipleItem
+    {
+        public int Size;
+        public int Count;
+    }
 
     #endregion
 
-	#region Interfaces
+    #region Interfaces
 
-	[Guid("00000109-0000-0000-C000-000000000046"),
-		InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	public interface IPersistStream : IPersist
-	{
+    [Guid("00000109-0000-0000-C000-000000000046"),
+    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    public interface IPersistStream : IPersist
+    {
         #region IPersist Methods
 
-		[PreserveSig]
-		new int GetClassID([Out] out Guid pClassID);
+        [PreserveSig]
+        new int GetClassID([Out] out Guid pClassID);
 
         #endregion
 
@@ -60,10 +63,19 @@ namespace DirectShowLib
         int IsDirty();
         
         [PreserveSig]
+#if USING_NET11
         int Load([In] UCOMIStream pStm);
-        
+#else
+        int Load([In] IStream pStm);
+#endif
+
         [PreserveSig]
-        int Save([In] UCOMIStream pStm, 
+        int Save(
+#if USING_NET11
+            [In] UCOMIStream pStm,
+#else
+            [In] IStream pStm,
+#endif
             [In, MarshalAs(UnmanagedType.Bool)] bool fClearDirty);
         
         [PreserveSig]
@@ -124,7 +136,11 @@ namespace DirectShowLib
         [PreserveSig]
         int AddError(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPropName,
+#if USING_NET11
             [In] EXCEPINFO pExcepInfo);
+#else
+            [In] System.Runtime.InteropServices.ComTypes.EXCEPINFO pExcepInfo);
+#endif
     }
 
     #endregion

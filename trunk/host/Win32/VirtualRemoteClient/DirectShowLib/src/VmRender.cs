@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ using System.Runtime.InteropServices;
 
 namespace DirectShowLib
 {
-
     #region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
@@ -66,7 +65,7 @@ namespace DirectShowLib
     [StructLayout(LayoutKind.Sequential)]
     public struct VMRPresentationInfo
     {
-        public int dwFlags;
+        public VMRPresentationFlags dwFlags;
         public IntPtr lpSurf; //LPDIRECTDRAWSURFACE7
         public long rtStart;
         public long rtEnd;
@@ -83,7 +82,7 @@ namespace DirectShowLib
     [StructLayout(LayoutKind.Sequential)]
     public struct VMRAllocationInfo
     {
-        public int dwFlags;
+        public VMRSurfaceAllocationFlags dwFlags;
         //		public BitmapInfoHeader lpHdr;
         //    public DDPixelFormat lpPixFmt;
         public IntPtr lpHdr;
@@ -426,7 +425,7 @@ namespace DirectShowLib
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IVMRImagePresenterExclModeConfig : IVMRImagePresenterConfig
     {
-        #region IVMRImagePresenterConfig Methods
+    #region IVMRImagePresenterConfig Methods
 
         [PreserveSig]
         new int SetRenderingPrefs([In] VMRRenderPrefs dwRenderFlags);
@@ -434,7 +433,7 @@ namespace DirectShowLib
         [PreserveSig]
         new int GetRenderingPrefs([Out] out VMRRenderPrefs dwRenderFlags);
 
-        #endregion
+    #endregion
 
         [PreserveSig]
         int SetXlcModeDDObjAndPrimarySurface(
@@ -449,16 +448,6 @@ namespace DirectShowLib
             );
     }
 
-    [Guid("aac18c18-e186-46d2-825d-a1f8dc8e395a"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IVPManager
-    {
-        [PreserveSig]
-        int SetVideoPortIndex([In] int dwVideoPortIndex);
-
-        [PreserveSig]
-        int GetVideoPortIndex([Out] out int dwVideoPortIndex);
-    }
 #endif
 
     [Guid("9e5530c5-7034-48b4-bb46-0b8a6efc8e36"),
@@ -773,6 +762,17 @@ namespace DirectShowLib
 
         [PreserveSig]
         int GetMixingPrefs([Out] out VMRMixerPrefs dwMixerPrefs);
+    }
+
+    [Guid("aac18c18-e186-46d2-825d-a1f8dc8e395a"),
+    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    public interface IVPManager
+    {
+        [PreserveSig]
+        int SetVideoPortIndex([In] int dwVideoPortIndex);
+
+        [PreserveSig]
+        int GetVideoPortIndex([Out] out int dwVideoPortIndex);
     }
 
     #endregion

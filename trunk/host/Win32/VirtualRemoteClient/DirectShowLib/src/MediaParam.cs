@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -30,7 +30,28 @@ namespace DirectShowLib.DMO
 {
     #region Declarations
 
-#if ALLOW_UNTESTED_INTERFACES
+    public class MediaParamTimeFormat
+    {
+        /// <summary> GUID_TIME_REFERENCE </summary>
+        public static readonly Guid Reference = new Guid(0x93ad712b, 0xdaa0, 0x4ffe, 0xbc, 0x81, 0xb0, 0xce, 0x50, 0x0f, 0xcd, 0xd9);
+
+        /// <summary> GUID_TIME_MUSIC </summary>
+        public static readonly Guid Music = new Guid(0x0574c49d, 0x5b04, 0x4b15, 0xa5, 0x42, 0xae, 0x28, 0x20, 0x30, 0x11, 0x7b);
+
+        /// <summary> GUID_TIME_SAMPLES, audio capture category </summary>
+        public static readonly Guid Samples = new Guid(0xa8593d05, 0x0c43, 0x4984, 0x9a, 0x63, 0x97, 0xaf, 0x9e, 0x02, 0xc4, 0xc0);
+    }
+
+    /// <summary>
+    /// From MP_DATA
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit)]
+    public struct MPData
+    {
+        [FieldOffset(0)] public bool vBool;
+        [FieldOffset(0)] public float vFloat;
+        [FieldOffset(0)] public int vInt;
+    }
 
     /// <summary>
     /// From MP_ENVELOPE_SEGMENT
@@ -40,8 +61,8 @@ namespace DirectShowLib.DMO
     {
         public long rtStart;
         public long rtEnd;
-        public float valStart;
-        public float valEnd;
+        public MPData valStart;
+        public MPData valEnd;
         public MPCaps iCurve;
         public MPFlags flags;
     }
@@ -87,43 +108,42 @@ namespace DirectShowLib.DMO
     /// From MP_PARAMINFO
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack=4)]
-    public struct MP_PARAMINFO
+    public struct ParamInfo
     {
         public MPType mpType;
         public MPCaps mopCaps;
-        public float mpdMinValue;
-        public float mpdMaxValue;
-        public float mpdNeutralValue;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst=0x20)]
-        public short[] szUnitText;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst=0x20)]
-        public short[] szLabel;
+        public MPData mpdMinValue;
+        public MPData mpdMaxValue;
+        public MPData mpdNeutralValue;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=0x20)]
+        public string szUnitText;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=0x20)]
+        public string szLabel;
     }
 
-#endif
     #endregion
 
     #region Interfaces
 
-#if ALLOW_UNTESTED_INTERFACES
-
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), 
+    [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), 
     Guid("6D6CBB60-A223-44AA-842F-A2F06750BE6D")]
     public interface IMediaParamInfo
     {
         [PreserveSig]
-        int GetParamCount(out int pdwParams);
+        int GetParamCount(
+            out int pdwParams
+            );
 
         [PreserveSig]
         int GetParamInfo(
             [In] int dwParamIndex, 
-            out MP_PARAMINFO pInfo
+            out ParamInfo pInfo
             );
 
         [PreserveSig]
         int GetParamText(
             [In] int dwParamIndex, 
-            [Out] IntPtr ppwchText
+            out IntPtr ip
             );
 
         [PreserveSig]
@@ -144,27 +164,29 @@ namespace DirectShowLib.DMO
             );
     }
 
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), 
+
+    [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), 
     Guid("6D6CBB61-A223-44AA-842F-A2F06750BE6E")]
     public interface IMediaParams
     {
         [PreserveSig]
         int GetParam(
             [In] int dwParamIndex, 
-            out float pValue
+            out MPData pValue
             );
 
         [PreserveSig]
         int SetParam(
             [In] int dwParamIndex, 
-            [In] float value
+            [In] MPData value
             );
 
         [PreserveSig]
         int AddEnvelope(
             [In] int dwParamIndex, 
             [In] int cSegments, 
-            [In, MarshalAs(UnmanagedType.LPStruct)] MPEnvelopeSegment pEnvelopeSegments);
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=1)] MPEnvelopeSegment [] pEnvelopeSegments
+            );
 
         [PreserveSig]
         int FlushEnvelope(
@@ -175,12 +197,11 @@ namespace DirectShowLib.DMO
 
         [PreserveSig]
         int SetTimeFormat(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid guidTimeFormat, 
+            [In] Guid MediaParamTimeFormat, 
             [In] int mpTimeData
             );
     }
 
-#endif
 
     #endregion
 }

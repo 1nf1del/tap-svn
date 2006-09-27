@@ -3,7 +3,7 @@
 /************************************************************************
 
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -32,8 +32,11 @@ using System.Text;
 using System.Reflection;
 using DirectShowLib.Dvd;
 
-namespace DirectShowLib
+#if !USING_NET11
+using System.Runtime.InteropServices.ComTypes;
+#endif
 
+namespace DirectShowLib
 {
     #region Declarations
 
@@ -359,204 +362,204 @@ namespace DirectShowLib
     [StructLayout(LayoutKind.Sequential)]
     public class DsRect
     {
-      public int left;
-      public int top;
-      public int right;
-      public int bottom;
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
 
-      /// <summary>
-      /// Empty contructor. Initialize all fields to 0
-      /// </summary>
-      public DsRect()
-      {
-        this.left = 0;
-        this.top = 0;
-        this.right = 0;
-        this.bottom = 0;
-      }
+        /// <summary>
+        /// Empty contructor. Initialize all fields to 0
+        /// </summary>
+        public DsRect()
+        {
+            this.left = 0;
+            this.top = 0;
+            this.right = 0;
+            this.bottom = 0;
+        }
 
-      /// <summary>
-      /// A parametred constructor. Initialize fields with given values.
-      /// </summary>
-      /// <param name="left">the left value</param>
-      /// <param name="top">the top value</param>
-      /// <param name="right">the right value</param>
-      /// <param name="bottom">the bottom value</param>
-      public DsRect(int left, int top, int right, int bottom)
-      {
-        this.left = left;
-        this.top = top;
-        this.right = right;
-        this.bottom = bottom;
-      }
+        /// <summary>
+        /// A parametred constructor. Initialize fields with given values.
+        /// </summary>
+        /// <param name="left">the left value</param>
+        /// <param name="top">the top value</param>
+        /// <param name="right">the right value</param>
+        /// <param name="bottom">the bottom value</param>
+        public DsRect(int left, int top, int right, int bottom)
+        {
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+        }
 
-      /// <summary>
-      /// A parametred constructor. Initialize fields with a given <see cref="System.Drawing.Rectangle"/>.
-      /// </summary>
-      /// <param name="rectangle">A <see cref="System.Drawing.Rectangle"/></param>
-      /// <remarks>
-      /// Warning, DsRect define a rectangle by defining two of his corners and <see cref="System.Drawing.Rectangle"/> define a rectangle with his upper/left corner, his width and his height.
-      /// </remarks>
-      public DsRect(Rectangle rectangle)
-      {
-        this.left = rectangle.Left;
-        this.top = rectangle.Top;
-        this.right = rectangle.Right;
-        this.bottom = rectangle.Bottom;
-      }
+        /// <summary>
+        /// A parametred constructor. Initialize fields with a given <see cref="System.Drawing.Rectangle"/>.
+        /// </summary>
+        /// <param name="rectangle">A <see cref="System.Drawing.Rectangle"/></param>
+        /// <remarks>
+        /// Warning, DsRect define a rectangle by defining two of his corners and <see cref="System.Drawing.Rectangle"/> define a rectangle with his upper/left corner, his width and his height.
+        /// </remarks>
+        public DsRect(Rectangle rectangle)
+        {
+            this.left = rectangle.Left;
+            this.top = rectangle.Top;
+            this.right = rectangle.Right;
+            this.bottom = rectangle.Bottom;
+        }
 
-      /// <summary>
-      /// Provide de string representation of this DsRect instance
-      /// </summary>
-      /// <returns>A string formated like this : [left, top - right, bottom]</returns>
-      public override string ToString()
-      {
-        return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
-      }
+        /// <summary>
+        /// Provide de string representation of this DsRect instance
+        /// </summary>
+        /// <returns>A string formated like this : [left, top - right, bottom]</returns>
+        public override string ToString()
+        {
+            return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
+        }
 
-      public override int GetHashCode()
-      {
-        return this.left.GetHashCode() |
-              this.top.GetHashCode() |
-              this.right.GetHashCode() |
-              this.bottom.GetHashCode();
-      }
+        public override int GetHashCode()
+        {
+            return this.left.GetHashCode() |
+                this.top.GetHashCode() |
+                this.right.GetHashCode() |
+                this.bottom.GetHashCode();
+        }
 
-      /// <summary>
-      /// Define implicit cast between DirectShowLib.DsRect and System.Drawing.Rectangle for languages supporting this feature.
-      /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.ToRectangle"/> for similar functionality.
-      /// <code>
-      ///   // Define a new Rectangle instance
-      ///   Rectangle r = new Rectangle(0, 0, 100, 100);
-      ///   // Do implicit cast between Rectangle and DsRect
-      ///   DsRect dsR = r;
-      ///
-      ///   Console.WriteLine(dsR.ToString());
-      /// </code>
-      /// </summary>
-      /// <param name="r">a DsRect to be cast</param>
-      /// <returns>A casted System.Drawing.Rectangle</returns>
-      public static implicit operator Rectangle(DsRect r)
-      {
-        return r.ToRectangle();
-      }
+        /// <summary>
+        /// Define implicit cast between DirectShowLib.DsRect and System.Drawing.Rectangle for languages supporting this feature.
+        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.ToRectangle"/> for similar functionality.
+        /// <code>
+        ///   // Define a new Rectangle instance
+        ///   Rectangle r = new Rectangle(0, 0, 100, 100);
+        ///   // Do implicit cast between Rectangle and DsRect
+        ///   DsRect dsR = r;
+        ///
+        ///   Console.WriteLine(dsR.ToString());
+        /// </code>
+        /// </summary>
+        /// <param name="r">a DsRect to be cast</param>
+        /// <returns>A casted System.Drawing.Rectangle</returns>
+        public static implicit operator Rectangle(DsRect r)
+        {
+            return r.ToRectangle();
+        }
 
-      /// <summary>
-      /// Define implicit cast between System.Drawing.Rectangle and DirectShowLib.DsRect for languages supporting this feature.
-      /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.FromRectangle"/> for similar functionality.
-      /// <code>
-      ///   // Define a new DsRect instance
-      ///   DsRect dsR = new DsRect(0, 0, 100, 100);
-      ///   // Do implicit cast between DsRect and Rectangle
-      ///   Rectangle r = dsR;
-      ///
-      ///   Console.WriteLine(r.ToString());
-      /// </code>
-      /// </summary>
-      /// <param name="r">A System.Drawing.Rectangle to be cast</param>
-      /// <returns>A casted DsRect</returns>
-      public static implicit operator DsRect(Rectangle r)
-      {
-        return new DsRect(r);
-      }
+        /// <summary>
+        /// Define implicit cast between System.Drawing.Rectangle and DirectShowLib.DsRect for languages supporting this feature.
+        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.FromRectangle"/> for similar functionality.
+        /// <code>
+        ///   // Define a new DsRect instance
+        ///   DsRect dsR = new DsRect(0, 0, 100, 100);
+        ///   // Do implicit cast between DsRect and Rectangle
+        ///   Rectangle r = dsR;
+        ///
+        ///   Console.WriteLine(r.ToString());
+        /// </code>
+        /// </summary>
+        /// <param name="r">A System.Drawing.Rectangle to be cast</param>
+        /// <returns>A casted DsRect</returns>
+        public static implicit operator DsRect(Rectangle r)
+        {
+            return new DsRect(r);
+        }
 
-      /// <summary>
-      /// Get the System.Drawing.Rectangle equivalent to this DirectShowLib.DsRect instance.
-      /// </summary>
-      /// <returns>A System.Drawing.Rectangle</returns>
-      public Rectangle ToRectangle()
-      {
-        return new Rectangle(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
-      }
+        /// <summary>
+        /// Get the System.Drawing.Rectangle equivalent to this DirectShowLib.DsRect instance.
+        /// </summary>
+        /// <returns>A System.Drawing.Rectangle</returns>
+        public Rectangle ToRectangle()
+        {
+            return new Rectangle(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
+        }
 
-      /// <summary>
-      /// Get a new DirectShowLib.DsRect instance for a given <see cref="System.Drawing.Rectangle"/>
-      /// </summary>
-      /// <param name="r">The <see cref="System.Drawing.Rectangle"/> used to initialize this new DirectShowLib.DsGuid</param>
-      /// <returns>A new instance of DirectShowLib.DsGuid</returns>
-      public static DsRect FromRectangle(Rectangle r)
-      {
-        return new DsRect(r);
-      }
+        /// <summary>
+        /// Get a new DirectShowLib.DsRect instance for a given <see cref="System.Drawing.Rectangle"/>
+        /// </summary>
+        /// <param name="r">The <see cref="System.Drawing.Rectangle"/> used to initialize this new DirectShowLib.DsGuid</param>
+        /// <returns>A new instance of DirectShowLib.DsGuid</returns>
+        public static DsRect FromRectangle(Rectangle r)
+        {
+            return new DsRect(r);
+        }
     }
 
-  [StructLayout(LayoutKind.Sequential)]
-  public struct NormalizedRect
-  {
-    public float left;
-    public float top;
-    public float right;
-    public float bottom;
-
-    public NormalizedRect(float l, float t, float r, float b)
+    [StructLayout(LayoutKind.Sequential)]
+    public struct NormalizedRect
     {
-      this.left = l;
-      this.top = t;
-      this.right = r;
-      this.bottom = b;
+        public float left;
+        public float top;
+        public float right;
+        public float bottom;
+
+        public NormalizedRect(float l, float t, float r, float b)
+        {
+            this.left = l;
+            this.top = t;
+            this.right = r;
+            this.bottom = b;
+        }
+
+        public NormalizedRect(RectangleF r)
+        {
+            this.left = r.Left;
+            this.top = r.Top;
+            this.right = r.Right;
+            this.bottom = r.Bottom;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.left.GetHashCode() |
+                this.top.GetHashCode() |
+                this.right.GetHashCode() |
+                this.bottom.GetHashCode();
+        }
+
+        public static implicit operator RectangleF(NormalizedRect r)
+        {
+            return r.ToRectangleF();
+        }
+
+        public static implicit operator NormalizedRect(Rectangle r)
+        {
+            return new NormalizedRect(r);
+        }
+
+        public static bool operator ==(NormalizedRect r1, NormalizedRect r2)
+        {
+            return ((r1.left == r2.left) && (r1.top == r2.top) && (r1.right == r2.right) && (r1.bottom == r2.bottom));
+        }
+
+        public static bool operator !=(NormalizedRect r1, NormalizedRect r2)
+        {
+            return ((r1.left != r2.left) || (r1.top != r2.top) || (r1.right != r2.right) || (r1.bottom != r2.bottom));
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is NormalizedRect))
+                return false;
+
+            NormalizedRect other = (NormalizedRect) obj;
+            return (this == other);
+        }
+
+
+        public RectangleF ToRectangleF()
+        {
+            return new RectangleF(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
+        }
+
+        public static NormalizedRect FromRectangle(RectangleF r)
+        {
+            return new NormalizedRect(r);
+        }
     }
-
-    public NormalizedRect(RectangleF r)
-    {
-      this.left = r.Left;
-      this.top = r.Top;
-      this.right = r.Right;
-      this.bottom = r.Bottom;
-    }
-
-    public override string ToString()
-    {
-      return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
-    }
-
-    public override int GetHashCode()
-    {
-      return this.left.GetHashCode() |
-        this.top.GetHashCode() |
-        this.right.GetHashCode() |
-        this.bottom.GetHashCode();
-    }
-
-    public static implicit operator RectangleF(NormalizedRect r)
-    {
-      return r.ToRectangleF();
-    }
-
-    public static implicit operator NormalizedRect(Rectangle r)
-    {
-      return new NormalizedRect(r);
-    }
-
-    public static bool operator ==(NormalizedRect r1, NormalizedRect r2)
-    {
-      return ((r1.left == r2.left) && (r1.top == r2.top) && (r1.right == r2.right) && (r1.bottom == r2.bottom));
-    }
-
-    public static bool operator !=(NormalizedRect r1, NormalizedRect r2)
-    {
-      return ((r1.left != r2.left) || (r1.top != r2.top) || (r1.right != r2.right) || (r1.bottom != r2.bottom));
-    }
-
-    public override bool Equals(object obj)
-    {
-      if (!(obj is NormalizedRect))
-        return false;
-
-      NormalizedRect other = (NormalizedRect) obj;
-      return (this == other);
-    }
-
-
-    public RectangleF ToRectangleF()
-    {
-      return new RectangleF(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
-    }
-
-    public static NormalizedRect FromRectangle(RectangleF r)
-    {
-      return new NormalizedRect(r);
-    }
-  }
 
     #endregion
 
@@ -874,19 +877,30 @@ namespace DirectShowLib
 
         #region APIs
         [DllImport("ole32.dll", ExactSpelling=true)]
-        private static extern int GetRunningObjectTable(int r,
-            out UCOMIRunningObjectTable pprot);
+#if USING_NET11
+        private static extern int GetRunningObjectTable(int r, out UCOMIRunningObjectTable pprot);
+#else
+        private static extern int GetRunningObjectTable(int r, out IRunningObjectTable pprot);
+#endif
 
         [DllImport("ole32.dll", CharSet=CharSet.Unicode, ExactSpelling=true)]
-        private static extern int CreateItemMoniker(string delim,
-            string item, out UCOMIMoniker ppmk);
+#if USING_NET11
+        private static extern int CreateItemMoniker(string delim, string item, out UCOMIMoniker ppmk);
+#else
+        private static extern int CreateItemMoniker(string delim, string item, out IMoniker ppmk);
+#endif
         #endregion
 
         public DsROTEntry(IFilterGraph graph)
         {
             int hr = 0;
+#if USING_NET11
             UCOMIRunningObjectTable rot = null;
             UCOMIMoniker mk = null;
+#else
+            IRunningObjectTable rot = null;
+            IMoniker mk = null;
+#endif
             try
             {
                 // First, get a pointer to the running object table
@@ -903,7 +917,11 @@ namespace DirectShowLib
                 DsError.ThrowExceptionForHR(hr);
 
                 // Add the object to the table
+#if USING_NET11
                 rot.Register((int)ROTFlags.RegistrationKeepsAlive, graph, mk, out m_cookie);
+#else
+                m_cookie = rot.Register((int)ROTFlags.RegistrationKeepsAlive, graph, mk);
+#endif
             }
             finally
             {
@@ -930,24 +948,26 @@ namespace DirectShowLib
             if (m_cookie != 0)
             {
                 GC.SuppressFinalize(this);
+#if USING_NET11
                 UCOMIRunningObjectTable rot = null;
+#else
+                IRunningObjectTable rot = null;
+#endif
+
+                // Get a pointer to the running object table
+                int hr = GetRunningObjectTable(0, out rot);
+                DsError.ThrowExceptionForHR(hr);
+
                 try
                 {
-                    // Get a pointer to the running object table
-                    int hr = GetRunningObjectTable(0, out rot);
-                    DsError.ThrowExceptionForHR(hr);
-
                     // Remove our entry
                     rot.Revoke(m_cookie);
                     m_cookie = 0;
                 }
                 finally
                 {
-                    if (rot != null)
-                    {
-                        Marshal.ReleaseComObject(rot);
-                        rot = null;
-                    }
+                    Marshal.ReleaseComObject(rot);
+                    rot = null;
                 }
             }
         }
@@ -956,16 +976,28 @@ namespace DirectShowLib
 
     public class DsDevice : IDisposable
     {
+#if USING_NET11
         private UCOMIMoniker m_Mon;
+#else
+        private IMoniker m_Mon;
+#endif
         private string m_Name;
 
+#if USING_NET11
         public DsDevice(UCOMIMoniker Mon)
+#else
+        public DsDevice(IMoniker Mon)
+#endif
         {
             m_Mon = Mon;
             m_Name = null;
         }
 
+#if USING_NET11
         public UCOMIMoniker Mon
+#else
+        public IMoniker Mon
+#endif
         {
             get
             {
@@ -1010,58 +1042,78 @@ namespace DirectShowLib
         /// Returns an array of DsDevices of type devcat.
         /// </summary>
         /// <param name="cat">Any one of FilterCategory</param>
-        public static DsDevice[] GetDevicesOfCat(Guid devcat)
+        public static DsDevice[] GetDevicesOfCat(Guid FilterCategory)
         {
-            // Use arrayList to build the retun list since it is easily resizable
-            ArrayList devs = new ArrayList();
-            DsDevice [] devret;
             int hr;
-            ICreateDevEnum enumDev = null;
-            UCOMIEnumMoniker enumMon = null;
-            UCOMIMoniker[] mon = new UCOMIMoniker[1];
 
-            try
+            // Use arrayList to build the retun list since it is easily resizable
+            DsDevice[] devret;
+            ArrayList devs = new ArrayList();
+#if USING_NET11
+            UCOMIEnumMoniker enumMon;
+#else
+            IEnumMoniker enumMon;
+#endif
+
+            ICreateDevEnum enumDev = (ICreateDevEnum)new CreateDevEnum();
+            hr = enumDev.CreateClassEnumerator(FilterCategory, out enumMon, 0);
+            DsError.ThrowExceptionForHR(hr);
+
+            // CreateClassEnumerator returns null for enumMon if there are no entries
+            if (hr != 1)
             {
-                enumDev = (ICreateDevEnum) new CreateDevEnum();
-                hr = enumDev.CreateClassEnumerator(devcat, out enumMon, 0);
-                DsError.ThrowExceptionForHR(hr);
-
-                // CreateClassEnumerator returns null for enumMon if there are no entries
-                if (hr != 1)
+                try
                 {
-                    int lFetched;
-                    while ((enumMon.Next(1, mon, out lFetched) == 0))
+                    try
                     {
-                        devs.Add(new DsDevice(mon[0]));
-                        mon[0] = null;
-                    }
-                }
+#if USING_NET11
+                        UCOMIMoniker[] mon = new UCOMIMoniker[1];
+#else
+                        IMoniker[] mon = new IMoniker[1];
+#endif
 
-                // Copy the ArrayList to the DsDevicep[]
-                devret = new DsDevice[devs.Count];
-                devs.CopyTo(devret, 0);
+#if USING_NET11
+						int j;
+						while ((enumMon.Next(1, mon, out j) == 0))
+#else
+                        while ((enumMon.Next(1, mon, IntPtr.Zero) == 0))
+#endif
+                        {
+                            try
+                            {
+                                // The devs array now owns this object.  Don't
+                                // release it if we are going to be successfully
+                                // returning the devret array
+                                devs.Add(new DsDevice(mon[0]));
+                            }
+                            catch
+                            {
+                                Marshal.ReleaseComObject(mon[0]);
+                                throw;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(enumMon);
+                    }
+
+                    // Copy the ArrayList to the DsDevice[]
+                    devret = new DsDevice[devs.Count];
+                    devs.CopyTo(devret);
+                }
+                catch
+                {
+                    foreach (DsDevice d in devs)
+                    {
+                        d.Dispose();
+                    }
+                    throw;
+                }
             }
-            catch
+            else
             {
-                foreach (DsDevice d in devs)
-                {
-                    d.Dispose();
-                }
-                throw;
-            }
-            finally
-            {
-                enumDev = null;
-                if (mon[0] != null)
-                {
-                    Marshal.ReleaseComObject(mon[0]);
-                    mon[0] = null;
-                }
-                if (enumMon != null)
-                {
-                    Marshal.ReleaseComObject(enumMon);
-                    enumMon = null;
-                }
+                devret = new DsDevice[0];
             }
 
             return devret;
@@ -1092,7 +1144,7 @@ namespace DirectShowLib
             }
             catch
             {
-                return null;
+                ret = null;
             }
             finally
             {
@@ -1242,7 +1294,7 @@ namespace DirectShowLib
         /// <param name="guidPinCat">The guid from PinCategory to scan for</param>
         /// <param name="iIndex">Zero based index (ie 2 will return the third pin of the specified category)</param>
         /// <returns>The matching pin, or null if not found</returns>
-        public static IPin ByCategory(IBaseFilter vSource, Guid guidPinCat, int iIndex)
+        public static IPin ByCategory(IBaseFilter vSource, Guid PinCategory, int iIndex)
         {
             int hr;
             int lFetched;
@@ -1265,7 +1317,7 @@ namespace DirectShowLib
                 while ((ppEnum.Next(1, pPins, out lFetched) >= 0) && (lFetched == 1))
                 {
                     // Is it the right category?
-                    if (DsUtils.GetPinCategory(pPins[0]) == guidPinCat)
+                    if (DsUtils.GetPinCategory(pPins[0]) == PinCategory)
                     {
                         // Is is the right index?
                         if (iIndex == 0)
@@ -1401,11 +1453,11 @@ namespace DirectShowLib
             {
                 // Parse out the FourCC code
                 byte[] asc = {
-                                  Convert.ToByte(s.Substring(6, 2), 16),
-                                  Convert.ToByte(s.Substring(4, 2), 16),
-                                  Convert.ToByte(s.Substring(2, 2), 16),
-                                  Convert.ToByte(s.Substring(0, 2), 16)
-                              };
+                                 Convert.ToByte(s.Substring(6, 2), 16),
+                                 Convert.ToByte(s.Substring(4, 2), 16),
+                                 Convert.ToByte(s.Substring(2, 2), 16),
+                                 Convert.ToByte(s.Substring(0, 2), 16)
+                             };
                 s = Encoding.ASCII.GetString(asc);
             }
 

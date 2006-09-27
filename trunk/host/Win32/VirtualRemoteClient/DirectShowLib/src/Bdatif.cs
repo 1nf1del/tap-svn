@@ -2,7 +2,7 @@
 
 /*
 DirectShowLib - Provide access to DirectShow interfaces via .NET
-Copyright (C) 2005
+Copyright (C) 2006
 http://sourceforge.net/projects/directshownet/
 
 This library is free software; you can redistribute it and/or
@@ -24,10 +24,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System.Runtime.InteropServices;
 
+#if !USING_NET11
+using System.Runtime.InteropServices.ComTypes;
+#endif
+
 namespace DirectShowLib.BDA
 {
-
-	#region Declarations
+    #region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
 	[ComImport, Guid("14EB8748-1753-4393-95AE-4F7E7A87AAD6")]
@@ -36,9 +39,9 @@ namespace DirectShowLib.BDA
 	}
 #endif
 
-	#endregion
+    #endregion
 
-	#region Interfaces
+    #region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
 
@@ -198,7 +201,7 @@ namespace DirectShowLib.BDA
 		[PreserveSig]
 		int Next(
 			[In] int celt,
-			[Out] out ITuneRequest ppprop,
+			[Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=0)] ITuneRequest[] ppprop,
 			[Out] out int pcelt
 			);
 
@@ -226,7 +229,11 @@ namespace DirectShowLib.BDA
 			);
 
 		[PreserveSig]
+#if USING_NET11
 		int GetGuideProgramIDs([Out] out UCOMIEnumVARIANT pEnumPrograms);
+#else
+		int GetGuideProgramIDs([Out] out IEnumVARIANT pEnumPrograms);
+#endif
 
 		[PreserveSig]
 		int GetProgramProperties(
@@ -235,7 +242,11 @@ namespace DirectShowLib.BDA
 			);
 
 		[PreserveSig]
-		int GetScheduleEntryIDs([Out] out UCOMIEnumVARIANT pEnumScheduleEntries);
+#if USING_NET11
+        int GetScheduleEntryIDs([Out] out UCOMIEnumVARIANT pEnumScheduleEntries);
+#else
+        int GetScheduleEntryIDs([Out] out IEnumVARIANT pEnumScheduleEntries);
+#endif
 
 		[PreserveSig]
 		int GetScheduleEntryProperties(
@@ -257,5 +268,5 @@ namespace DirectShowLib.BDA
 
 #endif
 
-	#endregion
+    #endregion
 }
