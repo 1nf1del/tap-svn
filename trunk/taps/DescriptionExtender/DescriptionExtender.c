@@ -25,7 +25,7 @@
 #include <OPCodes.h>
 #include <messagewin.h>
 #include <model.h>
-#include "epg.h"
+#include "EPG.h"
 
 #if defined(CT)
 #define POSTFIX " CT"
@@ -100,6 +100,7 @@ FirmwareDetail firmware[] =
 	TF5800t,		0x1205,		0x8032e818,		5000,	1,		// 07 Sep 2005
 	TF5800t,		0x1204,		0x8032e698,		5000,	1,		// 01 Sep 2005
 	
+	TF5000t,		0x1248,		0x802961c4,		5000,	1,		// 20 Feb 2006
 	TF5000t,		0x1212,		0x8028ebf4,		5000,	1,		// 05 Oct 2005
 
 	TF5000_5500,	0x1205,		0x802d6bb4,		5000,	1,		// 13 Sep 2005

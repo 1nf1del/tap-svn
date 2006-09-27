@@ -56,7 +56,7 @@ $(TAPNAME).tap: DescriptionExtender.elf
 DescriptionExtender.elf::	DescriptionExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 DescriptionExtender.o:		DescriptionExtender.c 
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander -I../../libs/exTap
+CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -s -C ../../libs/libutils
