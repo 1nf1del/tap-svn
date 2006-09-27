@@ -68,14 +68,15 @@ TAP_ETCINFO(__DATE__);
 // I think that means that it will always address 512bytes into memory which is awkward if you
 // want to look at smaller segments that might be surrounded by non-readable regions.
 
-#define BANK_START 0xA0000000
-#define MEM_BLOCK  0x01000000 // largest blocksize for TAP_Hdd_Fwrite seems to be 32MB-1 byte, so we'll do 16MB chunks
+#define START_ADDRESS	0x80000000
+#define END_ADDRESS		0x83ffffff
+#define CHUNK_SIZE		0x01000000 // largest blocksize for TAP_Hdd_Fwrite seems to be 32MB-1 byte, so we'll do 16MB chunks
 
 
 void DumpMemory()
 {
 	TYPE_File* fp;
-	int i;
+	dword d;
 	char filename[TS_FILE_NAME_SIZE];
 
 	ShowMessage("Starting memory dump\nThis may take a moment and may cause a crash...", 200);
@@ -89,8 +90,8 @@ void DumpMemory()
 
 	if (fp = TAP_Hdd_Fopen (filename))
 	{
-		for ( i=0; i<4; ++i )
-			TAP_Hdd_Fwrite ((void *) BANK_START + MEM_BLOCK*i, MEM_BLOCK, 1, fp);
+		for ( d=START_ADDRESS; d<END_ADDRESS; d+=CHUNK_SIZE )
+			TAP_Hdd_Fwrite ((void *)d, min(END_ADDRESS-d,CHUNK_SIZE), 1, fp);
 		TAP_Hdd_Fclose (fp);
 	}
 	else
