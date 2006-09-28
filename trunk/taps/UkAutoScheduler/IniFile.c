@@ -17,6 +17,7 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.5 sl8		12-04-06	Make TRC optional (default - enabled)
 	  v0.6 sl8		05-08-06	Search ahead, date and time format added.
 	  v0.7 sl8		28-08-06	Keyboard types.
+	  v0.8 sl8		28-09-06	Conflict handler option added.
 
 ************************************************************/
 
@@ -106,6 +107,9 @@ void SaveConfigurationToFile( void )
 	WriteStrToIniBuf( str );
 
 	TAP_SPrint(str, "%d\r\n", keyboardLanguage );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", schMainConflictOption );
 	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );					// write all the data in one pass
@@ -204,6 +208,7 @@ bool SetConfigurationVariables( void )
 	schMainDateFormat = ReadIniDecimal(0, &configPassed);
 	schMainTimeFormat = ReadIniDecimal(0, &configPassed);
 	keyboardLanguage = ReadIniDecimal(0, &configPassed);
+	schMainConflictOption = ReadIniDecimal(0, &configPassed);
 
 	return configPassed;
 }

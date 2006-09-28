@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.10
+Version	: 0.11
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -20,6 +20,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.8 sl8		05-08-06	Search ahead, date and time format added.
 	  v0.9 sl8		28-08-06	Keyboard types.
 	  v0.10 sl8		28-09-06	Recall bug fix. Options 4 - 9 would not revert to default.
+	  v0.11 sl8		28-09-06	Conflict handler option.
 
 **************************************************************/
 
@@ -47,6 +48,8 @@ static	bool	currentTRCEnabled = TRUE;
 static	int	currentPerformSearchDays = 0;
 static	byte	currentDateFormat = 0;
 static	byte	currentTimeFormat = 0;
+static	byte	currentConflictOption = 0;
+
 static	bool	enterActivateKey = 0;
 static	byte	keyStage = 0;
 static	int	chosenConfigLine = 0;
@@ -63,7 +66,7 @@ void DisplayConfigLine(char lineNumber)
 
 	if (( lineNumber < 1 ) || ( lineNumber > CONFIG_LINES )) return;		// bound check
 	
-	if (( chosenConfigLine == lineNumber ) && ( lineNumber != 10 ))		// highlight the current cursor line
+	if ( chosenConfigLine == lineNumber )			// highlight the current cursor line
 	{																	// save, cancel, delete looks after itself
 		TAP_Osd_PutGd( rgn, 53, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, &_highlightGd, FALSE );
 	}
@@ -414,23 +417,37 @@ void DisplayConfigLine(char lineNumber)
 		break;
 	/*--------------------------------------------------*/
 	case 10 :
-		TAP_Osd_PutGd( rgn, 53, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
 
-		if (( configOption == 0 ) && ( chosenConfigLine == 10 ))
+		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Conflict Handling", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		switch(currentConflictOption)
 		{
-			TAP_Osd_PutGd( rgn, 116, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
-			PrintCenter(rgn, 144, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-		}
-		else PrintCenter(rgn, 144, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 244, "Save", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		/*--------------------------------------------------*/
+		case SCH_MAIN_CONFLICT_DISABLED:
 
-		if (( configOption == 1 ) && ( chosenConfigLine == 10 ))
-		{
-			TAP_Osd_PutGd( rgn, 278, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_smallgreenbarGd, FALSE );
-			PrintCenter(rgn, 306, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-		}
-		else PrintCenter(rgn, 306, lineNumber * SYS_Y1_STEP + Y1_OFFSET, 406, "Cancel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			TAP_SPrint( str,"Disabled");
 
-		TAP_Osd_FillBox( rgn, 437, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );		// one extra column seperator for us
+			break;
+		/*--------------------------------------------------*/
+		case SCH_MAIN_CONFLICT_COMBINE:
+
+			TAP_SPrint( str,"Combine Timers");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_MAIN_CONFLICT_SEPARATE:
+
+			TAP_SPrint( str,"Separate Timers");
+
+			break;
+		/*--------------------------------------------------*/
+		default:
+
+			break;
+		/*--------------------------------------------------*/
+		}
+
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
@@ -458,6 +475,7 @@ void CopyConfiguration( void )
 	currentPerformSearchDays = schMainPerformSearchDays;
 	currentDateFormat = schMainDateFormat;
 	currentTimeFormat = schMainTimeFormat;
+	currentConflictOption = schMainConflictOption;
 }
 
 void SaveConfiguration( void )
@@ -471,6 +489,7 @@ void SaveConfiguration( void )
 	schMainPerformSearchDays = currentPerformSearchDays;
 	schMainDateFormat = currentDateFormat;
 	schMainTimeFormat = currentTimeFormat;
+	schMainConflictOption = currentConflictOption;
 
 	SaveConfigurationToFile();
 }
@@ -513,7 +532,7 @@ void RedrawConfigWindow( void )
 
 void DisplayConfigWindow( void )
 {
-	chosenConfigLine = 10;
+	chosenConfigLine = 0;
 	configOption = 1;
 	
 	RedrawConfigWindow();
@@ -916,53 +935,37 @@ void ConfigActionHandler(dword key)
 
 		break;
 	/*--------------------------------------------------*/
-	case 10 :														// bottom line commands : Save, or Cancel
-		switch ( key )
+	case 10 :
+		switch ( key )						// Conflict handler
 		{
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
-			if ( configOption < 1 )
+
+			if(currentConflictOption < SCH_MAIN_CONFLICT_SEPARATE)
 			{
-				configOption++;
+				currentConflictOption++;
 			}
 			else
 			{
-				configOption = 0;
+				currentConflictOption = SCH_MAIN_CONFLICT_DISABLED;
 			}
-		
+
+			DisplayConfigLine( chosenConfigLine );
+
 			break;
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
-			if ( configOption > 0 )
+
+			if(currentConflictOption > SCH_MAIN_CONFLICT_DISABLED)
 			{
-				configOption--;
+				currentConflictOption--;
 			}
 			else
 			{
-				configOption = 1;
+				currentConflictOption = SCH_MAIN_CONFLICT_SEPARATE;
 			}
 
-			break;
-		/*--------------------------------------------------*/
-		case RKEY_Ok :
-			switch ( configOption )
-			{
-			/*--------------------------------------------------*/
-			case 0 :
-				SaveConfiguration();		// save
-			
-				break;
-			/*--------------------------------------------------*/
-			case 1 :
-				break;				// cancel
-			/*--------------------------------------------------*/
-			default :
-				break;
-			/*--------------------------------------------------*/
-			}
-
-			CloseConfigWindow();		// Close the edit window
-			returnFromEdit = TRUE;		// will cause a redraw of timer list
+			DisplayConfigLine( chosenConfigLine );
 
 			break;
 		/*--------------------------------------------------*/
@@ -970,8 +973,6 @@ void ConfigActionHandler(dword key)
 			break;
 		/*--------------------------------------------------*/
 		}
-
-		DisplayConfigLine( chosenConfigLine );
 
 		break;
 	/*--------------------------------------------------*/

@@ -21,6 +21,7 @@ v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats adde
 v0.12 sl8	29-08-06	Ignore character table code in event name is present
 v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
 v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
+v0.15 sl8	29-09-06	Added separate conflict handler.
 
 **************************************************************/
 
@@ -40,6 +41,8 @@ void schMainInitLcnToSvcNumMap(void);
 void schMainUpdateSearchList(void);
 void schMainDetermineChangeDirType(void);
 int schMainFindMultipleConflictCount(char *);
+dword schMainConvertTimeToMins(dword time);
+bool schProcessConflict(TYPE_TimerInfo*, dword, dword, int);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
 static struct schDataTag schRemoteData[SCH_MAX_SEARCHES];
@@ -57,6 +60,8 @@ static byte schMainTotalValidMoves = 0;
 static bool schMainTRCEnabled = TRUE;
 static byte schMainDateFormat = 0;
 static byte schMainTimeFormat = 0;
+static byte schMainConflictOption = SCH_MAIN_CONFLICT_DISABLED;
+
 
 word* schLcnToServiceTv = NULL;
 word* schLcnToServiceRadio = NULL;
@@ -549,7 +554,7 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 
 int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, int searchIndex, word svcNum, byte isRec)
 {
-	TYPE_TimerInfo schTimerInfo, conflictTimerInfo;
+	TYPE_TimerInfo schTimerInfo, conflictTimerInfo, conflictTimerInfoA, conflictTimerInfoB;
 	dword schEventStartInMins = 0, schEventEndInMins = 0;
 	word schPaddingStartInMins = 0, schPaddingEndInMins = 0;
 	dword schTimerStartInMins = 0, schTimerEndInMins = 0;
@@ -569,7 +574,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	char fileNameStr[132], fileNameStrConflict[132];
 	char logBuffer[LOG_BUFFER_SIZE];
 	int fileNameLen = 0;
-	int timerError = 0;
+	int timerError = 0, timerErrorA = 0, timerErrorB = 0;
 	int i = 0;
 	int conflictStatus=0;
 	char multipleConflictCount[3];
@@ -889,185 +894,261 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	if ((timerError==1) || (timerError==2)){
 		// 1 - Can't add
 		// 2 - Invalid Tuner
-	} ef (timerError>=0xffff0000) {  //Timer error indicates the timer that overlaps.
-		memset(logBuffer,0,LOG_BUFFER_SIZE);
-		TAP_Timer_GetInfo( (timerError&0x0000ffff), &conflictTimerInfo );
-		/*sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
-		logStoreEvent(logBuffer);*/
-		memset(fileNameStrConflict, 0, 132);
-		memset(multipleConflictCount, 0 ,3);
-		strncpy(fileNameStrConflict, conflictTimerInfo.fileName, strlen(conflictTimerInfo.fileName)-4);
-		sprintf(multipleConflictCount,"%d", schMainFindMultipleConflictCount(fileNameStrConflict)+1);
-		/*sprintf( logBuffer, "fileNameStriped = %s\nChar:%s\n", fileNameStrConflict , multipleConflictCount);
-		logStoreEvent(logBuffer);*/
-		
-		//End MJDtime is calculated by... startMJD + minutes + (hours bitshift left 1 byte)
-		endConflictMJD=conflictTimerInfo.startTime + (conflictTimerInfo.duration % 60) +((conflictTimerInfo.duration/60)<<8);
-		if (((endConflictMJD) & 0xff)> 59) {  //minutes >=1 hour (can't be more than 1 hour of rollover to add), add 196 as this is a BCD rep and we need to rollover into the next byte (256-60=)...
-			endConflictMJD+=196;
-		}
-		if (((endConflictMJD>>8) & 0xff)> 23) { //hours>=1 day, so as BCD can store >10days in hours, add number of days-1 onto days in mjd ((hours/24)-1)*256, then add remaining hours onto a entire day 256+(hours%24) so it rolls over, then bitshift left into the hours & days bytes.  So for normal cases, if hours=25 hours/24=1, 1-1=0, 0*256=0, hours%24=1, 0+1+256=257 = 1 day, 1hour.
-			endConflictMJD+=(((((endConflictMJD>>8)&0xff)/24)-1)*256)+(256+(((endConflictMJD>>8)&0xff) % 24))<<8;  //endConflictMJD+=(((endConflictMJD>>8)&0xff)-24)<<16;  //this is wrong, it forgets about hours.
-		}
-		endTimerMJD=schTimerInfo.startTime + (schTimerInfo.duration % 60) +((schTimerInfo.duration/60)<<8);
-		if (((endTimerMJD>>8) & 0xff)> 23){
-			endTimerMJD+=(((((endTimerMJD>>8)&0xff)/24)-1)*256)+(256+(((endTimerMJD>>8)&0xff) % 24))<<8;
-		}
-		if (((endTimerMJD) & 0xff)> 59) {
-			endTimerMJD+=196;
-		}
-		/*sprintf( logBuffer, "conflictDuration = %d", conflictTimerInfo.duration );
-		logStoreEvent(logBuffer);
-		TAP_ExtractMjd( conflictTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
-		sprintf( logBuffer, "conflictStartTime = %d/%d/%d %02d:%02d", day, month, year, (conflictTimerInfo.startTime&0xff00)>>8, (conflictTimerInfo.startTime&0xff) );
-		logStoreEvent(logBuffer);		
-		TAP_ExtractMjd( endConflictMJD>>16, &year, &month, &day, &weekDay) ;
-		sprintf( logBuffer, "conflictEndTime = %d/%d/%d %02d:%02d", day, month, year, (endConflictMJD&0xff00)>>8, (endConflictMJD&0xff) );
-		logStoreEvent(logBuffer);
-		
-		sprintf( logBuffer, "newduration = %d", schTimerInfo.duration );
-		logStoreEvent(logBuffer);		
-		TAP_ExtractMjd( schTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
-		sprintf( logBuffer, "newstartTime = %d/%d/%d %02d:%02d", day, month, year, (schTimerInfo.startTime&0xff00)>>8, (schTimerInfo.startTime&0xff) );
-		logStoreEvent(logBuffer);
-		TAP_ExtractMjd( endTimerMJD>>16, &year, &month, &day, &weekDay) ;
-		sprintf( logBuffer, "newEndTime = %d/%d/%d %02d:%02d", day, month, year,(endTimerMJD&0xff00)>>8,(endTimerMJD&0xff));
-		logStoreEvent(logBuffer);
+	}
+	ef (timerError>=0xffff0000)
+	{//Timer error indicates the timer that overlaps.
 
-		sprintf( logBuffer, "--Conflict with:  %s",schTimerInfo.fileName);
-		logStoreEvent(logBuffer);
-		sprintf( logBuffer, "svcType = %d", conflictTimerInfo.svcType );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "svcNum = %d", conflictTimerInfo.svcNum );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "reservationType = %d", conflictTimerInfo.reservationType );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "duration = %d", conflictTimerInfo.duration );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
-		logStoreEvent(logBuffer);
-						
-		sprintf( logBuffer, "//Do nothing.");*/
-		//If conflict is on the same channel and we are looking at a once only timer.
-		if ((schTimerInfo.svcNum==conflictTimerInfo.svcNum) && (conflictTimerInfo.reservationType==RESERVE_TYPE_Onetime)){
-			//Start of my timer is <= start time of conflict and end time is >= end, so new timer will include all of the old timer.
+		if(schMainConflictOption == SCH_MAIN_CONFLICT_COMBINE)
+		{
+			memset(logBuffer,0,LOG_BUFFER_SIZE);
+			TAP_Timer_GetInfo( (timerError&0x0000ffff), &conflictTimerInfo );
+			/*sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
+			logStoreEvent(logBuffer);*/
+			memset(fileNameStrConflict, 0, 132);
+			memset(multipleConflictCount, 0 ,3);
+			strncpy(fileNameStrConflict, conflictTimerInfo.fileName, strlen(conflictTimerInfo.fileName)-4);
+			sprintf(multipleConflictCount,"%d", schMainFindMultipleConflictCount(fileNameStrConflict)+1);
+			/*sprintf( logBuffer, "fileNameStriped = %s\nChar:%s\n", fileNameStrConflict , multipleConflictCount);
+			logStoreEvent(logBuffer);*/
+
+			//End MJDtime is calculated by... startMJD + minutes + (hours bitshift left 1 byte)
+			endConflictMJD=conflictTimerInfo.startTime + (conflictTimerInfo.duration % 60) +((conflictTimerInfo.duration/60)<<8);
+			if (((endConflictMJD) & 0xff)> 59) {  //minutes >=1 hour (can't be more than 1 hour of rollover to add), add 196 as this is a BCD rep and we need to rollover into the next byte (256-60=)...
+				endConflictMJD+=196;
+			}
+			if (((endConflictMJD>>8) & 0xff)> 23) { //hours>=1 day, so as BCD can store >10days in hours, add number of days-1 onto days in mjd ((hours/24)-1)*256, then add remaining hours onto a entire day 256+(hours%24) so it rolls over, then bitshift left into the hours & days bytes.  So for normal cases, if hours=25 hours/24=1, 1-1=0, 0*256=0, hours%24=1, 0+1+256=257 = 1 day, 1hour.
+				endConflictMJD+=(((((endConflictMJD>>8)&0xff)/24)-1)*256)+(256+(((endConflictMJD>>8)&0xff) % 24))<<8;  //endConflictMJD+=(((endConflictMJD>>8)&0xff)-24)<<16;  //this is wrong, it forgets about hours.
+			}
+			endTimerMJD=schTimerInfo.startTime + (schTimerInfo.duration % 60) +((schTimerInfo.duration/60)<<8);
+			if (((endTimerMJD>>8) & 0xff)> 23){
+				endTimerMJD+=(((((endTimerMJD>>8)&0xff)/24)-1)*256)+(256+(((endTimerMJD>>8)&0xff) % 24))<<8;
+			}
+			if (((endTimerMJD) & 0xff)> 59) {
+				endTimerMJD+=196;
+			}
+			/*sprintf( logBuffer, "conflictDuration = %d", conflictTimerInfo.duration );
+			logStoreEvent(logBuffer);
+			TAP_ExtractMjd( conflictTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
+			sprintf( logBuffer, "conflictStartTime = %d/%d/%d %02d:%02d", day, month, year, (conflictTimerInfo.startTime&0xff00)>>8, (conflictTimerInfo.startTime&0xff) );
+			logStoreEvent(logBuffer);		
+			TAP_ExtractMjd( endConflictMJD>>16, &year, &month, &day, &weekDay) ;
+			sprintf( logBuffer, "conflictEndTime = %d/%d/%d %02d:%02d", day, month, year, (endConflictMJD&0xff00)>>8, (endConflictMJD&0xff) );
+			logStoreEvent(logBuffer);
+			
+			sprintf( logBuffer, "newduration = %d", schTimerInfo.duration );
+			logStoreEvent(logBuffer);		
+			TAP_ExtractMjd( schTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
+			sprintf( logBuffer, "newstartTime = %d/%d/%d %02d:%02d", day, month, year, (schTimerInfo.startTime&0xff00)>>8, (schTimerInfo.startTime&0xff) );
+			logStoreEvent(logBuffer);
+			TAP_ExtractMjd( endTimerMJD>>16, &year, &month, &day, &weekDay) ;
+			sprintf( logBuffer, "newEndTime = %d/%d/%d %02d:%02d", day, month, year,(endTimerMJD&0xff00)>>8,(endTimerMJD&0xff));
+			logStoreEvent(logBuffer);
+
+			sprintf( logBuffer, "--Conflict with:  %s",schTimerInfo.fileName);
+			logStoreEvent(logBuffer);
+			sprintf( logBuffer, "svcType = %d", conflictTimerInfo.svcType );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "svcNum = %d", conflictTimerInfo.svcNum );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "reservationType = %d", conflictTimerInfo.reservationType );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "duration = %d", conflictTimerInfo.duration );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
+			logStoreEvent(logBuffer);
+							
+			sprintf( logBuffer, "//Do nothing.");*/
+			//If conflict is on the same channel and we are looking at a once only timer.
+			if ((schTimerInfo.svcNum==conflictTimerInfo.svcNum) && (conflictTimerInfo.reservationType==RESERVE_TYPE_Onetime)){
+				//Start of my timer is <= start time of conflict and end time is >= end, so new timer will include all of the old timer.
 			if ((schTimerInfo.startTime<=conflictTimerInfo.startTime) && (endTimerMJD>=endConflictMJD)){
-				//check for exact match
+					//check for exact match
 				if ((schTimerInfo.startTime==conflictTimerInfo.startTime) && (endTimerMJD==endConflictMJD)){
-					//New Timer is old timer, do nothing.
-					//sprintf( logBuffer, "//New Timer is old timer, do nothing.");
-				} else {
-					//New Timer includes all of old timer, remove old timer and add new timer.
-					//We could edit existing timer rather than remove, but new timer must be acceptable to be set otherwise there wouldn't be a search looking for this, so new name is acceptable.
+						//New Timer is old timer, do nothing.
+						//sprintf( logBuffer, "//New Timer is old timer, do nothing.");
+					} else {
+						//New Timer includes all of old timer, remove old timer and add new timer.
+						//We could edit existing timer rather than remove, but new timer must be acceptable to be set otherwise there wouldn't be a search looking for this, so new name is acceptable.
+						
+						//sprintf( logBuffer, "//New Timer includes all of old timer, remove old timer and add new timer.");
+						if (TAP_Timer_Delete((timerError&0x0000ffff))) {
+#ifndef WIN32
+							timerError = TAP_Timer_Add(&schTimerInfo);
+#else
+							timerError = TAP_Timer_Add_SDK(&schTimerInfo);
+#endif
+							//Did it add OK?
+							if (timerError!=0) { //No it didn't restore old timer (Run Away, Run Away!!!)
+#ifndef WIN32
+								if (TAP_Timer_Add(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
+#else
+								if (TAP_Timer_Add_SDK(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
+#endif
+									sprintf( logBuffer, "//bugger, unable to recreate deleted timer.");
+									logStoreEvent(logBuffer);
+								}
+							} else {
+								conflictStatus=1;
+							}
+						} else {  //Unsure if this can happen, API spec doesn't specify
+							sprintf( logBuffer, "//Unable to delete old timer.");
+							logStoreEvent(logBuffer);
+						}
+					}
+				}
+				//We simply check to see if the start time of the conflicting (existing) timer is between the start and end of the new timer we are trying to create.  We don't check they are <= or >= as they would be adjacent, not overlapping.
+				if((conflictTimerInfo.startTime>schTimerInfo.startTime) && (conflictTimerInfo.startTime<endTimerMJD)){
+					//New timer overlaps the start of the old timer
+					//sprintf( logBuffer, "//New timer overlaps the start of the old timer");
 					
-					//sprintf( logBuffer, "//New Timer includes all of old timer, remove old timer and add new timer.");
-					if (TAP_Timer_Delete((timerError&0x0000ffff))) {
+					//Edit existing timer, set start time to be earlier start time, then duration to be new existingEnd-newStart time.
+					conflictTimerInfo.startTime=schTimerInfo.startTime;
+					//If the MJD (days) differ then the hours/mins will provide negative values, we compensate for this by checking that the days are the same and if they arn't adding 1440 minutes onto it, ie start 2300 finish 0100 is -1320 minutes add numMinsInDay (1440) = 120.. Ta Da!!!
+					conflictTimerInfo.duration=(((endConflictMJD>>16)-(conflictTimerInfo.startTime>>16))*1440)+ ((((endConflictMJD>>8)&0xff)-((conflictTimerInfo.startTime>>8)&0xff))*60)+ ((endConflictMJD&0xff)-(conflictTimerInfo.startTime&0xff));
+					memset(fileNameStr,0,132);
+					strcat(fileNameStr,prefixStr);
+					strcat(fileNameStr,"[M");
+					strcat(fileNameStr,multipleConflictCount);
+					strcat(fileNameStr,"]");
+					i=(SCH_MAX_FILENAME_LENGTH-(strlen(prefixStr) + strlen(appendStr) + 7))/2;
+					//If the second name in the string is less than it's allowed, increase the first string by the amount the second string is less.
+					strncat(fileNameStr, eventName, (strlen(fileNameStrConflict)>i ? i : (i*2)-strlen(fileNameStrConflict)));
+					strcat(fileNameStr," & ");
+					strncat(fileNameStr, fileNameStrConflict, (SCH_MAX_FILENAME_LENGTH-(strlen(appendStr) + strlen(fileNameStr))));
+					strcat(fileNameStr,appendStr);
+					strcat(fileNameStr,".rec");
+					strcpy(conflictTimerInfo.fileName, fileNameStr);
+					timerError=TAP_Timer_Modify((timerError&0x0000ffff), &conflictTimerInfo);
+					if (timerError!=0){
+						sprintf( logBuffer, "Modify timer error %d", timerError);
+						logStoreEvent(logBuffer);
+					} else {
+						conflictStatus=2;
+					}
+				}
+				//We simply check to see if the end time of the conflicting (existing) timer is between the start and end of the new timer we are trying to create.  We don't check they are <= or >= as they would be adjacent, not overlapping.
+				if((endConflictMJD>schTimerInfo.startTime) && (endConflictMJD<endTimerMJD)){
+					//New timer overlaps the end of the old timer
+					//sprintf( logBuffer, "//New timer overlaps the end of the old timer");
+					
+					//Edit existing timer, start time OK, end time not, so change duration to be newEnd-existingStart time.
+					
+					//If the MJD (days) differ then the hours/mins will provide negative values, we compensate for this by checking that the days are the same and if they arn't adding 1440 minutes onto it, ie start 2300 finish 0100 is -1320 minutes add numMinsInDay (1440) = 120.. Ta Da!!!
+					conflictTimerInfo.duration=(((endTimerMJD>>16)-(conflictTimerInfo.startTime>>16))*1440)+ ((((endTimerMJD>>8)&0xff)-((conflictTimerInfo.startTime>>8)&0xff))*60)+ ((endTimerMJD&0xff)-(conflictTimerInfo.startTime&0xff));
+					memset(fileNameStr,0,132);
+					strcat(fileNameStr,prefixStr);
+					strcat(fileNameStr,"[M");
+					strcat(fileNameStr,multipleConflictCount);
+					strcat(fileNameStr,"]");
+					i=(SCH_MAX_FILENAME_LENGTH-(strlen(prefixStr) + strlen(appendStr) + 7))/2;
+					//If the second name in the string is less than it's allowed, increase the first string by the amount the second string is less.
+					strncat(fileNameStr, fileNameStrConflict, (strlen(fileNameStrConflict)>i ? i : (i*2)-strlen(fileNameStrConflict)));
+					strcat(fileNameStr," & ");
+					strncat(fileNameStr, eventName, (SCH_MAX_FILENAME_LENGTH-(strlen(appendStr) + strlen(fileNameStr))));
+					strcat(fileNameStr,appendStr);
+					strcat(fileNameStr,".rec");
+					strcpy(conflictTimerInfo.fileName, fileNameStr);
+#ifndef WIN32
+					timerError=TAP_Timer_Modify((timerError&0x0000ffff), &conflictTimerInfo);
+#else
+					timerError=TAP_Timer_Modify_SDK((timerError&0x0000ffff), &conflictTimerInfo);
+#endif
+					if (timerError!=0){
+						sprintf( logBuffer, "Modify timer error %d", timerError);
+						logStoreEvent(logBuffer);
+					} else {
+						conflictStatus=4;
+					}
+				}
+			} else {
+				//sprintf( logBuffer, "//two different channels or wrong timer type, need more code for this problem.");
+			}
+			//logStoreEvent(logBuffer);
+	/*
+			sprintf( logBuffer, "--Conflict with:  %s",schTimerInfo.fileName);
+			logStoreEvent(logBuffer);
+			TAP_ExtractMjd( conflictTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
+			sprintf( logBuffer, "startTime = %d/%d/%d %02d:%02d", day, month, year, (conflictTimerInfo.startTime&0xff00)>>8, (conflictTimerInfo.startTime&0xff) );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "duration = %d", conflictTimerInfo.duration );
+			logStoreEvent(logBuffer);		
+			sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
+			logStoreEvent(logBuffer);
+			
+			sprintf( logBuffer, "--Done timer error : %d\r\n", timerError & 0x0000ffff);
+			logStoreEvent(logBuffer);*/
+		}
+		else if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE)
+		{
+			timerErrorA = timerError;
+
+			TAP_Timer_GetInfo( (timerError & 0x0000ffff), &conflictTimerInfoA );
+			if(schProcessConflict(&schTimerInfo, eventStartTime, eventEndTime, timerError) == TRUE)
+			{
+//TAP_Print("Process OK\r\n");
+
+#ifndef WIN32
+				timerError = TAP_Timer_Add(&schTimerInfo);
+#else
+				timerError = TAP_Timer_Add_SDK(&schTimerInfo);
+#endif
+				if
+				(
+					(timerError == 1)
+					||
+					(timerError == 2)
+					||
+					(timerError == timerErrorA)
+				)
+				{
+//TAP_Print("Invalid\r\n");
+					// Recover Conflict A
+
+					TAP_Timer_Modify((timerErrorA & 0x0000ffff), &conflictTimerInfoA);
+				}
+				else if (timerError >= 0xffff0000)
+				{
+//TAP_Print("New conflict\r\n");
+					timerErrorB = timerError;
+
+					TAP_Timer_GetInfo( (timerError & 0x0000ffff), &conflictTimerInfoB );
+
+					if(schProcessConflict(&schTimerInfo, eventStartTime, eventEndTime, timerError) == TRUE)
+					{
 #ifndef WIN32
 						timerError = TAP_Timer_Add(&schTimerInfo);
 #else
 						timerError = TAP_Timer_Add_SDK(&schTimerInfo);
 #endif
-						//Did it add OK?
-						if (timerError!=0) { //No it didn't restore old timer (Run Away, Run Away!!!)
-#ifndef WIN32
-							if (TAP_Timer_Add(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
-#else
-							if (TAP_Timer_Add_SDK(&conflictTimerInfo)!=0) {  //Failed to restore old timer.
-#endif
-								sprintf( logBuffer, "//bugger, unable to recreate deleted timer.");
-								logStoreEvent(logBuffer);
-							}
-						} else {
-							conflictStatus=1;
+						if(timerError != 0)
+						{
+//TAP_Print("Second conflict error\r\n");
+							// Recover Conflict A and B
+
+							TAP_Timer_Modify((timerErrorA & 0x0000ffff), &conflictTimerInfoA);
+
+							TAP_Timer_Modify((timerErrorB & 0x0000ffff), &conflictTimerInfoB);
 						}
-					} else {  //Unsure if this can happen, API spec doesn't specify
-						sprintf( logBuffer, "//Unable to delete old timer.");
-						logStoreEvent(logBuffer);
+						else
+						{
+//TAP_Print("Success B\r\n");
+							// Success
+						}
 					}
 				}
-			}
-			//We simply check to see if the start time of the conflicting (existing) timer is between the start and end of the new timer we are trying to create.  We don't check they are <= or >= as they would be adjacent, not overlapping.
-			if((conflictTimerInfo.startTime>schTimerInfo.startTime) && (conflictTimerInfo.startTime<endTimerMJD)){
-				//New timer overlaps the start of the old timer
-				//sprintf( logBuffer, "//New timer overlaps the start of the old timer");
-				
-				//Edit existing timer, set start time to be earlier start time, then duration to be new existingEnd-newStart time.
-				conflictTimerInfo.startTime=schTimerInfo.startTime;
-				//If the MJD (days) differ then the hours/mins will provide negative values, we compensate for this by checking that the days are the same and if they arn't adding 1440 minutes onto it, ie start 2300 finish 0100 is -1320 minutes add numMinsInDay (1440) = 120.. Ta Da!!!
-				conflictTimerInfo.duration=(((endConflictMJD>>16)-(conflictTimerInfo.startTime>>16))*1440)+ ((((endConflictMJD>>8)&0xff)-((conflictTimerInfo.startTime>>8)&0xff))*60)+ ((endConflictMJD&0xff)-(conflictTimerInfo.startTime&0xff));
-				memset(fileNameStr,0,132);
-				strcat(fileNameStr,prefixStr);
-				strcat(fileNameStr,"[M");
-				strcat(fileNameStr,multipleConflictCount);
-				strcat(fileNameStr,"]");
-				i=(SCH_MAX_FILENAME_LENGTH-(strlen(prefixStr) + strlen(appendStr) + 7))/2;
-				//If the second name in the string is less than it's allowed, increase the first string by the amount the second string is less.
-				strncat(fileNameStr, eventName, (strlen(fileNameStrConflict)>i ? i : (i*2)-strlen(fileNameStrConflict)));
-				strcat(fileNameStr," & ");
-				strncat(fileNameStr, fileNameStrConflict, (SCH_MAX_FILENAME_LENGTH-(strlen(appendStr) + strlen(fileNameStr))));
-				strcat(fileNameStr,appendStr);
-				strcat(fileNameStr,".rec");
-				strcpy(conflictTimerInfo.fileName, fileNameStr);
-				timerError=TAP_Timer_Modify((timerError&0x0000ffff), &conflictTimerInfo);
-				if (timerError!=0){
-					sprintf( logBuffer, "Modify timer error %d", timerError);
-					logStoreEvent(logBuffer);
-				} else {
-					conflictStatus=2;
+				else
+				{
+//TAP_Print("Success A\r\n");
+
+					// Success
 				}
 			}
-			//We simply check to see if the end time of the conflicting (existing) timer is between the start and end of the new timer we are trying to create.  We don't check they are <= or >= as they would be adjacent, not overlapping.
-			if((endConflictMJD>schTimerInfo.startTime) && (endConflictMJD<endTimerMJD)){
-				//New timer overlaps the end of the old timer
-				//sprintf( logBuffer, "//New timer overlaps the end of the old timer");
-				
-				//Edit existing timer, start time OK, end time not, so change duration to be newEnd-existingStart time.
-				
-				//If the MJD (days) differ then the hours/mins will provide negative values, we compensate for this by checking that the days are the same and if they arn't adding 1440 minutes onto it, ie start 2300 finish 0100 is -1320 minutes add numMinsInDay (1440) = 120.. Ta Da!!!
-				conflictTimerInfo.duration=(((endTimerMJD>>16)-(conflictTimerInfo.startTime>>16))*1440)+ ((((endTimerMJD>>8)&0xff)-((conflictTimerInfo.startTime>>8)&0xff))*60)+ ((endTimerMJD&0xff)-(conflictTimerInfo.startTime&0xff));
-				memset(fileNameStr,0,132);
-				strcat(fileNameStr,prefixStr);
-				strcat(fileNameStr,"[M");
-				strcat(fileNameStr,multipleConflictCount);
-				strcat(fileNameStr,"]");
-				i=(SCH_MAX_FILENAME_LENGTH-(strlen(prefixStr) + strlen(appendStr) + 7))/2;
-				//If the second name in the string is less than it's allowed, increase the first string by the amount the second string is less.
-				strncat(fileNameStr, fileNameStrConflict, (strlen(fileNameStrConflict)>i ? i : (i*2)-strlen(fileNameStrConflict)));
-				strcat(fileNameStr," & ");
-				strncat(fileNameStr, eventName, (SCH_MAX_FILENAME_LENGTH-(strlen(appendStr) + strlen(fileNameStr))));
-				strcat(fileNameStr,appendStr);
-				strcat(fileNameStr,".rec");
-				strcpy(conflictTimerInfo.fileName, fileNameStr);
-#ifndef WIN32
-				timerError=TAP_Timer_Modify((timerError&0x0000ffff), &conflictTimerInfo);
-#else
-				timerError=TAP_Timer_Modify_SDK((timerError&0x0000ffff), &conflictTimerInfo);
-#endif
-				if (timerError!=0){
-					sprintf( logBuffer, "Modify timer error %d", timerError);
-					logStoreEvent(logBuffer);
-				} else {
-					conflictStatus=4;
-				}
-			}
-		} else {
-			//sprintf( logBuffer, "//two different channels or wrong timer type, need more code for this problem.");
 		}
-		//logStoreEvent(logBuffer);
-/*
-		sprintf( logBuffer, "--Conflict with:  %s",schTimerInfo.fileName);
-		logStoreEvent(logBuffer);
-		TAP_ExtractMjd( conflictTimerInfo.startTime>>16, &year, &month, &day, &weekDay) ;
-		sprintf( logBuffer, "startTime = %d/%d/%d %02d:%02d", day, month, year, (conflictTimerInfo.startTime&0xff00)>>8, (conflictTimerInfo.startTime&0xff) );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "duration = %d", conflictTimerInfo.duration );
-		logStoreEvent(logBuffer);		
-		sprintf( logBuffer, "fileName = %s", conflictTimerInfo.fileName );
-		logStoreEvent(logBuffer);
-		
-		sprintf( logBuffer, "--Done timer error : %d\r\n", timerError & 0x0000ffff);
-		logStoreEvent(logBuffer);*/
-	} 
+		else
+		{
+		}
+	}
+	
 	if (( timerError == 0) && ((conflictStatus & 6)==0)) {  
 		if
 		(
@@ -1270,3 +1351,134 @@ int schMainFindMultipleConflictCount(char *toClean){
 	return(i);
 }
 
+
+dword schMainConvertTimeToMins(dword time)
+{
+	return ((((time >> 16) & 0xFFFF) * 24 * 60) + (((time >> 8) & 0xFF) * 60) + (time & 0xFF));
+}
+
+
+
+bool schProcessConflict(TYPE_TimerInfo* schTimerInfo, dword eventStartTime, dword eventEndTime, int timerError)
+{
+	TYPE_TimerInfo	conflictTimerInfo;
+	dword	endConflictInMins = 0, endTimerInMins = 0, endEventInMins = 0, currentTimeInMins = 0;
+	bool	result = FALSE;
+
+char buffer1[256];
+
+	currentTimeInMins = (schTimeMjd * 24 * 60) + (schTimeHour * 60) + schTimeMin;
+
+	TAP_Timer_GetInfo( (timerError & 0x0000ffff), &conflictTimerInfo );
+
+	if
+	(
+		(schTimerInfo->svcNum == conflictTimerInfo.svcNum)
+		&&
+		(conflictTimerInfo.reservationType == RESERVE_TYPE_Onetime)
+		&&
+		(schMainConvertTimeToMins(conflictTimerInfo.startTime) > (currentTimeInMins + 2))
+	)
+	{
+		endConflictInMins = schMainConvertTimeToMins(conflictTimerInfo.startTime) + schMainConvertTimeToMins(conflictTimerInfo.duration);
+		endTimerInMins = schMainConvertTimeToMins(schTimerInfo->startTime) + schMainConvertTimeToMins(schTimerInfo->duration);
+		endEventInMins = schMainConvertTimeToMins(eventEndTime);
+
+//sprintf(buffer1,"Event %02d:%02d - %02d:%02d\r\n",((eventStartTime >> 8) & 0xFF), (eventStartTime & 0xFF), ((eventEndTime >> 8) & 0xFF), (eventEndTime & 0xFF));
+//TAP_Print(buffer1);
+
+//sprintf(buffer1,"Original Timer %02d:%02d - %02d:%02d\r\n",((schTimerInfo->startTime >> 8) & 0xFF), (schTimerInfo->startTime & 0xFF), ((((schMainConvertTimeToMins(schTimerInfo->startTime) + schTimerInfo->duration) % (24 * 60)) / 60) & 0xFF), ((((schMainConvertTimeToMins(schTimerInfo->startTime) + schTimerInfo->duration) % (24 * 60)) % 60) & 0xFF));
+//TAP_Print(buffer1);
+
+//sprintf(buffer1,"Original Conflict %02d:%02d - %02d:%02d\r\n",((conflictTimerInfo.startTime >> 8) & 0xFF), (conflictTimerInfo.startTime & 0xFF), ((((schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration) % (24 * 60)) / 60) & 0xFF), ((((schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration) % (24 * 60)) % 60) & 0xFF));
+//TAP_Print(buffer1);
+
+		if
+		(
+			(conflictTimerInfo.startTime <= schTimerInfo->startTime)
+			&&
+			(endConflictInMins >= endTimerInMins)
+		)
+		{
+//TAP_Print("No modification required. Event already covered\r\n");
+
+			/* Do Nothing - Event already covered */
+
+		}
+		else if
+		(
+			(conflictTimerInfo.startTime <= schTimerInfo->startTime)
+			&&
+			(endConflictInMins > schMainConvertTimeToMins(schTimerInfo->startTime))
+			&&
+			(endConflictInMins < endTimerInMins)
+		)
+		{
+//TAP_Print("Conflict Before Event\r\n");
+
+			/* Conflict before event */
+
+			schTimerInfo->startTime = eventStartTime;
+			schTimerInfo->duration = endTimerInMins - schMainConvertTimeToMins(eventStartTime);
+
+			if(endConflictInMins > schMainConvertTimeToMins(eventStartTime))
+			{
+				// Remove end padding from conflict
+
+				conflictTimerInfo.duration -= (endConflictInMins - schMainConvertTimeToMins(eventStartTime));
+
+				if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+				{
+					result = TRUE;
+				}
+			}
+			else
+			{
+				result = TRUE;
+			}
+		}
+		else if
+		(
+			(endConflictInMins >= endTimerInMins)
+			&&
+			(schMainConvertTimeToMins(conflictTimerInfo.startTime) < endTimerInMins)
+			&&
+			(conflictTimerInfo.startTime > schTimerInfo->startTime)
+		)
+		{
+//TAP_Print("Conflict After Event\r\n");
+
+			/* Conflict after event */
+
+			schTimerInfo->duration = endEventInMins - schMainConvertTimeToMins(schTimerInfo->startTime);
+
+			if(schMainConvertTimeToMins(conflictTimerInfo.startTime) < endEventInMins)
+			{
+				// Remove start padding from conflict
+
+				conflictTimerInfo.duration -= (endEventInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime));
+				conflictTimerInfo.startTime = eventEndTime;
+
+				if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+				{
+					result = TRUE;
+				}
+			}
+			else
+			{
+				result = TRUE;
+			}
+		}
+		else
+		{
+		}
+	}
+
+//sprintf(buffer1,"Modified Timer %02d:%02d - %02d:%02d\r\n",((schTimerInfo->startTime >> 8) & 0xFF), (schTimerInfo->startTime & 0xFF), ((((schMainConvertTimeToMins(schTimerInfo->startTime) + schTimerInfo->duration) % (24 * 60)) / 60) & 0xFF), ((((schMainConvertTimeToMins(schTimerInfo->startTime) + schTimerInfo->duration) % (24 * 60)) % 60) & 0xFF));
+//TAP_Print(buffer1);
+
+//sprintf(buffer1,"Modified Conflict %02d:%02d - %02d:%02d\r\n",((conflictTimerInfo.startTime >> 8) & 0xFF), (conflictTimerInfo.startTime & 0xFF), ((((schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration) % (24 * 60)) / 60) & 0xFF), ((((schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration) % (24 * 60)) % 60) & 0xFF));
+//TAP_Print(buffer1);
+
+	return result;
+}
