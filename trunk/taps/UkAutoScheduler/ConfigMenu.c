@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.9
+Version	: 0.10
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -19,6 +19,7 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.7 sl8		19-04-06	TRC option added.
 	  v0.8 sl8		05-08-06	Search ahead, date and time format added.
 	  v0.9 sl8		28-08-06	Keyboard types.
+	  v0.10 sl8		28-09-06	Recall bug fix. Options 4 - 9 would not revert to default.
 
 **************************************************************/
 
@@ -35,14 +36,22 @@ void configTimeKeyHandler(dword);
 #define Y1_OFFSET 36
 #define CONFIG_MENU_NUMBER_OF_LINES	10
 
-static keyCodes_Struct localKeyCodes;
-static dword CurrentActivationKey = 0;
-static TYPE_ModelType currentModelType;
-static bool enterActivateKey = 0;
-static byte keyStage = 0;
-static int chosenConfigLine = 0;
-static char configOption = 0;
-static bool configEnableEditTime = 0;
+static	keyCodes_Struct	localKeyCodes;
+
+static	dword	currentActivationKey = 0;
+static	TYPE_ModelType	currentModelType;
+static	byte	currentKeyboardLanguage = 0;
+static	byte	currentPerformSearchMode = 0;
+static	bool	currentFirmwareCallsEnabled = FALSE;
+static	bool	currentTRCEnabled = TRUE;
+static	int	currentPerformSearchDays = 0;
+static	byte	currentDateFormat = 0;
+static	byte	currentTimeFormat = 0;
+static	bool	enterActivateKey = 0;
+static	byte	keyStage = 0;
+static	int	chosenConfigLine = 0;
+static	char	configOption = 0;
+static	bool	configEnableEditTime = 0;
 
 
 //--------------
@@ -85,7 +94,7 @@ void DisplayConfigLine(char lineNumber)
 	case 2 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Keyboard", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		switch ( keyboardLanguage )
+		switch ( currentKeyboardLanguage )
 		{
 		/*--------------------------------------------------*/
 		case KEYBOARD_ENGLISH:
@@ -117,7 +126,7 @@ void DisplayConfigLine(char lineNumber)
 		{
 		/*--------------------------------------------------*/
 		case 0 :
-			text = GetButtonText( &localKeyCodes, CurrentActivationKey );
+			text = GetButtonText( &localKeyCodes, currentActivationKey );
 
 			strcpy( str, text );
 		
@@ -147,7 +156,7 @@ void DisplayConfigLine(char lineNumber)
 	case 4 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		switch ( schMainPerformSearchMode )
+		switch ( currentPerformSearchMode )
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
@@ -193,7 +202,7 @@ void DisplayConfigLine(char lineNumber)
 	case 5 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if (FirmwareCallsEnabled == FALSE)
+		if (currentFirmwareCallsEnabled == FALSE)
 		{
 			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
 		}
@@ -207,7 +216,7 @@ void DisplayConfigLine(char lineNumber)
 	case 6 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "TRC", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		if (schMainTRCEnabled == FALSE)
+		if (currentTRCEnabled == FALSE)
 		{
 			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
 		}
@@ -221,11 +230,11 @@ void DisplayConfigLine(char lineNumber)
 	case 7 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Search Ahead", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		switch(schMainPerformSearchDays)
+		switch(currentPerformSearchDays)
 		{
 		/*--------------------------------------------------*/
 		case 1:
-			TAP_SPrint( str,"%d Day", schMainPerformSearchDays);
+			TAP_SPrint( str,"%d Day", currentPerformSearchDays);
 
 			break;
 		/*--------------------------------------------------*/
@@ -235,7 +244,7 @@ void DisplayConfigLine(char lineNumber)
 			break;
 		/*--------------------------------------------------*/
 		default:
-			TAP_SPrint( str,"%d Days", schMainPerformSearchDays);
+			TAP_SPrint( str,"%d Days", currentPerformSearchDays);
 
 			break;
 		/*--------------------------------------------------*/
@@ -248,7 +257,7 @@ void DisplayConfigLine(char lineNumber)
 	case 8 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Date Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		switch(schMainDateFormat)
+		switch(currentDateFormat)
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY:
@@ -373,7 +382,7 @@ void DisplayConfigLine(char lineNumber)
 	case 9 :
 		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Time Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		switch(schMainTimeFormat)
+		switch(currentTimeFormat)
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_TIME_FORMAT_HH_COLON_MM:
@@ -440,14 +449,28 @@ void DisplayConfigLine(char lineNumber)
 //
 void CopyConfiguration( void )
 {
-	CurrentActivationKey = mainActivationKey;
+	currentActivationKey = mainActivationKey;
 	currentModelType = unitModelType;
+	currentKeyboardLanguage = keyboardLanguage;
+	currentPerformSearchMode = schMainPerformSearchMode;
+	currentFirmwareCallsEnabled = FirmwareCallsEnabled;
+	currentTRCEnabled = schMainTRCEnabled;
+	currentPerformSearchDays = schMainPerformSearchDays;
+	currentDateFormat = schMainDateFormat;
+	currentTimeFormat = schMainTimeFormat;
 }
 
 void SaveConfiguration( void )
 {
-	mainActivationKey = CurrentActivationKey;
+	mainActivationKey = currentActivationKey;
 	unitModelType = currentModelType;
+	keyboardLanguage = currentKeyboardLanguage;
+	schMainPerformSearchMode = currentPerformSearchMode;
+	FirmwareCallsEnabled = currentFirmwareCallsEnabled;
+	schMainTRCEnabled = currentTRCEnabled;
+	schMainPerformSearchDays = currentPerformSearchDays;
+	schMainDateFormat = currentDateFormat;
+	schMainTimeFormat = currentTimeFormat;
 
 	SaveConfigurationToFile();
 }
@@ -512,7 +535,7 @@ void NewActiveKeyHandler( dword key )
 {
 	if ( IsKeyValid( &localKeyCodes, key ) )
 	{
-		CurrentActivationKey = key;
+		currentActivationKey = key;
 	}
 	else
 	{
@@ -594,13 +617,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(keyboardLanguage < KEYBOARD_GERMAN)
+			if(currentKeyboardLanguage < KEYBOARD_GERMAN)
 			{
-				keyboardLanguage++;
+				currentKeyboardLanguage++;
 			}
 			else
 			{
-				keyboardLanguage = KEYBOARD_ENGLISH;
+				currentKeyboardLanguage = KEYBOARD_ENGLISH;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -609,13 +632,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
 
-			if(keyboardLanguage > KEYBOARD_ENGLISH)
+			if(currentKeyboardLanguage > KEYBOARD_ENGLISH)
 			{
-				keyboardLanguage--;
+				currentKeyboardLanguage--;
 			}
 			else
 			{
-				keyboardLanguage = KEYBOARD_GERMAN;
+				currentKeyboardLanguage = KEYBOARD_GERMAN;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -635,13 +658,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			CurrentActivationKey = GetNextKey( &localKeyCodes, CurrentActivationKey );
+			currentActivationKey = GetNextKey( &localKeyCodes, currentActivationKey );
 			DisplayConfigLine( chosenConfigLine );
 
 			break;
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
-			CurrentActivationKey = GetPreviousKey( &localKeyCodes, CurrentActivationKey );
+			currentActivationKey = GetPreviousKey( &localKeyCodes, currentActivationKey );
 			DisplayConfigLine( chosenConfigLine );
 
 			break;
@@ -664,13 +687,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(schMainPerformSearchMode < 2)
+			if(currentPerformSearchMode < 2)
 			{
-				schMainPerformSearchMode++;
+				currentPerformSearchMode++;
 			}
 			else
 			{
-				schMainPerformSearchMode = 0;
+				currentPerformSearchMode = 0;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -679,13 +702,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
 
-			if(schMainPerformSearchMode > 0)
+			if(currentPerformSearchMode > 0)
 			{
-				schMainPerformSearchMode--;
+				currentPerformSearchMode--;
 			}
 			else
 			{
-				schMainPerformSearchMode = 2;
+				currentPerformSearchMode = 2;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -694,7 +717,7 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_Ok :
 
-			if(schMainPerformSearchMode == SCH_CONFIG_SEARCH_PERIOD_SPECIFIED)
+			if(currentPerformSearchMode == SCH_CONFIG_SEARCH_PERIOD_SPECIFIED)
 			{
 				exitHour = (schMainPerformSearchTime >> 8) & 0xFF;
 				exitMin = schMainPerformSearchTime & 0xFF;
@@ -722,13 +745,13 @@ void ConfigActionHandler(dword key)
 		case RKEY_VolDown:
 		case RKEY_Ok :
 
-			if ( FirmwareCallsEnabled == FALSE )
+			if ( currentFirmwareCallsEnabled == FALSE )
 			{
-				FirmwareCallsEnabled = TRUE;
+				currentFirmwareCallsEnabled = TRUE;
 			}
 			else
 			{
-				FirmwareCallsEnabled = FALSE;
+				currentFirmwareCallsEnabled = FALSE;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -750,13 +773,13 @@ void ConfigActionHandler(dword key)
 		case RKEY_VolDown:
 		case RKEY_Ok :
 
-			if ( schMainTRCEnabled == FALSE )
+			if ( currentTRCEnabled == FALSE )
 			{
-				schMainTRCEnabled = TRUE;
+				currentTRCEnabled = TRUE;
 			}
 			else
 			{
-				schMainTRCEnabled = FALSE;
+				currentTRCEnabled = FALSE;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -776,13 +799,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(schMainPerformSearchDays < 14)
+			if(currentPerformSearchDays < 14)
 			{
-				schMainPerformSearchDays++;
+				currentPerformSearchDays++;
 			}
 			else
 			{
-				schMainPerformSearchDays = 1;
+				currentPerformSearchDays = 1;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -791,13 +814,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
 
-			if(schMainPerformSearchDays > 1)
+			if(currentPerformSearchDays > 1)
 			{
-				schMainPerformSearchDays--;
+				currentPerformSearchDays--;
 			}
 			else
 			{
-				schMainPerformSearchDays = 14;
+				currentPerformSearchDays = 14;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -817,13 +840,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(schMainDateFormat < SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD)
+			if(currentDateFormat < SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD)
 			{
-				schMainDateFormat++;
+				currentDateFormat++;
 			}
 			else
 			{
-				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY;
+				currentDateFormat = SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -832,13 +855,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
 
-			if(schMainDateFormat > SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY)
+			if(currentDateFormat > SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY)
 			{
-				schMainDateFormat--;
+				currentDateFormat--;
 			}
 			else
 			{
-				schMainDateFormat = SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD;
+				currentDateFormat = SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -858,13 +881,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(schMainTimeFormat < SCH_CONFIG_TIME_FORMAT_HHMM)
+			if(currentTimeFormat < SCH_CONFIG_TIME_FORMAT_HHMM)
 			{
-				schMainTimeFormat++;
+				currentTimeFormat++;
 			}
 			else
 			{
-				schMainTimeFormat = SCH_CONFIG_TIME_FORMAT_HH_COLON_MM;
+				currentTimeFormat = SCH_CONFIG_TIME_FORMAT_HH_COLON_MM;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -873,13 +896,13 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolDown:
 
-			if(schMainTimeFormat > SCH_CONFIG_TIME_FORMAT_HH_COLON_MM)
+			if(currentTimeFormat > SCH_CONFIG_TIME_FORMAT_HH_COLON_MM)
 			{
-				schMainTimeFormat--;
+				currentTimeFormat--;
 			}
 			else
 			{
-				schMainTimeFormat = SCH_CONFIG_TIME_FORMAT_HHMM;
+				currentTimeFormat = SCH_CONFIG_TIME_FORMAT_HHMM;
 			}
 
 			DisplayConfigLine( chosenConfigLine );

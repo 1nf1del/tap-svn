@@ -15,6 +15,7 @@ v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
 				Filter search option added.
 v0.9 sl8:	13-08-06	Copy schedule added
 v0.10 sl8:	07-09-06	Schedule wrap around
+v0.11 sl8:	28-09-06	Schedule wrap around fix. Prevent wrap if no schedule selected
 
 **************************************************************/
 
@@ -365,6 +366,8 @@ void schDisplayKeyHandler(dword key)
 		(
 			(schMainTotalValidSearches > 1)
 			&&
+			(schDispChosenLine > 0)
+			&&
 			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)
 		{
@@ -423,6 +426,8 @@ void schDisplayKeyHandler(dword key)
 		if
 		(
 			(schMainTotalValidSearches > 1)
+			&&
+			(schDispChosenLine > 0)
 			&&
 			(schDispFilter == SCH_DISP_FILTER_ALL)
 		)

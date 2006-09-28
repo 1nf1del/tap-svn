@@ -5,7 +5,7 @@
 
 Name	: Keyboard.c
 Author	: Darkmatter
-Version	: 0.5
+Version	: 0.6
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -18,6 +18,7 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 	  v0.5 sl8		28-08-06	Finnish and German keyboard added.
 						'/' now reverts next character back to a capital
 						 when 'Abc' mode selected.
+	  v0.6 sl8		29-08-06	':' and '1' added to the number one key
 
 **************************************************************/
 
@@ -108,7 +109,7 @@ static char insertModeStr[2][6] = {"[Ins]", "[Ovr]"};
 static int  caseMode = 0;
 static char caseModeStr[3][6] = {"[Abc]", "[ABC]", "[abc]"};
 //static char KeyCharArray[10][6] = {" &-'", "ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWX", "YZ,.", "01234", "56789"};
-static char KeyCharArray[10][15] = {" 0", ".,&-?'()[]+=!#", "ABC2", "DEF3", "GHI4", "JKL5", "MNO6", "PQRS7", "TUV8", "WXYZ9"};
+static char KeyCharArray[10][17] = {" 0", ".,&-?'()[]+=!#:1", "ABC2", "DEF3", "GHI4", "JKL5", "MNO6", "PQRS7", "TUV8", "WXYZ9"};
 static int  remoteKeyPressCount = 0;                                        // Track how many times a remote control digit key is pressed.    
 static int  remoteKeyPrevKey = 0;                                           // Keep track of what was the last digit key pressed.
 static bool remoteKeyFirstPress = 0;                                        // Flag to indicate first time a key is pressed.
@@ -167,7 +168,7 @@ void DisplayKeyBoardHelp( void )
     TAP_SPrint(help[12],"Reload original.");
     
     TAP_SPrint( key[13],"1 :");
-    TAP_SPrint(help[13],".,&-?'()[]+=!#");
+    TAP_SPrint(help[13],".,&-?'()[]+=!#:1");
     
     TAP_SPrint( key[14],"2 :");
     TAP_SPrint(help[14],"ABC2");

@@ -201,7 +201,7 @@ static bool schMainApiMoveAvailable = FALSE;
 static word schMainChangeDirSuccess = 0;
 static word schMainChangeDirFail = 0;
 
-static bool schKeepAvailable = FALSE;
+static bool schMainChangeDirAvailable = FALSE;
 
 static byte keyboardLanguage = KEYBOARD_ENGLISH;
 

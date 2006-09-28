@@ -4,7 +4,7 @@
 
 Name	: Tools.c
 Author	: Kidhazy
-Version	: 0.3
+Version	: 0.4
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -13,6 +13,7 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 	  v0.1 sl8:	20-01-06	All variable initialised
 	  v0.2 sl8:	16-02-06	sysID removed
 	  v0.3 sl8:	05-08-06	Modified to return result of change dir
+	  v0.4 sl8:	28-09-06	GotoPath changed for TF5000.
 
 **************************************************************/
 
@@ -141,16 +142,74 @@ bool	IsFileRec( char *recFile, 	dword	attr )
 // 
 //--------------------------------------------------------------------------------------
 
-bool GotoPath(char *path)
+bool GotoPath(char *fullPath)
 {
-	bool result = FALSE;
+	int	startPos = 0, i = 0;
+	char	singlePath[128];
+	bool	result = TRUE;
 
-	if(GotoRoot() == TRUE)
+	if
+	(
+		(GotoRoot() == TRUE)
+		&&
+		(fullPath[0] != '/')
+		&&
+		(strlen(fullPath) > 0)
+	)
 	{
-		if(TAP_Hdd_ChangeDir(path) == schMainChangeDirSuccess)
+		for(i = 0; ((i < strlen(fullPath)) && (result == TRUE)); i++)
 		{
-			result = TRUE;
+			if(fullPath[i] == '/')
+			{
+				memset(singlePath, 0 , sizeof(singlePath));
+				strncpy(singlePath, &fullPath[startPos], (i - startPos));
+				if
+				(
+					(singlePath[0] != '/')
+					&&
+					(strlen(singlePath) > 0)
+				)
+				{
+
+					if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+					{
+						result = FALSE;
+					}
+				}
+				else
+				{
+					result = FALSE;
+				}
+
+				startPos = i + 1;
+			}
 		}
+
+		memset(singlePath, 0 , sizeof(singlePath));
+		strncpy(singlePath, &fullPath[startPos], (i - startPos));
+		if
+		(
+			(result == TRUE)
+			&&
+			(singlePath[0] != '/')
+			&&
+			(strlen(singlePath) > 0)
+		)
+		{
+			if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+			{
+				result = FALSE;
+			}
+
+		}
+		else
+		{
+			result = FALSE;
+		}
+	}
+	else
+	{
+		result = FALSE;
 	}
 
 	return result;

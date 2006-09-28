@@ -31,7 +31,7 @@ void schKeepService(void)
 	/*--------------------------------------------------*/
 	case SCH_KEEP_SERVICE_INITIALISE:
 
-		if(schKeepAvailable == TRUE)
+		if(schMainChangeDirAvailable == TRUE)
 		{
 			schKeepServiceSV = SCH_KEEP_SERVICE_WAIT_TO_CHECK;
 		}

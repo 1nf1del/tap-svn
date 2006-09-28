@@ -20,6 +20,7 @@ v0.10 SgtWilko:	28-08-06	Added conflict handling code.
 v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats added.
 v0.12 sl8	29-08-06	Ignore character table code in event name is present
 v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
+v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
 
 **************************************************************/
 
@@ -103,45 +104,42 @@ void schMainService(void)
 	/*--------------------------------------------------*/
 	case SCH_SERVICE_WAIT_TO_SEARCH:
 
-		if(schMainTotalValidSearches > 0)
+		switch(schMainPerformSearchMode)
 		{
-			switch(schMainPerformSearchMode)
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
+
+			if(schTimeMin == 0)
 			{
-			/*--------------------------------------------------*/
-			case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
-
-				if(schTimeMin == 0)
-				{
-					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
-				}
-
-				break;
-			/*--------------------------------------------------*/
-			case SCH_CONFIG_SEARCH_PERIOD_SPECIFIED:
-
-				if
-				(
-					(schTimeHour == ((schMainPerformSearchTime >> 8) & 0xFF))
-					&&
-					(schTimeMin == (schMainPerformSearchTime & 0xFF))
-				)
-				{
-					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
-				}
-
-				break;
-			/*--------------------------------------------------*/
-			case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
-			default:
-
-				if((schTimeMin % 10) == 0)
-				{
-					schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
-				}
-
-				break;
-			/*--------------------------------------------------*/
+				schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
 			}
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_SPECIFIED:
+
+			if
+			(
+				(schTimeHour == ((schMainPerformSearchTime >> 8) & 0xFF))
+				&&
+				(schTimeMin == (schMainPerformSearchTime & 0xFF))
+			)
+			{
+				schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
+			}
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
+		default:
+
+			if((schTimeMin % 10) == 0)
+			{
+				schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
+			}
+
+			break;
+		/*--------------------------------------------------*/
 		}
 
 #if DEBUG == 1
@@ -158,14 +156,22 @@ void schMainService(void)
 			{
 				schServiceSV = SCH_SERVICE_UPDATE_SEARCH_LIST;
 			}
-			else
+			else if(schMainTotalValidSearches > 0)
 			{
 				schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
 			}
+			else
+			{
+				schServiceSV = SCH_SERVICE_COMPLETE;
+			}
+		}
+		else if(schMainTotalValidSearches > 0)
+		{
+			schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
 		}
 		else
 		{
-			schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+			schServiceSV = SCH_SERVICE_COMPLETE;
 		}
 
 		break;
@@ -174,7 +180,14 @@ void schMainService(void)
 
 		schMainUpdateSearchList();
 
-		schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+		if(schMainTotalValidSearches > 0)
+		{
+			schServiceSV = SCH_SERVICE_BEGIN_SEARCH;
+		}
+		else
+		{
+			schServiceSV = SCH_SERVICE_COMPLETE;
+		}
 
 		break;	
 	/*-------------------------------------------------*/
@@ -1210,7 +1223,7 @@ void schMainDetermineChangeDirType(void)
 	int	totalFileCount = 0;
 	TYPE_File	tempFile;
 
-	schKeepAvailable = FALSE;
+	schMainChangeDirAvailable = FALSE;
 
 	GotoRoot();
 	schMainChangeDirSuccess = TAP_Hdd_ChangeDir("DataFiles");
@@ -1231,7 +1244,7 @@ void schMainDetermineChangeDirType(void)
 			(strcmp(tempFile.name, "__ROOT__") == 0)
 		)
 		{
-			schKeepAvailable = TRUE;
+			schMainChangeDirAvailable = TRUE;
 		}
 	}
 }

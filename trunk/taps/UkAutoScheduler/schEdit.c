@@ -13,6 +13,7 @@ v0.5: sl8	11-04-06	Show window added and tidy up.
 v0.6: sl8	19-04-06	Corrected positoning of screen. Changed colour of info area.
 v0.7: sl8	08-05-06	API move added.
 v0.8: sl8	05-08-06	Keep added, Yes/No Box used.
+v0.9: sl8	28-09-06	Do not allow 'move' and 'keep' if unable to determine 'changeDir' type.
 
 **************************************************************/
 
@@ -679,9 +680,13 @@ void schEditDrawLine(int option)
 		{
 			if
 			(
-				( schMainApiMoveAvailable == TRUE)
-				||
-				( schMainDebugMoveAvailable == TRUE)
+				(
+					( schMainApiMoveAvailable == TRUE)
+					||
+					( schMainDebugMoveAvailable == TRUE)
+				)
+				&&
+				(schMainChangeDirAvailable == TRUE)
 			)
 			{
 				TAP_SPrint(str,"/%s/", schEdit.searchFolder);
@@ -726,7 +731,12 @@ void schEditDrawLine(int option)
 		}
 
 
-		if(schEdit.searchKeepMode != SCH_DISPLAY_KEEP_ALL)
+		if
+		(
+			(schEdit.searchKeepMode != SCH_DISPLAY_KEEP_ALL)
+			&&
+			(schMainChangeDirAvailable == TRUE)
+		)
 		{
 			switch(schEdit.searchKeepMode)
 			{
@@ -790,7 +800,7 @@ void schEditDrawLine(int option)
 		}
 		else
 		{
-			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 ,0 ,SCH_EDIT_CELL_MEDIUM ,(strlen(schEdit.searchFolder) > 0), "All");
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 ,0 ,SCH_EDIT_CELL_MEDIUM, ((strlen(schEdit.searchFolder) > 0) && (schMainChangeDirAvailable == TRUE)), "All");
 		}
 
 		TAP_Osd_FillBox( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, SCH_EDIT_CELL_BORDER_WIDTH, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
