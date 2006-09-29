@@ -55,6 +55,9 @@ bool IEPGReader::IsEventWantedInEPG(EPGevent* pEvent)
 	if (pEvent->GetEnd().IsInPast())
 		return false;
 
+	if (pEvent->GetChannelNum() == 0xFFFF)
+		return false; // for a channel that we don't have 
+
 	PackedDateTime pdtEnd = m_pdtNow;
 	pdtEnd.SetMJD(pdtEnd.GetMJD() + EPGevent::GetDaysToLoad());
 

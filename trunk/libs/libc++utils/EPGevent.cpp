@@ -591,3 +591,8 @@ string EPGevent::GetStars() const
 	}
 	return "";
 }
+
+const string& EPGevent::GetAgeRating() const
+{
+	return m_sAgeRating;
+}

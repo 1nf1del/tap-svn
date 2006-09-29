@@ -55,6 +55,7 @@ public:
 	const PackedDateTime& GetStart() const;
 	const PackedDateTime& GetEnd() const;
 	const TimeSlot& GetTimeSlot() const;
+	const string& GetAgeRating() const;
 
 	bool IsContinuationOf(const EPGevent* other) const;
 	void SetContinuation(EPGevent* pCont);
