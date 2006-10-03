@@ -1,0 +1,105 @@
+diff -N -u -r topfield-toolchain-1.1-orig/Makefile topfield-toolchain-1.1/Makefile
+--- topfield-toolchain-1.1-orig/Makefile	2005-09-28 02:03:11.000000000 +0100
++++ topfield-toolchain-1.1/Makefile	2006-10-03 17:15:41.000000000 +0100
+@@ -62,13 +62,14 @@
+ 	tar xfz pkg/newlib-1.13.0.tar.gz
+ 	touch $@
+ 
+-gcc-2.95.2/.unpacked: pkg/gcc-2.95.2.tar.gz patches/qnx-gcc-2.95.2.patch patches/steveb-gcc-topfield-qnx-1.patch patches/cazlar-osx-gcc-1.patch
++gcc-2.95.2/.unpacked: pkg/gcc-2.95.2.tar.gz patches/qnx-gcc-2.95.2.patch patches/steveb-gcc-topfield-qnx-1.patch patches/cazlar-osx-gcc-1.patch patches/misc-gcc-frepo-once.patch
+ 	@echo "Unpacking and patching gcc 2.95.2"
+ 	rm -rf gcc-2.95.2
+ 	tar xfz pkg/gcc-2.95.2.tar.gz
+ 	$(PATCH) <patches/qnx-gcc-2.95.2.patch -p1 -d gcc-2.95.2
+ 	$(PATCH) <patches/steveb-gcc-topfield-qnx-1.patch -p1 -d gcc-2.95.2
+ 	$(PATCH) <patches/cazlar-osx-gcc-1.patch -p1 -d gcc-2.95.2
++	$(PATCH) <patches/misc-gcc-frepo-once.patch -p1 -d gcc-2.95.2
+ 	touch $@
+ 
+ # Manually unpack everything
+@@ -108,7 +109,7 @@
+ 		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
+ 			--without-headers --with-newlib --with-gnu-as --with-gnu-ld \
+ 			--with-local-prefix=$(PREFIX)/local \
+-			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
++			--enable-haifa --enable-languages=c,c++ --disable-texinfo --verbose && \
+ 		make all-gcc install-gcc; \
+ 	)
+ 	touch $@
+@@ -122,7 +123,7 @@
+ 		sh ../gcc-2.95.2/configure --target=$(TARGET) --prefix=$(PREFIX) $(OPTS) \
+ 			--with-newlib --with-gnu-as --with-gnu-ld \
+ 			--with-local-prefix=$(PREFIX)/local \
+-			--enable-haifa --enable-languages=c --disable-texinfo --verbose && \
++			--enable-haifa --enable-languages=c,c++ --disable-texinfo --verbose && \
+ 		make && make install; \
+ 	)
+ 	touch $@
+@@ -142,11 +143,16 @@
+ #################################################
+ # Unpack the Topfield TAP SDK
+ #
+-$(SDKDIR)/include/tap.h: pkg/TAP\ API_ver1.22_Samples_Utilities_2005June03.zip
++$(SDKDIR)/include/tap.h: pkg/TAP\ API_ver1.22_Samples_Utilities_2005June03.zip 
+ 	unzip -o -C "$^" -d pkg tap_and_samples_2005June03.zip
+ 	mkdir -p $(SDKDIR)/include $(SDKDIR)/lib
+ 	unzip -o -d $(SDKDIR)/lib -LL -C pkg/tap_and_samples_2005June03.zip \*.a
+ 	unzip -o -d $(SDKDIR)/include -LL -C pkg/tap_and_samples_2005June03.zip \*.h
++	$(PREFIX)/bin/mips-ar x $(SDKDIR)/lib/libtap.a
++	$(PREFIX)/bin/mips-objcopy -N __builtin_new init.o
++	$(PREFIX)/bin/mips-ar r $(SDKDIR)/lib/libtap.a init.o
++	rm -f init.o
++	@echo "Fixed libtap.a for c++ taps"
+ 	touch $@
+ 
+ #################################################
+diff -N -u -r topfield-toolchain-1.1-orig/patches/misc-gcc-frepo-once.patch topfield-toolchain-1.1/patches/misc-gcc-frepo-once.patch
+--- topfield-toolchain-1.1-orig/patches/misc-gcc-frepo-once.patch	1970-01-01 01:00:00.000000000 +0100
++++ topfield-toolchain-1.1/patches/misc-gcc-frepo-once.patch	2006-10-03 17:15:58.000000000 +0100
+@@ -0,0 +1,46 @@
++--- gcc-2.95.2/gcc/tlink.c	Tue Oct 12 08:39:14 1999
+++++ gcc/tlink.c	Thu Jul  6 02:22:53 2000
++@@ -27,6 +27,7 @@
++ #include "demangle.h"
++ #include "toplev.h"
++ #include "collect2.h"
+++#include "string.h"
++ 
++ #define MAX_ITERATIONS 17
++ 
++@@ -639,6 +640,13 @@
++ 	  demangled *dem = 0;
++ 	  q = 0;
++ 
+++	  if ( strncmp(oldq, "In function ", sizeof("In function ")-1) == 0 ) {
+++	    sym=0;
+++	    if (tlink_verbose >= 2)
+++	      fprintf (stderr, "scan_linker_output: skipped: %s\n",oldq);
+++	  }
+++	  else {
+++
++ 	  /* First try `GNU style'.  */
++ 	  p = index (oldq, '`');
++ 	  if (p)
++@@ -660,6 +668,9 @@
++ 		  sym = symbol_hash_lookup (p, false);
++ 		}
++ 	    }
+++
+++	  }
+++
++ 	}
++ 
++       if (sym && sym->tweaked)
++--- gcc-2.95.2/gcc/cccp.c      2006-09-30 21:05:43.000000000 +0100
+++++ gcc/cccp.c      2006-10-02 07:53:47.000000000 +0100
++@@ -7081,8 +7081,8 @@
++   if (!strncmp ((char *) buf, "once", 4)) {
++     /* Allow #pragma once in system headers, since that's not the user's
++        fault.  */
++-    if (!instack[indepth].system_header_p)
++-      warning ("`#pragma once' is obsolete");
+++//    if (!instack[indepth].system_header_p)
+++//      warning ("`#pragma once' is obsolete");
++     do_once ();
++   }
