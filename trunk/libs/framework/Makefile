@@ -46,12 +46,16 @@ depends:
 
 # DO NOT DELETE
 
-ActionListItem.o: .\actionlistitem.h SimpleTextListItem.h listitem.h
-ActionListItem.o: /usr/include/stdlib.h /usr/include/_ansi.h
-ActionListItem.o: /usr/include/newlib.h /usr/include/sys/config.h
-ActionListItem.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
-ActionListItem.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-ActionListItem.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+ActionListItem.o: actionlistitem.h SimpleTextListItem.h listitem.h
+ActionListItem.o: /usr/include/stdlib.h /usr/include/features.h
+ActionListItem.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ActionListItem.o: /usr/include/sys/types.h /usr/include/bits/types.h
+ActionListItem.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+ActionListItem.o: /usr/include/time.h /usr/include/endian.h
+ActionListItem.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+ActionListItem.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ActionListItem.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+ActionListItem.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
 ActionListItem.o: /usr/include/alloca.h
 ActionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 ActionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
@@ -61,48 +65,46 @@ ActionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ActionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Rect.h
 ActionListItem.o: ../libc++utils/tapstring.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-BitmapPage.o: /usr/local/include/stddef.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 BitmapPage.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-BitmapPage.o: /usr/include/string.h /usr/include/_ansi.h
-BitmapPage.o: /usr/include/newlib.h /usr/include/sys/config.h
-BitmapPage.o: /usr/include/machine/ieeefp.h /usr/include/sys/reent.h
-BitmapPage.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-BitmapPage.o: /usr/include/sys/string.h Tapplication.h colors.h BitmapPage.h
-BitmapPage.o: Page.h
-Decorator.o: .\decorator.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Decorator.o: /usr/local/include/stddef.h
+BitmapPage.o: /usr/include/string.h /usr/include/features.h
+BitmapPage.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BitmapPage.o: Tapplication.h colors.h BitmapPage.h Page.h
+Decorator.o: decorator.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 Decorator.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Decorator.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Decorator.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Decorator.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Decorator.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h colors.h
-Decorator.o: graphics.c TextTools.h Tapplication.h
-Dialog.o: dialog.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Dialog.o: /usr/local/include/stddef.h
-Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
-Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
-Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
-Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
-Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Tapplication.h
-Dialog.o: colors.h
-DialogBox.o: .\dialogbox.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-DialogBox.o: /usr/local/include/stddef.h
+Decorator.o: graphics.c TextTools.h Tapplication.h Rect.h
+DialogBox.o: dialogbox.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 DialogBox.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 DialogBox.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 DialogBox.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 DialogBox.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 DialogBox.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Dialog.h
 DialogBox.o: ../libc++utils/tapstring.h Tapplication.h colors.h Decorator.h
+Dialog.o: dialog.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
+Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
+Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
+Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
+Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
+Dialog.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Tapplication.h
+Dialog.o: colors.h
 FooterListItem.o: FooterListItem.h ListPage.h /usr/include/stdlib.h
-FooterListItem.o: /usr/include/_ansi.h /usr/include/newlib.h
-FooterListItem.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-FooterListItem.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-FooterListItem.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-FooterListItem.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+FooterListItem.o: /usr/include/features.h /usr/include/sys/cdefs.h
+FooterListItem.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+FooterListItem.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FooterListItem.o: /usr/include/bits/typesizes.h /usr/include/time.h
+FooterListItem.o: /usr/include/endian.h /usr/include/bits/endian.h
+FooterListItem.o: /usr/include/sys/select.h /usr/include/bits/select.h
+FooterListItem.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+FooterListItem.o: /usr/include/sys/sysmacros.h
+FooterListItem.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
+FooterListItem.o: /usr/include/alloca.h
 FooterListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 FooterListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 FooterListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -111,14 +113,17 @@ FooterListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 FooterListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 FooterListItem.o: listitem.h Rect.h ../libc++utils/tapstring.h colors.h
 FooterListItem.o: ../libc++utils/taparray.h /usr/include/memory.h
-FooterListItem.o: /usr/include/string.h /usr/include/sys/string.h
-FooterListItem.o: ../libc++utils/quicksort.h Page.h SimpleTextListItem.h
-FooterListItem.o: ActionListItem.h
-ListColumn.o: listcolumn.h /usr/include/stdlib.h /usr/include/_ansi.h
-ListColumn.o: /usr/include/newlib.h /usr/include/sys/config.h
-ListColumn.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
-ListColumn.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-ListColumn.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+FooterListItem.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+FooterListItem.o: SimpleTextListItem.h ActionListItem.h
+ListColumn.o: listcolumn.h /usr/include/stdlib.h /usr/include/features.h
+ListColumn.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ListColumn.o: /usr/include/sys/types.h /usr/include/bits/types.h
+ListColumn.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+ListColumn.o: /usr/include/time.h /usr/include/endian.h
+ListColumn.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+ListColumn.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ListColumn.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+ListColumn.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
 ListColumn.o: /usr/include/alloca.h
 ListColumn.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 ListColumn.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
@@ -128,13 +133,16 @@ ListColumn.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ListColumn.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Rect.h
 ListColumn.o: ../libc++utils/tapstring.h colors.h ListPage.h listitem.h
 ListColumn.o: ../libc++utils/taparray.h /usr/include/memory.h
-ListColumn.o: /usr/include/string.h /usr/include/sys/string.h
-ListColumn.o: ../libc++utils/quicksort.h Page.h
-ListItem.o: ListItem.h /usr/include/stdlib.h /usr/include/_ansi.h
-ListItem.o: /usr/include/newlib.h /usr/include/sys/config.h
-ListItem.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
-ListItem.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-ListItem.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+ListColumn.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+ListItem.o: ListItem.h /usr/include/stdlib.h /usr/include/features.h
+ListItem.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ListItem.o: /usr/include/sys/types.h /usr/include/bits/types.h
+ListItem.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+ListItem.o: /usr/include/time.h /usr/include/endian.h
+ListItem.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+ListItem.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ListItem.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+ListItem.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
 ListItem.o: /usr/include/alloca.h
 ListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 ListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
@@ -144,14 +152,17 @@ ListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Rect.h
 ListItem.o: ../libc++utils/tapstring.h ListPage.h listitem.h colors.h
 ListItem.o: ../libc++utils/taparray.h /usr/include/memory.h
-ListItem.o: /usr/include/string.h /usr/include/sys/string.h
-ListItem.o: ../libc++utils/quicksort.h Page.h ../libc++utils/Logger.h
-ListItem.o: /usr/local/include/stdarg.h ListColumn.h
-ListPage.o: listpage.h /usr/include/stdlib.h /usr/include/_ansi.h
-ListPage.o: /usr/include/newlib.h /usr/include/sys/config.h
-ListPage.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
-ListPage.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-ListPage.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+ListItem.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+ListItem.o: ../libc++utils/Logger.h ListColumn.h
+ListPage.o: listpage.h /usr/include/stdlib.h /usr/include/features.h
+ListPage.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ListPage.o: /usr/include/sys/types.h /usr/include/bits/types.h
+ListPage.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+ListPage.o: /usr/include/time.h /usr/include/endian.h
+ListPage.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+ListPage.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ListPage.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+ListPage.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
 ListPage.o: /usr/include/alloca.h
 ListPage.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 ListPage.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
@@ -161,25 +172,28 @@ ListPage.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ListPage.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h listitem.h
 ListPage.o: Rect.h ../libc++utils/tapstring.h colors.h
 ListPage.o: ../libc++utils/taparray.h /usr/include/memory.h
-ListPage.o: /usr/include/string.h /usr/include/sys/string.h
-ListPage.o: ../libc++utils/quicksort.h Page.h ListColumn.h Tapplication.h
-ListPage.o: ../libutils/morekeys.h YesNoBox.h DialogBox.h Dialog.h
-ListPage.o: ../libc++utils/Logger.h /usr/local/include/stdarg.h
+ListPage.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+ListPage.o: ListColumn.h Tapplication.h ../libutils/morekeys.h YesNoBox.h
+ListPage.o: DialogBox.h Dialog.h ../libc++utils/Logger.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Main.o: /usr/local/include/stddef.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Main.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 Main.o: ../libc++utils/vtable.h ../libutils/dlmalloc.h Tapplication.h
-Main.o: colors.h ../libc++utils/Logger.h /usr/local/include/stdarg.h
-MultiLineListItem.o: .\multilinelistitem.h listitem.h /usr/include/stdlib.h
-MultiLineListItem.o: /usr/include/_ansi.h /usr/include/newlib.h
-MultiLineListItem.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-MultiLineListItem.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-MultiLineListItem.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-MultiLineListItem.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+Main.o: colors.h ../libc++utils/Logger.h
+MultiLineListItem.o: multilinelistitem.h listitem.h /usr/include/stdlib.h
+MultiLineListItem.o: /usr/include/features.h /usr/include/sys/cdefs.h
+MultiLineListItem.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+MultiLineListItem.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+MultiLineListItem.o: /usr/include/bits/typesizes.h /usr/include/time.h
+MultiLineListItem.o: /usr/include/endian.h /usr/include/bits/endian.h
+MultiLineListItem.o: /usr/include/sys/select.h /usr/include/bits/select.h
+MultiLineListItem.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+MultiLineListItem.o: /usr/include/sys/sysmacros.h
+MultiLineListItem.o: /usr/include/bits/pthreadtypes.h
+MultiLineListItem.o: /usr/include/bits/sched.h /usr/include/alloca.h
 MultiLineListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 MultiLineListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 MultiLineListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -188,14 +202,18 @@ MultiLineListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 MultiLineListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 MultiLineListItem.o: Rect.h ../libc++utils/tapstring.h ListPage.h colors.h
 MultiLineListItem.o: ../libc++utils/taparray.h /usr/include/memory.h
-MultiLineListItem.o: /usr/include/string.h /usr/include/sys/string.h
-MultiLineListItem.o: ../libc++utils/quicksort.h Page.h
-OptionListItem.o: .\optionlistitem.h listitem.h /usr/include/stdlib.h
-OptionListItem.o: /usr/include/_ansi.h /usr/include/newlib.h
-OptionListItem.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-OptionListItem.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-OptionListItem.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-OptionListItem.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+MultiLineListItem.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+OptionListItem.o: optionlistitem.h listitem.h /usr/include/stdlib.h
+OptionListItem.o: /usr/include/features.h /usr/include/sys/cdefs.h
+OptionListItem.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+OptionListItem.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+OptionListItem.o: /usr/include/bits/typesizes.h /usr/include/time.h
+OptionListItem.o: /usr/include/endian.h /usr/include/bits/endian.h
+OptionListItem.o: /usr/include/sys/select.h /usr/include/bits/select.h
+OptionListItem.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+OptionListItem.o: /usr/include/sys/sysmacros.h
+OptionListItem.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
+OptionListItem.o: /usr/include/alloca.h
 OptionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 OptionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 OptionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -204,14 +222,18 @@ OptionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 OptionListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Rect.h
 OptionListItem.o: ../libc++utils/tapstring.h ../libc++utils/option.h
 OptionListItem.o: ../libc++utils/taparray.h /usr/include/memory.h
-OptionListItem.o: /usr/include/string.h /usr/include/sys/string.h
-OptionListItem.o: ../libc++utils/quicksort.h ../libutils/morekeys.h Page.h
-OptionsPage.o: .\optionspage.h ListPage.h /usr/include/stdlib.h
-OptionsPage.o: /usr/include/_ansi.h /usr/include/newlib.h
-OptionsPage.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-OptionsPage.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-OptionsPage.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-OptionsPage.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+OptionListItem.o: /usr/include/string.h ../libc++utils/quicksort.h
+OptionListItem.o: ../libutils/morekeys.h Page.h
+OptionsPage.o: optionspage.h ListPage.h /usr/include/stdlib.h
+OptionsPage.o: /usr/include/features.h /usr/include/sys/cdefs.h
+OptionsPage.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+OptionsPage.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+OptionsPage.o: /usr/include/bits/typesizes.h /usr/include/time.h
+OptionsPage.o: /usr/include/endian.h /usr/include/bits/endian.h
+OptionsPage.o: /usr/include/sys/select.h /usr/include/bits/select.h
+OptionsPage.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+OptionsPage.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+OptionsPage.o: /usr/include/bits/sched.h /usr/include/alloca.h
 OptionsPage.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 OptionsPage.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 OptionsPage.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -220,21 +242,18 @@ OptionsPage.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 OptionsPage.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h listitem.h
 OptionsPage.o: Rect.h ../libc++utils/tapstring.h colors.h
 OptionsPage.o: ../libc++utils/taparray.h /usr/include/memory.h
-OptionsPage.o: /usr/include/string.h /usr/include/sys/string.h
-OptionsPage.o: ../libc++utils/quicksort.h Page.h ListColumn.h
-OptionsPage.o: OptionListItem.h ../libc++utils/Options.h
+OptionsPage.o: /usr/include/string.h ../libc++utils/quicksort.h Page.h
+OptionsPage.o: ListColumn.h OptionListItem.h ../libc++utils/Options.h
 OptionsPage.o: ../libc++utils/OptionUpdateNotifier.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Page.o: /usr/local/include/stddef.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Page.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Tapplication.h
-Page.o: colors.h Page.h ../libc++utils/logger.h /usr/local/include/stdarg.h
-ProgressBox.o: .\progressbox.h dialogbox.h
+Page.o: colors.h Page.h ../libc++utils/logger.h
+ProgressBox.o: progressbox.h dialogbox.h
 ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-ProgressBox.o: /usr/local/include/stddef.h
 ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
@@ -242,34 +261,35 @@ ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 ProgressBox.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h Dialog.h
 ProgressBox.o: ../libc++utils/tapstring.h Tapplication.h colors.h Decorator.h
 Rect.o: Rect.h /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Rect.o: /usr/local/include/stddef.h
 Rect.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Rect.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Rect.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Rect.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Rect.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-Rect.o: /usr/include/string.h /usr/include/_ansi.h /usr/include/newlib.h
-Rect.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-Rect.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-Rect.o: /usr/include/sys/lock.h /usr/include/sys/string.h
-Rect.o: /usr/include/ctype.h texttools.h
+Rect.o: /usr/include/string.h /usr/include/features.h
+Rect.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Rect.o: /usr/include/ctype.h /usr/include/bits/types.h
+Rect.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Rect.o: /usr/include/endian.h /usr/include/bits/endian.h texttools.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-Region.o: /usr/local/include/stddef.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Region.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-Region.o: /usr/include/string.h /usr/include/_ansi.h /usr/include/newlib.h
-Region.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-Region.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-Region.o: /usr/include/sys/lock.h /usr/include/sys/string.h Region.h
-SimpleTextListItem.o: .\simpletextlistitem.h listitem.h /usr/include/stdlib.h
-SimpleTextListItem.o: /usr/include/_ansi.h /usr/include/newlib.h
-SimpleTextListItem.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-SimpleTextListItem.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-SimpleTextListItem.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-SimpleTextListItem.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+Region.o: /usr/include/string.h /usr/include/features.h
+Region.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h Region.h
+SimpleTextListItem.o: simpletextlistitem.h listitem.h /usr/include/stdlib.h
+SimpleTextListItem.o: /usr/include/features.h /usr/include/sys/cdefs.h
+SimpleTextListItem.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+SimpleTextListItem.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+SimpleTextListItem.o: /usr/include/bits/typesizes.h /usr/include/time.h
+SimpleTextListItem.o: /usr/include/endian.h /usr/include/bits/endian.h
+SimpleTextListItem.o: /usr/include/sys/select.h /usr/include/bits/select.h
+SimpleTextListItem.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+SimpleTextListItem.o: /usr/include/sys/sysmacros.h
+SimpleTextListItem.o: /usr/include/bits/pthreadtypes.h
+SimpleTextListItem.o: /usr/include/bits/sched.h /usr/include/alloca.h
 SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -277,21 +297,24 @@ SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 SimpleTextListItem.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 SimpleTextListItem.o: Rect.h ../libc++utils/tapstring.h
-SkinDecorator.o: .\skindecorator.h decorator.h
+SkinDecorator.o: skindecorator.h decorator.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-SkinDecorator.o: /usr/local/include/stddef.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 SkinDecorator.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h colors.h
 SkinDecorator.o: Tapplication.h Rect.h
-SkinOption.o: .\skinoption.h ../libc++utils/option.h /usr/include/stdlib.h
-SkinOption.o: /usr/include/_ansi.h /usr/include/newlib.h
-SkinOption.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-SkinOption.o: /usr/local/include/stddef.h /usr/include/sys/reent.h
-SkinOption.o: /usr/include/sys/_types.h /usr/include/sys/lock.h
-SkinOption.o: /usr/include/machine/stdlib.h /usr/include/alloca.h
+SkinOption.o: skinoption.h ../libc++utils/option.h /usr/include/stdlib.h
+SkinOption.o: /usr/include/features.h /usr/include/sys/cdefs.h
+SkinOption.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h
+SkinOption.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+SkinOption.o: /usr/include/bits/typesizes.h /usr/include/time.h
+SkinOption.o: /usr/include/endian.h /usr/include/bits/endian.h
+SkinOption.o: /usr/include/sys/select.h /usr/include/bits/select.h
+SkinOption.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+SkinOption.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+SkinOption.o: /usr/include/bits/sched.h /usr/include/alloca.h
 SkinOption.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 SkinOption.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 SkinOption.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
@@ -300,14 +323,18 @@ SkinOption.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 SkinOption.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 SkinOption.o: ../libc++utils/tapstring.h ../libc++utils/taparray.h
 SkinOption.o: /usr/include/memory.h /usr/include/string.h
-SkinOption.o: /usr/include/sys/string.h ../libc++utils/quicksort.h
-SkinOption.o: Tapplication.h colors.h ../libc++utils/Logger.h
-SkinOption.o: /usr/local/include/stdarg.h
-Tapplication.o: /usr/include/stdlib.h /usr/include/_ansi.h
-Tapplication.o: /usr/include/newlib.h /usr/include/sys/config.h
-Tapplication.o: /usr/include/machine/ieeefp.h /usr/local/include/stddef.h
-Tapplication.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-Tapplication.o: /usr/include/sys/lock.h /usr/include/machine/stdlib.h
+SkinOption.o: ../libc++utils/quicksort.h Tapplication.h colors.h
+SkinOption.o: ../libc++utils/Logger.h ../libc++utils/DirectoryUtils.h
+SkinOption.o: ../libutils/file.h ../libutils/Utils.h
+Tapplication.o: /usr/include/stdlib.h /usr/include/features.h
+Tapplication.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Tapplication.o: /usr/include/sys/types.h /usr/include/bits/types.h
+Tapplication.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Tapplication.o: /usr/include/time.h /usr/include/endian.h
+Tapplication.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+Tapplication.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+Tapplication.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+Tapplication.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h
 Tapplication.o: /usr/include/alloca.h
 Tapplication.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
 Tapplication.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
@@ -317,33 +344,28 @@ Tapplication.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 Tapplication.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 Tapplication.o: ../libc++utils/vtable.h ../libc++utils/inifile.h
 Tapplication.o: ../libc++utils/taparray.h /usr/include/memory.h
-Tapplication.o: /usr/include/string.h /usr/include/sys/string.h
-Tapplication.o: ../libc++utils/quicksort.h ../libc++utils/tapstring.h
-Tapplication.o: Tapplication.h colors.h Page.h Rect.h ../libc++utils/logger.h
-Tapplication.o: /usr/local/include/stdarg.h dialog.h Decorator.h
+Tapplication.o: /usr/include/string.h ../libc++utils/quicksort.h
+Tapplication.o: ../libc++utils/tapstring.h Tapplication.h colors.h Page.h
+Tapplication.o: Rect.h ../libc++utils/logger.h dialog.h Decorator.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-TextTools.o: /usr/local/include/stddef.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 TextTools.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-TextTools.o: /usr/include/string.h /usr/include/_ansi.h /usr/include/newlib.h
-TextTools.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-TextTools.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-TextTools.o: /usr/include/sys/lock.h /usr/include/sys/string.h
-TextTools.o: /usr/include/ctype.h
+TextTools.o: /usr/include/string.h /usr/include/features.h
+TextTools.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+TextTools.o: /usr/include/ctype.h /usr/include/bits/types.h
+TextTools.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+TextTools.o: /usr/include/endian.h /usr/include/bits/endian.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/tap.h
-YesNoBox.o: /usr/local/include/stddef.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/type.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/key.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/hdd.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 YesNoBox.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
-YesNoBox.o: /usr/include/string.h /usr/include/_ansi.h /usr/include/newlib.h
-YesNoBox.o: /usr/include/sys/config.h /usr/include/machine/ieeefp.h
-YesNoBox.o: /usr/include/sys/reent.h /usr/include/sys/_types.h
-YesNoBox.o: /usr/include/sys/lock.h /usr/include/sys/string.h YesNoBox.h
+YesNoBox.o: /usr/include/string.h /usr/include/features.h
+YesNoBox.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h YesNoBox.h
 YesNoBox.o: DialogBox.h Dialog.h ../libc++utils/tapstring.h
 YesNoBox.o: ../../../trunk/libs/framework/Tapplication.h colors.h TextTools.h
 YesNoBox.o: Decorator.h

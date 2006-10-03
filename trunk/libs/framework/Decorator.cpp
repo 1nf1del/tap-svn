@@ -1,4 +1,4 @@
-#include ".\decorator.h"
+#include "decorator.h"
 #include "graphics.c"
 #include "TextTools.h"
 #include "Tapplication.h"

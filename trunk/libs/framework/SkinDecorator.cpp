@@ -1,4 +1,4 @@
-#include ".\skindecorator.h"
+#include "skindecorator.h"
 #include "Tapplication.h"
 #include "Rect.h"
 #include "colors.h"

@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include ".\actionlistitem.h"
+#include "actionlistitem.h"
 
 ActionListItem::ActionListItem(ListPage* pParentList, KeyHandlerFnPtr action, dword dwFlags, const char* pszCol1, const char* pszCol2, const char* pszCol3, const char* pszCol4, const char* pszCol5)
 		: SimpleTextListItem(pParentList, dwFlags, pszCol1, pszCol2, pszCol3, pszCol4, pszCol5)

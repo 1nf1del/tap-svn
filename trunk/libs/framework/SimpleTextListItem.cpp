@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include ".\simpletextlistitem.h"
+#include "simpletextlistitem.h"
 
 SimpleTextListItem::SimpleTextListItem(ListPage* pParentList, dword dwFlags, const char* pszCol1, const char* pszCol2, const char* pszCol3, const char* pszCol4, const char* pszCol5) 
 : ListItem(pParentList, dwFlags)
