@@ -26,7 +26,7 @@
 #include <ctype.h>
 #include "taparray.h"
 #include "tap.h"
-#include ".\tapstring.h"
+#include "tapstring.h"
 
 string::string(void) 
 {

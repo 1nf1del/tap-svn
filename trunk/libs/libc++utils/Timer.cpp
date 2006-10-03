@@ -18,7 +18,7 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include ".\timer.h"
+#include "timer.h"
 #include "Channels.h"
 #include "EPGevent.h"
 #include "globals.h"
