@@ -14,6 +14,7 @@ v0.6: sl8	19-04-06	Corrected positoning of screen. Changed colour of info area.
 v0.7: sl8	08-05-06	API move added.
 v0.8: sl8	05-08-06	Keep added, Yes/No Box used.
 v0.9: sl8	28-09-06	Do not allow 'move' and 'keep' if unable to determine 'changeDir' type.
+v0.10: sl8	11-10-06	Copy search term to folder. Allow user to create folder if it doesn't exist.
 
 **************************************************************/
 
@@ -28,10 +29,12 @@ void schEditKeepKeyHandler(dword);
 void schEditReturnFromKeyboard( int, byte, bool);
 void schEditDrawDirect(byte, int, int, char*);
 bool schEditValidateSearch(void);
+bool schEditValidateFolder(void);
 void schEditSaveSearch(void);
 void schEditDrawLegend(void);
 void schEditReturnFromExitYesNo(bool);
 void schEditReturnFromDeleteYesNo(bool);
+void schEditReturnFromFolderWarningYesNo(bool);
 
 static int schEditChosenLine = 0;
 static int schEditChosenCell = 0;
@@ -1570,6 +1573,8 @@ void EditLineKeyHandler(dword key)
 				||
 				( schMainDebugMoveAvailable == TRUE)
 			)
+			&&
+			( schMainChangeDirAvailable == TRUE )
 		)
 		{
 			ActivateKeyboard( schEdit.searchFolder, SEARCHFOLDER_LENGTH, &ReturnFromKeyboardSearchFolder );
@@ -1706,6 +1711,37 @@ bool schEditValidateSearch(void)
 	
 	return valid;
 }
+
+
+bool schEditValidateFolder(void)
+{
+	char folderStr[132];
+	bool valid = TRUE;
+
+	if
+	(
+		( FirmwareCallsEnabled == TRUE )
+		&&
+		(
+			( schMainApiMoveAvailable == TRUE)
+			||
+			( schMainDebugMoveAvailable == TRUE)
+		)
+		&&
+		(schMainChangeDirAvailable == TRUE)
+	)
+	{
+		if(strlen(schEdit.searchFolder) > 0)
+		{
+			sprintf( folderStr, "DataFiles/%s", schEdit.searchFolder );
+			valid = GotoPath(folderStr);
+		}
+	}
+
+	return valid;
+}
+
+
 
 
 
@@ -2009,9 +2045,16 @@ void schEditKeyHandler(dword key)
 	/* ---------------------------------------------------------------------------- */
 	case RKEY_Record:
 
-		if( schEditValidateSearch() == TRUE )
+		if(schEditValidateFolder() == FALSE)
+		{
+			DisplayYesNoWindow("Warning!", "Destination folder does not exist", "Would you like to create the folder?", "Yes", "No", 0, &schEditReturnFromFolderWarningYesNo );
+		}
+		else if( schEditValidateSearch() == TRUE )
 		{
 			schEditSaveSearch();
+		}
+		else
+		{
 		}
 
 		break;
@@ -2031,6 +2074,36 @@ void schEditKeyHandler(dword key)
 		{
 			schEditCloseWindow();		// Close the edit window
 			returnFromEdit = TRUE;		// will cause a redraw of search list
+		}
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_Slow:					/* Copy */
+
+		if
+		(
+			( schEditChosenLine == SCH_EDIT_FOLDER )
+			&&
+			(strlen(schEdit.searchTerm) > 0)
+			&&
+			( FirmwareCallsEnabled == TRUE )
+			&&
+			(
+				( schMainApiMoveAvailable == TRUE)
+				||
+				( schMainDebugMoveAvailable == TRUE)
+			)
+								&&
+			(schMainChangeDirAvailable == TRUE)
+
+		)
+		{
+			memset(schEdit.searchFolder,0,132);
+
+			strcpy(schEdit.searchFolder, schEdit.searchTerm);
+
+			schEditDrawLine( SCH_EDIT_FOLDER );
+			schEditDrawLine( SCH_EDIT_KEEP );
 		}
 
 		break;
@@ -2758,4 +2831,97 @@ void schEditReturnFromDeleteYesNo( bool result)
 }
 
 
+void schEditReturnFromFolderWarningYesNo( bool result)
+{
+	char singlePath[132];
+	int startPos = 0, i = 0;
+	bool createResult = TRUE;
+
+	switch (result)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case TRUE:
+
+		if
+		(
+			(GotoDataFiles() == TRUE)
+			&&
+			(schEdit.searchFolder[0] != '/')
+			&&
+			(strlen(schEdit.searchFolder) > 0)
+		)
+		{
+			for(i = 0; ((i < strlen(schEdit.searchFolder)) && (createResult == TRUE)); i++)
+			{
+				if(schEdit.searchFolder[i] == '/')
+				{
+					memset(singlePath, 0, sizeof(singlePath));
+					strncpy(singlePath, &schEdit.searchFolder[startPos], (i - startPos));
+					if
+					(
+						(singlePath[0] != '/')
+						&&
+						(strlen(singlePath) > 0)
+					)
+					{
+						if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+						{
+							TAP_Hdd_Create( singlePath, ATTR_FOLDER );
+
+							if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+							{
+								createResult = FALSE;
+							}
+						}
+					}
+					else
+					{
+						createResult = FALSE;
+					}
+
+					startPos = i + 1;
+				}
+			}
+
+			memset(singlePath, 0 , sizeof(singlePath));
+			strncpy(singlePath, &schEdit.searchFolder[startPos], (i - startPos));
+			if
+			(
+				(createResult == TRUE)
+				&&
+				(singlePath[0] != '/')
+				&&
+				(strlen(singlePath) > 0)
+			)
+			{
+				if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+				{
+					TAP_Hdd_Create( singlePath, ATTR_FOLDER );
+
+					if(TAP_Hdd_ChangeDir(singlePath) != schMainChangeDirSuccess)
+					{
+						createResult = FALSE;
+					}
+				}
+			}
+			else
+			{
+				createResult = FALSE;
+			}
+		}
+
+		break;	// YES
+	/* ---------------------------------------------------------------------------- */
+	default:
+	case FALSE:
+
+		break;	// NO
+	/* ---------------------------------------------------------------------------- */
+	}   
+
+	if( schEditValidateSearch() == TRUE )
+	{
+		schEditSaveSearch();
+	}
+}
 

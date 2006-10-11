@@ -11,6 +11,8 @@ v0.4 sl8:	09-03-06	Rewirte to accommodate Move file and remote file.
 v0.5 sl8:	15-03-06	Bug Fix - Not saving the move file correctly
 v0.6 sl8:	11-04-06	Show window added and tidy up.
 v0.7 sl8:	05-08-06	Keep added.
+v0.8 sl8:	11-10-06	Check AutoStart folder for remote file. Add 512 bytes to remotefile
+				 if found in ProgramFiles folder. Delete remote file when finished.
 
 **************************************************************/
 
@@ -680,14 +682,28 @@ byte schFileRetreiveRemoteData(void)
 	dword	dwTemp = 0;
 	char	buffer1[256];
 	int	schNewLineCount = 0;
+	byte	fileLocation = 0;
 	
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
 	GotoProgramFiles();
 
-	if ( TAP_Hdd_Exist( REMOTE_FILENAME ) == FALSE )
+	if ( TAP_Hdd_Exist( REMOTE_FILENAME ) == TRUE )
 	{
-		return 0;
+		fileLocation = SCH_FILE_REMOTE_LOCATION_PROGRAMFILES;
+	}
+	else
+	{
+		GotoPath("ProgramFiles/Auto Start");
+
+		if ( TAP_Hdd_Exist( REMOTE_FILENAME ) == TRUE )
+		{
+			fileLocation = SCH_FILE_REMOTE_LOCATION_AUTOSTART;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	remoteFile = TAP_Hdd_Fopen( REMOTE_FILENAME );
@@ -697,6 +713,17 @@ byte schFileRetreiveRemoteData(void)
 	buffer = (char *)TAP_MemAlloc( maxBufferSize );
 
 	fileLength = TAP_Hdd_Flen( remoteFile );
+
+	if
+	(
+		(fileLocation == SCH_FILE_REMOTE_LOCATION_PROGRAMFILES)
+		&&
+		((fileLength % 512) == 0)
+	)
+	{
+		fileLength += 512;
+	}
+	
 	if ( fileLength > maxBufferSize ) fileLength = maxBufferSize;
 
 	memset( buffer, 0, fileLength );

@@ -7,6 +7,7 @@ This module displays the schedules
   v0.2 sl8:	28-08-06	Display 'R!' if found programme will be recorded by a modified timer.
 				EPG qualifier. Prevent duplicate ITV programmes from being dipslayed.
   v0.3 sl8:	02-09-06	Removed 'R!'. Display 'R-' if timer exists with less padding than requested by schedule.
+  v0.4 sl8:	11-10-06	Update icons if modified by conflict handler
 
 **************************************************************/
 
@@ -16,6 +17,7 @@ void schShowDrawInfo(int);
 void schShowDrawProgress(byte);
 void schShowCheckTimer(int,int);
 void schShowSortResults(int);
+void schShowUpdateIcons(void);
 
 #ifndef WIN32
 	#define SCH_SHOW_MAX_RESULTS		100
@@ -378,6 +380,7 @@ void schShowKeyHandler(dword key)
 {
 	int	oldPage = 0, oldChosenLine = 0;
 	int	i = 0;
+	bool	updateIcons = FALSE;
 	char	buffer1[256];
 
 	oldPage = schShowPage;
@@ -652,22 +655,16 @@ void schShowKeyHandler(dword key)
 						(
 							(schShowResultsPtr[i]->timerSet == FALSE)
 							&&
-							(schShowResultsPtr[i]->timerConflict == FALSE)
+							(schShowResultsPtr[i]->modifiedTimerSet == FALSE)
 						)
 						{
-							if(schMainSetTimer(schShowResultsPtr[i]->name, schShowResultsPtr[i]->startTime, schShowResultsPtr[i]->endTime, schShowResultsPtr[i]->searchIndex, schShowResultsPtr[i]->svcNum, 1) == 0)
-							{
-								schShowResultsPtr[i]->timerSet = TRUE;
-								schShowResultsPtr[i]->isRec = TRUE;
-							}
-							else
-							{
-								schShowResultsPtr[i]->timerConflict = TRUE;
-							}
+							schMainSetTimer(schShowResultsPtr[i]->name, schShowResultsPtr[i]->startTime, schShowResultsPtr[i]->endTime, schShowResultsPtr[i]->searchIndex, schShowResultsPtr[i]->svcNum, 1);
 						}
 					}
 
 					schShowSelectAll = FALSE;
+
+					schShowUpdateIcons();
 
 					schShowDrawList();
 
@@ -682,21 +679,43 @@ void schShowKeyHandler(dword key)
 						&&
 						(schShowResultsPtr[schShowChosenLine - 1]->timerSet == FALSE)
 						&&
+						(schShowResultsPtr[schShowChosenLine - 1]->modifiedTimerSet == FALSE)
+						&&
 						(schShowResultsPtr[schShowChosenLine - 1]->timerConflict == FALSE)
 					)
 					{
-						if(schMainSetTimer(schShowResultsPtr[schShowChosenLine - 1]->name, schShowResultsPtr[schShowChosenLine - 1]->startTime, schShowResultsPtr[schShowChosenLine - 1]->endTime, schShowResultsPtr[schShowChosenLine - 1]->searchIndex, schShowResultsPtr[schShowChosenLine - 1]->svcNum, 1) == 0)
+						switch(schMainSetTimer(schShowResultsPtr[schShowChosenLine - 1]->name, schShowResultsPtr[schShowChosenLine - 1]->startTime, schShowResultsPtr[schShowChosenLine - 1]->endTime, schShowResultsPtr[schShowChosenLine - 1]->searchIndex, schShowResultsPtr[schShowChosenLine - 1]->svcNum, 1))
 						{
+						/* ---------------------------------------------------------------------------- */
+						case SCH_MAIN_TIMER_SUCCESS:
+
 							schShowResultsPtr[schShowChosenLine - 1]->timerSet = TRUE;
 							schShowResultsPtr[schShowChosenLine - 1]->isRec = TRUE;
 
 							schShowDrawLine(schShowChosenLine);
-						}
-						else
-						{
+
+							break;
+						/* ---------------------------------------------------------------------------- */
+						case SCH_MAIN_TIMER_SUCCESS_WITH_MODIFICATIONS:
+
+//							schShowResultsPtr[schShowChosenLine - 1]->timerSet = TRUE;
+//							schShowResultsPtr[schShowChosenLine - 1]->isRec = TRUE;
+
+							schShowUpdateIcons();
+
+							schShowDrawList();
+						
+							break;
+						/* ---------------------------------------------------------------------------- */
+						case SCH_MAIN_TIMER_FAILED:
+						default:
+
 							schShowResultsPtr[schShowChosenLine - 1]->timerConflict = TRUE;
 
 							schShowDrawLine(schShowChosenLine);
+
+							break;
+						/* ---------------------------------------------------------------------------- */
 						}
 					}
 
@@ -1214,6 +1233,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 
 	schShowResults[schShowResultIndex].timerSet = FALSE;
 	schShowResults[schShowResultIndex].modifiedTimerSet = FALSE;
+	schShowResults[schShowResultIndex].timerConflict = FALSE;
 
 	numberOfTimers = TAP_Timer_GetTotalNum();
 
@@ -1353,3 +1373,12 @@ void schShowSortResults(int sortOrder)
 }
 
 
+void schShowUpdateIcons(void)
+{
+	int i = 0;
+
+	for(i = 0; i < schShowNumberOfResults; i++)
+	{
+		schShowCheckTimer(i, schShowResults[i].searchIndex);
+	}
+}

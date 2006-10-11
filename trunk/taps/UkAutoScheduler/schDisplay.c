@@ -16,6 +16,7 @@ v0.8 sl8:	19-04-06	Bug fix - Fixed operation of forwrd/rewind/numeric keys
 v0.9 sl8:	13-08-06	Copy schedule added
 v0.10 sl8:	07-09-06	Schedule wrap around
 v0.11 sl8:	28-09-06	Schedule wrap around fix. Prevent wrap if no schedule selected
+v0.12 sl8:	11-10-06	Manual load of remote file
 
 **************************************************************/
 
@@ -726,6 +727,24 @@ void schDisplayKeyHandler(dword key)
 			schDispSaveToFile = TRUE;
 
 			schDispRefresh();
+		}
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_Guide:
+
+		if(schFileRetreiveRemoteData() > 0)
+		{
+			schMainUpdateSearchList();
+
+			if(schMainTotalValidSearches > 0)
+			{
+				schDispChosenLine = schMainTotalValidSearches;
+
+				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
+				schDispRefresh();
+			}
 		}
 
 		break;

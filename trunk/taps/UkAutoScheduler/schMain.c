@@ -22,6 +22,7 @@ v0.12 sl8	29-08-06	Ignore character table code in event name is present
 v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
 v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
 v0.15 sl8	29-09-06	Added separate conflict handler.
+v0.16 sl8	11-10-06	Separate conflict bug fix. Changes made so that icons can update in 'Show' screen.
 
 **************************************************************/
 
@@ -35,7 +36,7 @@ v0.15 sl8	29-09-06	Added separate conflict handler.
 
 bool schMainCompareStrings(char *, char *);
 bool schMainPerformSearch(TYPE_TapEvent *, int, int);
-int schMainSetTimer(char*, dword, dword, int, word, byte);
+byte schMainSetTimer(char*, dword, dword, int, word, byte);
 void schMainService(void);
 void schMainInitLcnToSvcNumMap(void);
 void schMainUpdateSearchList(void);
@@ -552,7 +553,7 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 
 
 
-int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, int searchIndex, word svcNum, byte isRec)
+byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, int searchIndex, word svcNum, byte isRec)
 {
 	TYPE_TimerInfo schTimerInfo, conflictTimerInfo, conflictTimerInfoA, conflictTimerInfoB;
 	dword schEventStartInMins = 0, schEventEndInMins = 0;
@@ -579,6 +580,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	int conflictStatus=0;
 	char multipleConflictCount[3];
 	bool longName = FALSE;
+	byte result = SCH_MAIN_TIMER_FAILED;
 
 	// ------------- Attachments ----------------
 
@@ -1024,6 +1026,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 						logStoreEvent(logBuffer);
 					} else {
 						conflictStatus=2;
+						result = SCH_MAIN_TIMER_SUCCESS;
 					}
 				}
 				//We simply check to see if the end time of the conflicting (existing) timer is between the start and end of the new timer we are trying to create.  We don't check they are <= or >= as they would be adjacent, not overlapping.
@@ -1058,6 +1061,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 						logStoreEvent(logBuffer);
 					} else {
 						conflictStatus=4;
+						result = SCH_MAIN_TIMER_SUCCESS;
 					}
 				}
 			} else {
@@ -1133,14 +1137,17 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 						{
 //TAP_Print("Success B\r\n");
 							// Success
+
+							result = SCH_MAIN_TIMER_SUCCESS_WITH_MODIFICATIONS;
 						}
 					}
 				}
 				else
 				{
 //TAP_Print("Success A\r\n");
-
 					// Success
+
+					result = SCH_MAIN_TIMER_SUCCESS_WITH_MODIFICATIONS;
 				}
 			}
 		}
@@ -1148,7 +1155,11 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 		{
 		}
 	}
-	
+	else
+	{
+		result = SCH_MAIN_TIMER_SUCCESS;
+	}
+
 	if (( timerError == 0) && ((conflictStatus & 6)==0)) {  
 		if
 		(
@@ -1205,7 +1216,7 @@ int schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, i
 	
 	}
 
-	return timerError;
+	return result;
 }
 
 
@@ -1292,10 +1303,6 @@ void schMainUpdateSearchList(void)
 	}
 
 	schWriteSearchList();
-
-	GotoProgramFiles();
-
-	TAP_Hdd_Delete( REMOTE_FILENAME );
 }
 
 
@@ -1395,9 +1402,9 @@ char buffer1[256];
 
 		if
 		(
-			(conflictTimerInfo.startTime <= schTimerInfo->startTime)
+			(conflictTimerInfo.startTime <= eventStartTime)
 			&&
-			(endConflictInMins >= endTimerInMins)
+			(endConflictInMins >= endEventInMins)
 		)
 		{
 //TAP_Print("No modification required. Event already covered\r\n");
