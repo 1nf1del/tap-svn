@@ -1,0 +1,102 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtapulator", "libtapulator\libtapulator_vc2005.vcproj", "{DCAA3776-7691-48B0-B347-F9DFCE000BC0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tapulator", "Tapulator\Tapulator_vc2005.vcproj", "{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aTap", "demo taps\aTap\aTap_vc2005.vcproj", "{F4672D43-3230-4B19-A133-715665259563}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721} = {6A8C1553-E5C4-4B7F-B9C8-EFB278261721}
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0} = {DCAA3776-7691-48B0-B347-F9DFCE000BC0}
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7} = {E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "framework", "..\..\..\libs\framework\framework_vc2005.vcproj", "{DCFCB096-328A-4D7E-8932-FC3013547D6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7} = {E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libc++utils", "..\..\..\libs\libc++utils\libc++utils_win32_vc2005.vcproj", "{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libutils", "..\..\..\libs\libutils\libutils_win32_vc2005.vcproj", "{9E580209-0091-4CFE-9BF8-045C830B32CD}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TapulatorInstall", "TapulatorInstall\TapulatorInstall_vc2005.vdproj", "{76F79D07-70D5-478A-B1E3-70DF76230743}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		Tapulator Debug|Win32 = Tapulator Debug|Win32
+		Tapulator Release|Win32 = Tapulator Release|Win32
+		Tapulator|Win32 = Tapulator|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Release|Win32.ActiveCfg = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Release|Win32.Build.0 = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator Debug|Win32.ActiveCfg = Debug|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator Debug|Win32.Build.0 = Debug|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator Release|Win32.ActiveCfg = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator Release|Win32.Build.0 = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator|Win32.ActiveCfg = Release|Win32
+		{DCAA3776-7691-48B0-B347-F9DFCE000BC0}.Tapulator|Win32.Build.0 = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Release|Win32.ActiveCfg = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Release|Win32.Build.0 = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator Debug|Win32.ActiveCfg = Debug|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator Debug|Win32.Build.0 = Debug|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator Release|Win32.ActiveCfg = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator Release|Win32.Build.0 = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator|Win32.ActiveCfg = Release|Win32
+		{6A8C1553-E5C4-4B7F-B9C8-EFB278261721}.Tapulator|Win32.Build.0 = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Debug|Win32.Build.0 = Debug|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Release|Win32.ActiveCfg = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Release|Win32.Build.0 = Release|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator Debug|Win32.ActiveCfg = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator Debug|Win32.Build.0 = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator Release|Win32.ActiveCfg = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator Release|Win32.Build.0 = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator|Win32.ActiveCfg = Tapulator|Win32
+		{F4672D43-3230-4B19-A133-715665259563}.Tapulator|Win32.Build.0 = Tapulator|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Debug|Win32.Build.0 = Debug|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Release|Win32.ActiveCfg = Release|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Release|Win32.Build.0 = Release|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator Debug|Win32.ActiveCfg = Tapulator Debug|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator Debug|Win32.Build.0 = Tapulator Debug|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator Release|Win32.ActiveCfg = Tapulator Release|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator Release|Win32.Build.0 = Tapulator Release|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator|Win32.ActiveCfg = Tapulator Debug|Win32
+		{DCFCB096-328A-4D7E-8932-FC3013547D6D}.Tapulator|Win32.Build.0 = Tapulator Debug|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Debug|Win32.Build.0 = Debug|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Release|Win32.ActiveCfg = Release|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Release|Win32.Build.0 = Release|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator Debug|Win32.ActiveCfg = Tapulator Debug|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator Debug|Win32.Build.0 = Tapulator Debug|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator Release|Win32.ActiveCfg = Tapulator Release|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator Release|Win32.Build.0 = Tapulator Release|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator|Win32.ActiveCfg = Tapulator Release|Win32
+		{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}.Tapulator|Win32.Build.0 = Tapulator Release|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Debug|Win32.Build.0 = Debug|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Release|Win32.ActiveCfg = Release|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Release|Win32.Build.0 = Release|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator Debug|Win32.ActiveCfg = Tapulator Debug|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator Debug|Win32.Build.0 = Tapulator Debug|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator Release|Win32.ActiveCfg = Tapulator Release|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator Release|Win32.Build.0 = Tapulator Release|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator|Win32.ActiveCfg = Tapulator Debug|Win32
+		{9E580209-0091-4CFE-9BF8-045C830B32CD}.Tapulator|Win32.Build.0 = Tapulator Debug|Win32
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Debug|Win32.ActiveCfg = Debug
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Release|Win32.ActiveCfg = Release
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Tapulator Debug|Win32.ActiveCfg = Debug
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Tapulator Release|Win32.ActiveCfg = Release
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Tapulator|Win32.ActiveCfg = Release
+		{76F79D07-70D5-478A-B1E3-70DF76230743}.Tapulator|Win32.Build.0 = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
