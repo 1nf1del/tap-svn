@@ -22,6 +22,12 @@
 #ifndef __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 #define __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 
+#ifndef WIN32
+#define _strnicmp strncmp
+#define _strlwr strlwr
+#define _strupr strupr
+#endif
+
 template<typename T> class array;
 
 class string

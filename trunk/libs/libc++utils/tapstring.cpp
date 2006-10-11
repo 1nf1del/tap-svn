@@ -205,7 +205,7 @@ int string::compare(const char* pOther) const
 
 int string::compareNoCase(const char* pOther) const
 {
-	return strnicmp(getstr(), pOther, max(m_iLen, strlen(pOther)));
+	return _strnicmp(getstr(), pOther, max(m_iLen, strlen(pOther)));
 }
 
 int string::compare(const string& other) const
@@ -215,7 +215,7 @@ int string::compare(const string& other) const
 
 int string::compareNoCase(const string& other) const
 {
-	return strnicmp(getstr(), other, max(m_iLen, other.m_iLen));
+	return _strnicmp(getstr(), other, max(m_iLen, other.m_iLen));
 }
 
 int string::reverseFind(char c) const
@@ -323,14 +323,14 @@ string string::trim() const
 string string::tolower() const
 {
 	string result = *this;
-	strlwr(result.getstr());
+	_strlwr(result.getstr());
 	return result;
 }
 
 string string::toupper() const
 {
 	string result = *this;
-	strupr(result.getstr());
+	_strupr(result.getstr());
 	return result;
 }
 

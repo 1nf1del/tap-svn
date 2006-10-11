@@ -196,7 +196,7 @@ int IniFile::FindKey( const char* key ) const
 	size_t keyLength = strlen( key );
 	for ( unsigned int u = 0; u < line.size(); ++u )
 	{
-		if ( strnicmp( line[u], key, keyLength ) == 0 )
+		if ( _strnicmp( line[u], key, keyLength ) == 0 )
 		{
 			char c = line[u][keyLength];
 			if ( c == '=' || c == '\0' )
@@ -215,7 +215,7 @@ bool IniFile::FindKey( const char* key, string& value ) const
 	size_t keyLength = strlen( key );
 	for ( unsigned int u = 0; u < line.size(); ++u )
 	{
-		if ( strnicmp( line[u], key, keyLength ) == 0 )
+		if ( _strnicmp( line[u], key, keyLength ) == 0 )
 			if ( line[u][keyLength] == '=' )
 			{
 				value = &line[u][keyLength+1];
