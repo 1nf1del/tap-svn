@@ -71,7 +71,7 @@ char* TAPIniDir;
 #include "morekeys.h"
 #include "TSRCommander.inc"
 
-                                                                                   
+                                                                                    
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"

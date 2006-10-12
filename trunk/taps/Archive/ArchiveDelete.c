@@ -15,7 +15,7 @@ History	: v0.0 kidhazy 25-10-05  Inception date
 **************************************************************/
 
 static bool  returnFromDelete;
-static bool  fileDeleted;
+//static bool  fileDeleted;
 
 //------------
 //

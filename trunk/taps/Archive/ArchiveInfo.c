@@ -14,8 +14,8 @@ History	: v0.0 kidhazy 25-10-05  Inception date
 	Last change:  USE   1 Aug 105    8:34 pm
 **************************************************************/
 
-static bool  returnFromInfo;
-static bool  listMoved;
+//static bool  returnFromInfo;
+//static bool  listMoved;
 static byte* infoWindowCopy;
 
 

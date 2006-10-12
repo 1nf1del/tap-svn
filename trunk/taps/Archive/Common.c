@@ -224,6 +224,9 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 // Prototypes
 //*****************
 //
+
+void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
+
 void GenerateExitRequest( void );				// UkTimers.c
 void DrawGraphicBoarders(void);
 
@@ -289,6 +292,7 @@ static bool creditsShowing;
 static bool menuShowing;
 static bool configWindowShowing;
 static bool msgWindowShowing;
+static bool recycleBinWindowShowing;
 
 static int  numberOfFiles;
 static int  numberOfFolders;
@@ -321,6 +325,10 @@ static int okPlayOption;
 static int folderDeleteOption;
 static int extInfoFontOption;
 static int recycleBinOption;
+
+static bool  listMoved;
+static bool  returnFromInfo;
+
        
 static char gstr[500];
        
