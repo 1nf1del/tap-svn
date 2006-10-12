@@ -108,7 +108,28 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
     appendToLogfile("DeleteProgressInfo: Finished.", INFO);
 }
 
+//------------
+//
+void MoveAFile(void)
+{
+     bool moveres;
+     if (!TAP_Hdd_Move_Available())
+     {
+         ShowMessageWin( rgn, "Move NOT available.", "", "", 400 );
+         return;
+     }
 
+     ShowMessageWin( rgn, "Move Test #1.", "Moving Test.rec", "to MINE folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine", "Test.rec");
+   
+     ShowMessageWin( rgn, "Move Test #2.", "Moving MINE folder", "to MINE2 folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine2", "Mine");
+     
+     ShowMessageWin( rgn, "Move Test #3.", "Moving Test2.rec", "to .. folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles/Mine2", "DataFiles/Mine2/..", "Test2.rec");
+   
+     
+}
 
 
 //------------
@@ -206,30 +227,30 @@ void ChangeToParentDir()
 //
 void JumpToLastPosition(dword currentBlock, dword totalBlock)
 {
-     dword lastPos;
-     dword   curPercent;
-char str1[200], str2[200];     
+     signed int lastPos;
+     signed int curPercent;
      
      appendIntToLogfile("JumpToLastPosition: currentBlock=%d", currentBlock, WARNING);
      appendIntToLogfile("JumpToLastPosition: totalBlock=%d", totalBlock, WARNING);
 
      if (currentBlock > totalBlock) currentBlock = 0;  // Check there's no invalid block data.
+     if (currentBlock < 0)          currentBlock = 0;  // Check there's no invalid block data.
+     if (totalBlock < 1)            totalBlock   = 1;  // Check there's no invalid block data.
      
-     curPercent  = (( max(0,currentBlock) * 100) / max(1,totalBlock) );
+     curPercent  = (( currentBlock * 100) / totalBlock );
 
      if (curPercent < 95) // If we haven't watched more than 95%, jump to the last position.
      {     
            // Jump back a further 60 blocks so we have some overlap from where we left off.
-           lastPos = max(0, currentBlock-60);
+           lastPos = currentBlock-60;
+           lastPos = max(0, lastPos);
+           
      }
      else  // Start from the start.
            lastPos = 0;
      
      appendIntToLogfile("JumpToLastPosition: jumping to lastPos=%d", lastPos, WARNING);
      TAP_Hdd_ChangePlaybackPos( lastPos );
-TAP_SPrint(str1,"curPercent=%d lastPos=%d",curPercent,lastPos);
-TAP_SPrint(str2,"cBlock=%d tBlock=%d",currentBlock, totalBlock);
-ShowMessageWin( rgn, "Restarted playback", str1, str2, 500 );
 }
 
 

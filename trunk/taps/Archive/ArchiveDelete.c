@@ -17,15 +17,23 @@ History	: v0.0 kidhazy 25-10-05  Inception date
 static bool  returnFromDelete;
 static bool  fileDeleted;
 
-
 //------------
 //
-void DeleteFileFolder(void)
+void DeleteAction(int type)
 {
-     char str[TS_FILE_NAME_SIZE];
-     
-     if (myfiles[CurrentDirNumber][chosenLine]->isPlaying)
-        TAP_Hdd_StopTs();  // Stop the current playback to allow us to delete the file.
+     char str[TS_FILE_NAME_SIZE], title[50], str1[200];
+
+     switch (type)
+     {
+           case 0:  TAP_SPrint(title, "Folder Delete Failed.");
+                    TAP_SPrint(str1,  "Failed to delete folder:");
+                    break;
+                
+           default: TAP_SPrint(title, "File Delete Failed.");
+                    TAP_SPrint(str1,  "Failed to delete file:");
+                    break;
+     }
+
      TAP_Hdd_Delete(myfiles[CurrentDirNumber][chosenLine]->name);
      
      // Check if the delete was successful.
@@ -36,12 +44,42 @@ void DeleteFileFolder(void)
 #endif
      {
          TAP_SPrint(str,myfiles[CurrentDirNumber][chosenLine]->name);
-         ShowMessageWin( rgn, "File Deletion Failed.", "Failed to delete file:", str, 400 );
+         ShowMessageWin( rgn, title, str1, str, 400 );
          fileDeleted = FALSE;
      }
      else
          fileDeleted = TRUE;
+}     
+
+
+
+//------------
+//
+void DeleteFileFolder(void)
+{
+     char str[TS_FILE_NAME_SIZE];
      
+     if (myfiles[CurrentDirNumber][chosenLine]->isPlaying)
+        TAP_Hdd_StopTs();  // Stop the current playback to allow us to delete the file.
+
+     switch (myfiles[CurrentDirNumber][chosenLine]->attr)
+     {
+            case ATTR_FOLDER:
+                              DeleteAction(0);   // Delete the Folder
+                              break;
+            default:   // Treat it as a file.
+                    switch (recycleBinOption)    // check which recycle-bin option is set.
+                    {
+                           case 0:   // No recycle bin, permenantly delete.
+                                     DeleteAction(1);  // Delete the File
+                                     break;
+                           case 1:   // Move file to recycle bin.
+                           case 2:   // Move file to recycle bin.
+                                     RecycleAction();  // Recycle the File
+                                     break;
+                    }
+     }
+
 }
                                            
                                            

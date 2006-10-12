@@ -83,10 +83,12 @@ char* TAPIniDir;
 #include "logo.C"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
-#include "ArchiveDelete.c"
+//#include "ArchiveDelete.c"
 #include "ArchiveStop.c"
 #include "ArchiveAction.c"
 #include "ArchiveRename.c"
+#include "ArchiveRecycle.c" 
+#include "ArchiveDelete.c"
 #include "ArchiveInfo.c" 
 #include "MainMenu.c"
 #include "ConfigMenu.c"
@@ -199,25 +201,26 @@ void TerminateRoutine( void )											// Performs the clean-up and terminate T
     TAP_Exit();															// exit
 }
  
-    
+  
 //------------
 //  
 dword My_KeyHandler(dword key, dword param2)
 {
 	dword state, subState ;
- 
- 
-	if ( yesnoWindowShowing ) { return( YesNoKeyHandler( key ) ); }
+	
+	if ( yesnoWindowShowing )  { return( YesNoKeyHandler( key ) ); }
 																			
+// 	if ( msgWindowShowing )    { return( MsgWindowKeyHandler( key) ); }
+	    
 	if ( configWindowShowing ) { return( ConfigKeyHandler( key ) ); }
 																			
-	if ( creditsShowing ) { return( CreditsKeyHandler( key ) ); }
+	if ( creditsShowing )      { return( CreditsKeyHandler( key ) ); }
 	 																		
-	if ( infoWindowShowing ) { return( ArchiveInfoKeyHandler( key) );; }
+	if ( infoWindowShowing )   { return( ArchiveInfoKeyHandler( key) ); }
 	    
-	if ( menuShowing ) { return(MainMenuKeyHandler( key )); }				// Menu
+	if ( menuShowing )         { return( MainMenuKeyHandler( key ) ); }				// Menu
  
-	if ( windowShowing ) { return( ArchiveWindowKeyHandler( key ) ); }		// archive display
+	if ( windowShowing )       { return( ArchiveWindowKeyHandler( key ) ); }		// archive display
  
 
     TAP_GetState(&state, &subState);
@@ -291,7 +294,7 @@ void CheckFlags( void )
 	if ( returnFromStop == TRUE )											// Handle returning from delete.
 	{																		// redraw the underlying window if it's changed.
 	    returnFromStop = FALSE;
-		if ( fileStopped )        // If the file/folder was stopped, reload the file/folder data and refresh the list.
+		if ( fileStopped )        // If the file was stopped, reload the file/folder data and refresh the list.
         {
              GetRecordingInfo();                                 // Get the information about the current active recordings.
              LoadRecordingInfo(CurrentDirNumber, chosenLine);    // Assign any current recording info to the current line.
@@ -351,6 +354,9 @@ dword My_IdleHandler(void)
 	if ( !windowShowing ) return;										// don't show the clock unless main window is active
 	if ( menuShowing ) return;						                    // but, not interested if these windows are showing
 
+//    if ((msgWindowShowing) && (currentTickTime - msgWindowTickTime > msgWindowDelay))
+//        returnFromMsgWindow = TRUE;
+
 
 	// If the keyboard is showing, and NOT the keyboard help, then blink the keyboard cursor.
     if (( keyboardWindowShowing ) && (!keyboardHelpWindowShowing)) KeyboardCursorBlink( currentTickTime );
@@ -366,9 +372,10 @@ dword My_IdleHandler(void)
 		UpdateListClock();
 	    
 	    // If our pop-up windows are showing, then exit, so that we don't overwrite them with any updated info.
-        if ( infoWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
+        if ( infoWindowShowing )   return;						                    // Don't update recording/playback info if these windows are showing
 	    if ( deleteWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
-	    if ( stopWindowShowing ) return;						                    // Don't update recording/playback info if these windows are showing
+	    if ( stopWindowShowing )   return;						                    // Don't update recording/playback info if these windows are showing
+	    if ( msgWindowShowing )    return;						                    // Don't update recording/playback info if these windows are showing
 		
 		// Check if there is an active playback displayed on the screen.  If so, update it's progress information.
 		if ((inPlaybackMode) && (playbackOnScreenEntry>0))
@@ -394,10 +401,11 @@ dword My_IdleHandler(void)
         }
 	}
    
-	if ( infoWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
-	if ( deleteWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
-	if ( stopWindowShowing ) return;						                    // Don't update disk/recording info if these windows are showing
-	if ( archiveHelpWindowShowing ) return;					                    // Don't update disk/recording info if these windows are showing
+	if ( infoWindowShowing )        return;	// Don't update disk/recording info if these windows are showing
+	if ( deleteWindowShowing )      return;	// Don't update disk/recording info if these windows are showing
+	if ( stopWindowShowing )        return;	// Don't update disk/recording info if these windows are showing
+	if ( archiveHelpWindowShowing ) return;	// Don't update disk/recording info if these windows are showing
+    if ( msgWindowShowing )         return;	// Don't update recording/playback info if these windows are showing
    
     if (sec != oldSec)
     {
@@ -460,7 +468,7 @@ bool TSRCommanderExitTAP (void)
           
 int TAP_Main (void)
 {
-    int i,d, dirNumber, fileIndex;
+     int i,d, dirNumber, fileIndex;
 
 #ifdef WIN32
 #else

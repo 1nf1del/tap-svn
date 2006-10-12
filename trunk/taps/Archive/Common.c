@@ -288,6 +288,7 @@ static bool stopWindowShowing;
 static bool creditsShowing;
 static bool menuShowing;
 static bool configWindowShowing;
+static bool msgWindowShowing;
 
 static int  numberOfFiles;
 static int  numberOfFolders;
@@ -319,6 +320,7 @@ static int yOffsetOption=36;
 static int okPlayOption;
 static int folderDeleteOption;
 static int extInfoFontOption;
+static int recycleBinOption;
        
 static char gstr[500];
        

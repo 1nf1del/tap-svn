@@ -37,7 +37,7 @@ static bool returnFromConfig;
 #define CONFIG_Y_OFFSET 36
 #define CONFIG_Y_STEP 42					// was 44
 
-#define TOTAL_PAGES 2
+#define TOTAL_PAGES 3
 #define LINES_PER_PAGE 10
 #define CONFIG_LINES (LINES_PER_PAGE*TOTAL_PAGES)
 #define DEFUALT_EXIT_OPTION 0
@@ -65,6 +65,7 @@ static int currentRecCheckOption;
 static int currentOkPlayOption;
 static int currentFolderDeleteOption;
 static int currentExtInfoFontOption;
+static int currentRecycleBinOption;
 
 
 
@@ -327,13 +328,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Recording Check", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentRecCheckOption )
 				{
-				    case 0 : 	TAP_SPrint( str, "'.rec' and file attribute" );
+				    case 0 : 	sprintf( str, "'.rec' and file attribute" );
 								break;
 								
 					case 1 : 	sprintf( str, "'.rec' only" );
 						    	break;
 
-					default : 	TAP_SPrint( str, "[Invalid value]" );
+					default : 	sprintf( str, "[Invalid value]" );
 								break;
 				}
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
@@ -343,13 +344,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "OK / Play keys", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentOkPlayOption )
 				{
-				    case 0 : 	TAP_SPrint( str, "OK=Resume  Play=Play from start" );
+				    case 0 : 	sprintf( str, "OK=Resume  Play=Play from start" );
 								break;
 								
 					case 1 : 	sprintf( str, "Play=Resume  OK=Play from start" );
 						    	break;
 
-					default : 	TAP_SPrint( str, "[Invalid value]" );
+					default : 	sprintf( str, "[Invalid value]" );
 								break;
 				}
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
@@ -359,13 +360,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Folder Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentFolderDeleteOption )
 				{
-				    case 0 : 	TAP_SPrint( str, "Cannot delete non-empty folders" );
+				    case 0 : 	sprintf( str, "Cannot delete non-empty folders" );
 								break;
 								
 					case 1 : 	sprintf( str, "Can delete non-empty folders" );
 						    	break;
 
-					default : 	TAP_SPrint( str, "[Invalid value]" );
+					default : 	sprintf( str, "[Invalid value]" );
 								break;
 				}
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
@@ -375,13 +376,32 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Extra Info. Font", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentExtInfoFontOption )
 				{
-				    case 0 : 	TAP_SPrint( str, "Small font size (5 lines)" );
+				    case 0 : 	sprintf( str, "Small font size (5 lines)" );
 								break;
 								
 					case 1 : 	sprintf( str, "Large font size (4 lines)" );
 						    	break;
 
-					default : 	TAP_SPrint( str, "[Invalid value]" );
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+				
+		case 21 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "File Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentRecycleBinOption )
+				{
+				    case 0 : 	sprintf( str, "Permanently delete file." );
+								break;
+								
+					case 1 : 	sprintf( str, "Delete to recycle bin (manually empty)." );
+						    	break;
+
+					case 2 : 	sprintf( str, "Delete to recycle bin (automatic empty)." );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
 								break;
 				}
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
@@ -389,6 +409,7 @@ void DisplayConfigLine(char lineNumber)
 				
 		case 10 :		
 		case 20 :
+		case 30 :
 				TAP_Osd_PutGd( rgn, 53, lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
 	            TAP_SPrint(str,"%d.",optionNumber);
                 TAP_Osd_PutStringAf1622(rgn, 75, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), 700, str, MAIN_TEXT_COLOUR, 0 );
@@ -447,6 +468,7 @@ void CopyConfiguration( void )
     currentOkPlayOption        = okPlayOption;
     currentFolderDeleteOption  = folderDeleteOption;
     currentExtInfoFontOption   = extInfoFontOption;
+    currentRecycleBinOption    = recycleBinOption;
 }
 
 void SaveConfiguration( void )
@@ -469,6 +491,7 @@ void SaveConfiguration( void )
     okPlayOption        = currentOkPlayOption;
     folderDeleteOption  = currentFolderDeleteOption;
     extInfoFontOption   = currentExtInfoFontOption;
+    recycleBinOption    = currentRecycleBinOption;
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -910,8 +933,26 @@ void ConfigActionHandler(dword key)
 					}
 					break;
 
+		case 21 :	switch ( key )										// Recycle Bin option
+					{
+		            	case RKEY_VolUp:	if (currentRecycleBinOption < 2 ) currentRecycleBinOption++;
+		            	                    else currentRecycleBinOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentRecycleBinOption > 0 ) currentRecycleBinOption--;
+		            	                    else currentRecycleBinOption = 2;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
 		case 10 :														// bottom line commands : Save, or Cancel
 		case 20 :
+		case 30 :
 						switch ( key )
 						{
 							case RKEY_VolUp:	if ( configOption < 1 ) configOption++;

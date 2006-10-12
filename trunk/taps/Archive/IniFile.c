@@ -132,6 +132,9 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (extInfoFontOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (recycleBinOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -218,6 +221,7 @@ void SetConfigurationVariables( void )
 	okPlayOption        = ReadIniDecimal();
 	folderDeleteOption  = ReadIniDecimal();
 	extInfoFontOption   = ReadIniDecimal();
+	recycleBinOption    = ReadIniDecimal();
 }
 
 
@@ -283,6 +287,7 @@ void LoadConfiguration( void )
 		okPlayOption       = 0;
 		folderDeleteOption = 0;
 		extInfoFontOption  = 0;
+		recycleBinOption   = 0;
 
 		SaveConfigurationToFile();
 	}

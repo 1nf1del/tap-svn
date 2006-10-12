@@ -507,9 +507,57 @@ bool MatchFileStamp( char* stamp, char* str)
         // Handle all other date stamps.          
         for (l=0; l<stampLen; l++)
         {
-            if ( stamp[l] == CHAR_ASTERIX )  // * is a wildcard for -_./ space
+            switch ( stamp[l] )
+            {
+                   case '*':   
+                               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH))
+                                  return FALSE;
+                               break;
+                   case ' ':
+                               if ( (str[start+l] != CHAR_SPACE ) && (str[start+l] != CHAR_SCORE ))
+                                  return FALSE;
+                               break;
+                   case '+':
+                               if ( str[start+l] != CHAR_PLUS )
+                                  return FALSE;
+                               break;
+                   case '#':
+                               if ( str[start+l] != CHAR_HASH )
+                                  return FALSE;
+                               break;
+                   case '-':
+                               if ( str[start+l] != CHAR_DASH )
+                                  return FALSE;
+                               break;
+                   case '.':
+                               if ( str[start+l] != CHAR_DOT )
+                                  return FALSE;
+                               break;
+                   case '/':
+                               if ( str[start+l] != CHAR_SLASH )
+                                  return FALSE;
+                               break;
+                   case '_':
+                               if ( str[start+l] != CHAR_SCORE )
+                                  return FALSE;
+                               break;
+                   case '9':   
+                               if (( str[start+l] < CHAR_ZERO ) || ( str[start+l] > CHAR_NINE))
+                                  return FALSE;
+                               break;
+                   case 'D':
+                   case 'M':
+                   case 'Y':
+                               if ((str[start+l] < CHAR_ZERO) || (str[start+l] > CHAR_NINE)) 
+                                  return FALSE;
+                               break;
+                }
+            }
+/*                               
+            if ( stamp[l] == CHAR_ASTERIX )  // * is a wildcard for -_./ 
             {   
-               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH)&& ( str[start+l] != CHAR_SPACE))
+//               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH)&& ( str[start+l] != CHAR_SPACE))
+               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH))
                   return FALSE;
             }
             else 
@@ -564,6 +612,7 @@ bool MatchFileStamp( char* stamp, char* str)
             if ((str[start+l] < CHAR_ZERO) || (str[start+l] > CHAR_NINE)) 
                return FALSE;
         } 
+*/        
      }  
      // TAP_Print("%s< matched on %s<\r\n",str,stamp);           
      return TRUE;            
@@ -999,7 +1048,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
              
                 // If the current file is NOT an active recording, AND the header information hasn't already been loaded, read the header.
                 appendToLogfile("LoadArchiveInfo: Checking if this is an existing recording.", WARNING);
-                if ((!myfiles[dirNumber][foundIndex]->isRecording) && (myfiles[dirNumber][foundIndex]->eventNameLength==0))
+                if ((!myfiles[dirNumber][foundIndex]->isRecording) && ((myfiles[dirNumber][foundIndex]->eventNameLength==0)||(myfiles[dirNumber][foundIndex]->recDuration==0)))
                 {
                     appendStringToLogfile("LoadArchiveInfo: Calling LoadHeaderInfo for file.name=%s",file.name, WARNING);
                     LoadHeaderInfo( file.name, dirNumber, foundIndex);

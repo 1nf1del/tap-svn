@@ -1534,7 +1534,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							break;
 
 
-		case RKEY_Blue :	if ( playedFiles[0]->totalBlock <=0 ) // If no last playback has been set, ignore Blue.
+		case RKEY_Blue :	// Resume last playback file.
+                            if ( playedFiles[0]->totalBlock <=0 ) // If no last playback has been set, ignore Blue.
                             {
                                  ShowMessageWin( rgn, "No Last Playback File", "The last playback file was not found.", "(It may have been deleted.)", 350 );
                                  break; 
@@ -1575,7 +1576,8 @@ dword ArchiveWindowKeyHandler(dword key)
 		                    RefreshArchiveList(TRUE);       // Redraw the contents of the screen.
 		                    break;
 							
-		case RKEY_Info :	if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
+		case RKEY_Info :	// Display Info window
+                            if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
                                  currentFile   = *myfiles[CurrentDirNumber][chosenLine];
                                  currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
@@ -1583,24 +1585,33 @@ dword ArchiveWindowKeyHandler(dword key)
                             }     
 							break;
 
-        case RKEY_Green:    CreateNewFolder();
+        case RKEY_Green:    // Create New Folder
+                            CreateNewFolder();
                             RefreshArchiveList(TRUE);
                             break;
 
-        case RKEY_Red:    DisplayArchiveHelp();
+        case RKEY_Red:      DisplayArchiveHelp();
                             break;
 
                             							
 		case RKEY_Menu :	ActivateMenu();
 						    break;
 
-		case RKEY_Mute :	return key;
+		case RKEY_Mute :	// Pass thru Mute key
+                            return key;
 
 
-        case RKEY_Stop:     if ((myfiles[CurrentDirNumber][chosenLine]->isRecording) || (myfiles[CurrentDirNumber][chosenLine]->isPlaying)) ActivateStopWindow(myfiles[CurrentDirNumber][chosenLine]->name);
+        case RKEY_Stop:     // Stop playback / recording.
+                            if ((myfiles[CurrentDirNumber][chosenLine]->isRecording) || (myfiles[CurrentDirNumber][chosenLine]->isPlaying)) ActivateStopWindow(myfiles[CurrentDirNumber][chosenLine]->name);
                             break;
     
-        case RKEY_White :   if (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine]->name,myfiles[CurrentDirNumber][chosenLine]->attr);
+        case RKEY_White :   // Delete
+                            if (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) 
+                            {
+                                 currentFile   = *myfiles[CurrentDirNumber][chosenLine];
+                                 currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
+                                 ActivateDeleteWindow(myfiles[CurrentDirNumber][chosenLine]->name,myfiles[CurrentDirNumber][chosenLine]->attr);
+                            }    
                             break;
 							
 		default :			break;
@@ -1628,13 +1639,14 @@ void ActivateArchiveWindow( void )
 
 void initialiseArchiveWindow( void )
 {
-    windowShowing = FALSE;
+    windowShowing            = FALSE;
 	archiveHelpWindowShowing = FALSE;
-	chosenLine = 0;
-	printLine = 0;
-	page = 0;
+	msgWindowShowing         = FALSE;
+	chosenLine   = 0;
+	printLine    = 0;
+	page         = 0;
 	rowSelection = 0;
-	sortOrder = sortOrderOption; // Default to sort order specified in the config file.
+	sortOrder    = sortOrderOption; // Default to sort order specified in the config file.
 	folderSortOrder = 0; // Default folders to sort to top.
 
 }

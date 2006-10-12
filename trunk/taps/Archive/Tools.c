@@ -23,13 +23,66 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 #define MSG_FOREGROUND_COLOUR RGB(31,31,31)
 #define MSG_BACKGROUND_COLOUR RGB(3,5,10)
 #define MSG_TITLE_COLOUR RGB(29,29,29)
-#define MSG_TEXT_COLOUR RGB8888(90,104,213)
+//#define MSG_TEXT_COLOUR RGB8888(90,104,213)
+#define MSG_TEXT_COLOUR RGB(29,29,29)
 
 
 #include "graphics/msgpopup360x130.GD"
 
-//word* sysID = (word*)0xa3fffffa;
 
+/*
+static bool  returnFromMsgWindow;
+int          msgWindowDelay;
+dword        msgWindowTickTime;
+
+
+//------------
+//
+void initialiseMsgWindow(void)
+{
+    msgWindowShowing    = TRUE;   // Flag that a message window is being displayed.
+    returnFromMsgWindow = FALSE;  // Clear flag indicating return from message window.
+}
+
+
+//-----------------------------------------------------------------------
+//
+void CloseMsgWindow(void)
+{
+	msgWindowShowing = FALSE;
+	TAP_Osd_RestoreBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, msgWindowCopy);
+	TAP_MemFree(msgWindowCopy);
+
+    msgWindowShowing    = FALSE;   // Clear flag that a message window is being displayed.
+    returnFromMsgWindow = FALSE;   // Clear flag indicating return from message window.
+	
+}
+
+
+dword MsgWindowKeyHandler( dword key )
+{
+      char *msg1;
+    dword currentTime;
+
+	currentTime = TAP_GetTick();			// Get the current time.
+
+  sprintf(msg1,"%d", currentTime);
+	TAP_Osd_PutS(rgn, 100, 100, 400, msg1,		
+		MSG_TITLE_COLOUR, 0, 0, FNT_Size_1926,
+		FALSE, ALIGN_CENTER);											// show 1. message
+TAP_Print("in here \r\n");    
+	switch ( key )
+	{
+		case RKEY_Exit :	CloseMsgWindow();
+	                        returnFromMsgWindow = TRUE;
+                            break;							
+
+		case RKEY_Mute :	return key;
+	}
+	return 0;
+}
+
+*/
 //   ShowMessageBox 
 //
 
@@ -41,7 +94,7 @@ void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
     msgScrWidth = MSG_SCREEN_W-10;
     msgY = MSG_SCREEN_Y+12;
       
-    //  Calculate width of message window
+    //  Calculate width of message window text
     width = TAP_Osd_GetW( msg1, 0, FNT_Size_1926 );     
     if ( TAP_Osd_GetW( msg2, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg2, 0, FNT_Size_1622 ) + 10;
     if ( TAP_Osd_GetW( msg3, 0, FNT_Size_1622 ) + 10 > width ) width = TAP_Osd_GetW( msg3, 0, FNT_Size_1622 ) + 10;
@@ -72,14 +125,14 @@ void    ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3)
 
 void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int delay )
 {
-    byte*  msgWindowCopy;
+    byte*        msgWindowCopy;
     
     // Save the region where we are about to display the pop-up.
     msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
 
     ShowMessageBox(msgRgn, msg1, msg2, msg3 );
 
-    TAP_Delay( delay );    
+    TAP_Delay(delay);  // Wait for the specified time.
 
 	TAP_Osd_RestoreBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, msgWindowCopy);
 	TAP_MemFree(msgWindowCopy);
