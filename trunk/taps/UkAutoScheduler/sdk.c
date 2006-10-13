@@ -31,7 +31,6 @@ bool sdkRetreiveXmlData(void)
 	dword	fileLength = 0;
 	dword	schXmlNumberOfProgrammes = 0;
 	dword	startTimeInMins = 0, endTimeInMins = 0;
-	dword	durationInMins = 0;
 	word	startMjd = 0, endMjd = 0;
 	byte	startHour = 0, endHour = 0;
 	byte	startMin = 0, endMin = 0;
@@ -151,9 +150,7 @@ bool sdkRetreiveXmlData(void)
 						startTimeInMins = (startMjd * 24 * 60) + (startHour * 60) + startMin;
 						endTimeInMins = (endMjd * 24 * 60) + (endHour * 60) + endMin;
 
-						durationInMins = endTimeInMins - startTimeInMins;
-
-						sdkEpgData[j].eventData[sdkEpgData[j].numbOfEvents].duration = ((durationInMins / 60) << 8) + (durationInMins % 60);
+						sdkEpgData[j].eventData[sdkEpgData[j].numbOfEvents].duration = endTimeInMins - startTimeInMins;
 
 						sdkEpgData[j].numbOfEvents++;
 					}
@@ -336,7 +333,7 @@ int TAP_Timer_Add_SDK(TYPE_TimerInfo *newTimerInfo)
 			if(TAP_Timer_GetInfo(i, &setTimerInfo ))
 			{
 				setTimerStartTimeInMins = (((setTimerInfo.startTime >> 16) & 0xFFFF) * 24 * 60) + (((setTimerInfo.startTime >> 8) & 0xFF) * 60) + (setTimerInfo.startTime & 0xFF);
-				setTimerEndTimeInMins = setTimerStartTimeInMins + (((setTimerInfo.duration >> 8) & 0xFF) * 60) + (setTimerInfo.duration & 0xFF);
+				setTimerEndTimeInMins = setTimerStartTimeInMins + setTimerInfo.duration;
 
 				if
 				(

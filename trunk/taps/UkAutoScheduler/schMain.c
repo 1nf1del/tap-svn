@@ -23,6 +23,7 @@ v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Time
 v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
 v0.15 sl8	29-09-06	Added separate conflict handler.
 v0.16 sl8	11-10-06	Separate conflict bug fix. Changes made so that icons can update in 'Show' screen.
+v0.17 sl8	13-10-06	Update move information when timer modified due to conflict.
 
 **************************************************************/
 
@@ -43,7 +44,9 @@ void schMainUpdateSearchList(void);
 void schMainDetermineChangeDirType(void);
 int schMainFindMultipleConflictCount(char *);
 dword schMainConvertTimeToMins(dword time);
+dword schMainConvertMinsToTime(dword time);
 bool schProcessConflict(TYPE_TimerInfo*, dword, dword, int);
+void schConflictUpdateMoveList(TYPE_TimerInfo*, dword);
 
 static struct schDataTag schUserData[SCH_MAX_SEARCHES];
 static struct schDataTag schRemoteData[SCH_MAX_SEARCHES];
@@ -581,6 +584,8 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	char multipleConflictCount[3];
 	bool longName = FALSE;
 	byte result = SCH_MAIN_TIMER_FAILED;
+	dword temp = 0;
+	bool schMoveListModified = FALSE;
 
 	// ------------- Attachments ----------------
 
@@ -1138,6 +1143,12 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 //TAP_Print("Success B\r\n");
 							// Success
 
+							schConflictUpdateMoveList(&conflictTimerInfoA, timerErrorA);
+
+							schConflictUpdateMoveList(&conflictTimerInfoB, timerErrorB);
+
+							schMoveListModified = TRUE;
+
 							result = SCH_MAIN_TIMER_SUCCESS_WITH_MODIFICATIONS;
 						}
 					}
@@ -1146,6 +1157,10 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 				{
 //TAP_Print("Success A\r\n");
 					// Success
+
+					schConflictUpdateMoveList(&conflictTimerInfoA, timerErrorA);
+
+					schMoveListModified = TRUE;
 
 					result = SCH_MAIN_TIMER_SUCCESS_WITH_MODIFICATIONS;
 				}
@@ -1171,49 +1186,25 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 			schMoveData[schMainTotalValidMoves].moveEnabled = TRUE;
 			strcpy(schMoveData[schMainTotalValidMoves].moveFileName, fileNameStr);
 			strcpy(schMoveData[schMainTotalValidMoves].moveFolder, schUserData[searchIndex].searchFolder);
-			schMoveData[schMainTotalValidMoves].moveStartTime = (schTimerStartMjd << 16) + (schTimerStartHour << 8) + schTimerStartMin;
-			schMoveData[schMainTotalValidMoves].moveEndTime = (schTimerEndMjd << 16) + (schTimerEndHour << 8) + schTimerEndMin;
+			schMoveData[schMainTotalValidMoves].moveStartTime = schTimerInfo.startTime;
+			temp = schMainConvertTimeToMins(schTimerInfo.startTime) + schTimerInfo.duration;
+			schMoveData[schMainTotalValidMoves].moveEndTime = schMainConvertMinsToTime(temp);
 			schMoveData[schMainTotalValidMoves].moveFailedCount = 0;
 
 			schMainTotalValidMoves++;
 
 			schWriteMoveList();
-/*
-			if(longName == TRUE)
-			{
-				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set with Move (L): %s   %s", fileNameStr, eventName );
-				logStoreEvent(logBuffer);
-			}
-			else
-			{
-				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set with Move: %s", fileNameStr );
-				logStoreEvent(logBuffer);
-			}
-*/
+		}
+		else if(schMoveListModified == TRUE)
+		{
+			schWriteMoveList();
 		}
 		else
 		{
-/*			if(longName == TRUE)
-			{
-				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set without Move (L): %s   %s", fileNameStr,  eventName );
-				logStoreEvent(logBuffer);		
-			}
-			else
-			{
-				memset(logBuffer,0,LOG_BUFFER_SIZE);
-				sprintf( logBuffer, "Timer Set without Move: %s", fileNameStr );
-				logStoreEvent(logBuffer);
-			}
-*/
 		}
 	}
 	else
 	{
-
-	
 	}
 
 	return result;
@@ -1365,6 +1356,11 @@ dword schMainConvertTimeToMins(dword time)
 }
 
 
+dword schMainConvertMinsToTime(dword timeInMins)
+{
+	return ((((timeInMins / (24 * 60)) & 0xFFFF) << 16) + ((((timeInMins % (24 * 60)) / 60) & 0xFF) << 8) + (((timeInMins % (24 * 60)) % 60) & 0xFF));
+}
+
 
 bool schProcessConflict(TYPE_TimerInfo* schTimerInfo, dword eventStartTime, dword eventEndTime, int timerError)
 {
@@ -1489,3 +1485,38 @@ char buffer1[256];
 
 	return result;
 }
+
+
+void schConflictUpdateMoveList(TYPE_TimerInfo* origConflictTimerInfo, dword modTimerError)
+{
+	TYPE_TimerInfo	modConflictTimerInfo;
+	dword origConflictTimerEndTime = 0, temp = 0;
+	int i = 0;
+	
+	temp = schMainConvertTimeToMins(origConflictTimerInfo->startTime) + origConflictTimerInfo->duration;
+	origConflictTimerEndTime = schMainConvertMinsToTime(temp);
+
+	for ( i = 0; i < schMainTotalValidMoves; i++)
+	{
+		if
+		(
+			(schMoveData[i].moveEnabled == TRUE)
+			&&
+			(strcmp(schMoveData[i].moveFileName, origConflictTimerInfo->fileName) == 0)
+			&&
+			(schMoveData[i].moveStartTime == origConflictTimerInfo->startTime)
+			&&
+			(schMoveData[i].moveEndTime == origConflictTimerEndTime)
+		)
+		{
+			TAP_Timer_GetInfo( (modTimerError & 0x0000ffff), &modConflictTimerInfo );
+
+			schMoveData[i].moveStartTime = modConflictTimerInfo.startTime;
+
+			temp = schMainConvertTimeToMins(modConflictTimerInfo.startTime) + modConflictTimerInfo.duration;
+			schMoveData[i].moveEndTime = schMainConvertMinsToTime(temp);
+		}
+	}
+}
+
+

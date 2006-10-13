@@ -8,6 +8,7 @@ This module displays the schedules
 				EPG qualifier. Prevent duplicate ITV programmes from being dipslayed.
   v0.3 sl8:	02-09-06	Removed 'R!'. Display 'R-' if timer exists with less padding than requested by schedule.
   v0.4 sl8:	11-10-06	Update icons if modified by conflict handler
+  v0.5 sl8:	13-10-06	Duration bug fix.
 
 **************************************************************/
 
@@ -1238,7 +1239,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 	numberOfTimers = TAP_Timer_GetTotalNum();
 
 	resultStartTimeInMins = (((schShowResults[schShowResultIndex].startTime >> 16) & 0xFFFF) * 24 * 60) + (((schShowResults[schShowResultIndex].startTime >> 8) & 0xFF) * 60) + (schShowResults[schShowResultIndex].startTime & 0xFF);
-	resultEndTimeInMins = resultStartTimeInMins + (((schShowResults[schShowResultIndex].duration >> 8) & 0xFF) * 60) + (schShowResults[schShowResultIndex].duration & 0xFF);
+	resultEndTimeInMins = resultStartTimeInMins + schShowResults[schShowResultIndex].duration;
 
 	searchStartPaddingInMins = (((schUserData[schShowSearchIndex].searchStartPadding >> 8) & 0xFF) * 60) + (schUserData[schShowSearchIndex].searchStartPadding & 0xFF);
 	searchEndPaddingInMins = (((schUserData[schShowSearchIndex].searchEndPadding >> 8) & 0xFF) * 60) + (schUserData[schShowSearchIndex].searchEndPadding & 0xFF);
@@ -1248,7 +1249,7 @@ void schShowCheckTimer(int schShowResultIndex, int schShowSearchIndex)
 		if(TAP_Timer_GetInfo(i, &timerInfo ))
 		{
 			timerStartTimeInMins = (((timerInfo.startTime >> 16) & 0xFFFF) * 24 * 60) + (((timerInfo.startTime >> 8) & 0xFF) * 60) + (timerInfo.startTime & 0xFF);
-			timerEndTimeInMins = timerStartTimeInMins + (((timerInfo.duration >> 8) & 0xFF) * 60) + (timerInfo.duration & 0xFF);
+			timerEndTimeInMins = timerStartTimeInMins + timerInfo.duration;
 
 			if
 			(

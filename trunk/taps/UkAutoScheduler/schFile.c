@@ -13,6 +13,7 @@ v0.6 sl8:	11-04-06	Show window added and tidy up.
 v0.7 sl8:	05-08-06	Keep added.
 v0.8 sl8:	11-10-06	Check AutoStart folder for remote file. Add 512 bytes to remotefile
 				 if found in ProgramFiles folder. Delete remote file when finished.
+v0.9 sl8:	13-10-06	Default remote file 'Keep' data. Delete remote file when read complete.
 
 **************************************************************/
 
@@ -827,6 +828,10 @@ byte schFileRetreiveRemoteData(void)
 			// ----------------- Search Folder -----------------
 			schFileParseString(&schTempUserData.searchFolder[0], &schValidSearch, &schNewLineCount, buffer, &bufferIndex, 128, TRUE);
 
+			// ----------------- Search Keep -----------------
+			schTempUserData.searchKeepMode = SCH_DISPLAY_KEEP_ALL;
+			schTempUserData.searchKeepValue = SCH_EDIT_KEEP_VALUE_DEFAULT;
+
 			// ----------------------------------------------
 
 			if(schNewLineCount != 1)
@@ -848,6 +853,8 @@ byte schFileRetreiveRemoteData(void)
 	}
 
 	TAP_MemFree( buffer );
+
+	TAP_Hdd_Delete( REMOTE_FILENAME );
 
 	return schMainTotalValidRemoteSearches;
 }
