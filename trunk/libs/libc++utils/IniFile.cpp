@@ -26,6 +26,7 @@
 #include "inifile.h"
 #include "file.h"
 #include "DirectoryUtils.h"
+#include "logger.h"
 
 const int maxIniLength = 32768*8;
 
@@ -48,6 +49,7 @@ IniFile::~IniFile()
 // Load the file
 bool IniFile::Load( const char* filename )
 {
+	TRACE1("Loading ini file %s\n", filename);
 	TYPE_File* file = OpenRawFile(filename, "r");
 	if ( !file )
 		return false;
@@ -56,6 +58,7 @@ bool IniFile::Load( const char* filename )
 	dword length = TAP_Hdd_Flen( file );
 	length = min( length, maxIniLength );
 
+	TRACE1("Ini file length %d\n", length);
 	string buffer;
 	char* pData = buffer.getbuffer(length);
 	memset(pData, 0, length);
@@ -69,6 +72,7 @@ bool IniFile::Load( const char* filename )
 	// in case of mixed line endings, always split on \r
 	// and then remove the possible \r from the end of each line
 	buffer.split( "\n", line );
+	TRACE1("Ini file contains %d lines\n", line.size());
 	for (unsigned int i=0; i<line.size(); i++)
 	{
 		int isize = line[i].size();
@@ -76,6 +80,7 @@ bool IniFile::Load( const char* filename )
 		{
 			if (line[i][isize-1] == '\r')
 				line[i].resize(isize-1);
+			TRACE1("%s\n",line[i].c_str());
 		}
 	}
 
@@ -86,6 +91,7 @@ bool IniFile::Load( const char* filename )
 // Save the file
 bool IniFile::Save( const char* filename ) const
 {
+	TRACE1("Saving ini file %s\n", filename);
 	TYPE_File* file = OpenRawFile(filename, "w");
 	if ( !file )
 		return false;
@@ -98,10 +104,15 @@ bool IniFile::Save( const char* filename ) const
 	if (length%512 != 0)
 		length += 512-length%512;
 
+	TRACE2("Writing %d lines and %d chars\n", line.size(), length);
+
 	string buffer;
 	buffer.resize( length );
 	for ( unsigned int u = 0; u < line.size(); ++u )
+	{
+		TRACE1("%s\n", line[u].c_str());
 		buffer += line[u] + "\r\n";
+	}
 	while ( buffer.size() < length )
 		buffer += " ";
 	TAP_Hdd_Fwrite( (void*)(const char*)buffer, 1, buffer.size(), file );
