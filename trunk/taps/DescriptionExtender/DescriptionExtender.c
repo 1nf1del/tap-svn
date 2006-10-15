@@ -83,61 +83,73 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 //-----------------------------------------------------------------------------
 typedef struct {
-	Model	model;
+	word	model;
     int		firmwareVersion;
 	dword	eventTable;
-	dword	eventTableLength;
+	word	eventTableLength;
+	word	eventLength;
 	dword	eventTableType;
 } FirmwareDetail;
 
 
 FirmwareDetail firmware[] = 
 {
-	// Model		FW version,	Event Table,	Size	Type
-	TF5800t,		0x1288,		0x80333284,		14000,	2,		// 14 Jul 2006
-	TF5800t,		0x1225,		0x8032a7c8,		5000,	1,		// 08 Dec 2005
-	TF5800t,		0x1209,		0x80326c4c,		5000,	1,		// 15 Sep 2005 
-	TF5800t,		0x1205,		0x8032e818,		5000,	1,		// 07 Sep 2005
-	TF5800t,		0x1204,		0x8032e698,		5000,	1,		// 01 Sep 2005
-	
-	TF5000t,		0x1248,		0x802961c4,		5000,	1,		// 20 Feb 2006
-	TF5000t,		0x1212,		0x8028ebf4,		5000,	1,		// 05 Oct 2005
+	// Model, FW ver,	Event Table,	Size	Length	Type
+	// TF5800t
+	456,	0x1288,		0x80333284,		14000,	0x44,	2,		// 14 Jul 2006
+	456,	0x1225,		0x8032a7c8,		5000,	0x40,	1,		// 08 Dec 2005
+	456,	0x1209,		0x80326c4c,		5000,	0x40,	1,		// 15 Sep 2005 
+	456,	0x1205,		0x8032e818,		5000,	0x40,	1,		// 07 Sep 2005
+	456,	0x1204,		0x8032e698,		5000,	0x40,	1,		// 01 Sep 2005
 
-	TF5000_5500,	0x1205,		0x802d6bb4,		5000,	1,		// 13 Sep 2005
-	
-	TF5010_5510,	0x1212,		0x802d84e0,		4000,	1,		// 05 Oct 2005
-	
-	TF5100c,		0x1281,		0x802b74c4,		5000,	1,		// 12 Jun 2006
-	TF5100c,		0x1264,		0x802b5be4,		5000,	1,		// 19 Apr 2006
-	TF5100c,		0x1260,		0x802b5498,		5000,	1,		// 15 Mar 2006
-	TF5100c,		0x1248,		0x802b5120,		5000,	1,		// 20 Feb 2006
-	TF5100c,		0x1205,		0x802ad730,		5000,	1,		// 12 Sep 2005
-	TF5100c,		0x1170,		0x802c27b0,		5000,	1,		// 04 May 2005
-	
-	TF5100,			0x1264,		0x802ae9a0,		5000,	1,		// 19 Apr 2006
-	TF5100,			0x1260,		0x802ae474,		5000,	1,		// 15 Mar 2006
-	TF5100,			0x1205,		0x802a5cac,		5000,	1,		// 12 Sep 2005
+	// TF5000t
+	416,	0x1248,		0x802961c4,		5000,	0x40,	1,		// 20 Feb 2006
+	416,	0x1212,		0x8028ebf4,		5000,	0x40,	1,		// 05 Oct 2005
 
-	TF5100c_MP,		0x1266,		0x802d823c,		5000,	1,		// 24 Apr 2006
-	TF5100c_MP,		0x1260,		0x802d7b60,		5000,	1,		// 15 Mar 2006
-	TF5100c_MP,		0x1212,		0x802cf550,		5000,	1,		// 05 Oct 2005
+	// TF5000_5500
+	406,	0x1205,		0x802d6bb4,		5000,	0x40,	1,		// 13 Sep 2005
 
-	TF5100t_MP,		0x1266,		0x802d1040,		5000,	1,		// 24 Apr 2006
-	TF5100t_MP,		0x1260,		0x802d0b9c,		5000,	1,		// 15 Mar 2006
-	TF5100t_MP,		0x1212,		0x802c7ab4,		5000,	1,		// 04 Oct 2005
+	// TF5010_5510
+	436,	0x1212,		0x802d84e0,		4000,	0x40,	1,		// 05 Oct 2005
 
-	TF5200c,		0x1296,		0x802b7710,		5000,	1,		// 29 Jul 2006
-	TF5200c,		0x1205,		0x802ac8e8,		5000,	1,		// 13 Sep 2005
+	// TF5100c
+	12406,	0x1281,		0x802b74c4,		5000,	0x40,	1,		// 12 Jun 2006
+	12406,	0x1264,		0x802b5be4,		5000,	0x40,	1,		// 19 Apr 2006
+	12406,	0x1260,		0x802b5498,		5000,	0x40,	1,		// 15 Mar 2006
+	12406,	0x1248,		0x802b5120,		5000,	0x40,	1,		// 20 Feb 2006
+	12406,	0x1205,		0x802ad730,		5000,	0x40,	1,		// 12 Sep 2005
+	12406,	0x1170,		0x802c27b0,		5000,	0x40,	1,		// 04 May 2005
+
+	// TF5100
+	13406,	0x1264,		0x802ae9a0,		5000,	0x40,	1,		// 19 Apr 2006
+	13406,	0x1260,		0x802ae474,		5000,	0x40,	1,		// 15 Mar 2006
+	13406,	0x1205,		0x802a5cac,		5000,	0x40,	1,		// 12 Sep 2005
+
+	// TF5100c_MP
+	1486,	0x1266,		0x802d823c,		5000,	0x40,	1,		// 24 Apr 2006
+	1486,	0x1260,		0x802d7b60,		5000,	0x40,	1,		// 15 Mar 2006
+	1486,	0x1212,		0x802cf550,		5000,	0x40,	1,		// 05 Oct 2005
+
+	// TF5100t_MP
+	1466,	0x1266,		0x802d1040,		5000,	0x40,	1,		// 24 Apr 2006
+	1466,	0x1260,		0x802d0b9c,		5000,	0x40,	1,		// 15 Mar 2006
+	1466,	0x1212,		0x802c7ab4,		5000,	0x40,	1,		// 04 Oct 2005
+
+	// TF5200c
+	10446,	0x1296,		0x802b7710,		5000,	0x40,	1,		// 29 Jul 2006
+	10446,	0x1205,		0x802ac8e8,		5000,	0x40,	1,		// 13 Sep 2005
 
 	// Dedicated Procaster firmware is no longer developed. Update with TF5100 firmwares instead
-	PC5101c_5102c,	0x1260,		0x802b5498,		5000,	1,		// TF5100c 15 Mar 2006 (crossflashed)
-	PC5101c_5102c,	0x1212,		0x802a8fe4,		5000,	1,		// 05 Oct 2005
+	// PC5101c_5102c
+	10416,	0x1260,		0x802b5498,		5000,	0x40,	1,		// TF5100c 15 Mar 2006 (crossflashed)
+	10416,	0x1212,		0x802a8fe4,		5000,	0x40,	1,		// 05 Oct 2005
 
-	PC5101t_5102t,	0x1260,		0x802ae474,		5000,	1,		// TF5100 15 Mar 2006 (crossflashed)
-	PC5101t_5102t,	0x1212,		0x802a1578,		5000,	1,		// 05 Oct 2005
+	// PC5101t_5102t
+	10426,	0x1260,		0x802ae474,		5000,	0x40,	1,		// TF5100 15 Mar 2006 (crossflashed)
+	10426,	0x1212,		0x802a1578,		5000,	0x40,	1,		// 05 Oct 2005
 
 	// Other crossflashed firmwares - will be removed if they cause problems
-	TF5000t,		0x1260,		0x802ae474,		5000,	1		// TF5100 15 Mar 2006
+	416,	0x1260,		0x802ae474,		5000,	0x40,	1		// TF5100 15 Mar 2006
 };
 
 
@@ -300,15 +312,14 @@ byte* GetEventDescriptionv1( TYPE_TapEvent* event )
 		FirmwareDetail* parameters = GetFirmwareDetail();
 		if ( parameters )
 		{
-			type_eventtable_v1* et = (type_eventtable_v1*)parameters->eventTable;
+			type_eventtable_v1* e = (type_eventtable_v1*)parameters->eventTable;
 			int eventTableLength = parameters->eventTableLength;
+			int eventLength = parameters->eventLength;
 
 			// Try each entry in the event table. Not very efficient, but the firmware does exactly the same
 			int i;
-			for ( i=0; i<eventTableLength; ++i )
+			for ( i=0; i<eventTableLength; ++i, (byte*)e+=eventLength )
 			{
-				type_eventtable_v1* e = &et[i];
-
 				// On valid events, match evtId
 				if ( (e->char00 & 0xc0) && event->evtId == e->event_id )
 				{
@@ -376,8 +387,7 @@ byte* GetEventDescriptionv1( TYPE_TapEvent* event )
 										*p++ = ' ';
 #endif
 									memcpy( p, e->extended_event_name, e->extended_length );
-									p[e->extended_length] = '\0';
-									p += e->extended_length + 1;
+									p += e->extended_length;
 									addSpace = FALSE;
 								}
 
@@ -406,15 +416,14 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 		FirmwareDetail* parameters = GetFirmwareDetail();
 		if ( parameters )
 		{
-			type_eventtable_v2* et = (type_eventtable_v2*)parameters->eventTable;
+			type_eventtable_v2* e = (type_eventtable_v2*)parameters->eventTable;
 			int eventTableLength = parameters->eventTableLength;
+			int eventLength = parameters->eventLength;
 
 			// Try each entry in the event table. Not very efficient, but the firmware does exactly the same
 			int i;
-			for ( i=0; i<eventTableLength; ++i )
+			for ( i=0; i<eventTableLength; ++i, (byte*)e+=eventLength )
 			{
-				type_eventtable_v2* e = &et[i];
-
 				// On valid events, match evtId
 				if ( (e->char00 & 0xc0) && event->evtId == e->event_id )
 				{
@@ -424,7 +433,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 					{
 						int outputLength = 0;
 						int descriptionLength = 0;
-						char* genre;
+						char* genre = 0;
 						int genreLength = 0;
 						bool addSpace = FALSE;
 
@@ -450,6 +459,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 							if ( addSpace )
 								++outputLength;
 #endif
+//							FW_Print("%d %s\n", e->extended_length, e->extended_event_name);
 							outputLength += e->extended_length + 1;
 							addSpace = FALSE;
 						}
@@ -463,7 +473,6 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 							if ( addSpace )
 								++outputLength;
 							outputLength += genreLength + 3;
-
 						}
 #endif
 
@@ -497,8 +506,7 @@ byte* GetEventDescriptionv2( TYPE_TapEvent* event )
 										*p++ = ' ';
 #endif
 									memcpy( p, e->extended_event_name, e->extended_length );
-									p[e->extended_length] = '\0';
-									p += e->extended_length + 1;
+									p += e->extended_length;
 									addSpace = FALSE;
 								}
 
@@ -538,7 +546,7 @@ int TAP_Main(void)
 	// Look up the current firmware
 	for (index=0; index<sizeof(firmware)/sizeof(FirmwareDetail); ++index)
 	{
-		if ( GetModel() == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
+		if ( *sysID == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
 		{
 			supported = TRUE;
 			break;
