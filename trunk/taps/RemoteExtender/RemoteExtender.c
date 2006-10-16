@@ -45,7 +45,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.1");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.2");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -357,9 +357,10 @@ typedef struct {
 
 FirmwareDetail firmware[] = 
 {
-	// Model		FW version,	registerGroup
-	TF5800t,		0x1288,		0x804cb11c,		// 14 July 2006
-	TF5800t,		0x1225,		0x80427bfc		// 08 Dec 2005
+	// Model	FW version,	registerGroup
+	456,		0x1326,		0x804cd3a4,		// 19 Sep 2006
+	456,		0x1288,		0x804cb11c,		// 14 Jul 2006
+	456,		0x1225,		0x80427bfc		// 08 Dec 2005
 };
 
 
@@ -469,7 +470,7 @@ int TAP_Main()
 	// Look up the current firmware
 	for ( index=0; index<sizeof(firmware)/sizeof(FirmwareDetail); ++index )
 	{
-		if ( GetModel() == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
+		if ( *sysID == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
 		{
 			supported = TRUE;
 			break;
