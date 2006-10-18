@@ -26,32 +26,32 @@ static byte* renameWindowCopy;
 
 
 //--------------------------------------------------------
-// removes the ".rec" from the end of a file name
+// removes the ".rec" or ".rec.del" from the end of a file name
 void StripFileName( char *name )
 {
 	int 	i, k, len;
 	bool 	noREC;
 	char	str[10];
-
+	
 	noREC = FALSE;
-	len = strlen( name );
+	len   = strlen( name );
 	memset( str, '\0', sizeof(str) );									// will catch any duff processing
 
-	if ( len < 4 ) return;												// can't process if string too short
+	if ( len < tagLength ) return;										// can't process if string too short
 	else
 	{
 	    k=0;
 		
-		for ( i = len-4 ; i < len ; i++ )
+		for ( i = len-tagLength ; i < len ; i++ )
 		{
 		    str[k] = name[i];
 			k++;
 		}
 
-		if ( strcmp( str, ".rec" ) != 0 ) return;						// can't process if the string doesn't end in ".rec"
+		if ( strcmp( str, tagStr ) != 0 ) return;						// can't process if the string doesn't end in ".rec" or ".rec.del"
 	}
 
-	for ( i = len-4 ; i < len ; i++ )									// overwrite the ".rec"
+	for ( i = len-tagLength ; i < len ; i++ )							// overwrite the ".rec" or ".rec.del"
 	{
 	    name[i]='\0';
 	}
@@ -71,7 +71,7 @@ void ReturnFromRenameKeyboard( char *str, bool success)
 
     if ( success == TRUE)
 	{
-	    if (currentFile.attr != ATTR_FOLDER) strcat( str, ".rec" );	//ensure the file name is of the correct format
+	    if (currentFile.attr != ATTR_FOLDER) strcat( str, tagStr );	//ensure the file name is of the correct format by appending ".rec" or ".rec.del"
         if (strcmp(currentFile.name,str)!=0) fileRenamed=TRUE; // File name was changed.
         
         if (fileRenamed) // Check that another file doesn't already exist with the new name.
@@ -131,7 +131,7 @@ void EditFileName( void )
 	strncpy( str, currentFile.name, 256 );
 	StripFileName( str );
 	renameWindowShowing = TRUE;
-	returnFromRename = FALSE;
+	returnFromRename   = FALSE;
 	ActivateKeyboard( str, FILENAME_LENGTH, &ReturnFromRenameKeyboard );
 	
 }
@@ -143,8 +143,8 @@ void EditFileName( void )
 void initialiseArchiveRename(void)
 {
     keyboardWindowShowing = FALSE;
-	returnFromRename = FALSE;
-	fileRenamed = FALSE;
+	returnFromRename      = FALSE;
+	fileRenamed           = FALSE;
 }
 
 

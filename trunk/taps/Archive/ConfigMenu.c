@@ -395,7 +395,7 @@ void DisplayConfigLine(char lineNumber)
 				    case 0 : 	sprintf( str, "Permanently delete file." );
 								break;
 								
-					case 1 : 	sprintf( str, "Delete to recycle bin (manually empty)." );
+					case 1 : 	sprintf( str, "Delete to recycle bin (manual empty)." );
 						    	break;
 
 					case 2 : 	sprintf( str, "Delete to recycle bin (automatic empty)." );

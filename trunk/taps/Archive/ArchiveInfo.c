@@ -471,7 +471,8 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;
 
 								case 3 :   // MOVE
-                                           MoveAFile();
+                                           populateMoveFileList();
+                                           ActivateMoveWindow();
                                            break;
 
 								case 4 :   // RESET PROGRESS

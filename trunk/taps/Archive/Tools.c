@@ -269,26 +269,61 @@ bool	IsFileRec( char *recFile, 	dword	attr )
     // recCheckOption=0 - filename ends with ".rec" AND file attribute must equal ATTR_TS 
     // recCheckOption=1 - filename ends with ".rec" 
     //
+    // Will check the filename tag for either ".rec" or ".rec.del" based on the view mode.
     
 	char buff[128];
 
 	strcpy( buff, recFile );       // Copy the filename into the buffer for checking.
 	strlwr( buff );                // Convert the filename into all lowercase for easy comparison.
 	
-#ifdef WIN32
-    if ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 )
+    #ifdef WIN32
+    if ( strcmp( buff + strlen( buff ) - tagLength, tagStr ) == 0 )
         	return TRUE;
 	else
         	return FALSE;
-#else
-    if ((recCheckOption==0) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ) && (attr == ATTR_TS) )
+    #else
+    if ((recCheckOption==0) && ( strcmp( buff + strlen( buff ) - tagLength, tagStr ) == 0 ) && (attr == ATTR_TS) )
         	return TRUE;
     else     
-    if ((recCheckOption==1) && ( strcmp( buff + strlen( buff ) - 4, ".rec" ) == 0 ))
+    if ((recCheckOption==1) && ( strcmp( buff + strlen( buff ) - tagLength, tagStr ) == 0 ))
         	return TRUE;
 	else
         	return FALSE;
-#endif
+    #endif
+}
+
+
+//------------------------------ isFileRecycledRec --------------------------------------
+//
+bool	IsFileRecycledRec( char *recFile, 	dword	attr )
+{
+    //
+    // Checks if a file is a valid recording that has been recycled in the recycle bin (ie. it ends in ".rec.del" .
+    //
+    // 2 options available via "recCheckOption"
+    // recCheckOption=0 - filename ends with ".rec.del" AND file attribute must equal ATTR_TS 
+    // recCheckOption=1 - filename ends with ".rec.del" 
+    //
+    
+	char buff[128];
+
+	strcpy( buff, recFile );       // Copy the filename into the buffer for checking.
+	strlwr( buff );                // Convert the filename into all lowercase for easy comparison.
+	
+    #ifdef WIN32
+    if ( strcmp( buff + strlen( buff ) - 8, RECYCLED_STRING ) == 0 )
+        	return TRUE;
+	else
+        	return FALSE;
+    #else
+    if ((recCheckOption==0) && ( strcmp( buff + strlen( buff ) - 8, RECYCLED_STRING ) == 0 ) && (attr == ATTR_TS) )
+        	return TRUE;
+    else     
+    if ((recCheckOption==1) && ( strcmp( buff + strlen( buff ) - 8, RECYCLED_STRING ) == 0 ))
+        	return TRUE;
+	else
+        	return FALSE;
+    #endif
 }
 
 
@@ -372,10 +407,12 @@ bool CurrentDirStartCluster (dword* cluster)
 
 char* GetCurrentDir(void)
 {
-    dword cluster;
-    char* path;
+    dword     cluster;
+    char*     path;
     TYPE_File file;
-    char* temp;
+    char*     temp;
+    int       iTry;      // Counter to try to find the directory twice.  An error was identified by Andrew Cullen on the 23 Jan 2006 firmware where it may not find the directory first time.
+    bool      bFound;    // Flag to indicate the directory was found.
                     
     appendToLogfile("GetCurrentDir: started.", INFO);
 
@@ -394,54 +431,70 @@ char* GetCurrentDir(void)
     // while we have a '.' entry we work up the tree matching starting clusters
     while (CurrentDirStartCluster (&cluster))
     {
-//        TYPE_File file;
-        // move into parent directory and look for a starting cluster match
-        TAP_Hdd_ChangeDir ("..");
-        memset (&file, 0, sizeof (file));
-        if (TAP_Hdd_FindFirst (&file))
+        iTry = 0;
+        bFound = FALSE;
+        while ( ( iTry < 2 ) && ( bFound == FALSE ) )
         {
-            while ((cluster != file.startCluster) && TAP_Hdd_FindNext (&file)) {};
-        }
-        // if we have a match prepend it to the path
-        if (cluster == file.startCluster)
-        {
-//            char* temp;
+            iTry++;
 
-            temp = TAP_MemAlloc (strlen (path) + strlen (file.name) + 2);
-
-            // no memory - back to starting directory and return NULL
-            if (temp == NULL)
+            // move into parent directory and look for a starting cluster match
+            TAP_Hdd_ChangeDir ("..");
+            memset (&file, 0, sizeof (file));
+            if (TAP_Hdd_FindFirst (&file))
             {
-                appendToLogfile("GetCurrentDir: TAP_MemAlloc (strlen path) failed.", ERR);
-                TAP_Hdd_ChangeDir (file.name);
-                if (strlen (path)) TAP_Hdd_ChangeDir (&path[1]);
-                TAP_MemFree (path);
+                 while ((cluster != file.startCluster) && TAP_Hdd_FindNext (&file)) {};
+            }
+            // if we have a match prepend it to the path
+            if (cluster == file.startCluster)
+            {
+                bFound = TRUE;
+                
+                temp = TAP_MemAlloc (strlen (path) + strlen (file.name) + 2);
+    
+                // no memory - back to starting directory and return NULL
+                if (temp == NULL)
+                {
+                    appendToLogfile("GetCurrentDir: TAP_MemAlloc (strlen path) failed.", ERR);
+                    TAP_Hdd_ChangeDir (file.name);
+                    if (strlen (path)) TAP_Hdd_ChangeDir (&path[1]);
+                    TAP_MemFree (path);
+                    return NULL;
+                }
+    
+                appendStringToLogfile("GetCurrentDir: Match on file=%s",file.name, WARNING);
+    
+                // There's an issue where we may find the "." directory entry instead of the subdir -
+                // so for now, let's ignore it.   5 Nov 2005
+                if (strcmp(file.name,".")!=0)
+                {
+                   strcpy (temp, "/");
+                   strcat (temp, file.name);
+                   strcat (temp, path);
+                   TAP_MemFree (path);
+                   path = temp;
+                   appendStringToLogfile("GetCurrentDir: Path now=%s",path, WARNING);
+                }
+            }
+            else
+            {
+                // directory structure inconsistent, shouldn't get here
+                // problem - we can't get back to our starting directory
+                //TAP_MemFree (path);
+                appendStringToLogfile("GetCurrentDir: Bombed out.",file.name, WARNING);
                 return NULL;
             }
-
-            appendStringToLogfile("GetCurrentDir: Match on file=%s",file.name, WARNING);
-
-            // There's an issue where we may find the "." directory entry instead of the subdir -
-            // so for now, let's ignore it.   5 Nov 2005
-            if (strcmp(file.name,".")!=0)
-            {
-               strcpy (temp, "/");
-               strcat (temp, file.name);
-               strcat (temp, path);
-               TAP_MemFree (path);
-               path = temp;
-               appendStringToLogfile("GetCurrentDir: Path now=%s",path, WARNING);
-            }
-        }
-        else
-        {
-            // directory structure inconsistent, shouldn't get here
-            // problem - we can't get back to our starting directory
-            TAP_MemFree (path);
-            appendStringToLogfile("GetCurrentDir: Bombed out.",file.name, WARNING);
-            return NULL;
-        }
+        }    
     }
+
+    // Check to make sure that we found the directory.  If we didn't (after our 2 attempts) then display
+    // error message and exit the TAP.
+    if ( bFound == FALSE )
+    {
+        ShowMessageWin( rgn, "Archive TAP", "GetCurrentDir routine failed to", "find directory.  TAP is exiting.", 400 );
+        TAP_Exit();
+        return NULL;
+    }
+    
     if (strlen (path))
     {
         // finally we put ourselves back in our starting directory

@@ -178,7 +178,7 @@ typedef struct
 
 
 TYPE_My_Files *myfiles[MAX_DIRS][MAX_FILES], currentFile;  // Establish a global array that will hold the file details for all the files in the current directory.
-TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder;
+TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder, subfolders[MAX_DIRS];
 TYPE_File     file, blankFile;
 TYPE_RecInfo  recInfo[2];
 TYPE_Played_Files *playedFiles[MAX_FILES];
@@ -665,9 +665,9 @@ _#
 
      strcpy( target, source);                   // Copy the whole filename by default.
      fileLen = strlen(target);                  // Get the length of the filename.
-     target[fileLen - 4]='\0';                  // Chop off the ".rec" from the filename.
+     target[fileLen - tagLength]='\0';          // Chop off the ".rec" or ".rec.del" from the filename.
                 
-     for (i=0; i < NUMBER_OF_STAMPS; i++)  // Go through each date/time stamp and see if we have a matching filename
+     for (i=0; i < NUMBER_OF_STAMPS; i++)       // Go through each date/time stamp and see if we have a matching filename
      {
          if (MatchFileStamp(stamps[i], target)) // We've found a match.
          {
@@ -770,15 +770,21 @@ void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDir
         myfiles[dirNumber][index]->attr             = PARENT_DIR_ATTR;  // Normal attribute for parent directory is 240.  Make it 250 to allow easy sorting.
         myfiles[dirNumber][index]->directoryNumber  = parentDirNumber;
         myfiles[dirNumber][index]->present          = TRUE;             // Mark it as being present
+        myfiles[dirNumber][index]->mjd              = 0;                // Don't give it a date.
+        myfiles[dirNumber][index]->hour             = 0;                // Don't give it a hour.
+        myfiles[dirNumber][index]->min              = 0;                // Don't give it a minute.        
+        myfiles[dirNumber][index]->size             = 0;                // Don't give it a size.        
         strcpy( myfiles[dirNumber][index]->name,      PARENT_DIR_TEXT );
         strcpy( myfiles[dirNumber][index]->sortName,  PARENT_DIR_TEXT );
         strcpy( myfiles[dirNumber][index]->directory, directory );
 }
 
 
-bool FileExists(char* directory, char* filename, int dirNumber, int fileIndex)
+bool FileExists(char* directory, TYPE_File file, int dirNumber, int fileIndex)
 {
-//TAP_Print("FE Comapring %s< to %s< dn=%d, fi=%d\r\n",filename,myfiles[dirNumber][fileIndex]->name,dirNumber,fileIndex);
+//TAP_Print("FE Comapring< to %s< dn=%d, fi=%d\r\n",myfiles[dirNumber][fileIndex]->name,dirNumber,fileIndex);
+//    TAP_Print("IN FE\r\n");
+ 
     if (myfiles[dirNumber][fileIndex] == NULL)           
     {
         myfiles[dirNumber][fileIndex] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][fileIndex]));
@@ -790,19 +796,39 @@ bool FileExists(char* directory, char* filename, int dirNumber, int fileIndex)
         memset(myfiles[dirNumber][fileIndex],0,sizeof (*myfiles[dirNumber][fileIndex]));
     }
     
+    // If the directory name is different it's not a match.
     if (strncmp( directory, myfiles[dirNumber][fileIndex]->directory, TS_FILE_NAME_SIZE ) != 0) return FALSE;
     
-    if (strncmp( filename,  myfiles[dirNumber][fileIndex]->name, TS_FILE_NAME_SIZE)       == 0) 
+    // Check for the existance of the file/folder.
+    switch (file.attr)
     {
-        myfiles[dirNumber][fileIndex]->present = TRUE;                  // Mark it as being present
-        return TRUE;
-    }    
+           case ATTR_FOLDER:   // We're looking for a folder, so only match on name.
+                               if  (strncmp( file.name,  myfiles[dirNumber][fileIndex]->name, TS_FILE_NAME_SIZE) == 0)
+                               {
+                                   myfiles[dirNumber][fileIndex]->present = TRUE;                  // Mark it as being present
+                                   return TRUE;
+                               }        
+                               break;
+           
+           default:            // We're looking for a file, so match on name, date, time and size.
+                               if ((strncmp( file.name,  myfiles[dirNumber][fileIndex]->name, TS_FILE_NAME_SIZE) == 0) &&
+                                   (file.mjd  == myfiles[dirNumber][fileIndex]->mjd  ) &&
+                                   (file.hour == myfiles[dirNumber][fileIndex]->hour ) &&
+                                   (file.min  == myfiles[dirNumber][fileIndex]->min  ) &&
+                                   (file.size == myfiles[dirNumber][fileIndex]->size ))
+                               {
+                                   myfiles[dirNumber][fileIndex]->present = TRUE;                  // Mark it as being present
+                                   return TRUE;
+                               }        
+                               break;
+    }
+    
     
     return FALSE;
 }
-          
-     
-bool FileExistsInList(char* directory, char* filename, int dirNumber, int *foundIndex)
+        
+           
+bool FileExistsInList(char* directory, TYPE_File file, int dirNumber, int *foundIndex)
 {
     int fileIndex;
 //TAP_Print("FEIL Comapring %s< to list dn=%d\r\n",filename,dirNumber);
@@ -833,7 +859,7 @@ bool FileExistsInList(char* directory, char* filename, int dirNumber, int *found
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	{
-          if (FileExists( directory, filename, dirNumber, fileIndex) ) 
+          if (FileExists( directory, file, dirNumber, fileIndex) ) 
           {
               *foundIndex = fileIndex;
               return TRUE;
@@ -873,15 +899,16 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
 {
      int i;
      
-     if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))   //If this is a recording
-     {
-        DeleteProgressInfo( dirNumber, fileIndex, FALSE);   // Delete any playback progress information for this file.
-        myfolders[dirNumber]->numberOfRecordings--;  // Decrease the number of recordings in this directory.    
-     }   
-     else // It must be a folder
+//     if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))   //If this is a recording
+     if ( myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)     // It's a folder
      {
         myfolders[dirNumber]->numberOfFolders--;       // Decrease the number of folders in this directory.    
      }
+     else                                              // Assume it's a recording.
+     {
+        if (!recycleWindowMode) DeleteProgressInfo( dirNumber, fileIndex, FALSE);   // Delete any playback progress information for this file if we're in normal view
+        myfolders[dirNumber]->numberOfRecordings--;  // Decrease the number of recordings in this directory.    
+     }   
      
      TAP_MemFree( myfiles[dirNumber][fileIndex] );   // Free the allocated memory of this entry as we repoint the pointers next.
      // Shuffle each of the remaining entries down one.
@@ -907,7 +934,7 @@ void DeleteMyfilesFolderEntry(int dirNumber)
          }   
          else
          {
-            DeleteProgressInfo( dirNumber, i, FALSE);   // Delete any playback progress information for this file.
+            if (!recycleWindowMode) DeleteProgressInfo( dirNumber, i, FALSE);   // Delete any playback progress information for this file if in normal view mode
          }
          TAP_MemFree(myfiles[dirNumber][i]);                               // Free up the memory.
      }
@@ -923,30 +950,19 @@ void DeleteMyfilesFolderEntry(int dirNumber)
 void DeleteDirFilesNotPresent(int dirNumber)
 {
     int fileIndex;
-char str[90],str2[90];
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
     {
-TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
-TAP_SPrint(str2,"fileindex=%d",fileIndex);     
-//ShowMessageWin( rgn, "DeleteDirFilesNotPresent Checking", str, str2,1);
          if (!myfiles[dirNumber][fileIndex]->present)               // File was not present when we reinvoked Archive
          {
                if (myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)  // Delete any subfolders first.
                {
-TAP_SPrint(str,"dirnumber=%d< fileindex=%d", dirNumber,fileIndex);    
-TAP_SPrint(str2,"myfiles.dirnumber=%d",myfiles[dirNumber][fileIndex]->directoryNumber);     
-//ShowMessageWin( rgn, "calling DeleteMyfilesFolderEntry", str, str2,1);
                    DeleteMyfilesFolderEntry( myfiles[dirNumber][fileIndex]->directoryNumber);
                 }    
-TAP_SPrint(str,"dirnumber=%d< ", dirNumber);    
-TAP_SPrint(str2,"fileindex=%d",fileIndex);     
-//ShowMessageWin( rgn, "calling DeleteMyfilesEntry", str, str2,1);
                DeleteMyfilesEntry( dirNumber, fileIndex);
                fileIndex--;  // Move pointer back as we need to recheck the file that has just been shuffled down.
          }
     }
-//ShowMessageWin( rgn, "DeleteDirFilesNotPresent Finished", str, str2,1);
 }
 
 void DeleteAllFilesNotPresent(void)
@@ -961,7 +977,7 @@ void DeleteAllFilesNotPresent(void)
 
 
 
-void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool recursive)
+void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int recursiveDepth)
 {
 
     int i, cnt, foundIndex;
@@ -983,7 +999,10 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     // Create a parent directory entry as the first file when we're in a subdirectory - but not in /DataFiles.
     if (!InDataFilesFolder( directory ))
     {
-        if (!FileExists(directory, PARENT_DIR_TEXT, dirNumber, 1))  // If the parent directory doesn't already exist, create a new entry.
+        //  Clear out variables.    
+        memset (&file, 0, sizeof (file));
+        strcat(file.name, PARENT_DIR_TEXT);
+        if (!FileExists(directory, file, dirNumber, 1))  // If the parent directory doesn't already exist, create a new entry.
         {
            numberOfDirFiles++;  // Increase count for number of folders/files.
            AddNewParentFolder(directory, dirNumber, numberOfDirFiles, parentDirNumber);     // Create parent folder entry in the "myfiles" array.
@@ -1003,7 +1022,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
 
     for ( i=1; i <= cnt ; i += 1 )
 	{
-          appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name, WARNING);
+         appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name, WARNING);
           appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr, WARNING);
       
           //
@@ -1011,7 +1030,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
           //
           if (IsFileRec(file.name, file.attr))
           {
-             if (!FileExistsInList(directory, file.name, dirNumber, &foundIndex))    // If the file doesn't already exist in this directory,create a new entry.
+             if (!FileExistsInList(directory, file, dirNumber, &foundIndex))    // If the file doesn't already exist in this directory,create a new entry.
              {
                 numberOfDirFiles++;           // Increase local directory count for number of folders/files (count starts at 0, so first file/folder is #1).
                 numberOfDirRecordings++;      // Increase local directory count for the number of recordings (count starts at 0).
@@ -1062,7 +1081,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
           //
           if (file.attr == ATTR_FOLDER)    // It's a subfolder, so store it's name for checking later.
           {
-             if (!FileExistsInList(directory, file.name, dirNumber, &foundIndex))    // If the file doesn't exist in this directory,create a new entry.
+             if (!FileExistsInList(directory, file, dirNumber, &foundIndex))    // If the file doesn't exist in this directory,create a new entry.
              {
                 numberOfDirFiles++;           // Increase local directory count for number of folders/files (count starts at 0, so first file/folder is #1).
                 numberOfDirFolders++;         // Increase local directory count for the number of subfolders (count starts at 0).
@@ -1078,7 +1097,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
                 // Add the name of this folder to the list of files to recursively check at the end.  Index 1 is the first subfolder to check.
                 subFolderCount++;
                 strcpy( subfolders[subFolderCount].name, file.name );
-            subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
+                subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
              }   
           }
              
@@ -1091,7 +1110,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
     myfolders[dirNumber]->numberOfRecordings = numberOfDirRecordings;
     myfolders[dirNumber]->parentDirNumber    = parentDirNumber;
     
-    if (recursive)       // If we have asked to recursively load files, call the additional subfolders.
+    if (recursiveDepth > 0)       // If we have asked to recursively load files, call the additional subfolders.
     { 
 	   for ( i=1; i<= numberOfDirFolders; i++)
 	   {
@@ -1103,7 +1122,11 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, bool r
           // Change directory to the subfolder.
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
           // Recurcively call the LoadArchiveInfo to read/load the information for te subfolder.
-          LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, TRUE);         
+//          LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, TRUE);   
+          if (recursiveDepth == 1)  // Then we only want to go 1 sub-directory deep, so load one more sub-directory, but no more recursive levels.        
+             LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, 0);          // Only go recursive 1 directory.
+          else   // Keep calling recursive until no more sub-directories.
+             LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, 99);          
           // Go back to our starting directory, ready for anymore sub directories.
           GotoPath(directory);              
        }
@@ -1134,4 +1157,50 @@ void LoadPlaybackStatusInfo(void)
           } 
         }       
     }
+}
+
+void loadInitialArchiveInfo(bool clearProgressInfo)
+{
+    // Routine to do an initial load of file information from the hard-drive.
+    
+    // If the recursiveLoadOption is set in the config menu recursively read every directory at startup .
+/*    if (recursiveLoadOption)
+    {
+      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+      GetRecordingInfo();
+      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo("/DataFiles", 0, 0, TRUE);      // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
+    }
+    else  
+    // Read the current directory only.
+    {
+      GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+      GetRecordingInfo();
+      SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+    }
+  
+  */
+  
+  
+      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+      GetRecordingInfo();
+      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+      LoadArchiveInfo("/DataFiles", 0, 0, 99);      // Check all of the files/folders again to see if there are any new files/folders.
+      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk
+  
+    
+    GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+    
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
+    maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
+
+    GetPlaybackInfo();                              // Get info about any active playback.
+    LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
+
+	sortOrder = sortOrderOption;                    // Default to default sort order.
+	SortList(sortOrder);		                    // Sort the list.
+     
 }

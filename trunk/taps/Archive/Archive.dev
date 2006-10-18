@@ -1,0 +1,329 @@
+[Project]
+FileName=Archive.dev
+Name=Archive
+UnitCount=28
+Type=1
+Ver=1
+ObjFiles=
+Includes=.;Firmware;libutils
+Libs=C:\TAP122SDK\Firmware;C:\TAP122SDK\libutils
+PrivateResource=
+ResourceIncludes=
+MakeIncludes=
+Compiler=
+CppCompiler=
+Linker=_@@_../../TopfieldDisk/DataFiles/SDK/libTAP_SDK_DLL.a_@@_
+IsCpp=0
+Icon=
+ExeOutput=
+ObjectOutput=
+OverrideOutput=1
+OverrideOutputName=Archive.exe
+HostApplication=
+Folders=
+CommandLine=
+UseCustomMakefile=0
+CustomMakefile=
+IncludeVersionInfo=0
+SupportXPThemes=0
+CompilerSet=0
+CompilerSettings=0000000000000000000000
+
+[Unit1]
+FileName=ConfigMenu.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ConfigMenu.c -o ConfigMenu.o $(CFLAGS)
+
+[VersionInfo]
+Major=0
+Minor=1
+Release=1
+Build=1
+LanguageID=1033
+CharsetID=1252
+CompanyName=
+FileVersion=
+FileDescription=Developed using the Dev-C++ IDE
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=
+AutoIncBuildNr=0
+
+[Unit2]
+FileName=IniFile.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit3]
+FileName=logo.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit4]
+FileName=MainMenu.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit5]
+FileName=Menu.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit6]
+FileName=RemoteKeys.c
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit7]
+FileName=..\TAP.H
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit8]
+FileName=..\..\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h
+CompileCpp=0
+Folder=UK Channel Surfer V07
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit12]
+FileName=ArchiveDisplay.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TimerDisplay.c -o TimerDisplay.o $(CFLAGS)
+
+[Unit13]
+FileName=ArchiveAction.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TimerEdit.c -o TimerEdit.o $(CFLAGS)
+
+[Unit14]
+FileName=Tools.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c Tools.c -o Tools.o $(CFLAGS)
+
+[Unit17]
+FileName=TextTools.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TextTools.c -o TextTools.o $(CFLAGS)
+
+[Unit18]
+FileName=ProgressBar.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ProgressBar.c -o ProgressBar.o $(CFLAGS)
+
+[Unit19]
+FileName=Keyboard.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c Keyboard.c -o Keyboard.o $(CFLAGS)
+
+[Unit20]
+FileName=ArchiveDelete.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveDelete.c -o ArchiveDelete.o $(CFLAGS)
+
+[Unit21]
+FileName=ArchiveInfo.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveInfo.c -o ArchiveInfo.o $(CFLAGS)
+
+[Unit22]
+FileName=ArchiveRename.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveRename.c -o ArchiveRename.o $(CFLAGS)
+
+[Unit23]
+FileName=PlaybackDatFile.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c PlaybackDatFile.c -o PlaybackDatFile.o $(CFLAGS)
+
+[Unit24]
+FileName=LogFile.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c LogFile.c -o LogFile.o $(CFLAGS)
+
+[Unit25]
+FileName=YesNoBox.c
+CompileCpp=0
+Folder=OZ Archive
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c YesNoBox.c -o YesNoBox.o $(CFLAGS)
+
+[Unit26]
+FileName=ArchiveStop.c
+CompileCpp=0
+Folder=OZ Archive
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveStop.c -o ArchiveStop.o $(CFLAGS)
+
+[Unit9]
+FileName=Archive.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c "OZArchive V0.01.c" -o "OZArchive V0.01.o" $(CFLAGS)
+
+[Unit15]
+FileName=LoadArchiveInfo.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c LoadArchiveInfo.c -o LoadArchiveInfo.o $(CFLAGS)
+
+[Unit27]
+FileName=ArchiveRecycle.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveRecycle.c -o ArchiveRecycle.o $(CFLAGS)
+
+[Unit28]
+FileName=ArchiveMove.c
+CompileCpp=0
+Folder=Archive
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveMove.c -o ArchiveMove.o $(CFLAGS)
+
+[Unit16]
+FileName=..\HDD.H
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit10]
+FileName=Common.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c Common.c -o Common.o $(CFLAGS)
+
+[Unit11]
+FileName=TimeBar.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TimeBar.c -o TimeBar.o $(CFLAGS)
+

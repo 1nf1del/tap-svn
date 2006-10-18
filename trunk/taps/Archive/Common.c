@@ -59,6 +59,10 @@ History	: v0.0 Darkmatter: 04-07-05	Inception date
 // Define the height of the top graphic component.
 #define TOP_H 71
 
+// Define the tags to go at the end of the filenames for each of the views - standard file view, and recycle bin view.
+#define REC_STRING ".rec"
+#define RECYCLED_STRING ".rec.del"
+
 /*
 // x-Coordinates of the column field contents
 #define FILE_ICON_X 50
@@ -193,6 +197,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
  
 #include "graphics/folder_yellow.GD"
 #include "graphics/folder_yellow_parent.GD"
+#include "graphics/recycle_bin.GD"
 
 
 //#define FILL_COLOUR RGB(0,0,102)
@@ -226,6 +231,10 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 //
 
 void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
+
+void ActivateMoveWindow(void);                // ArchiveMove.c
+void populateMoveFileList(void);
+void MoveAFile(char* sourceDir, char* destDir, char* sourceFile);
 
 void GenerateExitRequest( void );				// UkTimers.c
 void DrawGraphicBoarders(void);
@@ -261,6 +270,8 @@ void WeekdayToAlpha (byte weekday, char *str);
 void RestartPlayback(int line, int jump);
 void DeleteProgressInfo(int dirNumbr, int index, bool message);
 void ShowMessageBox( word msgRgn, char* msg1, char* msg2, char* msg3);
+void DetermineStartingLine(int *line);
+
 
 //*****************
 //global variables
@@ -279,6 +290,7 @@ static word clockRgn;												    // a memory region used for the line count 
 
 static int chosenLine, printLine;
 
+// Variables showing which windows are currently displayed.
 static bool editWindowShowing;
 static bool deleteWindowShowing;
 static bool infoWindowShowing;
@@ -293,6 +305,9 @@ static bool menuShowing;
 static bool configWindowShowing;
 static bool msgWindowShowing;
 static bool recycleBinWindowShowing;
+static bool moveWindowShowing;
+
+static bool recycleWindowMode;      // Flag to indicate if we are in the Recycle Bin mode.
 
 static int  numberOfFiles;
 static int  numberOfFolders;
@@ -351,5 +366,8 @@ static TYPE_TapEvent CurrentPlaybackEvent;                     // Place to store
 static TYPE_PlayInfo CurrentPlaybackInfo;                      // Place to store info about current playback entry if in playback mode.
 static char          sOverRun[ApiOverRunArray];                // Keep some space to protect against buffer overrun.
 static int           iOverRunCheck;                            // If buffer overrun is larger than sOverRun iOverRunCheck will be hit.
+
+static char tagStr[10];          // Holds the current tag at the end of the filename ".rec" when in normal file mode, ".rec.del" when in Recycle Bin mode
+static int  tagLength;           // Length of the current tag at the end of the filename.                             
 
 

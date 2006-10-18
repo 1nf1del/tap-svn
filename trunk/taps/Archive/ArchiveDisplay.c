@@ -932,8 +932,8 @@ void FormatFilename(int x, int y, int max, int line, char* strSource, int option
     
     switch (option)
     {
-           case 0: // Filename with ".rec" removed.
-                   str[strlen(str)-4]='\0';         // Truncate the filename to remove the ".rec" from the end of the filename.
+           case 0: // Filename with ".rec" or ".rec.del" removed.
+                   str[strlen(str)-tagLength]='\0';         // Truncate the filename to remove the ".rec" or ".rec.del" from the end of the filename.
                    break;
                    
            case 1: // Filename with -# ##-##-## patterns removed.
@@ -964,6 +964,11 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     // COLUMN 1 - Print the file number, play or recording indicator.
     /////////////////////////////////////////////////   
+    if (recycleWindowMode) // If we are in the Recycle Bin view mode, display a recycle bin icon next to each file.
+    {
+         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-4, &_recycle_binGd, TRUE );
+    }
+    else
     if (myfiles[CurrentDirNumber][line]->isRecording)  // If the file is recording print recording icon.
     {
          appendToLogfile("DisplayFileText: isRecording TRUE", WARNING);
@@ -1590,8 +1595,32 @@ dword ArchiveWindowKeyHandler(dword key)
                             RefreshArchiveList(TRUE);
                             break;
 
+        case RKEY_Yellow:   // Move file or folder
+                            if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
+                            { 
+                                 populateMoveFileList();
+                                 ActivateMoveWindow();
+                            }     
+                            break;
+
         case RKEY_Red:      DisplayArchiveHelp();
                             break;
+                            
+        case RKEY_TvSat:    //   Toggle between standard file view and view of the recycle bin files.
+                            if (recycleWindowMode == TRUE) 
+                            {
+                                recycleWindowMode = FALSE;
+                                strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
+                            }
+                            else
+                            {
+                                recycleWindowMode = TRUE;
+                                strcpy( tagStr, RECYCLED_STRING);   // Set the tag at the end of the filenames to ".rec.del"
+                            }
+                            tagLength = strlen( tagStr );  // Calculate the length of the tag.  
+                            loadInitialArchiveInfo(FALSE); // Load all the files for the new view, but don't delete any progress info.
+   		                    RefreshArchiveList(TRUE);      // Redraw the contents of the screen.
+                            break;                            
 
                             							
 		case RKEY_Menu :	ActivateMenu();

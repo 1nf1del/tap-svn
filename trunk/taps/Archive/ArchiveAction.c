@@ -108,29 +108,6 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
     appendToLogfile("DeleteProgressInfo: Finished.", INFO);
 }
 
-//------------
-//
-void MoveAFile(void)
-{
-     bool moveres;
-     if (!TAP_Hdd_Move_Available())
-     {
-         ShowMessageWin( rgn, "Move NOT available.", "", "", 400 );
-         return;
-     }
-
-     ShowMessageWin( rgn, "Move Test #1.", "Moving Test.rec", "to MINE folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine", "Test.rec");
-   
-     ShowMessageWin( rgn, "Move Test #2.", "Moving MINE folder", "to MINE2 folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine2", "Mine");
-     
-     ShowMessageWin( rgn, "Move Test #3.", "Moving Test2.rec", "to .. folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles/Mine2", "DataFiles/Mine2/..", "Test2.rec");
-   
-     
-}
-
 
 //------------
 //
@@ -198,14 +175,20 @@ void ChangeToParentDir()
      if (CurrentDirNumber == 0) strcpy(CurrentDir, "/DataFiles");     // We're pointing at the DataFiles directory
      else strcpy(CurrentDir, myfiles[CurrentDirNumber][1]->directory); // else get the full directory name from the first file/folder.
 
-     if (!recursiveLoadOption)
+/*
+     if (recursiveLoadOption)
      {     
         SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
  	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
         LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
      }   
-	 
+*/
+        SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
+ 	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);    // Check all of the files/folders again to see if there are any new files/folders.
+        DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+        LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
+     
      chosenLine = 1;                             // By default select the first line to highlight.
      // Scan through the FOLDERS in the current directory to see if we have a match to the folder that we came from.
      for (i=1; i<=numberOfFiles; i++)
@@ -217,7 +200,6 @@ void ChangeToParentDir()
           }
      }
      DeterminePrintingLine(chosenLine);     // Determine where we will start printing this line.
-     
 	 RefreshArchiveList( TRUE );
      appendToLogfile("ChangeToParentDir: Finished.", INFO);
 }	 
@@ -430,13 +412,14 @@ void ArchiveAction (int line)
                       appendIntToLogfile("ArchiveAction: CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
                       appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
 
-                      if (!recursiveLoadOption)
+/*                      if (recursiveLoadOption)
                       {     
+*/
                          appendIntToLogfile("ArchiveAction: Calling SetDirFilesToNotPresent CurrentDirNumber=%d",CurrentDirNumber, WARNING);
                          SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
                          
                          appendIntToLogfile("ArchiveAction: Calling LoadArchiveInfo parentDirNumber=%d.",myfolders[CurrentDirNumber]->parentDirNumber, WARNING);
- 	                     LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
+ 	                     LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);            // Check all of the files/folders again to see if there are any new files/folders.
                          
                          appendIntToLogfile("ArchiveAction: Calling DeleteDirFilesNotPresent with CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
                          DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
@@ -444,7 +427,7 @@ void ArchiveAction (int line)
    	                     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
 	                     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
                          appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
-                      }   
+//                      }   
 
                       appendToLogfile("ArchiveAction: Calling LoadPlaybackStatusInfo.", WARNING);
 	                  LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
