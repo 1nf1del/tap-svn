@@ -44,7 +44,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define TAP_NAME "Archive"
 #define VERSION "0.08h"       
 
-#include "tap.g"
+#include "tap.h"
 #include "TAPExtensions.c"
 #include "FirmwareCalls.c"
       
