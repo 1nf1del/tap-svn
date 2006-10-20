@@ -66,7 +66,10 @@ static int currentOkPlayOption;
 static int currentFolderDeleteOption;
 static int currentExtInfoFontOption;
 static int currentRecycleBinOption;
-
+static int currentRecycleBinCleanoutOption;
+static int currentRecycleBinThresholdOption;
+static int currentFileListKeyOption;
+static int currentSplashScreenOption;
 
 
 static bool enterActivateKey;
@@ -392,13 +395,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "File Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentRecycleBinOption )
 				{
-				    case 0 : 	sprintf( str, "Permanently delete file." );
+				    case 0 : 	sprintf( str, "Permanently delete file (with prompt)." );
 								break;
 								
-					case 1 : 	sprintf( str, "Delete to recycle bin (manual empty)." );
+					case 1 : 	sprintf( str, "Delete to recycle bin (with prompt)." );
 						    	break;
 
-					case 2 : 	sprintf( str, "Delete to recycle bin (automatic empty)." );
+					case 2 : 	sprintf( str, "Delete to recycle bin (no prompt)." );
 						    	break;
 
 					default : 	sprintf( str, "[Invalid value]" );
@@ -407,6 +410,62 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
+		case 22 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1, "Empty Recycle Bin", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+				switch ( currentRecycleBinCleanoutOption )
+				{
+				    case 0 : 	sprintf( str, "Manual." );
+								break;
+								
+					case 1 : 	sprintf( str, "Automatic At Archive TAP Startup." );
+						    	break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
+		case 23 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1, "Recycle Bin Limit", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+				TAP_SPrint(str, "Not Yet Implemented");
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, COLOR_DarkGray, 0 );
+			    break;
+
+		case 24 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Filelist Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentFileListKeyOption )
+				{
+				    case 0 : 	sprintf( str, "Standard Topfield Archive." );
+								break;
+								
+					case 1 : 	sprintf( str, "Ignore key." );
+						    	break;
+
+					case 2 : 	sprintf( str, "Exit Archive." );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
+		case 25 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Splash Screen", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentSplashScreenOption )
+				{
+				    case 0 : 	sprintf( str, "Off." );
+								break;
+								
+					case 1 : 	sprintf( str, "On." );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
 		case 10 :		
 		case 20 :
 		case 30 :
@@ -469,6 +528,10 @@ void CopyConfiguration( void )
     currentFolderDeleteOption  = folderDeleteOption;
     currentExtInfoFontOption   = extInfoFontOption;
     currentRecycleBinOption    = recycleBinOption;
+    currentRecycleBinCleanoutOption  = recycleBinCleanoutOption;
+    currentRecycleBinThresholdOption = recycleBinThresholdOption;
+    currentFileListKeyOption         = fileListKeyOption;
+    currentSplashScreenOption        = splashScreenOption;
 }
 
 void SaveConfiguration( void )
@@ -492,6 +555,10 @@ void SaveConfiguration( void )
     folderDeleteOption  = currentFolderDeleteOption;
     extInfoFontOption   = currentExtInfoFontOption;
     recycleBinOption    = currentRecycleBinOption;
+    recycleBinCleanoutOption  = currentRecycleBinCleanoutOption;
+    recycleBinThresholdOption = currentRecycleBinThresholdOption;
+    fileListKeyOption   = currentFileListKeyOption;   
+    splashScreenOption  = currentSplashScreenOption; 
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -950,6 +1017,59 @@ void ConfigActionHandler(dword key)
 					}
 					break;
 
+		case 22 :	switch ( key )										// Recycle Bin Cleanout option
+					{
+		            	case RKEY_VolUp:	if (currentRecycleBinCleanoutOption < 1 ) currentRecycleBinCleanoutOption++;
+		            	                    else currentRecycleBinCleanoutOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentRecycleBinCleanoutOption > 0 ) currentRecycleBinCleanoutOption--;
+		            	                    else currentRecycleBinCleanoutOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+		
+		case 23 :	break;									            // Recycle Bin Threshold option
+		
+		case 24 :	switch ( key )										// FileList Key option
+					{
+		            	case RKEY_VolUp:	if (currentFileListKeyOption < 2 ) currentFileListKeyOption++;
+		            	                    else currentFileListKeyOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentFileListKeyOption > 0 ) currentFileListKeyOption--;
+		            	                    else currentFileListKeyOption = 2;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 25 :	switch ( key )										// Splash Screen option
+					{
+		            	case RKEY_VolUp:	if (currentSplashScreenOption < 1 ) currentSplashScreenOption++;
+		            	                    else currentSplashScreenOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentSplashScreenOption > 0 ) currentSplashScreenOption--;
+		            	                    else currentSplashScreenOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+					
 		case 10 :														// bottom line commands : Save, or Cancel
 		case 20 :
 		case 30 :

@@ -190,6 +190,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/InfoOval38x19.GD"
 #include "graphics/RedOval38x19.GD"
 #include "graphics/WhiteOval38x19.GD"
+#include "graphics/BlueOval38x19.GD"
 
 #include "graphics/archive_help_uk.GD"
 #include "graphics/archive_help_oz.GD"
@@ -197,7 +198,10 @@ static  int column5Width=COLUMN5_DEFAULT_W;
  
 #include "graphics/folder_yellow.GD"
 #include "graphics/folder_yellow_parent.GD"
+#include "graphics/trash_bin.GD"
 #include "graphics/recycle_bin.GD"
+#include "graphics/recycle_bin_full.GD"
+#include "graphics/recycle_logo.GD"
 
 
 //#define FILL_COLOUR RGB(0,0,102)
@@ -231,6 +235,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 //
 
 void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
+void DeleteAction(int type);
 
 void ActivateMoveWindow(void);                // ArchiveMove.c
 void populateMoveFileList(void);
@@ -290,6 +295,8 @@ static word clockRgn;												    // a memory region used for the line count 
 
 static int chosenLine, printLine;
 
+static bool tapStartup;                       // Flag to indicate if we are just starting up the TAP.
+
 // Variables showing which windows are currently displayed.
 static bool editWindowShowing;
 static bool deleteWindowShowing;
@@ -340,9 +347,14 @@ static int okPlayOption;
 static int folderDeleteOption;
 static int extInfoFontOption;
 static int recycleBinOption;
+static int recycleBinCleanoutOption;
+static int recycleBinThresholdOption;
+static int fileListKeyOption;
+static int splashScreenOption;
 
 static bool  listMoved;
 static bool  returnFromInfo;
+static bool  returnFromRecycleBinEmpty;     // Flag to indicate when we have returned from emptying the Recycle Bin.                
 
        
 static char gstr[500];

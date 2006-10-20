@@ -4,12 +4,12 @@
                                
 
 	This module is the main event handler
- 
+  
 Name	: OZ Archive.c
 Author	: kidhazy
 Version	: 0.08
 For		: Topfield TF5x00 series PVRs
-Licence	:
+Licence	:  
 Descr.	:
 Usage	:
 History	: v0.01 kidhazy 17-10-05   Inception date.
@@ -20,7 +20,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
           V0.08 kidhazy 
- 
+  
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
 #ifdef WIN32
@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08a"       
+#define VERSION "0.08e"       
 
 #include "tap.h"
 #include "TAPExtensions.c"
@@ -95,21 +95,22 @@ char* TAPIniDir;
 #include "MainMenu.c"
 #include "ConfigMenu.c"
 #include "IniFile.c"
-   
-         
-                       
+     
+                              
 static dword lastTick;
 static byte oldMin;
 static byte oldSec;
-                               
-                                                                 
-                                 
-//------------
-//             
+                                      
+                                                                    
+                                         
+//------------  
+//                   
 void ActivationRoutine( void )
-{  
+{        
     appendToLogfile("ActivationRoutine: Started.", INFO);
   	TAP_ExitNormal();
+
+    tapStartup = FALSE;              // clear flag to indicate that TAP has finished startup and this is a reactivation.
   	
   	// Define on screen region to draw on.
 	rgn      = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
@@ -123,11 +124,12 @@ void ActivationRoutine( void )
     strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
     tagLength = strlen( tagStr );  // Calculate the length of the tag.  
 
-    // If the recursiveLoadOption is set in the config menu we will recursively read every directory at startup - which may take some time.
+    // Initial loading of info may take some time due to the recursive calls.  Users can therefore select the splashScreenOption in the config menu.
     // So display a "Please wait..."  message.
-    if (recursiveLoadOption)
-      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
-       
+    if (splashScreenOption == 1)
+        TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
+//      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
+        
     // Check that we are in the /DataFiles directory, or a subdirectory.  If not, change to the /DataFiles directory.   
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.", INFO);
     if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
@@ -139,8 +141,7 @@ void ActivationRoutine( void )
 
 
     // Load information about the archive files.
-    loadInitialArchiveInfo(TRUE);
-    
+    loadSubsequentArchiveInfo(TRUE, 1);    
     DetermineStartingLine( &chosenLine );           // Determine which line to highlight when we start.
 
     appendToLogfile("ActivationRoutine: Activating Archive Window.", INFO);
@@ -153,6 +154,12 @@ void ActivationRoutine( void )
 void ExitRoutine( void )
 {
     CloseArchiveWindow();
+    
+    // Reset to standard view mode.
+	recycleWindowMode = FALSE;  
+    strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
+    tagLength = strlen( tagStr );  // Calculate the length of the tag.  
+
 	TAP_EnterNormal();
 }
 
@@ -194,7 +201,7 @@ void TerminateRoutine( void )											// Performs the clean-up and terminate T
 //------------
 //  
 dword My_KeyHandler(dword key, dword param2)
-{
+{ 
 	dword state, subState ;
 	
 	if ( yesnoWindowShowing )  { return( YesNoKeyHandler( key ) ); }
@@ -210,7 +217,9 @@ dword My_KeyHandler(dword key, dword param2)
 	if ( infoWindowShowing )   { return( ArchiveInfoKeyHandler( key) ); }
 	    
 	if ( menuShowing )         { return( MainMenuKeyHandler( key ) ); }				// Menu
- 
+	
+	if ( recycleWindowMode )   { return( RecycleBinWindowKeyHandler( key ) ); }		// recycle bin display
+
 	if ( windowShowing )       { return( ArchiveWindowKeyHandler( key ) ); }		// archive display
  
 
@@ -267,10 +276,10 @@ void CheckFlags( void )
              RefreshArchiveList( FALSE );   // Redraw and reposition as we may have moved off the page.
         }
 		if ( fileMoved )        // If the file was moved during info, refresh the list.
-        {
+        { 
              fileMoved = FALSE; 
              RefreshArchiveList( FALSE );   // Redraw and reposition as we may have moved off the page.
-        }    
+        }     
 	} 
   
 	if ( returnFromMove == TRUE )											// Handle returning from the Move window.
@@ -286,44 +295,54 @@ void CheckFlags( void )
              RefreshArchiveList( FALSE );
         }
     }
-         
-	if ( returnFromDelete == TRUE )											// Handle returning from delete.
-	{																		// redraw the underlying window if it's changed.
+          
+	if ( returnFromDelete == TRUE )								// Handle returning from delete.
+	{															// redraw the underlying window if it's changed.
 	    returnFromDelete = FALSE;
 		if ( fileDeleted )        // If the file/folder was deleted, reload the file/folder data and refresh the list.
         {
-             if (infoWindowShowing) CloseArchiveInfoWindow();  // If we deleted the file from the info window, then close the info window.
+             if (infoWindowShowing) CloseArchiveInfoWindow();   // If we deleted the file from the info window, then close the info window.
              if (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER)  // Delete any subfolders first.
                    DeleteMyfilesFolderEntry( myfiles[CurrentDirNumber][chosenLine]->directoryNumber);
              DeleteMyfilesEntry(CurrentDirNumber, chosenLine);
              fileDeleted = FALSE; 
-             RefreshArchiveList(FALSE);                        // Redisplay the entire list.
+             RefreshArchiveList(FALSE);                         // Redisplay the entire list.
         }
 	}
-
-	if ( returnFromStop == TRUE )											// Handle returning from delete.
-	{																		// redraw the underlying window if it's changed.
+   
+	if ( returnFromStop == TRUE )								// Handle returning from stop.
+	{															// redraw the underlying window if it's changed.
 	    returnFromStop = FALSE;
-		if ( fileStopped )        // If the file was stopped, reload the file/folder data and refresh the list.
+		if ( fileStopped )                                      // If the file was stopped, reload the file/folder data and refresh the list.
         {
-             GetRecordingInfo();                                 // Get the information about the current active recordings.
-             LoadRecordingInfo(CurrentDirNumber, chosenLine);    // Assign any current recording info to the current line.
-             GetPlaybackInfo();                                  // Get the information about the current active playbacks.
-             LoadPlaybackInfo(CurrentDirNumber, chosenLine);     // Assign any current playback info to the current line.
+             GetRecordingInfo();                                // Get the information about the current active recordings.
+             LoadRecordingInfo(CurrentDirNumber, chosenLine);   // Assign any current recording info to the current line.
+             GetPlaybackInfo();                                 // Get the information about the current active playbacks.
+             LoadPlaybackInfo(CurrentDirNumber, chosenLine);    // Assign any current playback info to the current line.
              fileStopped = FALSE; 
-             RefreshArchiveList(FALSE);                        // Redisplay the entire list.
+             RefreshArchiveList(FALSE);                         // Redisplay the entire list.
         }
 	}
     
-	if ( returnFromRename == TRUE )									// Handle returning from rename.
-	{																// redraw the underlying window
+	if ( returnFromRename == TRUE )								// Handle returning from rename.
+	{															// redraw the underlying window
 	    returnFromRename = FALSE;
 	} 
 
-	if ( returnFromMenu == TRUE )									// Handle returning from main menu.
-	{																// redraw the underlying window
+	if ( returnFromMenu == TRUE )								// Handle returning from main menu.
+	{															// redraw the underlying window
 	    returnFromMenu = FALSE;
-	    RefreshArchiveWindow();                                     // Redraw the entire archive window.
+        if ( returnFromRecycleBinEmpty == TRUE )                                // Handle returning from emptying the Recycle Bin.
+        {
+            returnFromRecycleBinEmpty = FALSE;
+            if (recycleWindowMode)  // We need to refresh all of the recycle bin information if we are currently in Recycle Bin view mode.
+            {
+                TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
+                loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
+//   		        RefreshArchiveList(TRUE);      // Redraw the contents of the screen.
+            }    
+        }     
+	    RefreshArchiveWindow();                                 // Redraw the entire archive window.
 	}
 
 	if ( returnFromConfig == TRUE )									// Handle returning from config window.
@@ -391,7 +410,7 @@ dword My_IdleHandler(void)
 		// Check if there is an active playback displayed on the screen.  If so, update it's progress information.
 		if ((inPlaybackMode) && (playbackOnScreenEntry>0))
 		{
-            SetPlaybackStatus(CurrentDirNumber, playbackOnScreenEntry);                                 // Load the latest information from the playback file.
+            SetPlaybackStatus(CurrentDirNumber, playbackOnScreenEntry);               // Load the latest information from the playback file.
             DisplayArchiveLine( playbackOnScreenEntry, playbackOnScreenLine );        // Update the playback line.
         }
          
@@ -484,6 +503,8 @@ int TAP_Main (void)
 
     TSRCommanderInit( 0, TRUE );    // Include the TSR Commander function.  
 
+    tapStartup = TRUE;              // set flag to indicate that we're starting the TAP for the first time.
+    
     // Create a full screen region in case there are any messages to be displayed during the initial startup.
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 	
@@ -524,6 +545,8 @@ int TAP_Main (void)
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
   
+    initialiseArchiveRecycle();            // Initialise some variables for the Recycle Bin
+    
     appendToLogfile("TAP_Main: Loading configuration data.", INFO);
 	LoadConfiguration();
 
@@ -619,6 +642,8 @@ int TAP_Main (void)
     appendToLogfile("TAP_Main: Finished initial TAP_Main routine.", INFO);
   
     TAP_Osd_Delete( rgn );
+
+    tapStartup = FALSE;              // clear flag to indicate that TAP has finished startup.
 
     return 1;
 }

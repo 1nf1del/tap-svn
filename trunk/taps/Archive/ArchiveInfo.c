@@ -486,7 +486,6 @@ dword ArchiveInfoKeyHandler(dword key)
 								default :  
                                            break;
 							}
-
 							break;
 
 

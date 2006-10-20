@@ -79,7 +79,10 @@ void ProcessMenuSelection( TYPE_MenuProcess menuProcess, int param1 )
 			case 3 :	DeletePlayData();
 					    break;
 
-			case 4 :	DisplayCredits();
+			case 4 :	EmptyRecycleBin();
+					    break;
+
+			case 5 :	DisplayCredits();
 					    break;
 
 			default:	break;
@@ -102,12 +105,14 @@ void initialiseMenu( void )
     menuShowing = FALSE;
 	returnFromMenu = FALSE;
 	returnFromCredits = FALSE;
+    returnFromRecycleBinEmpty = FALSE;          // Set Recycle Bin flag here in case they go back into the Recycle Bin option.
 	creditsShowing = FALSE;
 
 	MenuCreate( &mainMenu, "Menu", &ProcessMenuSelection );
 	MenuAdd( &mainMenu, "Configure", "Change the way this TAP works" );
 	MenuAdd( &mainMenu, "Stop this TAP", "Terminate and unload this TAP" );
 	MenuAdd( &mainMenu, "Delete All Progress Information", "Removes all playback progress information" );
+	MenuAdd( &mainMenu, "Empty the Recycle Bin", "Removes all files in the recycle bin" );
 	MenuAdd( &mainMenu, "Credits & About Information", "Project Team & TAP Version information" );
 }
 

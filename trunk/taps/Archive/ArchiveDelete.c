@@ -14,7 +14,7 @@ History	: v0.0 kidhazy 25-10-05  Inception date
 	Last change:  USE   1 Aug 105    8:34 pm
 **************************************************************/
 
-static bool  returnFromDelete;
+//static bool  returnFromDelete;
 //static bool  fileDeleted;
 
 //------------
@@ -59,8 +59,8 @@ void DeleteFileFolder(void)
 {
      char str[TS_FILE_NAME_SIZE];
      
-     // If the file that has been chosen to be deleted is the current playback, stop it before deleting it.
-     if (myfiles[CurrentDirNumber][chosenLine]->isPlaying)
+     // If the file that has been chosen to be deleted is the current playback, and we're still in playback mode, stop it before deleting it.
+     if ((myfiles[CurrentDirNumber][chosenLine]->isPlaying) && (inPlaybackMode))
         TAP_Hdd_StopTs();  // Stop the current playback to allow us to delete the file.
 
      //  Check the chosen file attribute to decide if we are deleting a file or a folder.
@@ -139,9 +139,19 @@ void ActivateDeleteWindow(char* filename, dword attr)
     }
 	   
 
-    deleteWindowShowing = TRUE;    // Set the flag to indicate that the delete confirmation window is showing.
     fileDeleted         = FALSE;   // Clear the flag to indicate that the file/folder has been deleted.
 
+    // Determine the appropriate window message depending on our recycle bin settings.
+    switch (recycleBinOption)
+    {
+           case 0:           // Normal file delete.
+                             strcpy( str3, "delete" );
+                             break;
+           case 1:
+           case 2:           // Recycle bin options.
+                             strcpy( str3, "recycle" );
+                             break;
+    }
     // Determine the appropriate window title and window message depending on whether we are deleing a folder or file.
     switch (attr)
     {
@@ -152,12 +162,25 @@ void ActivateDeleteWindow(char* filename, dword attr)
                 
            default:          TAP_SPrint(title, "File Delete Confirmation");
                              TAP_SPrint(str1,  "File: %s",filename);
-                             TAP_SPrint(str2,  "Do you want to delete this file?");
+                             TAP_SPrint(str2,  "Do you want to %s this file?", str3);
                              break;
     }
     
-    // Display a confirmation pop-up window.  Invoke "ReturnFromDeleteYesNo" after a choice has been made.
-    DisplayYesNoWindow(title, str1, str2, "Yes", "No", 1, &ReturnFromDeleteYesNo );
+    switch (recycleBinOption)
+    {
+           case 0:           // Normal file delete.
+           case 1:           // Recycle bin with confirmation.
+                             // Display a confirmation pop-up window.  Invoke "ReturnFromDeleteYesNo" after a choice has been made.
+                             deleteWindowShowing = TRUE;    // Set the flag to indicate that the delete confirmation window is showing.
+                             DisplayYesNoWindow(title, str1, str2, "Yes", "No", 1, &ReturnFromDeleteYesNo );
+                             break;
+
+           case 2:           // Recycle bin wih no confirmation.
+                             // Invoke the ReturnFromDeleteYesNo routine as if we selected "Yes" on the confirmation popup.
+                             ReturnFromDeleteYesNo(TRUE);
+                             break;
+    }
+    
 
 }
 

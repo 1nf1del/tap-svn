@@ -994,6 +994,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
     numberOfDirFiles      = myfolders[dirNumber]->numberOfFiles;
     numberOfDirFolders    = myfolders[dirNumber]->numberOfFolders;
     numberOfDirRecordings = myfolders[dirNumber]->numberOfRecordings;
+
     subFolderCount        = 0;  // Tracks the number of subfolders to recursively check.
 
     // Create a parent directory entry as the first file when we're in a subdirectory - but not in /DataFiles.
@@ -1024,6 +1025,26 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
 	{
          appendStringToLogfile("LoadArchiveInfo: file.name=%s",file.name, WARNING);
           appendIntToLogfile("LoadArchiveInfo: file.attr=%d",file.attr, WARNING);
+      
+      
+          //
+          // RECYCLED RECORDINGS - handle the automatic delete of recycled recordings at TAP startup.
+          //
+          if ((IsFileRecycledRec(file.name, file.attr)) && (recycleBinCleanoutOption==1) && (tapStartup))
+          {
+               TAP_Hdd_Delete(file.name);
+               // Check if the delete was successful.
+               #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
+               if (FALSE)
+               #else  
+               if (TAP_Hdd_Exist(file.name))  // Delete didn't work
+               #endif
+               {
+                     ShowMessageWin( rgn, "Archive Startup", "Recycle Bin Cleanout Failed to Delete:", file.name, 400 );
+               }
+          }            
+      
+
       
           //
           // RECORDING
@@ -1109,11 +1130,13 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
     myfolders[dirNumber]->numberOfFolders    = numberOfDirFolders;
     myfolders[dirNumber]->numberOfRecordings = numberOfDirRecordings;
     myfolders[dirNumber]->parentDirNumber    = parentDirNumber;
-    
+
     if (recursiveDepth > 0)       // If we have asked to recursively load files, call the additional subfolders.
     { 
 	   for ( i=1; i<= numberOfDirFolders; i++)
 	   {
+          if (strcmp(subfolders[i].name, "..")==0) break;   // Don't do a recursive on a parent directory.
+          if (strcmp(subfolders[i].name, ".")==0) break;    // Don't do a recursive on a same directory.
           // Create the full directory name of the subfolder.
           subdir[0]='\0';                   // Blank out existing subdir.
           strcpy(subdir, directory);        // Add in our starting directory.
@@ -1159,39 +1182,16 @@ void LoadPlaybackStatusInfo(void)
     }
 }
 
-void loadInitialArchiveInfo(bool clearProgressInfo)
+void loadInitialArchiveInfo(bool clearProgressInfo, int recursiveLevel)
 {
     // Routine to do an initial load of file information from the hard-drive.
     
-    // If the recursiveLoadOption is set in the config menu recursively read every directory at startup .
-/*    if (recursiveLoadOption)
-    {
-      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
-      GetRecordingInfo();
-      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
-      LoadArchiveInfo("/DataFiles", 0, 0, TRUE);      // Check all of the files/folders again to see if there are any new files/folders.
-      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk.
-    }
-    else  
-    // Read the current directory only.
-    {
-      GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
-      GetRecordingInfo();
-      SetDirFilesToNotPresent(CurrentDirNumber);      // Flag all of the files/folders in our myfiles list as not present.
-      LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
-      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
-    }
+    GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+    GetRecordingInfo();
+    SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+    LoadArchiveInfo("/DataFiles", 0, 0, recursiveLevel);        // Check all of the files/folders again to see if there are any new files/folders.
+    DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk
   
-  */
-  
-  
-      GotoDataFiles();                                // Change directory to the root /DataFiles directory.
-      GetRecordingInfo();
-      SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
-      LoadArchiveInfo("/DataFiles", 0, 0, 99);      // Check all of the files/folders again to see if there are any new files/folders.
-      DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk
-  
-    
     GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
     
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
@@ -1202,5 +1202,25 @@ void loadInitialArchiveInfo(bool clearProgressInfo)
 
 	sortOrder = sortOrderOption;                    // Default to default sort order.
 	SortList(sortOrder);		                    // Sort the list.
-     
+
+}
+
+void loadSubsequentArchiveInfo(bool clearProgressInfo, int recursiveLevel)
+{
+    // Routine to do a subsequent load of file information from the hard-drive starting from the current directory.
+    
+    GetRecordingInfo();
+    SetDirFilesToNotPresent(CurrentDirNumber);            // Flag all of the files/folders in our myfiles list as not present.
+    LoadArchiveInfo(CurrentDir, 0, 0, recursiveLevel);    // Check all of the files/folders again to see if there are any new files/folders.
+    DeleteDirFilesNotPresent(CurrentDirNumber);           // Delete any of the files/folders that are no longer on the disk
+    
+    numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
+    maxShown      = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files shown for this directory.
+
+    GetPlaybackInfo();                              // Get info about any active playback.
+    LoadPlaybackStatusInfo();                       // Load the latest playback status information into the file entries.
+
+	sortOrder = sortOrderOption;                    // Default to default sort order.
+	SortList(sortOrder);		                    // Sort the list.
+
 }

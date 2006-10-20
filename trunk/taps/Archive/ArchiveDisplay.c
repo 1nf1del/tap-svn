@@ -47,7 +47,6 @@ static int page;
 static byte* archiveHelpWindowCopy;
 
 
-static byte rowSelection;			// test code
 
 //------------------------------------------------------------------
 //
@@ -236,9 +235,9 @@ void ArchiveHelpKeyHandler( dword key )
 	{
 		case RKEY_Exit:
         case RKEY_Red :	CloseArchiveHelp();									// quick access key : cancel and exit
-							break;
+						break;
 
-		default :			break;
+		default :		break;
 	}
 }
 
@@ -358,14 +357,31 @@ void DisplayInstructions(void)
 {
     TAP_Osd_FillBox( memRgn, INSTR_AREA_X, INSTR_AREA_Y, INSTR_AREA_W, INSTR_AREA_H, INFO_FILL_COLOUR );	// clear the area
 
-    TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+1, &_whiteoval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y, INSTR_AREA_X + INSTR_AREA_W, "Delete File", INFO_COLOUR, INFO_FILL_COLOUR );
-
-	TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+26, &_infooval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+25, INSTR_AREA_X + INSTR_AREA_W, "Information", INFO_COLOUR, INFO_FILL_COLOUR );
-
-    TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+51, &_redoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+50, INSTR_AREA_X + INSTR_AREA_W, "Help", INFO_COLOUR, INFO_FILL_COLOUR );
+    switch (recycleWindowMode)
+    {
+           case FALSE:  // We are in the standard file viewing mode.
+                        TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+1, &_whiteoval38x19Gd, TRUE );	
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y, INSTR_AREA_X + INSTR_AREA_W, "Delete File", INFO_COLOUR, INFO_FILL_COLOUR );
+                    
+                    	TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+26, &_infooval38x19Gd, TRUE );	
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+25, INSTR_AREA_X + INSTR_AREA_W, "Information", INFO_COLOUR, INFO_FILL_COLOUR );
+                    
+                        TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+51, &_redoval38x19Gd, TRUE );
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+50, INSTR_AREA_X + INSTR_AREA_W, "Help", INFO_COLOUR, INFO_FILL_COLOUR );
+                    	break;
+                    	
+           case TRUE:   // We are in the recycle bin viewing mode.
+                        TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+1, &_whiteoval38x19Gd, TRUE );	
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y, INSTR_AREA_X + INSTR_AREA_W, "Delete File", INFO_COLOUR, INFO_FILL_COLOUR );
+                    
+                    	TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+26, &_blueoval38x19Gd, TRUE );	
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+25, INSTR_AREA_X + INSTR_AREA_W, "Restore File", INFO_COLOUR, INFO_FILL_COLOUR );
+                    
+                        TAP_Osd_PutGd( memRgn, INSTR_AREA_X, INSTR_AREA_Y+51, &_redoval38x19Gd, TRUE );
+                    	TAP_Osd_PutStringAf1622( memRgn, INSTR_AREA_X+40, INSTR_AREA_Y+50, INSTR_AREA_X + INSTR_AREA_W, "Help", INFO_COLOUR, INFO_FILL_COLOUR );
+                    	break;
+    }
+                    	
 
 }	
      
@@ -641,7 +657,7 @@ void DrawBackground(void)
 	else strcpy(str,myfolders[CurrentDirNumber]->name);
     TAP_SPrint( str, "%s %s",str, sortTitle ); 
 	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, str, TITLE_COLOUR, COLOR_Black );
-                                 
+	
 }
 
 
@@ -649,7 +665,8 @@ void DrawBackground(void)
 //
 void DrawColumnGap(int x, int y)
 {
-    TAP_Osd_FillBox( listRgn, x, y, COLUMN_GAP_W, Y1_STEP, FILL_COLOUR );	// draw the column seperators
+    if (recycleWindowMode) TAP_Osd_FillBox( listRgn, x, y, COLUMN_GAP_W, Y1_STEP, COLOR_Yellow );	// draw the column seperators in a different colour for the recycle window
+    else                   TAP_Osd_FillBox( listRgn, x, y, COLUMN_GAP_W, Y1_STEP, FILL_COLOUR );	// draw the column seperators for the normal viewing mode.
 }
 
 
@@ -966,7 +983,8 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     if (recycleWindowMode) // If we are in the Recycle Bin view mode, display a recycle bin icon next to each file.
     {
-         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-4, &_recycle_binGd, TRUE );
+//         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-4, &_recycle_bin_fullGd, TRUE );
+         TAP_Osd_PutGd( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET-10, &_trash_binGd, TRUE );
     }
     else
     if (myfiles[CurrentDirNumber][line]->isRecording)  // If the file is recording print recording icon.
@@ -1382,12 +1400,23 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_Exit :	exitFlag = TRUE;										// signal exit to top level - will clean up, close window,
 							break;													// and enter the normal state
 							
-	    case RKEY_PlayList :	exitFlag = TRUE;										// signal exit to top level - will clean up, close window,
-                            appendToLogfile("ArchiveWindowKeyHandler: Playlist pressed.", WARNING);
-                            generatedPlayList = TRUE;
-	                        TAP_GenerateEvent( EVT_KEY, RKEY_PlayList, 0 );
+	    case RKEY_PlayList:	// Handle the FileList Key
+	                        switch (fileListKeyOption)
+	                        {
+                                   case 0: // Invoke Toppy standard archive
+                                           exitFlag = TRUE;										// signal exit to top level - will clean up, close window,
+                                           appendToLogfile("ArchiveWindowKeyHandler: Playlist pressed.", WARNING);
+                                           generatedPlayList = TRUE;
+	                                       TAP_GenerateEvent( EVT_KEY, RKEY_PlayList, 0 );
+							               break;													// and enter the normal state
 
-							break;													// and enter the normal state
+                                   case 1: // Ignore key
+                                           break;
+
+                                   case 2: // Exit Archive.
+                                           exitFlag = TRUE;
+                                           break;
+                            }       
 
 		case RKEY_Slow :	if (mainActivationKey == RKEY_Slow) exitFlag = TRUE;  // Close on a 2nd press of the activation key.
 							break;
@@ -1606,7 +1635,7 @@ dword ArchiveWindowKeyHandler(dword key)
         case RKEY_Red:      DisplayArchiveHelp();
                             break;
                             
-        case RKEY_TvSat:    //   Toggle between standard file view and view of the recycle bin files.
+        case RKEY_Recall:   //   Toggle between standard file view and view of the recycle bin files.
                             if (recycleWindowMode == TRUE) 
                             {
                                 recycleWindowMode = FALSE;
@@ -1618,7 +1647,8 @@ dword ArchiveWindowKeyHandler(dword key)
                                 strcpy( tagStr, RECYCLED_STRING);   // Set the tag at the end of the filenames to ".rec.del"
                             }
                             tagLength = strlen( tagStr );  // Calculate the length of the tag.  
-                            loadInitialArchiveInfo(FALSE); // Load all the files for the new view, but don't delete any progress info.
+                            TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
+                            loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
    		                    RefreshArchiveList(TRUE);      // Redraw the contents of the screen.
                             break;                            
 
@@ -1634,7 +1664,11 @@ dword ArchiveWindowKeyHandler(dword key)
                             if ((myfiles[CurrentDirNumber][chosenLine]->isRecording) || (myfiles[CurrentDirNumber][chosenLine]->isPlaying)) ActivateStopWindow(myfiles[CurrentDirNumber][chosenLine]->name);
                             break;
     
+        #ifdef WIN32
+        case RKEY_Fav   :   // If testing on WIN32 SDK also allow the Favourite key 
+        #endif
         case RKEY_White :   // Delete
+                            if (chosenLine == 0) break;   // Don't allow delete if there is nothing displayed.
                             if (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) 
                             {
                                  currentFile   = *myfiles[CurrentDirNumber][chosenLine];
@@ -1671,12 +1705,11 @@ void initialiseArchiveWindow( void )
     windowShowing            = FALSE;
 	archiveHelpWindowShowing = FALSE;
 	msgWindowShowing         = FALSE;
-	chosenLine   = 0;
-	printLine    = 0;
-	page         = 0;
-	rowSelection = 0;
-	sortOrder    = sortOrderOption; // Default to sort order specified in the config file.
-	folderSortOrder = 0; // Default folders to sort to top.
+	chosenLine               = 0;               // Which line has been chosen.
+	printLine                = 0;               // Which line are we starting to print from.
+	page                     = 0;               // Which page of files are we on.
+	sortOrder                = sortOrderOption; // Default to sort order specified in the config file.
+	folderSortOrder          = 0;               // Default folders to sort to top.
 
 }
 

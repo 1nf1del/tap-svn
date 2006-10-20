@@ -29,6 +29,9 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 
 #include "graphics/msgpopup360x130.GD"
 
+static    byte*        msgWindowCopy;  // Global variable to copy screen areas to.
+    
+
 
 /*
 static bool  returnFromMsgWindow;
@@ -139,7 +142,26 @@ void    ShowMessageWin( word msgRgn, char* msg1, char* msg2, char* msg3, int del
 
 }
 
+//   ShowMessageWinTemp 
+//
 
+void    ShowMessageWinTemp( word msgRgn, char* msg1, char* msg2, char* msg3 )
+{
+    // Save the region where we are about to display the pop-up.
+    msgWindowCopy = TAP_Osd_SaveBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H);
+
+    ShowMessageBox(msgRgn, msg1, msg2, msg3 );
+
+}
+
+//   RestoreMessageWinTemp 
+//
+
+void    RestoreMessageWinTemp( word msgRgn )
+{
+	TAP_Osd_RestoreBox(msgRgn, MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, msgWindowCopy);
+	TAP_MemFree(msgWindowCopy);
+}
 
 
 //--------------------------------------------------------------------
@@ -291,6 +313,7 @@ bool	IsFileRec( char *recFile, 	dword	attr )
         	return FALSE;
     #endif
 }
+
 
 
 //------------------------------ isFileRecycledRec --------------------------------------

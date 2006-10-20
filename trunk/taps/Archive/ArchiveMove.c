@@ -123,8 +123,8 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      if (fileExistRes)
      {
          ShowMessageWin( rgn, "File/Folder Move Failed.", "Same file/folder already exists", sourceFile, 400 );
-         fileMoved = FALSE;
-         returnFromMove = FALSE;   // Don't close the Move window.
+         fileMoved      = FALSE;
+         returnFromMove = FALSE;   // Don't close the Move window to give user a chance to choose a different folder.
          return;
      }
      

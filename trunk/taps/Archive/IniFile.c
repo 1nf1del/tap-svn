@@ -135,6 +135,18 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (recycleBinOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (recycleBinCleanoutOption) );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", (recycleBinThresholdOption) );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", (fileListKeyOption) );
+	WriteStrToIniBuf( str );
+
+	TAP_SPrint(str, "%d\r\n", (splashScreenOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -204,24 +216,28 @@ void SetConfigurationVariables( void )
 	if ( strcmp( str, "TF5000" ) == 0 ) unitModelType = TF5000t;
 	else unitModelType = TF5800t;
 
-	mainActivationKey   = ReadIniDecimal();
-	GMToffsetOption     = ReadIniDecimal()-(12*60);
-	recordingRateOption = ReadIniDecimal();
-	column1Option       = ReadIniDecimal();
-	column2Option       = ReadIniDecimal();
-	column3Option       = ReadIniDecimal();
-	column4Option       = ReadIniDecimal();
-	column5Option       = ReadIniDecimal();
-	infoLineOption      = ReadIniDecimal();
-	sortOrderOption     = ReadIniDecimal();
-	progressBarOption   = ReadIniDecimal();
-	numberLinesOption   = ReadIniDecimal();
-	borderOption        = ReadIniDecimal();
-	recCheckOption      = ReadIniDecimal();
-	okPlayOption        = ReadIniDecimal();
-	folderDeleteOption  = ReadIniDecimal();
-	extInfoFontOption   = ReadIniDecimal();
-	recycleBinOption    = ReadIniDecimal();
+	mainActivationKey         = ReadIniDecimal();
+	GMToffsetOption           = ReadIniDecimal()-(12*60);
+	recordingRateOption       = ReadIniDecimal();
+	column1Option             = ReadIniDecimal();
+	column2Option             = ReadIniDecimal();
+	column3Option             = ReadIniDecimal();
+	column4Option             = ReadIniDecimal();
+	column5Option             = ReadIniDecimal();
+	infoLineOption            = ReadIniDecimal();
+	sortOrderOption           = ReadIniDecimal();
+	progressBarOption         = ReadIniDecimal();
+	numberLinesOption         = ReadIniDecimal();
+	borderOption              = ReadIniDecimal();
+	recCheckOption            = ReadIniDecimal();
+	okPlayOption              = ReadIniDecimal();
+	folderDeleteOption        = ReadIniDecimal();
+	extInfoFontOption         = ReadIniDecimal();
+	recycleBinOption          = ReadIniDecimal();
+	recycleBinCleanoutOption  = ReadIniDecimal();
+	recycleBinThresholdOption = ReadIniDecimal();
+	fileListKeyOption         = ReadIniDecimal();  
+	splashScreenOption        = ReadIniDecimal();  
 }
 
 
@@ -273,21 +289,25 @@ void LoadConfiguration( void )
             unitModelType = TF5000t;
             recordingRateOption = 2900;
         } 
-		mainActivationKey  = RKEY_Slow;
-		sortOrderOption    = SORT_DATE_OPTION;         // Default to sort by date.
-		progressBarOption  = PB_MULTI;
-		column1Option      = 0;
-		column2Option      = 0;
-		column3Option      = 0;
-		column4Option      = 0;
-		column5Option      = 0;
-		numberLinesOption  = 9;
-		borderOption       = 1;
-		recCheckOption     = 0;
-		okPlayOption       = 0;
-		folderDeleteOption = 0;
-		extInfoFontOption  = 0;
-		recycleBinOption   = 0;
+		mainActivationKey         = RKEY_Slow;
+		sortOrderOption           = SORT_DATE_OPTION;         // Default to sort by date.
+		progressBarOption         = PB_MULTI;
+		column1Option             = 0;
+		column2Option             = 0;
+		column3Option             = 0;
+		column4Option             = 0;
+		column5Option             = 0;
+		numberLinesOption         = 9;
+		borderOption              = 1;
+		recCheckOption            = 0;
+		okPlayOption              = 0;
+		folderDeleteOption        = 0;
+		extInfoFontOption         = 0;
+		recycleBinOption          = 0;
+		recycleBinCleanoutOption  = 0;
+		recycleBinThresholdOption = 0;
+        fileListKeyOption         = 0;    
+        splashScreenOption        = 0;
 
 		SaveConfigurationToFile();
 	}

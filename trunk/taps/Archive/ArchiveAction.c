@@ -183,12 +183,12 @@ void ChangeToParentDir()
         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
         LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
      }   
-*/
+
         SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
  	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);    // Check all of the files/folders again to see if there are any new files/folders.
         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
         LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
-     
+ */    
      chosenLine = 1;                             // By default select the first line to highlight.
      // Scan through the FOLDERS in the current directory to see if we have a match to the folder that we came from.
      for (i=1; i<=numberOfFiles; i++)
@@ -260,6 +260,9 @@ int PlayTs (char* name, dword startCluster)
                       DirList = DirList->Next;
                       TAP_MemFree(temp);
                  }
+                 // try and play the file
+                 if (inPlaybackMode) // Stop the current playback to allow us to start a new playback file.
+                      TAP_Hdd_StopTs();  
                  // try and play the file
                  return TAP_Hdd_PlayTs(name);
             }
@@ -412,22 +415,18 @@ void ArchiveAction (int line)
                       appendIntToLogfile("ArchiveAction: CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
                       appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
 
-/*                      if (recursiveLoadOption)
-                      {     
-*/
-                         appendIntToLogfile("ArchiveAction: Calling SetDirFilesToNotPresent CurrentDirNumber=%d",CurrentDirNumber, WARNING);
-                         SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
+                      appendIntToLogfile("ArchiveAction: Calling SetDirFilesToNotPresent CurrentDirNumber=%d",CurrentDirNumber, WARNING);
+                      SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
                          
-                         appendIntToLogfile("ArchiveAction: Calling LoadArchiveInfo parentDirNumber=%d.",myfolders[CurrentDirNumber]->parentDirNumber, WARNING);
- 	                     LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);            // Check all of the files/folders again to see if there are any new files/folders.
+                      appendIntToLogfile("ArchiveAction: Calling LoadArchiveInfo parentDirNumber=%d.",myfolders[CurrentDirNumber]->parentDirNumber, WARNING);
+ 	                  LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);            // Check all of the files/folders again to see if there are any new files/folders.
                          
-                         appendIntToLogfile("ArchiveAction: Calling DeleteDirFilesNotPresent with CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
-                         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
-                         // Reload the numberOfFiles/maxshown variables incase any files/folders were deleted.
-   	                     maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
-	                     numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
-                         appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
-//                      }   
+                      appendIntToLogfile("ArchiveAction: Calling DeleteDirFilesNotPresent with CurrentDirNumber=%d<.",CurrentDirNumber, WARNING);
+                      DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
+                      // Reload the numberOfFiles/maxshown variables incase any files/folders were deleted.
+   	                  maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
+	                  numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
+                      appendIntToLogfile("ArchiveAction: numberOfFiles=%d<.",numberOfFiles, WARNING);
 
                       appendToLogfile("ArchiveAction: Calling LoadPlaybackStatusInfo.", WARNING);
 	                  LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
