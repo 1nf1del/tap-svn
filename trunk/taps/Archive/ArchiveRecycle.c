@@ -57,7 +57,7 @@ void DeleteDirRecycleFiles(char* directory, bool recursive)
           if (IsFileRecycledRec(file.name, file.attr))
           {
                TAP_Hdd_Delete(file.name);
-
+TAP_Print("Deleting: %s  %s \r\n",directory, file.name);
                // Check if the delete was successful.
                #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
                if (FALSE)
@@ -130,13 +130,91 @@ void ReturnFromEmptyBinYesNo( bool result)
 }
 
 
+//-----------------------------------------------------------------------
+//
+void ReturnFromDirRecycleBinYesNo( bool result)
+{
+    // Routine if invoked upon return from the "Delete Directory Recycled Files" confirmation prompt.
+     
+    char str1[200], str2[200];
+
+    // Check the result of the confirmation panel to decide what to do.
+	switch (result)
+    {
+           case TRUE:  // YES
+//                       ShowMessageWinTemp( rgn, "Archive Recycle Bin", "Emptying Directory Recycle Bin", "Please wait ...");           
+                       DeleteDirRecycleFiles(CurrentDir, FALSE); // Delete only current directory files
+//                       RestoreMessageWinTemp(rgn);
+                       ShowMessageWin( rgn, "Archive Recycle Bin", "Directory Recycle Bin Emptied.", " ", 300 );
+                       returnFromRecycleBinWindowEmpty = TRUE;         // Set flag to cause reload and redraw of Recycle Bin.
+                       break;
+                      
+	       case FALSE: // NO
+                       break;	
+    }   
+}
+
+
+//-----------------------------------------------------------------------
+//
+void ReturnFromAllRecycleBinYesNo( bool result)
+{
+    // Routine if invoked upon return from the "Delete All Recycled Files" confirmation prompt.
+     
+    char str1[200], str2[200];
+
+    // Check the result of the confirmation panel to decide what to do.
+	switch (result)
+    {
+           case TRUE:  // YES
+                       ShowMessageWinTemp( rgn, "Archive Recycle Bin", "Emptying Recycle Bin", "Please wait ...");           
+                       GotoDataFiles();                                // Change directory to the root /DataFiles directory.
+                       DeleteDirRecycleFiles("/DataFiles", TRUE);   // Recursively delete all files.
+                       RestoreMessageWinTemp(rgn);
+                       GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
+                       ShowMessageWin( rgn, "Archive Recycle Bin", "Recycle Bin Emptied.", " ", 300 );
+                       returnFromRecycleBinWindowEmpty = TRUE;         // Set flag to cause reload and redraw of Recycle Bin.
+                       break;
+                      
+	       case FALSE: // NO
+                       break;	
+    }   
+}
+
+
+
 //------------
 //
 void EmptyRecycleBin(void)
 {
     // Routine to scan entire harddrive and delete all of the recycle bin files.
+    returnFromRecycleBinWindowEmpty = FALSE;         // Clear flag to cause reload and redraw of Recycle Bin.
     
-    DisplayYesNoWindow("Emptry Recyle Bin", "This will delete ALL files in the Recycle Bin", "Are you sure?", "Yes", "No", 1, &ReturnFromEmptyBinYesNo );
+    DisplayYesNoWindow("Empty Recycle Bin", "This will delete ALL files in the Recycle Bin", "Are you sure?", "Yes", "No", 1, &ReturnFromEmptyBinYesNo );
+    
+}
+
+
+//------------
+//
+void DeleteDirRecycleBinWindow(void)
+{
+    // Routine to delete all of the recycle bin files from the CURRENT directory
+    returnFromRecycleBinWindowEmpty = FALSE;         // Clear flag to cause reload and redraw of Recycle Bin.
+    
+    DisplayYesNoWindow("Empty Recycle Bin", "Empty the Recycle Bin for THIS directory.", "Are you sure?", "Yes", "No", 1, &ReturnFromDirRecycleBinYesNo );
+    
+}
+
+
+//------------
+//
+void DeleteAllRecycleBinWindow(void)
+{
+    // Routine to delete all of the recycle bin files from the hard drive
+    returnFromRecycleBinWindowEmpty = FALSE;         // Clear flag to cause reload and redraw of Recycle Bin.
+    
+    DisplayYesNoWindow("Empty Recycle Bin", "Delete ALL files in the Recycle Bin", "for ALL directories.  Are you sure?", "Yes", "No", 1, &ReturnFromAllRecycleBinYesNo );
     
 }
 
@@ -296,6 +374,7 @@ void initialiseArchiveRecycle(void)
 	returnFromDelete    = FALSE;
     fileDeleted         = FALSE;
     returnFromRecycleBinEmpty = FALSE;
+    returnFromRecycleBinWindowEmpty = FALSE;
 }
 
 
@@ -518,12 +597,20 @@ dword RecycleBinWindowKeyHandler(dword key)
                             }     
 							break;
 
-        case RKEY_Green:    // Create New Folder
+        case RKEY_Green:    // Delete ALL Recycled Files
+                            DeleteAllRecycleBinWindow();
+                            break;
+                                    
+                            // Create New Folder
                             CreateNewFolder();
                             RefreshArchiveList(TRUE);
                             break;
 
-        case RKEY_Yellow:   // Move file or folder
+        case RKEY_Yellow:   // Delete ALL Recycled Files in THIS Directory.
+                            DeleteDirRecycleBinWindow();
+                            break;
+                            
+                            // Move file or folder
                             if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
                                  populateMoveFileList();

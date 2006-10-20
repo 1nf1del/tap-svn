@@ -212,6 +212,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #define HEADING_TEXT_COLOUR RGB8888(0,152,192)
 //#define INFO_FILL_COLOUR RGB(34,34,151)
 #define INFO_FILL_COLOUR COLOR_User3
+#define POPUP_FILL_COLOUR RGB8888(34,34,151)
 //#define INFO_FILL_COLOUR RGB8888(48,72,111)
 #define TITLE_COLOUR RGB(18,18,18)
 //#define INFO_COLOUR RGB(18,18,18)
@@ -236,6 +237,8 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 
 void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
 void DeleteAction(int type);
+void DisplayArchiveMoveFolderList(void);
+
 
 void ActivateMoveWindow(void);                // ArchiveMove.c
 void populateMoveFileList(void);
@@ -354,7 +357,8 @@ static int splashScreenOption;
 
 static bool  listMoved;
 static bool  returnFromInfo;
-static bool  returnFromRecycleBinEmpty;     // Flag to indicate when we have returned from emptying the Recycle Bin.                
+static bool  returnFromRecycleBinEmpty;         // Flag to indicate when we have returned from emptying the Recycle Bin.                
+static bool  returnFromRecycleBinWindowEmpty;   // Flag to indicate when we have returned from emptying the Recycle Bin from the Recycle Bin Window.                
 
        
 static char gstr[500];

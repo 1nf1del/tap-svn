@@ -24,6 +24,9 @@ static int   numberOfDestinationFolders;    // Number of directories that are in
 static char  *currentMoveDestination;
 static int   printMoveFolderLine;
 
+static word  moveRgn;						// a memory region used for the move window to display in.
+
+
 #define MAX_MOVE_FOLDERS_SHOWN 9
 #define NUMBER_OF_MOVE_FOLDER_LINES 10
 
@@ -210,12 +213,14 @@ void DisplayArchiveMoveFolderList()
     // Start the printing on the first row.
     printLine = 1;
     
+    // Build the folder list in a memory screen region.
+    TAP_Osd_PutGd( moveRgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, &_popup476x416Gd, TRUE );             // Redisplay blank popup window to clear out old list.
     while ((index<=numberOfDestinationFolders) && (printLine<=MAX_MOVE_FOLDERS_SHOWN))
 	{
          if (index == chosenFolderLine)  // If we're about to print the selected folder, print it with a different background.
-              PrintLeft (rgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+ 50 + (printLine * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, moveFiles[index]->name, MAIN_TEXT_COLOUR, HEADING_TEXT_COLOUR, FNT_Size_1926 );
+              PrintLeft (moveRgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+ 50 + (printLine * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, moveFiles[index]->name, MAIN_TEXT_COLOUR, HEADING_TEXT_COLOUR, FNT_Size_1926 );
          else                            // If we're about to print a normal folder, print it with a normal background
-              PrintLeft (rgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+ 50 + (printLine * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, moveFiles[index]->name, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+              PrintLeft (moveRgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+ 50 + (printLine * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, moveFiles[index]->name, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
          index++;      // Increment the counter for the list.
          printLine++;  // Increment the row counter.
     }     
@@ -223,10 +228,13 @@ void DisplayArchiveMoveFolderList()
     // Print "+" indicators and top and/or bottom of the list to indicate if there are more files above/below in the list.
     // Check if there are some folders not shown at TOP of the list.
     if (printMoveFolderLine > 1)  
-        PrintLeft (rgn, MOVE_WINDOW_X+MOVE_WINDOW_W-30, MOVE_WINDOW_Y+ 50 + ((1) * lineHeight),           MOVE_WINDOW_X+MOVE_WINDOW_W-8, "+", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+        PrintLeft (moveRgn, MOVE_WINDOW_X+MOVE_WINDOW_W-30, MOVE_WINDOW_Y+ 50 + ((1) * lineHeight),           MOVE_WINDOW_X+MOVE_WINDOW_W-8, "+", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
     // Check if there are some folders not shown at BOTTOM of the list.
     if (index <= numberOfDestinationFolders)  // We've have't printed all of our list entries.
-        PrintLeft (rgn, MOVE_WINDOW_X+MOVE_WINDOW_W-30, MOVE_WINDOW_Y+ 50 + ((printLine-1) * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, "+", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+        PrintLeft (moveRgn, MOVE_WINDOW_X+MOVE_WINDOW_W-30, MOVE_WINDOW_Y+ 50 + ((printLine-1) * lineHeight), MOVE_WINDOW_X+MOVE_WINDOW_W-8, "+", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+    
+    // Copy the screen region from memory to the real screen.  This reduces any flicker when moving between rows.
+    TAP_Osd_Copy( moveRgn, rgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+50+(1*lineHeight), MOVE_WINDOW_W-20-8, (MAX_MOVE_FOLDERS_SHOWN*lineHeight), MOVE_WINDOW_X+20, MOVE_WINDOW_Y+50+(1*lineHeight), FALSE );
     
 
 }
@@ -237,15 +245,15 @@ void DisplayArchiveMoveFolderList()
 void DisplayArchiveMoveWindow()
 {
     char title[50];
-    
+ 
     // Display the pop-up window - will also clear any old text if we are doing a refresh.
     TAP_Osd_PutGd( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, &_popup476x416Gd, TRUE );
+//	TAP_Osd_FillBox( moveRgn, 0, 0, 720, 576, POPUP_FILL_COLOUR );		// clear the memory region with FILL COLOUR
 
     // Format and display the title for the Move Window.
     TAP_SPrint(title, "Select Destination Folder");
     PrintCenter( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y +  14, MOVE_WINDOW_X+MOVE_WINDOW_W, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	
-    DisplayArchiveMoveFolderList();
     DisplayMoveLine();
 }
 
@@ -262,10 +270,14 @@ void ActivateMoveWindow()
     chosenFolderLine    = 1;       // Initialise to point at the first destination folder.
     printMoveFolderLine = 1;
 
+    moveRgn  = TAP_Osd_Create( 0, 0, 720, 576, 0, OSD_Flag_MemRgn );	// In MEMORY define the whole screen for us to draw on
+    
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     moveWindowCopy = TAP_Osd_SaveBox(rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, MOVE_WINDOW_W, MOVE_WINDOW_H);
 
     DisplayArchiveMoveWindow();
+
+    PrintCenter( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y + 100, MOVE_WINDOW_X+MOVE_WINDOW_W, "Loading...", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 }
 
 
@@ -277,7 +289,8 @@ void CloseArchiveMoveWindow(void)
      
 	moveWindowShowing = FALSE;
 	TAP_Osd_RestoreBox(rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, MOVE_WINDOW_W, MOVE_WINDOW_H, moveWindowCopy);
-	TAP_MemFree(moveWindowCopy);
+	TAP_MemFree(moveWindowCopy);           // Free memory allocated to storing old screen area.
+	TAP_Osd_Delete(moveRgn);               // Free memory allocated to virtual screen area.
 	// Release any memory allocated to the "moveFiles" array.   
     for ( index=1; index<=numberOfDestinationFolders ; index++)
 	{
@@ -312,7 +325,7 @@ dword ArchiveMoveKeyHandler(dword key)
 							if ( numberOfDestinationFolders == 0 ) chosenFolderLine = 0;					// don't move the cursor if no files shown
 
                             currentMoveDestination = moveFiles[chosenFolderLine]->name;
-							DisplayArchiveMoveWindow();
+							DisplayArchiveMoveFolderList();
 
 /*	
 						page = (chosenFolderLine-1) / NUMBER_OF_LINES;
@@ -348,7 +361,7 @@ dword ArchiveMoveKeyHandler(dword key)
 							if ( numberOfDestinationFolders == 0 ) chosenFolderLine = 0;					// not strictly needed - included in above logic
 
                             currentMoveDestination = moveFiles[chosenFolderLine]->name;
-							DisplayArchiveMoveWindow();
+							DisplayArchiveMoveFolderList();
 /*							
 							page = (chosenFolderLine-1) / NUMBER_OF_LINES;
                             if (printMoveFolderLine == NUMBER_OF_LINES)    // We've scrolled off the top of the page, so determine where to start next.

@@ -1627,8 +1627,9 @@ dword ArchiveWindowKeyHandler(dword key)
         case RKEY_Yellow:   // Move file or folder
                             if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
-                                 populateMoveFileList();
-                                 ActivateMoveWindow();
+                                 ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message
+                                 populateMoveFileList();          // Populate the list of move folders.
+                                 DisplayArchiveMoveFolderList();  // Display the list of move folders.
                             }     
                             break;
 

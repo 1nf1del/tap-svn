@@ -33,7 +33,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 
 #define DEBUG   0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
 
-// Define the error levels
+// Define the error levels 
 #define ERR     1
 #define WARNING 2
 #define INFO    3
@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08e"       
+#define VERSION "0.08g"       
 
 #include "tap.h"
 #include "TAPExtensions.c"
@@ -55,7 +55,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define ID_OZ_Archive			0x800440FA
                 
 TAP_ID( ID_OZ_Archive );
-          
+            
 #if DEBUG != 0
    TAP_PROGRAM_NAME(TAP_NAME " v" VERSION " DEBUG ONLY" __TIME__);
 #else
@@ -79,7 +79,7 @@ char* TAPIniDir;
 #include "TextTools.c"
 #include "YesNoBox.c"
 #include "Tools.c"
-#include "LoadArchiveInfo.c"
+#include "LoadArchiveInfo.c" 
 #include "PlaybackDatFile.c"
 #include "logo.C"
 #include "TimeBar.c"
@@ -150,7 +150,7 @@ void ActivationRoutine( void )
     appendToLogfile("ActivationRoutine: Finished.", INFO);
 }
    
-
+ 
 void ExitRoutine( void )
 {
     CloseArchiveWindow();
@@ -161,7 +161,7 @@ void ExitRoutine( void )
     tagLength = strlen( tagStr );  // Calculate the length of the tag.  
 
 	TAP_EnterNormal();
-}
+}          
 
 
 //------------
@@ -196,7 +196,7 @@ void TerminateRoutine( void )											// Performs the clean-up and terminate T
 	closeLogfile();   // Close logfile if we were in debug mode.
     TAP_Exit();															// exit
 }
- 
+    
 
 //------------
 //  
@@ -297,7 +297,7 @@ void CheckFlags( void )
     }
           
 	if ( returnFromDelete == TRUE )								// Handle returning from delete.
-	{															// redraw the underlying window if it's changed.
+	{	   														// redraw the underlying window if it's changed.
 	    returnFromDelete = FALSE;
 		if ( fileDeleted )        // If the file/folder was deleted, reload the file/folder data and refresh the list.
         {
@@ -328,6 +328,14 @@ void CheckFlags( void )
 	{															// redraw the underlying window
 	    returnFromRename = FALSE;
 	} 
+
+    if ( returnFromRecycleBinWindowEmpty == TRUE )              // Handle returning from the Recycle Bin window after deleting recycled files.
+    {
+        returnFromRecycleBinWindowEmpty = FALSE;
+        TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
+        loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
+        RefreshArchiveList(TRUE);      // Redraw the contents of the screen.
+    }
 
 	if ( returnFromMenu == TRUE )								// Handle returning from main menu.
 	{															// redraw the underlying window
