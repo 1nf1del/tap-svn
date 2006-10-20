@@ -42,9 +42,9 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08g"       
+#define VERSION "0.08h"       
 
-#include "tap.h"
+#include "tap.g"
 #include "TAPExtensions.c"
 #include "FirmwareCalls.c"
       
@@ -71,7 +71,7 @@ TAP_ETCINFO(__DATE__);
 char* TAPIniDir;
                                 
 #include "morekeys.h"
-
+ 
                                                                                     
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
@@ -94,19 +94,20 @@ char* TAPIniDir;
 #include "ArchiveInfo.c" 
 #include "MainMenu.c"
 #include "ConfigMenu.c"
+#include "GmtOffset.c"
 #include "IniFile.c"
-     
+      
                               
 static dword lastTick;
 static byte oldMin;
 static byte oldSec;
                                       
-                                                                    
+                                                                     
                                          
 //------------  
 //                   
 void ActivationRoutine( void )
-{        
+{         
     appendToLogfile("ActivationRoutine: Started.", INFO);
   	TAP_ExitNormal();
 
@@ -130,6 +131,13 @@ void ActivationRoutine( void )
         TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
 //      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
         
+	if (PBKgmtOffsetOption == 0)  // Check for PBK GMT_Offset.ini file in case daylight savings has kicked in.
+	{
+        ReadGmtOffset();          // Read the GMT Offset and daylight savings options from GMT_Offset.ini if available.
+        ChangeDirRoot();          // Jump back to the root directory.
+        GotoPath(CurrentDir);     // Return to the previous data directory.
+    }    
+
     // Check that we are in the /DataFiles directory, or a subdirectory.  If not, change to the /DataFiles directory.   
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.", INFO);
     if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
@@ -445,7 +453,7 @@ dword My_IdleHandler(void)
 	if ( stopWindowShowing )        return;	// Don't update disk/recording info if these windows are showing
 	if ( archiveHelpWindowShowing ) return;	// Don't update disk/recording info if these windows are showing
     if ( msgWindowShowing )         return;	// Don't update recording/playback info if these windows are showing
-   
+    
     if (sec != oldSec)
     {
         oldSec = sec;
@@ -516,13 +524,8 @@ int TAP_Main (void)
     // Create a full screen region in case there are any messages to be displayed during the initial startup.
 	rgn     = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
 	
-	// Initialise flag to indicate we're in normal view.
-	recycleWindowMode = FALSE;  
-    strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
-    tagLength = strlen( tagStr );  // Calculate the length of the tag.  
-         
     openLogfile();                   // Opens the logfile in the current directory, if we are in debug mode.
-
+ 
     appendToLogfile("Archive TAP Started.", INFO);
  
     #ifdef WIN32
@@ -552,11 +555,15 @@ int TAP_Main (void)
     
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
     TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
-  
-    initialiseArchiveRecycle();            // Initialise some variables for the Recycle Bin
+    strcpy(CurrentDir,"/DataFiles");
     
     appendToLogfile("TAP_Main: Loading configuration data.", INFO);
 	LoadConfiguration();
+	
+	if (PBKgmtOffsetOption == 0)       // If option has been set to read the GMT_Offset.ini file, read it.
+    {
+        ReadGmtOffset();               // Read the GMT Offset and daylight savings options from GMT_Offset.ini if available.
+    }   
 
     appendIntToLogfile("Config Info: infoLineOption=%d",infoLineOption, WARNING);
     appendIntToLogfile("Config Info: sortOrderOption=%d",sortOrderOption, WARNING);
@@ -585,6 +592,9 @@ int TAP_Main (void)
 	CacheLogos();    
   
     appendToLogfile("TAP_Main: Starting initialisation routines.", INFO);
+    appendToLogfile("TAP_Main: Initialising ArchiveRecycle.", INFO);
+    initialiseArchiveRecycle();            
+
     appendToLogfile("TAP_Main: Initialising ArchiveWindow.", INFO);
 	initialiseArchiveWindow();
      
@@ -614,7 +624,7 @@ int TAP_Main (void)
  	
     CreateBlankFile();
      
- 
+  
     // Blank out initial folder & file variable space.
     myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
     memset(myfolders[0],0,sizeof (*myfolders[0]));
@@ -623,7 +633,8 @@ int TAP_Main (void)
     myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
     memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
 
-	GotoDataFiles();
+    ChangeDirRoot();
+    GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");
     CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();

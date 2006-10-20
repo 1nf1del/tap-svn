@@ -1,7 +1,7 @@
 [Project]
 FileName=Archive.dev
 Name=Archive
-UnitCount=28
+UnitCount=29
 Type=1
 Ver=1
 ObjFiles=
@@ -326,4 +326,14 @@ Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c TimeBar.c -o TimeBar.o $(CFLAGS)
+
+[Unit29]
+FileName=GmtOffset.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c GmtOffset.c -o GmtOffset.o $(CFLAGS)
 

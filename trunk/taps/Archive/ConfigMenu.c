@@ -70,6 +70,7 @@ static int currentRecycleBinCleanoutOption;
 static int currentRecycleBinThresholdOption;
 static int currentFileListKeyOption;
 static int currentSplashScreenOption;
+static int currentPBKgmtOffsetOption;
 
 
 static bool enterActivateKey;
@@ -466,6 +467,23 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 
+		case 26 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Use GMT_Offset.ini", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentPBKgmtOffsetOption )
+				{
+				    case 0 : 	sprintf( str, "Yes, if present." );
+								break;
+								
+					case 1 : 	sprintf( str, "No." );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
+
 		case 10 :		
 		case 20 :
 		case 30 :
@@ -536,9 +554,9 @@ void CopyConfiguration( void )
 
 void SaveConfiguration( void )
 {
-	mainActivationKey = CurrentActivationKey;
-	unitModelType     = currentModelType;
-	GMToffsetOption   = currentGMToffsetOption;
+	mainActivationKey   = CurrentActivationKey;
+	unitModelType       = currentModelType;
+	GMToffsetOption     = currentGMToffsetOption;
 	recordingRateOption = currentRecordingRateOption;
 	column1Option       = currentColumn1Option;
 	column2Option       = currentColumn2Option;
@@ -559,10 +577,17 @@ void SaveConfiguration( void )
     recycleBinThresholdOption = currentRecycleBinThresholdOption;
     fileListKeyOption   = currentFileListKeyOption;   
     splashScreenOption  = currentSplashScreenOption; 
+    PBKgmtOffsetOption  = currentPBKgmtOffsetOption;
 
     ResetScreenColumns();        // Set column widths according to column options.
 
 	SaveConfigurationToFile();
+	if (PBKgmtOffsetOption == 0)  // Check for PBK GMT_Offset.ini file in case we've changed our option.
+	{
+        ReadGmtOffset();          // Read the GMT Offset and daylight savings options from GMT_Offset.ini if available.
+	    ChangeDirRoot();          // Jump to the root directory.
+        GotoPath(CurrentDir);     // Return to the directory we were in.
+    }    
 }
 
 
@@ -1063,6 +1088,23 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentSplashScreenOption > 0 ) currentSplashScreenOption--;
 		            	                    else currentSplashScreenOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+					
+		case 26 :	switch ( key )										// PBK GMT_Offset.ini option
+					{
+		            	case RKEY_VolUp:	if (currentPBKgmtOffsetOption < 1 ) currentPBKgmtOffsetOption++;
+		            	                    else currentPBKgmtOffsetOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentPBKgmtOffsetOption > 0 ) currentPBKgmtOffsetOption--;
+		            	                    else currentPBKgmtOffsetOption = 1;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 

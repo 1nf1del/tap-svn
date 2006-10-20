@@ -163,7 +163,7 @@ void DisplayArchiveInfoWindow()
              min = -min;  // Make the minutes positive.
              hour--;      // descrease the hours by 1.
          }
-	     if (min > 60)
+	     if (min >= 60)
 	     {
              min = min%60;  // Get the minutes.
              hour++;        // increase the hours by 1.

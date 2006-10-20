@@ -194,6 +194,8 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 
 #include "graphics/archive_help_uk.GD"
 #include "graphics/archive_help_oz.GD"
+#include "graphics/archive_recycle_help_uk.GD"
+#include "graphics/archive_recycle_help_oz.GD"
 
  
 #include "graphics/folder_yellow.GD"
@@ -239,6 +241,7 @@ void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
 void DeleteAction(int type);
 void DisplayArchiveMoveFolderList(void);
 
+void ReadGmtOffset();
 
 void ActivateMoveWindow(void);                // ArchiveMove.c
 void populateMoveFileList(void);
@@ -354,6 +357,7 @@ static int recycleBinCleanoutOption;
 static int recycleBinThresholdOption;
 static int fileListKeyOption;
 static int splashScreenOption;
+static int PBKgmtOffsetOption;
 
 static bool  listMoved;
 static bool  returnFromInfo;

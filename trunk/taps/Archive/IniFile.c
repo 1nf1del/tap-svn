@@ -146,6 +146,9 @@ void SaveConfigurationToFile( void )
 
 	TAP_SPrint(str, "%d\r\n", (splashScreenOption) );
 	WriteStrToIniBuf( str );
+	
+	TAP_SPrint(str, "%d\r\n", (PBKgmtOffsetOption) );
+	WriteStrToIniBuf( str );
 
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
@@ -238,6 +241,7 @@ void SetConfigurationVariables( void )
 	recycleBinThresholdOption = ReadIniDecimal();
 	fileListKeyOption         = ReadIniDecimal();  
 	splashScreenOption        = ReadIniDecimal();  
+	PBKgmtOffsetOption        = ReadIniDecimal();
 }
 
 
@@ -308,6 +312,7 @@ void LoadConfiguration( void )
 		recycleBinThresholdOption = 0;
         fileListKeyOption         = 0;    
         splashScreenOption        = 0;
+        PBKgmtOffsetOption        = 0;
 
 		SaveConfigurationToFile();
 	}

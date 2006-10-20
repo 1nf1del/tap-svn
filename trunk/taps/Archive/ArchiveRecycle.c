@@ -36,6 +36,29 @@ static byte* recycleBinWindowCopy;          // Pointer to in memory copy of the 
 #define RECYCLE_COMMAND_OPTIONS 5  // Number of command buttons in the recycle window.
 #define RECYCLE_OK_OPTION 1        // Define the option number that is the OK option.
 
+//------------------------------------------------------------------
+//
+void DisplayArchiveRecycleHelp( void )
+{
+    char str[200];
+    char key[20][15], help[20][30];
+    
+    int i, l;
+
+	archiveHelpWindowShowing = TRUE;
+    
+	// Store the currently displayed screen area where we're about to put our pop-up window on.
+    archiveHelpWindowCopy = TAP_Osd_SaveBox(rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, ARCHIVE_HELP_WIDTH, ARCHIVE_HELP_HEIGHT);
+
+    // Display the pop-up window.
+    if ( unitModelType==TF5800t) // Display the UK style remote
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_recycle_help_ukGd, TRUE );
+    else  
+       TAP_Osd_PutGd( rgn, ARCHIVE_HELP_BASE_X, ARCHIVE_HELP_BASE_Y, &_archive_recycle_help_ozGd, TRUE );
+
+}
+
+
 
 
 void DeleteDirRecycleFiles(char* directory, bool recursive)
@@ -57,7 +80,6 @@ void DeleteDirRecycleFiles(char* directory, bool recursive)
           if (IsFileRecycledRec(file.name, file.attr))
           {
                TAP_Hdd_Delete(file.name);
-TAP_Print("Deleting: %s  %s \r\n",directory, file.name);
                // Check if the delete was successful.
                #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
                if (FALSE)
@@ -363,9 +385,6 @@ void DeleteRecycledFile(void)
                                            
 
 
-
-
-
 //------------
 //
 void initialiseArchiveRecycle(void)
@@ -375,6 +394,11 @@ void initialiseArchiveRecycle(void)
     fileDeleted         = FALSE;
     returnFromRecycleBinEmpty = FALSE;
     returnFromRecycleBinWindowEmpty = FALSE;
+	// Initialise flag to indicate we're in normal view.
+	recycleWindowMode = FALSE;  
+    strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
+    tagLength = strlen( tagStr );  // Calculate the length of the tag.  
+             
 }
 
 
@@ -618,7 +642,7 @@ dword RecycleBinWindowKeyHandler(dword key)
                             }     
                             break;
 
-        case RKEY_Red:      DisplayArchiveHelp();
+        case RKEY_Red:      DisplayArchiveRecycleHelp();
                             break;
                             
         case RKEY_Recall:   //   Toggle between standard file view and view of the recycle bin files.
