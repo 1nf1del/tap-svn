@@ -189,6 +189,8 @@ void ChangeToParentDir()
         DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
         LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
  */    
+     loadSubsequentArchiveInfo(FALSE, 0);    
+ 
      chosenLine = 1;                             // By default select the first line to highlight.
      // Scan through the FOLDERS in the current directory to see if we have a match to the folder that we came from.
      for (i=1; i<=numberOfFiles; i++)

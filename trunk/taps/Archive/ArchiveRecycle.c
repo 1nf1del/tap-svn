@@ -625,23 +625,10 @@ dword RecycleBinWindowKeyHandler(dword key)
                             DeleteAllRecycleBinWindow();
                             break;
                                     
-                            // Create New Folder
-                            CreateNewFolder();
-                            RefreshArchiveList(TRUE);
-                            break;
-
         case RKEY_Yellow:   // Delete ALL Recycled Files in THIS Directory.
                             DeleteDirRecycleBinWindow();
                             break;
                             
-                            // Move file or folder
-                            if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
-                            { 
-                                 populateMoveFileList();
-                                 ActivateMoveWindow();
-                            }     
-                            break;
-
         case RKEY_Red:      DisplayArchiveRecycleHelp();
                             break;
                             

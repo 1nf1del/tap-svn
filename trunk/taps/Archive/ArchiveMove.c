@@ -276,8 +276,6 @@ void ActivateMoveWindow()
     moveWindowCopy = TAP_Osd_SaveBox(rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, MOVE_WINDOW_W, MOVE_WINDOW_H);
 
     DisplayArchiveMoveWindow();
-
-    PrintCenter( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y + 100, MOVE_WINDOW_X+MOVE_WINDOW_W, "Loading...", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 }
 
 

@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08i"       
+#define VERSION "0.08j"       
 
 #include "tap.h"
 #include "TAPExtensions.c"
@@ -99,6 +99,7 @@ char* TAPIniDir;
       
                               
 static dword lastTick;
+static byte oldHour;
 static byte oldMin;
 static byte oldSec;
                                       
@@ -385,7 +386,7 @@ dword My_IdleHandler(void)
     dword currentTickTime;
 	byte 	hour, min, sec;
 	word 	mjd;	
-
+ 
 #ifdef WIN32
 #else
     CheckPlaybackStatus();   // Check for any active playbacks so that we can update the progress information.
@@ -398,6 +399,23 @@ dword My_IdleHandler(void)
          playinfoChanged = FALSE;
     }
  
+    // Get the current time.
+   	TAP_GetTime( &mjd, &hour, &min, &sec);
+ 
+    // If we've set the automatic Recycle Bin cleanout for 3AM check if it has just clocked over to 3AM.  If so, delete the recycle bin.
+	if ((recycleBinCleanoutOption==2) && (hour == 3) && (hour != oldHour ))
+	{
+        oldHour = hour;       // Save the current hour for checking again next time through.                       
+        if ( !windowShowing ) 						          // If the main window isn't active, then
+	       rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );  // Define on screen region to draw on.
+        ReturnFromAllRecycleBinYesNo( TRUE );                 // Call routine to delete ALL recycled files.	
+        if ( !windowShowing ) 						          // If the main window isn't active, then
+        {
+           returnFromRecycleBinWindowEmpty = FALSE;           // Clear any flags as we're not actually in normal display mode.
+	       TAP_Osd_Delete( rgn );                             // Delete region we just used.
+        }
+    }               
+    oldHour = hour;       // Save the current hour for checking again next time through.                       
  
 	if ( !windowShowing ) return;										// don't show the clock unless main window is active
 	if (  menuShowing )   return;						                // but, not interested if these windows are showing
@@ -409,7 +427,6 @@ dword My_IdleHandler(void)
 	// If the keyboard is showing, and NOT the keyboard help, then blink the keyboard cursor.
     if (( keyboardWindowShowing ) && (!keyboardHelpWindowShowing)) KeyboardCursorBlink( currentTickTime );
 
-   	TAP_GetTime( &mjd, &hour, &min, &sec);
 
 	if ( min != oldMin )  // Update the clock and any recording/playback entries that are displayed, every minute.
 	{
@@ -655,8 +672,10 @@ int TAP_Main (void)
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
 
-	oldMin = 100;
-	oldSec = 100;
+    // Set 'old' times to invalid number so they'll be reset.
+    oldHour = 100;
+	oldMin  = 100;
+	oldSec  = 100;
 	exitFlag = FALSE;
 	terminateFlag = FALSE;
 	generatedPlayList = FALSE;

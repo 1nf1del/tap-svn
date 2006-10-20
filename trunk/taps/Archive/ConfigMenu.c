@@ -308,7 +308,7 @@ void DisplayConfigLine(char lineNumber)
 				
 		case 14 :
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Number of Lines", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-                TAP_SPrint( str, "%d lines per page.", currentNumberLinesOption );
+                TAP_SPrint( str, "%d lines per page", currentNumberLinesOption );
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
@@ -396,13 +396,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "File Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentRecycleBinOption )
 				{
-				    case 0 : 	sprintf( str, "Permanently delete file (with prompt)." );
+				    case 0 : 	sprintf( str, "Permanently delete file (with prompt)" );
 								break;
 								
-					case 1 : 	sprintf( str, "Delete to recycle bin (with prompt)." );
+					case 1 : 	sprintf( str, "Delete to recycle bin (with prompt)" );
 						    	break;
 
-					case 2 : 	sprintf( str, "Delete to recycle bin (no prompt)." );
+					case 2 : 	sprintf( str, "Delete to recycle bin (no prompt)" );
 						    	break;
 
 					default : 	sprintf( str, "[Invalid value]" );
@@ -416,10 +416,13 @@ void DisplayConfigLine(char lineNumber)
 
 				switch ( currentRecycleBinCleanoutOption )
 				{
-				    case 0 : 	sprintf( str, "Manual." );
+				    case 0 : 	sprintf( str, "Manual" );
 								break;
 								
-					case 1 : 	sprintf( str, "Automatic At Archive TAP Startup." );
+					case 1 : 	sprintf( str, "Automatic At Archive TAP Startup" );
+						    	break;
+								
+					case 2 : 	sprintf( str, "Daily At 3AM (if Topfield is running)" );
 						    	break;
 				}
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
@@ -436,13 +439,13 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Filelist Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentFileListKeyOption )
 				{
-				    case 0 : 	sprintf( str, "Standard Topfield Archive." );
+				    case 0 : 	sprintf( str, "Standard Topfield Archive" );
 								break;
 								
-					case 1 : 	sprintf( str, "Ignore key." );
+					case 1 : 	sprintf( str, "Ignore key" );
 						    	break;
 
-					case 2 : 	sprintf( str, "Exit Archive." );
+					case 2 : 	sprintf( str, "Exit Archive" );
 						    	break;
 
 					default : 	sprintf( str, "[Invalid value]" );
@@ -455,10 +458,10 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Splash Screen", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentSplashScreenOption )
 				{
-				    case 0 : 	sprintf( str, "Off." );
+				    case 0 : 	sprintf( str, "Off" );
 								break;
 								
-					case 1 : 	sprintf( str, "On." );
+					case 1 : 	sprintf( str, "On" );
 						    	break;
 
 					default : 	sprintf( str, "[Invalid value]" );
@@ -471,10 +474,10 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Use GMT_Offset.ini", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentPBKgmtOffsetOption )
 				{
-				    case 0 : 	sprintf( str, "Yes, if present." );
+				    case 0 : 	sprintf( str, "Yes, if present" );
 								break;
 								
-					case 1 : 	sprintf( str, "No." );
+					case 1 : 	sprintf( str, "No" );
 						    	break;
 
 					default : 	sprintf( str, "[Invalid value]" );
@@ -1044,14 +1047,14 @@ void ConfigActionHandler(dword key)
 
 		case 22 :	switch ( key )										// Recycle Bin Cleanout option
 					{
-		            	case RKEY_VolUp:	if (currentRecycleBinCleanoutOption < 1 ) currentRecycleBinCleanoutOption++;
+		            	case RKEY_VolUp:	if (currentRecycleBinCleanoutOption < 2 ) currentRecycleBinCleanoutOption++;
 		            	                    else currentRecycleBinCleanoutOption = 0;
 											DisplayConfigLine( chosenConfigLine );
 											break;
 
 											
 						case RKEY_VolDown:	if (currentRecycleBinCleanoutOption > 0 ) currentRecycleBinCleanoutOption--;
-		            	                    else currentRecycleBinCleanoutOption = 1;
+		            	                    else currentRecycleBinCleanoutOption = 2;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 
