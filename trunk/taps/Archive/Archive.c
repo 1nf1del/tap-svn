@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08h"       
+#define VERSION "0.08i"       
 
 #include "tap.h"
 #include "TAPExtensions.c"
@@ -102,7 +102,7 @@ static dword lastTick;
 static byte oldMin;
 static byte oldSec;
                                       
-                                                                     
+                                                                      
                                          
 //------------  
 //                   
@@ -163,10 +163,13 @@ void ExitRoutine( void )
 {
     CloseArchiveWindow();
     
-    // Reset to standard view mode.
-	recycleWindowMode = FALSE;  
-    strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
-    tagLength = strlen( tagStr );  // Calculate the length of the tag.  
+    if ( recycleWindowMode )     // Reset to standard view mode, and reload the data so that it is ready for next activation.
+    {
+	    recycleWindowMode = FALSE;  
+        strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
+        tagLength = strlen( tagStr );  // Calculate the length of the tag.  
+        loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
+    }    
 
 	TAP_EnterNormal();
 }          
@@ -632,7 +635,7 @@ int TAP_Main (void)
     memset(myfiles[0][0],0,sizeof (*myfiles[0][0]));
     myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
     memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
-
+ 
     ChangeDirRoot();
     GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");

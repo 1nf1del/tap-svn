@@ -1142,6 +1142,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
           strcpy(subdir, directory);        // Add in our starting directory.
           strcat(subdir,"/");               // Add a slash.
           strcat(subdir, subfolders[i].name);     // Add the subfolder name.
+
           // Change directory to the subfolder.
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
           // Recurcively call the LoadArchiveInfo to read/load the information for te subfolder.
@@ -1211,7 +1212,7 @@ void loadSubsequentArchiveInfo(bool clearProgressInfo, int recursiveLevel)
     
     GetRecordingInfo();
     SetDirFilesToNotPresent(CurrentDirNumber);            // Flag all of the files/folders in our myfiles list as not present.
-    LoadArchiveInfo(CurrentDir, 0, 0, recursiveLevel);    // Check all of the files/folders again to see if there are any new files/folders.
+    LoadArchiveInfo(CurrentDir, CurrentDirNumber,  myfolders[CurrentDirNumber]->parentDirNumber, recursiveLevel);    // Check all of the files/folders again to see if there are any new files/folders.
     DeleteDirFilesNotPresent(CurrentDirNumber);           // Delete any of the files/folders that are no longer on the disk
     
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;  // Set the number of files for this directory.
