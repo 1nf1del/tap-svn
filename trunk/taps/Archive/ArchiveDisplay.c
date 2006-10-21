@@ -983,7 +983,6 @@ void DisplayFileText(int line, int i)
     /////////////////////////////////////////////////   
     if (recycleWindowMode) // If we are in the Recycle Bin view mode, display a recycle bin icon next to each file.
     {
-//         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-4, &_recycle_bin_fullGd, TRUE );
          TAP_Osd_PutGd( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET-10, &_trash_binGd, TRUE );
     }
     else
