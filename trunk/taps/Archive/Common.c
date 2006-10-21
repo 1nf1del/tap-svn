@@ -201,9 +201,6 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/folder_yellow.GD"
 #include "graphics/folder_yellow_parent.GD"
 #include "graphics/trash_bin.GD"
-//#include "graphics/recycle_bin.GD"
-//#include "graphics/recycle_bin_full.GD"
-//#include "graphics/recycle_logo.GD"
 
 
 //#define FILL_COLOUR RGB(0,0,102)

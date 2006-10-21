@@ -45,8 +45,8 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define VERSION "0.08j"       
 
 #include "tap.h"
-#include "TAPExtensions.c"
-#include "FirmwareCalls.c"
+#include "Firmware\TAPExtensions.c"
+#include "Firmware\FirmwareCalls.c"
       
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
