@@ -44,11 +44,11 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define TAP_NAME "Archive"
 #define VERSION "0.08j"       
 
-#ifdef WIN32
 #include "tap.h"
-#include "TAPExtensions.h"
-#include "FirmwareCalls.h"
-#include "model.h"
+
+#ifdef WIN32
+#include "TAPExtensions.c"
+#include "FirmwareCalls.c"
 #else
 #include "TAPExtensions.h"
 #include "FirmwareCalls.h"
