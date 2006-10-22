@@ -44,11 +44,17 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define TAP_NAME "Archive"
 #define VERSION "0.08j"       
 
+#ifdef WIN32
 #include "tap.h"
 #include "TAPExtensions.h"
 #include "FirmwareCalls.h"
 #include "model.h"
-      
+#else
+#include "TAPExtensions.h"
+#include "FirmwareCalls.h"
+#include "model.h"
+#endif      
+
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
 //#define ID_UK_Channels 		0x800440FC
@@ -72,7 +78,7 @@ TAP_ETCINFO(__DATE__);
 char* TAPIniDir;
                                 
 #include "morekeys.h"
- 
+  
                                                                                     
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
