@@ -164,9 +164,7 @@ void ReturnFromDirRecycleBinYesNo( bool result)
 	switch (result)
     {
            case TRUE:  // YES
-//                       ShowMessageWinTemp( rgn, "Archive Recycle Bin", "Emptying Directory Recycle Bin", "Please wait ...");           
                        DeleteDirRecycleFiles(CurrentDir, FALSE); // Delete only current directory files
-//                       RestoreMessageWinTemp(rgn);
                        ShowMessageWin( rgn, "Archive Recycle Bin", "Directory Recycle Bin Emptied.", " ", 300 );
                        returnFromRecycleBinWindowEmpty = TRUE;         // Set flag to cause reload and redraw of Recycle Bin.
                        break;
@@ -258,10 +256,9 @@ void RecycleAction(void)
 	fileIncrement     = 0;              // Counter in case we need to append a number to an already existing file name.
    
     strncpy( currentFileName, currentFile.name, 256 );   // Copy the current filename
-    strncpy( baseFileName, currentFile.name, 256 );      // Copy the current filename
+    strncpy( filename,        currentFile.name, 256 );   // Copy the current filename
+    strncpy( baseFileName,    currentFile.name, 256 );   // Copy the current filename
 	StripFileName( baseFileName );                       // Strip off the ".rec"
-    strncpy( fileName, baseFileName, 256 );  // Copy the stripped off filename in case we need to rename on a move.
-	strcat( fileName, RECYCLED_STRING );	                 // Append ".rec.del" to the base filename
 
     // Check if the file already exists.
     fileAlreadyExists = TAP_Hdd_Exist(fileName);
@@ -271,18 +268,18 @@ void RecycleAction(void)
     while (fileAlreadyExists)
     {
          fileIncrement++;         // Increase the counter for the number to append to the filename.
-         if (fileIncrement > 2)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
+         if (fileIncrement > 99999)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
          {
               sprintf(str1,"More than 99999 files in the bin called:");
               ShowMessageWin( rgn, "Recyle Bin Failure.", str1, str2, 500 ); 
               fileDeleted = FALSE;
               return;   // Jump out of recycle option.
          }   
-         sprintf(counter, "-%d", fileIncrement);      // Create the counter text
-         strncpy( fileName, baseFileName, 256);                    // Copy back the original filename
-         strcat(  fileName, counter);                      // Append the counter text to the filename
-	     strcat(  fileName, RECYCLED_STRING );	                  // Append the ".del" to the end.
-         fileAlreadyExists = TAP_Hdd_Exist(fileName);      // Check if the file exists.
+         sprintf(counter, "-%d", fileIncrement);        // Create the counter text
+         strncpy( fileName, baseFileName, 256);         // Copy back the original filename
+         strcat(  fileName, counter);                   // Append the counter text to the filename
+	     strcat(  fileName, RECYCLED_STRING );	        // Append the ".rec.del" to the end.
+         fileAlreadyExists = TAP_Hdd_Exist(fileName);   // Check if the file exists.
     }
          
     // Rename the file.
