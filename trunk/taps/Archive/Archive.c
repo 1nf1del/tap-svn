@@ -52,7 +52,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #else
 #include "TAPExtensions.h"
 #include "FirmwareCalls.h"
-#include "model.h"
+#include "model.c"
 #endif      
 
 //#define ID_UK_Timers 		0x800440FE
