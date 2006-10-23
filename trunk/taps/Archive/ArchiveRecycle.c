@@ -256,7 +256,7 @@ void RecycleAction(void)
 	fileIncrement     = 0;              // Counter in case we need to append a number to an already existing file name.
    
     strncpy( currentFileName, currentFile.name, 256 );   // Copy the current filename
-    strncpy( filename,        currentFile.name, 256 );   // Copy the current filename
+    strncpy( fileName,        currentFile.name, 256 );   // Copy the current filename
     strncpy( baseFileName,    currentFile.name, 256 );   // Copy the current filename
 	StripFileName( baseFileName );                       // Strip off the ".rec"
 
