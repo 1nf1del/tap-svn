@@ -473,7 +473,7 @@ dword ArchiveInfoKeyHandler(dword key)
 								case 3 :   // MOVE
                                            ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message
                                            populateMoveFileList();          // Populate the list of move folders.
-                                           ActivateMoveWindow();            // Display the list of move folders.
+                                           DisplayArchiveMoveFolderList();  // Display the list of move folders.
                                            break;
 
 								case 4 :   // RESET PROGRESS
