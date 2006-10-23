@@ -622,7 +622,7 @@ bool MatchFileStamp( char* stamp, char* str)
 
 void FormatSortName(char* target, char* source)
 {
-#define NUMBER_OF_STAMPS 16   
+#define NUMBER_OF_STAMPS 17   
   
 /*
 * = -_./ space
@@ -659,7 +659,7 @@ _#
 */
 //     char stamps[NUMBER_OF_STAMPS][10] = {"_99-99 YYYY-MM-DD", "_#", "-#", "-9", "-99", "_+", "-+", " DD/MM/YY", " DD-MM-YY", "DD.MM.YY", " DD/MM", " DD-MM", " MMDD", "- DDD", " DDD", " YYYYMMDD", "DDMMYY"};
 //     char stamps[NUMBER_OF_STAMPS][10] = {"_99-99 YYYY-MM-DD", " DD/MM/YY", " DD-MM-YY", " DD.MM.YY", " YYYYMMDD", " DDMMYY", "DD/MM/YY", "DD-MM-YY", "DD.MM.YY", "YYYYMMDD", " DDMMYY", " DD/MM", " DD-MM", " MMDD", "- DDD", " DDD", "_#", "-#", "-9", "-99", "_+", "-+"};
-     char stamps[NUMBER_OF_STAMPS][20] = {"_#", "-#", "_+", "-+", "*99*99 YYYY*MM*DD", "*YYYYMMDD_9999", "*YYYYMMDD", "*YYYY*MM*DD",  "*YY*MM*DD",  "*DDMMYY",  "*DD*MM",  "*MMDD",  "- DDD", " DDD", "-99", "-9"};
+     char stamps[NUMBER_OF_STAMPS][20] = {"_#", "-#", "_+", "-+", " YYYY*MM*DD", "*99*99 YYYY*MM*DD", "*YYYYMMDD_9999", "*YYYYMMDD", "*YYYY*MM*DD",  "*YY*MM*DD",  "*DDMMYY",  "*DD*MM",  "*MMDD",  "- DDD", " DDD", "-99", "-9"};
      char stampStr[10];
      int i, start, stampLen, fileLen;
 

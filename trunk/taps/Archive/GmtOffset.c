@@ -4,7 +4,7 @@
 	This file is created by the PBK TAP to provide an indication of daylight savings times.
  
 Name	: GmtOffset.c
-Author	: Peter Gillepsie
+Author	: Peter Gillespie
 Version	: 0.1
 For		: Topfield TF5x00 series PVRs
 Licence	:

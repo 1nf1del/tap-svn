@@ -35,8 +35,8 @@ void DisplayCredits( void )
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 80, 650, __tap_program_name__ , MAIN_TEXT_COLOUR, 0 );
 
-	TAP_Osd_PutStringAf1622( rgn, 58, 120, 650, "Written by Kidhazy (based on code from Darkmatter)", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 150, 650, "Code contributions by IanP, DarkMatter, DB1 & DX", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 120, 650, "Written by Kidhazy (based on UK Timers code from Darkmatter)", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 150, 650, "Code contributions by IanP, DarkMatter, DB1, DX & Download", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 180, 650, "Graphical concept by Quixotic", MAIN_TEXT_COLOUR, 0 );
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 270, 650, "Developed by the UK Project Team", MAIN_TEXT_COLOUR, 0 );
