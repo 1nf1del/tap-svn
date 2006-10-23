@@ -1,7 +1,7 @@
 [Project]
 FileName=Archive.dev
 Name=Archive
-UnitCount=29
+UnitCount=26
 Type=1
 Ver=1
 ObjFiles=
@@ -107,47 +107,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit7]
-FileName=..\TAP.H
-CompileCpp=0
-Folder=UK Channel Surfer V07
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
 [Unit8]
-FileName=..\..\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h
+FileName=Common.c
 CompileCpp=0
-Folder=UK Channel Surfer V07
-Compile=1
-Link=1
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=
+BuildCmd=$(CC) -c Common.c -o Common.o $(CFLAGS)
 
 [Unit12]
-FileName=ArchiveDisplay.c
-CompileCpp=0
-Folder=OZ Archive V0.01
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c TimerDisplay.c -o TimerDisplay.o $(CFLAGS)
-
-[Unit13]
-FileName=ArchiveAction.c
-CompileCpp=0
-Folder=OZ Archive V0.01
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c TimerEdit.c -o TimerEdit.o $(CFLAGS)
-
-[Unit14]
 FileName=Tools.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -157,37 +127,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c Tools.c -o Tools.o $(CFLAGS)
 
-[Unit17]
-FileName=TextTools.c
+[Unit13]
+FileName=LoadArchiveInfo.c
 CompileCpp=0
 Folder=
 Compile=0
 Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c TextTools.c -o TextTools.o $(CFLAGS)
+BuildCmd=$(CC) -c LoadArchiveInfo.c -o LoadArchiveInfo.o $(CFLAGS)
 
-[Unit18]
-FileName=ProgressBar.c
-CompileCpp=0
-Folder=OZ Archive V0.01
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c ProgressBar.c -o ProgressBar.o $(CFLAGS)
-
-[Unit19]
-FileName=Keyboard.c
-CompileCpp=0
-Folder=OZ Archive V0.01
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c Keyboard.c -o Keyboard.o $(CFLAGS)
-
-[Unit20]
+[Unit17]
 FileName=ArchiveDelete.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -197,7 +147,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ArchiveDelete.c -o ArchiveDelete.o $(CFLAGS)
 
-[Unit21]
+[Unit18]
 FileName=ArchiveInfo.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -207,7 +157,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ArchiveInfo.c -o ArchiveInfo.o $(CFLAGS)
 
-[Unit22]
+[Unit19]
 FileName=ArchiveRename.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -217,7 +167,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ArchiveRename.c -o ArchiveRename.o $(CFLAGS)
 
-[Unit23]
+[Unit20]
 FileName=PlaybackDatFile.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -227,7 +177,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c PlaybackDatFile.c -o PlaybackDatFile.o $(CFLAGS)
 
-[Unit24]
+[Unit21]
 FileName=LogFile.c
 CompileCpp=0
 Folder=OZ Archive V0.01
@@ -237,7 +187,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c LogFile.c -o LogFile.o $(CFLAGS)
 
-[Unit25]
+[Unit22]
 FileName=YesNoBox.c
 CompileCpp=0
 Folder=OZ Archive
@@ -247,7 +197,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c YesNoBox.c -o YesNoBox.o $(CFLAGS)
 
-[Unit26]
+[Unit23]
 FileName=ArchiveStop.c
 CompileCpp=0
 Folder=OZ Archive
@@ -257,25 +207,55 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ArchiveStop.c -o ArchiveStop.o $(CFLAGS)
 
-[Unit9]
-FileName=Archive.c
-CompileCpp=0
-Folder=OZ Archive V0.01
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c "OZArchive V0.01.c" -o "OZArchive V0.01.o" $(CFLAGS)
-
-[Unit15]
-FileName=LoadArchiveInfo.c
+[Unit24]
+FileName=ArchiveRecycle.c
 CompileCpp=0
 Folder=
 Compile=0
 Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c LoadArchiveInfo.c -o LoadArchiveInfo.o $(CFLAGS)
+BuildCmd=$(CC) -c ArchiveRecycle.c -o ArchiveRecycle.o $(CFLAGS)
+
+[Unit25]
+FileName=ArchiveMove.c
+CompileCpp=0
+Folder=Archive
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ArchiveMove.c -o ArchiveMove.o $(CFLAGS)
+
+[Unit26]
+FileName=GmtOffset.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c GmtOffset.c -o GmtOffset.o $(CFLAGS)
+
+[Unit9]
+FileName=TimeBar.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TimeBar.c -o TimeBar.o $(CFLAGS)
+
+[Unit15]
+FileName=ProgressBar.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c ProgressBar.c -o ProgressBar.o $(CFLAGS)
 
 [Unit27]
 FileName=ArchiveRecycle.c
@@ -298,34 +278,34 @@ OverrideBuildCmd=0
 BuildCmd=$(CC) -c ArchiveMove.c -o ArchiveMove.o $(CFLAGS)
 
 [Unit16]
-FileName=..\HDD.H
+FileName=Keyboard.c
 CompileCpp=0
 Folder=OZ Archive V0.01
-Compile=1
-Link=1
+Compile=0
+Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=
+BuildCmd=$(CC) -c Keyboard.c -o Keyboard.o $(CFLAGS)
 
 [Unit10]
-FileName=Common.c
+FileName=ArchiveDisplay.c
 CompileCpp=0
 Folder=OZ Archive V0.01
 Compile=0
 Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c Common.c -o Common.o $(CFLAGS)
+BuildCmd=$(CC) -c TimerDisplay.c -o TimerDisplay.o $(CFLAGS)
 
 [Unit11]
-FileName=TimeBar.c
+FileName=ArchiveAction.c
 CompileCpp=0
 Folder=OZ Archive V0.01
 Compile=0
 Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c TimeBar.c -o TimeBar.o $(CFLAGS)
+BuildCmd=$(CC) -c TimerEdit.c -o TimerEdit.o $(CFLAGS)
 
 [Unit29]
 FileName=GmtOffset.c
@@ -336,4 +316,24 @@ Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c GmtOffset.c -o GmtOffset.o $(CFLAGS)
+
+[Unit7]
+FileName=Archive.c
+CompileCpp=0
+Folder=OZ Archive V0.01
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c "OZArchive V0.01.c" -o "OZArchive V0.01.o" $(CFLAGS)
+
+[Unit14]
+FileName=TextTools.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c TextTools.c -o TextTools.o $(CFLAGS)
 
