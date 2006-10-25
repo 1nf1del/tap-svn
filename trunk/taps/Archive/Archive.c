@@ -19,7 +19,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
-          V0.08 kidhazy     
+          V0.08 kidhazy            
   
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -83,7 +83,7 @@ char* TAPIniDir;
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"
-#include "TextTools.c"
+#include "TextTools.c"  
 #include "YesNoBox.c"
 #include "Tools.c"
 #include "LoadArchiveInfo.c" 

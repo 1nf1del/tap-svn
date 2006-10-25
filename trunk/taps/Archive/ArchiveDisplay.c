@@ -1387,10 +1387,11 @@ void UpdateSelectionNumber(void)
 //
 dword ArchiveWindowKeyHandler(dword key)
 {
-	int		oldPage, oldChosenLine, oldPrintLine;
+	int		oldPage, oldChosenLine, oldPrintLine, lineOffset;
 	oldPage = page;
 	oldChosenLine = chosenLine;
 	oldPrintLine  = printLine;
+	lineOffset    = 0;
 	
     if ( archiveHelpWindowShowing ) { ArchiveHelpKeyHandler( key ); return; }				// handle help screen
 
@@ -1548,31 +1549,28 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_6 :
 		case RKEY_7 :
 		case RKEY_8 :
-		case RKEY_9 :		break;   // Problem with page jumping, so removed for v0.04
-		                    //chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);		// direct keyboard selection of any line
-							if ( (key - RKEY_0) + (page * NUMBER_OF_LINES) <= maxShown ) 
+		case RKEY_9 :		// Direct keyboard line selection
+                            lineOffset = ((page * NUMBER_OF_LINES) + printLine) - chosenLine;   // Determine if we are out of sync with chosenline and printline (eg. if we scroll backwards to bottom of list.
+		                    //  Determine if this line is available on the screen.
+							if ( (key - RKEY_0) + (page * NUMBER_OF_LINES) -lineOffset <= maxShown ) 
                             {
-                                 chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);	
+                                 chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES) - lineOffset;	
+							     page = (chosenLine-1) / NUMBER_OF_LINES;
 							     DisplayArchiveLine( oldChosenLine, oldPrintLine );
 							     printLine = (key - RKEY_0);
 							     DisplayArchiveLine( chosenLine, printLine );
 							     UpdateSelectionNumber();							
                             }			     
 							break;
-                            chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);		// direct keyboard selection of any line
-							if ( chosenLine > maxShown ) chosenLine = maxShown;
-
-							DisplayArchiveLine( oldChosenLine, oldPrintLine );
-							printLine = (key - RKEY_0);
-							DisplayArchiveLine( chosenLine, printLine );
-							UpdateSelectionNumber();							
-							break;
 							
-		case RKEY_0 :       break; // Problem with page jumping, so removed for v0.04
-                            if (NUMBER_OF_LINES < 10) break;                            // If we're showing less than 10 lines, ignore 0.
-							if ( ((10) + (page * NUMBER_OF_LINES)) <= maxShown ) 
+		case RKEY_0 :       // Direct keyboard line selection
+                            lineOffset = ((page * NUMBER_OF_LINES) + printLine) - chosenLine;   // Determine if we are out of sync with chosenline and printline (eg. if we scroll backwards to bottom of list.
+		                    //  Determine if this line is available on the screen.
+                            if (NUMBER_OF_LINES < 10) break;                              // If we're showing less than 10 lines, ignore 0.
+							if ( ((10) + (page * NUMBER_OF_LINES)) -lineOffset  <= maxShown ) 
 							{
-							     chosenLine = (10) + (page * NUMBER_OF_LINES);				// make "0" select the 10th (last) line
+							     chosenLine = (10) + (page * NUMBER_OF_LINES) -lineOffset ;			  // make "0" select the 10th (last) line
+							     page = (chosenLine-1) / NUMBER_OF_LINES;
 							     DisplayArchiveLine( oldChosenLine, oldPrintLine );
 							     printLine = 10;
 							     DisplayArchiveLine( chosenLine, printLine );
@@ -1693,8 +1691,8 @@ dword ArchiveWindowKeyHandler(dword key)
 							
 		default :			break;
 	}
-	TAP_Print("ms=%d cl=%d pl=%d page=%d\r\n",maxShown, chosenLine, printLine, page);
-	return 0;
+ 
+ 	return 0;
 }
 
 
