@@ -19,7 +19,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
-          V0.08 kidhazy 
+          V0.08 kidhazy     
   
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -30,7 +30,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
                       
-
+  
 #define DEBUG   0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
 
 // Define the error levels 
@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08l"       
+#define VERSION "0.08n"          
 
 #include "tap.h"
 
@@ -60,7 +60,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define ID_UK_Channels 		0x800440FC
 //#define ID_UK_USB			0x800440FB
 #define ID_OZ_Archive			0x800440FA
-                
+                 
 TAP_ID( ID_OZ_Archive );
             
 #if DEBUG != 0
@@ -79,7 +79,7 @@ char* TAPIniDir;
                                 
 #include "morekeys.h"
   
-                                                                                    
+                                                                                     
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"
@@ -91,7 +91,7 @@ char* TAPIniDir;
 #include "logo.C"
 #include "TimeBar.c"
 #include "ArchiveDisplay.c"
-//#include "ArchiveDelete.c"
+//#include "ArchiveDelete.c" 
 #include "ArchiveStop.c"
 #include "ArchiveAction.c"
 #include "ArchiveRename.c"
@@ -103,7 +103,7 @@ char* TAPIniDir;
 #include "ConfigMenu.c"
 #include "GmtOffset.c"
 #include "IniFile.c"
-      
+        
                               
 static dword lastTick;
 static byte oldHour;

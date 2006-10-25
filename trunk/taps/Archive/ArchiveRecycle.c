@@ -259,6 +259,8 @@ void RecycleAction(void)
     strncpy( fileName,        currentFile.name, 256 );   // Copy the current filename
     strncpy( baseFileName,    currentFile.name, 256 );   // Copy the current filename
 	StripFileName( baseFileName );                       // Strip off the ".rec"
+    strncpy( fileName, baseFileName, 256 );              // Copy the stripped off filename in case we need to rename on a move.
+	strcat( fileName, RECYCLED_STRING );	             // Append ".rec.del" to the base filename
 
     // Check if the file already exists.
     fileAlreadyExists = TAP_Hdd_Exist(fileName);

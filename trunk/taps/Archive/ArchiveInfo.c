@@ -81,10 +81,15 @@ void DisplayInfoLine(void)
 
 	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
 	PrintCenter(rgn, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(3*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Move", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
-
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
-	PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-	PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", MAIN_TEXT_COLOUR, 0, FNT_Size_1622);
+    
+    // Check if we're NOT showing folder information.  If so, display the "Reset Progress" option button.
+    // and make sure we're NOT displaying the Recycle Bin
+	if (( currentFile.attr != ATTR_FOLDER ) && (!recycleWindowMode))
+    {
+	      TAP_Osd_PutGd( rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
+	      PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+0, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Reset", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+	      PrintCenter(rgn, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE), INFO_OPTION_Y+19, INFO_OPTION_X+(4*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Progress", MAIN_TEXT_COLOUR, 0, FNT_Size_1622);
+    }	      
 
 
 	switch ( infoCommandOption )
@@ -372,6 +377,10 @@ dword ArchiveInfoKeyHandler(dword key)
                             currentFile   = *myfiles[CurrentDirNumber][chosenLine];
                             currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
 							DisplayArchiveInfoWindow();
+							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
+							// or the Recycle Bin is active.
+							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
+							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
 
 /*	
 						page = (chosenLine-1) / NUMBER_OF_LINES;
@@ -421,6 +430,9 @@ dword ArchiveInfoKeyHandler(dword key)
                             }     
                             currentFile   = *myfiles[CurrentDirNumber][chosenLine];
                             currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
+							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
+							if ((( currentFile.attr == ATTR_FOLDER )  || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
+							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
 
 							DisplayArchiveInfoWindow();
 /*							
@@ -446,11 +458,19 @@ dword ArchiveInfoKeyHandler(dword key)
 
 		case RKEY_VolUp:	if ( infoCommandOption < (INFO_COMMAND_OPTIONS-1) ) infoCommandOption++;
 							else infoCommandOption = 0;
-							DisplayInfoLine();
+							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
+							// or if the Recycle Bin is active
+							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
+							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
+                            DisplayInfoLine();
 		     				break;
 
 		case RKEY_VolDown:	if ( infoCommandOption > 0 ) infoCommandOption--;
 							else infoCommandOption = (INFO_COMMAND_OPTIONS-1);
+							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
+							// or if the Recycle Bin is active
+							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
+							   infoCommandOption = (INFO_COMMAND_OPTIONS-2);    // Skip past the "Reset Progress" option.
 							DisplayInfoLine();
 							break;
 

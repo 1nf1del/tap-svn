@@ -1503,6 +1503,7 @@ dword ArchiveWindowKeyHandler(dword key)
                                  if (maxShown < NUMBER_OF_LINES) printLine = chosenLine;
                                  else printLine = NUMBER_OF_LINES;
                             }      
+							page = (chosenLine-1) / NUMBER_OF_LINES;
                             
                             UpdateListClock();
                             DrawArchiveList();
@@ -1529,6 +1530,8 @@ dword ArchiveWindowKeyHandler(dword key)
                                 else chosenLine = 1;
                                 printLine  = 1;
                             }
+							page = (chosenLine-1) / NUMBER_OF_LINES;
+                            
                             // Unhighlight the old selection.  Otherwise you may see 2 highlighted selections as the new page redraws from top to bottom.
                             if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine,oldPrintLine);
                             UpdateListClock();
@@ -1546,6 +1549,16 @@ dword ArchiveWindowKeyHandler(dword key)
 		case RKEY_7 :
 		case RKEY_8 :
 		case RKEY_9 :		break;   // Problem with page jumping, so removed for v0.04
+		                    //chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);		// direct keyboard selection of any line
+							if ( (key - RKEY_0) + (page * NUMBER_OF_LINES) <= maxShown ) 
+                            {
+                                 chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);	
+							     DisplayArchiveLine( oldChosenLine, oldPrintLine );
+							     printLine = (key - RKEY_0);
+							     DisplayArchiveLine( chosenLine, printLine );
+							     UpdateSelectionNumber();							
+                            }			     
+							break;
                             chosenLine = (key - RKEY_0) + (page * NUMBER_OF_LINES);		// direct keyboard selection of any line
 							if ( chosenLine > maxShown ) chosenLine = maxShown;
 
@@ -1557,13 +1570,14 @@ dword ArchiveWindowKeyHandler(dword key)
 							
 		case RKEY_0 :       break; // Problem with page jumping, so removed for v0.04
                             if (NUMBER_OF_LINES < 10) break;                            // If we're showing less than 10 lines, ignore 0.
-							chosenLine = (10) + (page * NUMBER_OF_LINES);				// make "0" select the 10th (last) line
-							if ( chosenLine > maxShown ) chosenLine = maxShown;
-
-							DisplayArchiveLine( oldChosenLine, oldPrintLine );
-							printLine = 10;
-							DisplayArchiveLine( chosenLine, printLine );
-							UpdateSelectionNumber();							
+							if ( ((10) + (page * NUMBER_OF_LINES)) <= maxShown ) 
+							{
+							     chosenLine = (10) + (page * NUMBER_OF_LINES);				// make "0" select the 10th (last) line
+							     DisplayArchiveLine( oldChosenLine, oldPrintLine );
+							     printLine = 10;
+							     DisplayArchiveLine( chosenLine, printLine );
+							     UpdateSelectionNumber();							
+                            }
 							break;
 
 
@@ -1679,6 +1693,7 @@ dword ArchiveWindowKeyHandler(dword key)
 							
 		default :			break;
 	}
+	TAP_Print("ms=%d cl=%d pl=%d page=%d\r\n",maxShown, chosenLine, printLine, page);
 	return 0;
 }
 
