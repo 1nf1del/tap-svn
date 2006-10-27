@@ -26,7 +26,8 @@ History	: v0.0 Kidhazy: 18-10-05	Inception Date
 
 #define BUFFER_SIZE 1500
 
-int headerOffset;  // Variable used to cater for offset differences between TF5000 (0 offset) and the TF5800 (4 bytes offset)
+int headerOffset;   // Variable used to cater for offset differences between TF5000 (0 offset) and the TF5800 (4 bytes offset)
+int headerOffset2;  // Variable used to cater for offset differences between TF5000 (0 offset) and the TF5100 (1 bytes offset)
 
 #define REC_DURATION_OFFSET 8
 #define REC_DURATION_LENGTH 2
@@ -69,15 +70,15 @@ unsigned short eventEndHour;
 #define EVENT_ENDMIN_OFFSET 83
 unsigned short eventEndMin;
 
-#define EVENT_NAME_LENGTH_OFFSET 85 //89  TF5100 (subtract 1 from the length)
+#define EVENT_NAME_LENGTH_OFFSET 85 //TF5800 89  TF5100 (subtract 1 from the length as event name has byte x05 and both fornt and end.
 #define EVENT_NAME_LENGTH_LENGTH 1
 unsigned short eventNameLength;
 
-#define PARENTAL_RATING_OFFSET 86  // 90
+#define PARENTAL_RATING_OFFSET 86  // TF5800 90
 #define PARENTAL_RATING_LENGTH 1
 unsigned short parentalRating;
 
-#define EVENT_NAME_OFFSET 87  //91  TF5100 88
+#define EVENT_NAME_OFFSET 87  // TF5800 91  TF5100 88
 #define EVENT_NAME_MAX_LENGTH 256
 char eventName[EVENT_NAME_MAX_LENGTH];
 
@@ -263,18 +264,18 @@ void LoadHeaderInfo(char filename[ TS_FILE_NAME_SIZE ], int dir, int index)
 
     myfiles[dir][index]->svcType = buf[SVC_TYPE_OFFSET];
 
-    memcpy(myfiles[dir][index]->serviceName,(buf+SERVICE_NAME_OFFSET),SERVICE_NAME_LENGTH);   
+    memcpy(myfiles[dir][index]->serviceName,(buf+SERVICE_NAME_OFFSET+headerOffset2),SERVICE_NAME_LENGTH);   
     myfiles[dir][index]->serviceName[SERVICE_NAME_LENGTH]='\0';
 
     myfiles[dir][index]->parentalRating = buf[PARENTAL_RATING_OFFSET+headerOffset];
     
-    myfiles[dir][index]->eventNameLength = buf[EVENT_NAME_LENGTH_OFFSET+headerOffset];
+    myfiles[dir][index]->eventNameLength = buf[EVENT_NAME_LENGTH_OFFSET+headerOffset]-headerOffset2;
     myfiles[dir][index]->eventNameLength = min( myfiles[dir][index]->eventNameLength, EVENT_NAME_MAX_LENGTH );  //Make sure we don't exceed our limit.
 
-    memcpy(myfiles[dir][index]->eventName,(buf+EVENT_NAME_OFFSET+headerOffset),myfiles[dir][index]->eventNameLength);   
+    memcpy(myfiles[dir][index]->eventName,(buf+EVENT_NAME_OFFSET+headerOffset+headerOffset2),myfiles[dir][index]->eventNameLength);   
     myfiles[dir][index]->eventName[myfiles[dir][index]->eventNameLength]='\0';
 
-    memcpy(myfiles[dir][index]->eventDescName,(buf+EVENT_NAME_OFFSET+headerOffset+myfiles[dir][index]->eventNameLength),EVENT_NAME_MAX_LENGTH);   
+    memcpy(myfiles[dir][index]->eventDescName,(buf+EVENT_NAME_OFFSET+headerOffset+headerOffset2+headerOffset2+myfiles[dir][index]->eventNameLength),EVENT_NAME_MAX_LENGTH);   
 
     myfiles[dir][index]->extInfoLength = buf[EXT_INFO_LENGTH_OFFSET+headerOffset]*256 + buf[EXT_INFO_LENGTH_OFFSET+headerOffset+1];
     myfiles[dir][index]->extInfoLength = min( myfiles[dir][index]->extInfoLength, EXT_INFO_MAX_LENGTH );  //Make sure we don't exceed our limit.
@@ -553,66 +554,6 @@ bool MatchFileStamp( char* stamp, char* str)
                                break;
                 }
             }
-/*                               
-            if ( stamp[l] == CHAR_ASTERIX )  // * is a wildcard for -_./ 
-            {   
-//               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH)&& ( str[start+l] != CHAR_SPACE))
-               if ( (str[start+l] != CHAR_DASH ) && (str[start+l] != CHAR_SCORE ) && ( str[start+l] != CHAR_DOT) && ( str[start+l] != CHAR_SLASH))
-                  return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_SPACE ) 
-            {   
-               if ( (str[start+l] != CHAR_SPACE ) && (str[start+l] != CHAR_SCORE ))
-                  return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_PLUS ) 
-            {   
-               if ( str[start+l] != CHAR_PLUS )
-                  return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_HASH ) 
-            {
-                 if ( str[start+l] != CHAR_HASH)
-                    return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_DASH ) 
-            {
-                 if ( str[start+l] != CHAR_DASH )
-                    return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_DOT ) 
-            {
-                 if ( str[start+l] != CHAR_DOT )
-                    return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_SLASH ) 
-            {
-                 if ( str[start+l] != CHAR_SLASH )
-                    return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_SCORE ) 
-            {
-                 if ( str[start+l] != CHAR_SCORE )
-                    return FALSE;
-            }
-            else 
-            if ( stamp[l] == CHAR_NINE ) 
-            {
-                 if (( str[start+l] < CHAR_ZERO ) || ( str[start+l] > CHAR_NINE))
-                    return FALSE;
-            }
-            else 
-            if ((str[start+l] < CHAR_ZERO) || (str[start+l] > CHAR_NINE)) 
-               return FALSE;
-        } 
-*/        
      }  
      // TAP_Print("%s< matched on %s<\r\n",str,stamp);           
      return TRUE;            

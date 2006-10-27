@@ -5,7 +5,7 @@
 
 	This module is the main event handler
   
-Name	: OZ Archive.c
+Name	: OZ Archive.c   
 Author	: kidhazy
 Version	: 0.08
 For		: Topfield TF5x00 series PVRs
@@ -89,7 +89,7 @@ char* TAPIniDir;
 #include "LoadArchiveInfo.c" 
 #include "PlaybackDatFile.c"
 #include "logo.C"
-#include "TimeBar.c"
+#include "TimeBar.c" 
 #include "ArchiveDisplay.c"
 //#include "ArchiveDelete.c" 
 #include "ArchiveStop.c"
@@ -564,19 +564,34 @@ int TAP_Main (void)
     #ifdef WIN32
        appendToLogfile("TAP_Main: Detected model is NOT TF5800.", WARNING);
        unitModelType=TF5000t;
-       headerOffset=0;        // Do not apply any offset when reading the header.
+       headerOffset =0;        // Do not apply any offset when reading the header.
+       headerOffset2=0;        // Do not apply any offset when reading the header.
     #else
-    if (GetModel() == TF5800t) 
+    switch ( GetModel() ) 
     {
-       unitModelType=TF5800t;
-       appendToLogfile("TAP_Main: Detected model TF5800.", WARNING);
-       headerOffset=4;        // The TF5800 has some fields out 4 bytes compared to the TF500.
-    }
-    else
-    {
-       appendToLogfile("TAP_Main: Detected model is NOT TF5800.", WARNING);
-       unitModelType=TF5000t;
-       headerOffset=0;        // Do not apply any offset when reading the header.
+           case TF5800t: 
+                         unitModelType=TF5800t;
+                         appendToLogfile("TAP_Main: Detected model TF5800.", WARNING);
+                         headerOffset =4;        // The TF5800 has some fields out 4 bytes compared to the TF500.
+                         headerOffset2=0;        // Do not apply any offset when reading the header.
+                         break;
+                         
+           case TF5100:
+           case TF5100c:
+           case TF5100t_MP:
+           case TF5100c_MP:
+                         unitModelType=TF5100;
+                         appendToLogfile("TAP_Main: Detected model TF5100.", WARNING);
+                         headerOffset =0;        // The TF5100 has the main fields the same as the TF5000.
+                         headerOffset2=1;        // But some fields are out by 1.
+                         break;
+                         
+           default:
+                         unitModelType=TF5000t;
+                         appendToLogfile("TAP_Main: Detected model TF5100.", WARNING);
+                         headerOffset =0;        // Do not apply any offset when reading the header.
+                         headerOffset2=0;        // Do not apply any offset when reading the header.
+                         break;
     }
     #endif
     

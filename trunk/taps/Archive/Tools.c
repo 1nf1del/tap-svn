@@ -537,56 +537,6 @@ char* GetCurrentDir(void)
 }
 
 
-/*
-// Return the Topfield model number
-TYPE_ModelType GetModel()
-{
-/*
-406 TF5000/5500
-416 TF5000t
-436 TF5010/TF5510
-446 TF5000 Black Panther/White Polar
-456 TF5800t MHEG
-466 TF5000t Black Panther/White Polar
-486 TF5010-SE
-501 TF5000CI (ME)
-1416 TF5000 Masterpiece
-1426 TF5000t Masterpiece
-1456 TF5010 Masterpiece
-1501 TF5000CI (EUR)
-10446 TF5200c
-12406 TF5100c
-13406 TF5100
-*/
-/*
-#ifdef WIN32
-return TF5000_BP_WP;
-#endif               
-        appendIntToLogfile("GetModel: sysID =%d",*sysID, WARNING);
-
-        switch ( *sysID )
-        {
-        case 406:	return TF5000_5500;
-        case 416:	return TF5000t;
-        case 436:	return TF5010_5510;
-        case 446:	return TF5000_BP_WP;
-        case 456:	return TF5800t;
-        case 466:	return TF5000t_BP_WP;
-        case 486:	return TF5010_SE;
-        case 501:	return TF5000CI_ME;
-        case 1416:	return TF5000_MP;
-        case 1426:	return TF5000t_MP;
-        case 1456:	return TF5010_MP;
-        case 1501:	return TF5000CI_EUR;
-        case 10416:	return PC5101c_5102c;
-        case 10426:	return PC5101t_5102t;
-        case 10446:	return TF5200c;
-        case 12406:	return TF5100c;
-        case 13406:	return TF5100;
-        }
-        return TFOther;
-}
-*/
 
 bool OsdActive (int startCol, int startRow, int endCol, int endRow)
 {

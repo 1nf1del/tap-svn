@@ -332,7 +332,7 @@ void RecycleRestoreAction(void)
     while (fileAlreadyExists)
     {
          fileIncrement++;         // Increase the counter for the number to append to the filename.
-         if (fileIncrement > 2)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
+         if (fileIncrement > 99999)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
          {
               sprintf(str1,"More than 99999 files in directory called:");
               ShowMessageWin( rgn, "Recyle Bin Failure.", str1, str2, 500 ); 
