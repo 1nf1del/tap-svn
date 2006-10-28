@@ -487,10 +487,20 @@ dword ArchiveInfoKeyHandler(dword key)
                                            break;
 
 								case 2 :   // RENAME
+                                           if ((myfiles[CurrentDirNumber][chosenLine]->isPlaying) && (inPlaybackMode))  // We don't move playing files
+                                           {
+                                                 ShowMessageWin( rgn, "File Rename Not Allowed", "Renaming of files that are playing", "is not allowed.", 350 );
+                                                 break; 
+                                           }
                                            EditFileName();
                                            break;
 
 								case 3 :   // MOVE
+                                           if ((myfiles[CurrentDirNumber][chosenLine]->isPlaying) && (inPlaybackMode))  // We don't move playing files
+                                           {
+                                                 ShowMessageWin( rgn, "File Move Not Allowed", "Moving of files that are playing", "is not allowed.", 350 );
+                                                 break; 
+                                           }
                                            ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message
                                            populateMoveFileList();          // Populate the list of move folders.
                                            DisplayArchiveMoveFolderList();  // Display the list of move folders.

@@ -1636,6 +1636,11 @@ dword ArchiveWindowKeyHandler(dword key)
                             break;
 
         case RKEY_Yellow:   // Move file or folder
+                            if ((myfiles[CurrentDirNumber][chosenLine]->isPlaying) && (inPlaybackMode))  // We don't move playing files
+                            {
+                                 ShowMessageWin( rgn, "File Move Not Allowed", "Moving of files that are playing", "is not allowed.", 350 );
+                                 break; 
+                            }
                             if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
                                  ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message

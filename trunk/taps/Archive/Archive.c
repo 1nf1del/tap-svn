@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive"
-#define VERSION "0.08n"          
+#define VERSION "0.08p"          
 
 #include "tap.h"
 
@@ -576,13 +576,21 @@ int TAP_Main (void)
                          headerOffset2=0;        // Do not apply any offset when reading the header.
                          break;
                          
+           case PC5101c_5102c:	// Procaster
+	       case PC5101t_5102t: 
+                         unitModelType=PC5101c_5102c;
+                         appendToLogfile("TAP_Main: Detected model PC5101.", WARNING);
+                         headerOffset =0;        // The PC5101 has the main fields the same as the TF5000.
+                         headerOffset2=1;        // But some fields are out by 1.
+                         break;
+                
            case TF5100:
            case TF5100c:
            case TF5100t_MP:
            case TF5100c_MP:
                          unitModelType=TF5100;
                          appendToLogfile("TAP_Main: Detected model TF5100.", WARNING);
-                         headerOffset =0;        // The TF5100 has the main fields the same as the TF5000.
+                         headerOffset =-4;        // The TF5100 has the main fields the same as the TF5000.
                          headerOffset2=1;        // But some fields are out by 1.
                          break;
                          
