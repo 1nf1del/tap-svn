@@ -11,7 +11,7 @@ Version	: 0.08
 For		: Topfield TF5x00 series PVRs
 Licence	:  
 Descr.	:
-Usage	:
+Usage	: 
 History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.02 kidhazy    11-05   TF5800 support
           v0.03 kidhazy    11-05 
@@ -29,9 +29,9 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                      
+                         
   
-#define DEBUG   0      // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
+#define DEBUG   0       // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
 
 // Define the error levels 
 #define ERR     1
@@ -39,10 +39,10 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define INFO    3
 
 // Define the level of info or error message to be displayed.
-#define LOGLEVEL ERR   // 1 = errors         2 = warnings      3 = information
+#define LOGLEVEL WARNING        // 1 = errors         2 = warnings      3 = information
     
-#define TAP_NAME "Archive"
-#define VERSION "0.08p"          
+#define TAP_NAME "Archive" 
+#define VERSION "0.08q"          
 
 #include "tap.h"
 
@@ -103,7 +103,7 @@ char* TAPIniDir;
 #include "ConfigMenu.c"
 #include "GmtOffset.c"
 #include "IniFile.c"
-        
+          
                               
 static dword lastTick;
 static byte oldHour;
@@ -303,6 +303,7 @@ void CheckFlags( void )
   
 	if ( returnFromMove == TRUE )											// Handle returning from the Move window.
 	{																		// redraw the underlying window if it's changed.
+        appendToLogfile("CheckFlags: returnFromMove IS true.", WARNING);
 	    returnFromMove = FALSE;
 		if ( fileMoved )        // If the file/folder was renamed, refresh the list.
         {
@@ -314,18 +315,29 @@ void CheckFlags( void )
              RefreshArchiveList( FALSE );
         }
     }
-          
+                
 	if ( returnFromDelete == TRUE )								// Handle returning from delete.
 	{	   														// redraw the underlying window if it's changed.
+        appendToLogfile("CheckFlags: returnFromDelete IS true.", WARNING);
 	    returnFromDelete = FALSE;
 		if ( fileDeleted )        // If the file/folder was deleted, reload the file/folder data and refresh the list.
         {
+             appendToLogfile("CheckFlags: fileDeleted IS true.", WARNING);
              if (infoWindowShowing) CloseArchiveInfoWindow();   // If we deleted the file from the info window, then close the info window.
              if (myfiles[CurrentDirNumber][chosenLine]->attr == ATTR_FOLDER)  // Delete any subfolders first.
+             {
+                   appendToLogfile("CheckFlags: file was a folder.  Calling  DeleteMyfilesFolderEntry.", WARNING);
                    DeleteMyfilesFolderEntry( myfiles[CurrentDirNumber][chosenLine]->directoryNumber);
+             }     
+             appendToLogfile("CheckFlags: returnFromDelete handling.  Calling  DeleteMyfilesEntry.", WARNING);
+             appendIntToLogfile("CheckFlags: returnFromDelete handling.  Calling  DeleteMyfilesEntry with: CurrentDirNumber=%d",CurrentDirNumber, WARNING);
+             appendIntToLogfile("CheckFlags: returnFromDelete handling.  Calling  DeleteMyfilesEntry with: chosenLine=%d",chosenLine, WARNING);
              DeleteMyfilesEntry(CurrentDirNumber, chosenLine);
+             appendToLogfile("CheckFlags: returnFromDelete handling.  Returned from DeleteMyfilesEntry.", WARNING);
              fileDeleted = FALSE; 
+             appendToLogfile("CheckFlags: returnFromDelete handling.  Calling RefreshArchiveList.", WARNING);
              RefreshArchiveList(FALSE);                         // Redisplay the entire list.
+             appendToLogfile("CheckFlags: returnFromDelete handling.  Returned from RefreshArchiveList.", WARNING);
         }
 	}
    
@@ -350,6 +362,7 @@ void CheckFlags( void )
 
     if ( returnFromRecycleBinWindowEmpty == TRUE )              // Handle returning from the Recycle Bin window after deleting recycled files.
     {
+        appendToLogfile("CheckFlags: returnFromRecycleBinWindowEmpty IS true.", WARNING);
         returnFromRecycleBinWindowEmpty = FALSE;
         TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
         loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
@@ -535,7 +548,7 @@ bool TSRCommanderExitTAP (void)
 {	
 
 	terminateFlag = TRUE;	// Will cause TAP to terminate and unload.
-
+ 
 	return TRUE;
 }
 
@@ -600,7 +613,7 @@ int TAP_Main (void)
                          headerOffset =0;        // Do not apply any offset when reading the header.
                          headerOffset2=0;        // Do not apply any offset when reading the header.
                          break;
-    }
+    } 
     #endif
     
 	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.

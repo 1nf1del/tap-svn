@@ -244,7 +244,7 @@ void LoadPlayData( void )
         playedFiles[0] = TAP_MemAlloc( sizeof (*playedFiles[0]));
         playedFiles[0]->startCluster = 0;   // Store the disk start cluster.
         playedFiles[0]->currentBlock = 0;   // Store the current block position.
-        playedFiles[0]->totalBlock   = 0;   // Store the total block size.
+        playedFiles[0]->totalBlock   = 1;   // Store the total block size. Set to 1 to ensure no division by 0 errors.
         strcpy(playedFiles[0]->name,"Placeholder for last played file.rec");        // Store the file name.
         
         playedFiles[1] = TAP_MemAlloc( sizeof (*playedFiles[1]));
@@ -299,7 +299,7 @@ void DeletePlayData( void )
     {
         myfiles[CurrentDirNumber][i]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
         myfiles[CurrentDirNumber][i]->currentBlock = 0;
-        myfiles[CurrentDirNumber][i]->totalBlock = 0;
+        myfiles[CurrentDirNumber][i]->totalBlock   = 1;   // Set to 1 to ensure no division by 0 errors.
     }   
 
     ShowMessageWin( rgn, "All Progress Info Cleared.", "Removed playback information", "for all recorded files.", 400 );

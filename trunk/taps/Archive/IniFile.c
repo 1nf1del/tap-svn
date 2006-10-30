@@ -259,7 +259,7 @@ bool ReadConfigurationFile( void )
 	if ( readFile == NULL ) return FALSE;								// and we can open it ok
 
 	dataBuffer_ini = TAP_MemAlloc( DATA_BUFFER_SIZE_ini );				// Read the data in one hit (quicker), then process from RAM
-	memset( dataBuffer_ini, '\0', DATA_BUFFER_SIZE_ini );					// set the whole buffer to the string termination character (null)
+	memset( dataBuffer_ini, '\0', DATA_BUFFER_SIZE_ini );				// set the whole buffer to the string termination character (null)
 	dataBufferPtr_ini = 0;
 
 	fileLength = TAP_Hdd_Flen( readFile );								// how big is the file

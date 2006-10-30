@@ -53,6 +53,8 @@ void populateMoveFileList(void)
 {
      int  index, numberOfEntries;
 
+     appendToLogfile("populateMoveFileList: Started.", WARNING);
+
      numberOfEntries = myfolders[CurrentDirNumber]->numberOfFiles;
  	 
  	 numberOfDestinationFolders = 0;
@@ -83,6 +85,7 @@ void populateMoveFileList(void)
         }		
 
 	 }
+     appendToLogfile("populateMoveFileList: Finished.", WARNING);
 }
 
 //------------
@@ -92,6 +95,7 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      bool moveres, fileExistRes;
      char targetDir[500];
 
+     appendToLogfile("MoveAFile: Started.", WARNING);
 
      // Perform check that the Move routine is available for this firmware.
      #ifdef WIN32
@@ -104,6 +108,7 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      }
      #endif
     
+     appendToLogfile("MoveAFile: Creating target filename.", WARNING);
      
      // Create the fully qualified target directory name.  
      //
@@ -117,10 +122,13 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      // Check in the target directory to make sure a file with the same name doesn't already exists.
      //
      // Change to the target directory.
+     appendStringToLogfile("MoveAFile: Changing to targetdir: %s.",targetDir, WARNING);
      GotoPath( targetDir );
      // Check for the same file.
+     appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Exist for:%s",sourceFile, WARNING);
      fileExistRes = TAP_Hdd_Exist(sourceFile);
      // Return to the original directory.
+     appendStringToLogfile("MoveAFile: Changing to sourceDir: %s.",sourceDir, WARNING);
      GotoPath( sourceDir );
      // If the same file exists in the targetdir then exit.
      if (fileExistRes)
@@ -136,7 +144,12 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      #ifdef WIN32
             moveres = TRUE;
      #else
+            appendToLogfile("MoveAFile: Calling TAP_Hdd_Move", WARNING);
+            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move sourceDir: %s",sourceDir, WARNING);
+            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move targetDir: %s",targetDir, WARNING);
+            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move sourceFile: %s",sourceFile, WARNING);
             moveres = TAP_Hdd_Move( sourceDir, targetDir, sourceFile);
+            appendToLogfile("MoveAFile: TAP_Hdd_Move finished.", WARNING);
      #endif
 
 
@@ -145,6 +158,7 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
      if (FALSE)
      #else  
+     appendToLogfile("MoveAFile: Calling TAP_Hdd_Exist", WARNING);
      if (TAP_Hdd_Exist(sourceFile))  // If the file/folder still exists in the current directory, then the move didn't work.
      #endif
      {
@@ -168,6 +182,7 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      ShowMessageWin( rgn, "Move Test #3.", "Moving Test2.rec", "to .. folder", 400 );
      moveres = TAP_Hdd_Move( "DataFiles/Mine2", "DataFiles/Mine2/..", "Test2.rec");
 */   
+     appendToLogfile("MoveAFile: Finished.", WARNING);
    
 }
 
@@ -204,6 +219,8 @@ void DisplayArchiveMoveFolderList()
 {
     int printLine, index, lineHeight;
 
+    appendToLogfile("DisplayArchiveMoveFolderList: Started.", WARNING);
+
     // Vertical spacing for each of the rows to display the list of target folders.
     lineHeight = 30;
 
@@ -236,6 +253,7 @@ void DisplayArchiveMoveFolderList()
     // Copy the screen region from memory to the real screen.  This reduces any flicker when moving between rows.
     TAP_Osd_Copy( moveRgn, rgn, MOVE_WINDOW_X+20, MOVE_WINDOW_Y+50+(1*lineHeight), MOVE_WINDOW_W-20-8, (MAX_MOVE_FOLDERS_SHOWN*lineHeight), MOVE_WINDOW_X+20, MOVE_WINDOW_Y+50+(1*lineHeight), FALSE );
     
+    appendToLogfile("DisplayArchiveMoveFolderList: Finised.", WARNING);
 
 }
 
@@ -245,6 +263,8 @@ void DisplayArchiveMoveFolderList()
 void DisplayArchiveMoveWindow()
 {
     char title[50];
+
+    appendToLogfile("DisplayArchiveMoveWindow: Started.", WARNING);
  
     // Display the pop-up window - will also clear any old text if we are doing a refresh.
     TAP_Osd_PutGd( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, &_popup476x416Gd, TRUE );
@@ -255,6 +275,7 @@ void DisplayArchiveMoveWindow()
     PrintCenter( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y +  14, MOVE_WINDOW_X+MOVE_WINDOW_W, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	
     DisplayMoveLine();
+    appendToLogfile("DisplayArchiveMoveWindow: Finised.", WARNING);
 }
 
 

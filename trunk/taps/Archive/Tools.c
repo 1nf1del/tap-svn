@@ -446,7 +446,7 @@ char* GetCurrentDir(void)
              appendToLogfile("GetCurrentDir: TAP_MemAlloc (2) failed.", ERR);
              return NULL;
     }         
-    appendToLogfile("GetCurrentDir: after memalloc.", INFO);
+    appendToLogfile("GetCurrentDir: after memalloc.", WARNING);
 
     strcpy (path, "");
     path[0]='\0';

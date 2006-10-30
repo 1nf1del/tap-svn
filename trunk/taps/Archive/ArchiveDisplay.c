@@ -1193,10 +1193,11 @@ void DisplayArchiveLine(int line, int i)
 
 	if ( line == 0 ) return;											// bounds check
 
-	if ( chosenLine == line )											// highlight the current cursor line
+	if ( ( chosenLine == line )	&& ( chosenLine != 0 ) )      			// highlight the current cursor line
 	   TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_highlightGd, TRUE );
 	else
        TAP_Osd_PutGd( listRgn, INFO_AREA_X, i*Y1_STEP+Y1_OFFSET-8, &_rowaGd, TRUE );
+
 
  	if ( line <= maxShown )	DisplayArchiveText(line, i);								// anything to display ?
 
@@ -1315,7 +1316,7 @@ void UpdateFolderSelectionText(int chosenLine)
 {
     char	str[500];
 
-    appendIntToLogfile("UpdateFolderSelectionText: Called with chosenLine=%d", chosenLine, WARNING);
+    appendIntToLogfile("UpdateFolderSelectionText: Called with chosenLine=%d", chosenLine, INFO);
 
     // folder name
 	if ((myfiles[CurrentDirNumber][chosenLine]->attr == 240) || (myfiles[CurrentDirNumber][chosenLine]->attr == PARENT_DIR_ATTR))
@@ -1324,7 +1325,7 @@ void UpdateFolderSelectionText(int chosenLine)
 	    TAP_SPrint(str,"Folder: %s",  myfiles[CurrentDirNumber][chosenLine]->name );
 	TAP_Osd_PutStringAf1622( memRgn, INFO_TEXT_X, INFO_TEXT_Y, INFO_TEXT_W, str, INFO_COLOUR, INFO_FILL_COLOUR );
 
-    appendToLogfile("UpdateFolderSelectionText: Finished.", WARNING);
+    appendToLogfile("UpdateFolderSelectionText: Finished.", INFO);
 
 }
 
@@ -1342,7 +1343,10 @@ void UpdateSelectionNumber(void)
 	
 	TYPE_TapChInfo	currentChInfo;
 
-    appendToLogfile("UpdateSelectionNumber: Called.", WARNING);
+    appendToLogfile("UpdateSelectionNumber: Called.", INFO);
+ 
+    if (DEBUG == 2) return; // Don't display this info if we are debugging to the screen.
+    
 
     TAP_Osd_FillBox( memRgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
 
@@ -1379,7 +1383,7 @@ void UpdateSelectionNumber(void)
     //
     TAP_Osd_Copy( memRgn, rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_AREA_X, INFO_AREA_Y, FALSE );
 
-    appendToLogfile("UpdateSelectionNumber: Finished.", WARNING);
+    appendToLogfile("UpdateSelectionNumber: Finished.", INFO);
 }
 
 
@@ -1504,6 +1508,13 @@ dword ArchiveWindowKeyHandler(dword key)
                                  if (maxShown < NUMBER_OF_LINES) printLine = chosenLine;
                                  else printLine = NUMBER_OF_LINES;
                             }      
+							if ( maxShown == 0 ) 		// don't move the cursor if no files shown
+                            {
+                                 chosenLine = 0;			
+                                 printLine  = 0;
+                                 page       = 1;
+                            }
+                            
 							page = (chosenLine-1) / NUMBER_OF_LINES;
                             
                             UpdateListClock();
@@ -1532,6 +1543,12 @@ dword ArchiveWindowKeyHandler(dword key)
                                 printLine  = 1;
                             }
 							page = (chosenLine-1) / NUMBER_OF_LINES;
+							if ( maxShown == 0 ) 		// don't move the cursor if no files shown
+                            {
+                                 chosenLine = 0;			
+                                 printLine  = 0;
+                                 page       = 1;
+                            }
                             
                             // Unhighlight the old selection.  Otherwise you may see 2 highlighted selections as the new page redraws from top to bottom.
                             if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine,oldPrintLine);
@@ -1580,7 +1597,7 @@ dword ArchiveWindowKeyHandler(dword key)
 
 
 		case RKEY_Blue :	// Resume last playback file.
-                            if ( playedFiles[0]->totalBlock <=0 ) // If no last playback has been set, ignore Blue.
+                            if ( playedFiles[0]->totalBlock <=1 ) // If no last playback has been set, ignore Blue.
                             {
                                  ShowMessageWin( rgn, "No Last Playback File", "The last playback file was not found.", "(It may have been deleted.)", 350 );
                                  break; 
@@ -1770,7 +1787,14 @@ void RefreshArchiveList( bool reposition )
           printLine--;                             // move the printline back as well.
           if (printLine == 0) printLine = NUMBER_OF_LINES;  // If we delete the last file on the page, move make to the previous page.
     }
-
+    
+    // Special handling if we have deleted all entries.   Set all pointers to 0.
+    if (maxShown == 0)
+    {
+        printLine  = 0;
+        chosenLine = 0;
+    };
+    
     if (printLine > NUMBER_OF_LINES) printLine = NUMBER_OF_LINES; // Catch any changes to number of lines.
 
 	page = (chosenLine-1) / NUMBER_OF_LINES;

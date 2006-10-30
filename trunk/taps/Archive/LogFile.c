@@ -15,9 +15,9 @@ History	: v0.0 kidhazy: 27-09-05	Inception date.
 **************************************************************/
 
 #define LOGFILE_NAME "Archive.log"
-#define SCREEN_DELAY 15
+#define SCREEN_DELAY 3
 #define SCREEN_LOG_Y_MAX 500
-#define SCREEN_LOG_Y_START 100
+#define SCREEN_LOG_Y_START 450
 
 
 #if DEBUG == 1

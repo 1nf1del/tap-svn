@@ -23,6 +23,8 @@ void DeleteAction(int type)
 {
      char str[TS_FILE_NAME_SIZE], title[50], str1[200];
 
+     appendToLogfile("DeleteAction: Started.", INFO);
+
      switch (type)
      {
            case 0:  TAP_SPrint(title, "Folder Delete Failed.");
@@ -34,7 +36,9 @@ void DeleteAction(int type)
                     break;
      }
 
+     appendStringToLogfile("DeleteAction: Calling TAP_Hdd_Delete for: %s",myfiles[CurrentDirNumber][chosenLine]->name, WARNING);
      TAP_Hdd_Delete(myfiles[CurrentDirNumber][chosenLine]->name);
+     appendToLogfile("DeleteAction: TAP_Hdd_Delete finished.", WARNING);
      
      // Check if the delete was successful.
      #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
@@ -49,6 +53,9 @@ void DeleteAction(int type)
      }
      else
          fileDeleted = TRUE;
+         
+     appendToLogfile("DeleteAction: Finished.", INFO);
+         
 }     
 
 
@@ -59,10 +66,16 @@ void DeleteFileFolder(void)
 {
      char str[TS_FILE_NAME_SIZE];
      
+     appendToLogfile("DeleteFileFolder: Started.", INFO);
+
      // If the file that has been chosen to be deleted is the current playback, and we're still in playback mode, stop it before deleting it.
      if ((myfiles[CurrentDirNumber][chosenLine]->isPlaying) && (inPlaybackMode))
+     {
+        appendToLogfile("DeleteFileFolder: File playing.  Calling TAP_Hdd_StopTs.", WARNING);
         TAP_Hdd_StopTs();  // Stop the current playback to allow us to delete the file.
-
+        appendToLogfile("DeleteFileFolder: File playing.  TAP_Hdd_StopTs finished.", WARNING);
+     }
+        
      //  Check the chosen file attribute to decide if we are deleting a file or a folder.
      switch (myfiles[CurrentDirNumber][chosenLine]->attr)
      {
@@ -83,6 +96,7 @@ void DeleteFileFolder(void)
                                               break;
                                 }
      }
+     appendToLogfile("DeleteFileFolder: Finished.", INFO);
 
 }
                                            
@@ -97,6 +111,8 @@ void ReturnFromDeleteYesNo( bool result)
      
     char str1[200], str2[200];
     
+    appendToLogfile("ReturnFromDeleteYesNo: Started.", INFO);
+
     // Check the result of the confirmation panel to decide what to do.
 	switch (result)
     {
@@ -110,6 +126,7 @@ void ReturnFromDeleteYesNo( bool result)
     }   
     returnFromDelete    = TRUE;		//  Set flag that will cause a redraw of file list.
     deleteWindowShowing = FALSE;    //  Clear the flag that show the delete file is showing.
+    appendToLogfile("ReturnFromDeleteYesNo: Finished.", INFO);
 }
 
 
@@ -118,6 +135,8 @@ void ReturnFromDeleteYesNo( bool result)
 void ActivateDeleteWindow(char* filename, dword attr)
 {
     char title[50], str1[200], str2[200], str3[200];
+
+    appendToLogfile("ActivateDeleteWindow: Started.", INFO);
 
     switch (attr)
     {
@@ -181,6 +200,7 @@ void ActivateDeleteWindow(char* filename, dword attr)
                              break;
     }
     
+    appendToLogfile("ActivateDeleteWindow: Finished.", INFO);
 
 }
 

@@ -79,11 +79,14 @@ void DeleteDirRecycleFiles(char* directory, bool recursive)
 	{
           if (IsFileRecycledRec(file.name, file.attr))
           {
+               appendToLogfile("DeleteDirRecycleFiles: Loop.  calling TAP_Hdd_Delete", WARNING);
                TAP_Hdd_Delete(file.name);
+               appendToLogfile("DeleteDirRecycleFiles: Loop.  TAP_Hdd_Delete finished.", WARNING);
                // Check if the delete was successful.
                #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
                if (FALSE)
                #else  
+               appendToLogfile("DeleteDirRecycleFiles: Loop.  calling TAP_Hdd_Exist", WARNING);
                if (TAP_Hdd_Exist(file.name))  // Delete didn't work
                #endif
                {
@@ -115,11 +118,15 @@ void DeleteDirRecycleFiles(char* directory, bool recursive)
           strcat(subdir,"/");                     // Add a slash.
           strcat(subdir, subfolders[i].name);     // Add the subfolder name.
           // Change directory to the subfolder.
+          appendStringToLogfile("DeleteDirRecycleFiles: Recursive loop.  calling TAP_Hdd_ChangeDir for: %s", subfolders[i].name, WARNING);
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
+          appendToLogfile("DeleteDirRecycleFiles: Recursive loop.  TAP_Hdd_ChangeDir finishd", WARNING);
           // Recursively call the LoadArchiveInfo to read/load the information for te subfolder.
           DeleteDirRecycleFiles(subdir, TRUE);          
           // Go back to our starting directory, ready for anymore sub directories.
+          appendStringToLogfile("DeleteDirRecycleFiles: Recursive loop.  calling GotoPath: %s", directory, WARNING);
           GotoPath(directory);              
+          appendToLogfile("DeleteDirRecycleFiles: Recursive loop end.", WARNING);
        }
     }   
 
@@ -135,6 +142,8 @@ void ReturnFromEmptyBinYesNo( bool result)
      
     char str1[200], str2[200];
 
+    appendToLogfile("ReturnFromEmptyBinYesNo: Started.", INFO);
+
     // Check the result of the confirmation panel to decide what to do.
 	switch (result)
     {
@@ -149,6 +158,7 @@ void ReturnFromEmptyBinYesNo( bool result)
 	       case FALSE: // NO
                        break;	
     }   
+    appendToLogfile("ReturnFromEmptyBinYesNo: Finished.", INFO);
 }
 
 
@@ -249,6 +259,8 @@ void RecycleAction(void)
 	bool fileAlreadyExists;   // Flag to indicate a file with the same name already exists.
 	int  fileIncrement;       // A counter used in case we need to append a number to an already existing file name. 
     int  result;
+
+    appendToLogfile("RecycleAction: Started.", INFO);
 	
 	// If we try to recycle a file and there is already an existing file in the recycle-bin
 	// with the same name, we will append an incrementing counter to the file name. (eg. news-1.rec.del  news-23.rec.del)
@@ -263,13 +275,16 @@ void RecycleAction(void)
 	strcat( fileName, RECYCLED_STRING );	             // Append ".rec.del" to the base filename
 
     // Check if the file already exists.
+    appendStringToLogfile("RecycleAction: Calling TAP_Hdd_Exist for:%s", fileName, WARNING);
     fileAlreadyExists = TAP_Hdd_Exist(fileName);
+    appendToLogfile("RecycleAction: TAP_Hdd_Exist finished.", WARNING);
     
     // If the 'renamed' recycle-bin file already exists, we'll add a counter to the end
     // of the file name and try again.
     while (fileAlreadyExists)
     {
          fileIncrement++;         // Increase the counter for the number to append to the filename.
+         appendIntToLogfile("RecycleAction: fileAlreadyExists loop:%d",fileIncrement, WARNING);
          if (fileIncrement > 99999)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
          {
               sprintf(str1,"More than 99999 files in the bin called:");
@@ -281,14 +296,19 @@ void RecycleAction(void)
          strncpy( fileName, baseFileName, 256);         // Copy back the original filename
          strcat(  fileName, counter);                   // Append the counter text to the filename
 	     strcat(  fileName, RECYCLED_STRING );	        // Append the ".rec.del" to the end.
+         appendStringToLogfile("RecycleAction: fileAlreadyExists loop calling TAP_Hdd_Exist for: %s", fileName, WARNING);
          fileAlreadyExists = TAP_Hdd_Exist(fileName);   // Check if the file exists.
+         appendToLogfile("RecycleAction: fileAlreadyExists loop TAP_Hdd_Exist finished", WARNING);
     }
          
     // Rename the file.
     #ifdef WIN32  // If testing on WIN32 platform don't do rename as not yet implemented in the TAP SDK.
          result=0;
     #else
+         appendStringToLogfile("RecycleAction: Calling TAP_Hdd_Rename from:%s",currentFile.name, WARNING);
+         appendStringToLogfile("RecycleAction: Calling TAP_Hdd_Rename to:%s",  fileName,         WARNING);
          result=TAP_Hdd_Rename(currentFile.name,fileName);
+         appendToLogfile("RecycleAction: TAP_Hdd_Rename finished.", WARNING);
     #endif   
     if (result==0)    // If the result of the operation was zero we assume the file was renamed (and therefore recycled) correctly.
     {
@@ -301,6 +321,7 @@ void RecycleAction(void)
          ShowMessageWin( rgn, "Recyle Bin Failure.", str1, str2, 500 ); 
          fileDeleted = FALSE;
     }   
+    appendToLogfile("RecycleAction: Finished.", INFO);
 
 }
        
@@ -312,6 +333,9 @@ void RecycleRestoreAction(void)
 	bool fileAlreadyExists;   // Flag to indicate a file with the same name already exists.
 	int  fileIncrement;       // A counter used in case we need to append a number to an already existing file name. 
     int  result;
+
+    appendToLogfile("RecycleRestoreAction: Started.", INFO);
+    appendStringToLogfile("RecycleRestoreAction: currentFile.name=%s", currentFile.name, WARNING);
 	
 	// If we try to restore a file and there is already an existing file in the normal view
 	// with the same name, we will append an incrementing counter to the file name. (eg. news-1.rec  news-23.rec)
@@ -323,15 +347,19 @@ void RecycleRestoreAction(void)
 	StripFileName( baseFileName );                       // Strip off the ".rec.del"
     strncpy( fileName, baseFileName, 256 );              // Copy the stripped off filename in case we need to rename on a move.
 	strcat( fileName, REC_STRING );	             // Append ".rec" to the base filename
+    appendStringToLogfile("RecycleRestoreAction: baseFileName=%s", baseFileName, WARNING);
 
     // Check if the file already exists.
+    appendStringToLogfile("RecycleRestoreAction: Calling TAP_Hdd_Exist for: %s", fileName, WARNING);
     fileAlreadyExists = TAP_Hdd_Exist(fileName);
+    appendToLogfile("RecycleRestoreAction: TAP_Hdd_Exist finished.", WARNING);
     
     // If the 'renamed' recycle-bin file already exists, we'll add a counter to the end
     // of the file name and try again.
     while (fileAlreadyExists)
     {
          fileIncrement++;         // Increase the counter for the number to append to the filename.
+         appendIntToLogfile("RecycleRestoreAction: fileAlreadyExists loop: %d.",fileIncrement, WARNING);
          if (fileIncrement > 99999)   // If there are more than 99999 files in the recycle bin with the same name, abort the delete.
          {
               sprintf(str1,"More than 99999 files in directory called:");
@@ -343,14 +371,19 @@ void RecycleRestoreAction(void)
          strncpy( fileName, baseFileName, 256);            // Copy back the original filename
          strcat(  fileName, counter);                      // Append the counter text to the filename
 	     strcat(  fileName, REC_STRING );	               // Append the ".del" to the end.
+         appendStringToLogfile("RecycleRestoreAction: fileAlreadyExists loop: calling TAP_Hdd_Exist for: %s", fileName, WARNING);
          fileAlreadyExists = TAP_Hdd_Exist(fileName);      // Check if the file exists.
+         appendToLogfile("RecycleRestoreAction: fileAlreadyExists loop: TAP_Hdd_Exist finished", WARNING);
     }
          
     // Rename the file.
     #ifdef WIN32  // If testing on WIN32 platform don't do rename as not yet implemented in the TAP SDK.
-         result=0;
+    result=0;
     #else
-         result=TAP_Hdd_Rename(currentFile.name,fileName);
+    appendStringToLogfile("RecycleRestoreAction: fileAlreadyExists loop: calling TAP_Hdd_Rename from: %s", currentFile.name,WARNING);
+    appendStringToLogfile("RecycleRestoreAction: fileAlreadyExists loop: calling TAP_Hdd_Rename to: %s",   fileName,        WARNING);
+    result=TAP_Hdd_Rename(currentFile.name,fileName);
+    appendToLogfile("RecycleRestoreAction: fileAlreadyExists loop: TAP_Hdd_Rename finished", WARNING);
     #endif   
     if (result==0)    // If the result of the operation was zero we assume the file was renamed (and therefore restored) correctly.
     {
@@ -365,6 +398,7 @@ void RecycleRestoreAction(void)
          ShowMessageWin( rgn, "Recyle Bin Failure.", str1, str2, 500 ); 
          fileDeleted = FALSE;
     }   
+    appendToLogfile("RecycleRestoreAction: Finished.", INFO);
 }     
 
 
@@ -523,6 +557,12 @@ dword RecycleBinWindowKeyHandler(dword key)
                                  if (maxShown < NUMBER_OF_LINES) printLine = chosenLine;
                                  else printLine = NUMBER_OF_LINES;
                             }      
+							if ( maxShown == 0 ) 		// don't move the cursor if no files shown
+                            {
+                                 chosenLine = 0;			
+                                 printLine  = 0;
+                                 page       = 1;
+                            }
                             
                             UpdateListClock();
                             DrawArchiveList();
@@ -549,6 +589,13 @@ dword RecycleBinWindowKeyHandler(dword key)
                                 else chosenLine = 1;
                                 printLine  = 1;
                             }
+							if ( maxShown == 0 ) 		// don't move the cursor if no files shown
+                            {
+                                 chosenLine = 0;			
+                                 printLine  = 0;
+                                 page       = 1;
+                            }
+                            
                             // Unhighlight the old selection.  Otherwise you may see 2 highlighted selections as the new page redraws from top to bottom.
                             if ( oldChosenLine > 0 ) DisplayArchiveLine(oldChosenLine,oldPrintLine);
                             UpdateListClock();

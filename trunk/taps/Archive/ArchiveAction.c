@@ -74,7 +74,7 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
         appendToLogfile("DeleteProgressInfo: Last playback info matched.  Now deleting.", WARNING);
         memset(playedFiles[0],0,sizeof(*playedFiles[0]));   // Clear out the lastplayback entry.
         playedFiles[0]->startCluster = 0;
-        playedFiles[0]->totalBlock   = 0;
+        playedFiles[0]->totalBlock   = 1;  // Set to 1 to ensure no division by 0 errors.
         match = TRUE;
     }
         
@@ -87,7 +87,7 @@ void DeleteProgressInfo(int dirNumbr, int index, bool message)
         {
               myfiles[dirNumbr][index]->hasPlayed = FALSE;  // Reset indicator to show that file has not been played.
               myfiles[dirNumbr][index]->currentBlock = 0;
-              myfiles[dirNumbr][index]->totalBlock = 0;
+              myfiles[dirNumbr][index]->totalBlock   = 1;   // Set to 1 to ensure no division by 0 errors.
               appendIntToLogfile("DeleteProgressInfo: Found match at i==%d",i, WARNING);
               DeletePlayedFileEntry(i);
               match = TRUE;

@@ -839,6 +839,7 @@ void SetAllFilesToNotPresent(void)
 void DeleteMyfilesEntry(int dirNumber, int fileIndex)
 {
      int i;
+     appendToLogfile("DeleteMyfilesEntry: started.", INFO);
      
 //     if (IsFileRec(myfiles[dirNumber][fileIndex]->name, myfiles[dirNumber][fileIndex]->attr))   //If this is a recording
      if ( myfiles[dirNumber][fileIndex]->attr == ATTR_FOLDER)     // It's a folder
@@ -851,14 +852,21 @@ void DeleteMyfilesEntry(int dirNumber, int fileIndex)
         myfolders[dirNumber]->numberOfRecordings--;  // Decrease the number of recordings in this directory.    
      }   
      
+     appendToLogfile("DeleteMyfilesEntry: TAP_MemFree for myfiles[dirNumber][fileIndex].", WARNING);
+     appendIntToLogfile("DeleteMyfilesEntry: TAP_MemFree dirNumber=%d", dirNumber,WARNING);
+     appendIntToLogfile("DeleteMyfilesEntry: TAP_MemFree fileIndex=%d", fileIndex,WARNING);
      TAP_MemFree( myfiles[dirNumber][fileIndex] );   // Free the allocated memory of this entry as we repoint the pointers next.
+     appendToLogfile("DeleteMyfilesEntry: After TAP_MemFree.", WARNING);
      // Shuffle each of the remaining entries down one.
+     appendIntToLogfile("DeleteMyfilesEntry: Starting shuffle loop fileIndex=%d.",fileIndex, WARNING);
+     appendIntToLogfile("DeleteMyfilesEntry: Starting shuffle loop myfolders[dirNumber]->numberOfFiles=%d.",myfolders[dirNumber]->numberOfFiles, WARNING);
      for ( i=fileIndex; i < myfolders[dirNumber]->numberOfFiles; i++)
      {
          myfiles[dirNumber][i] = myfiles[dirNumber][i+1];  
      }
      
      myfolders[dirNumber]->numberOfFiles--;       // Decrease the number of files/folders in this directory.    
+     appendToLogfile("DeleteMyfilesEntry: finished.", INFO);
 
 }
 
@@ -1041,7 +1049,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
           //
           // FOLDER
           //
-          if (file.attr == ATTR_FOLDER)    // It's a subfolder, so store it's name for checking later.
+/*          if (file.attr == ATTR_FOLDER)    // It's a subfolder, so store it's name for checking later.
           {
              if (!FileExistsInList(directory, file, dirNumber, &foundIndex))    // If the file doesn't exist in this directory,create a new entry.
              {
@@ -1062,7 +1070,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
                 subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
              }   
           }
-             
+*/             
           TAP_Hdd_FindNext (&file);
     }
    
