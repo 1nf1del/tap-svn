@@ -1049,7 +1049,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
           //
           // FOLDER
           //
-/*          if (file.attr == ATTR_FOLDER)    // It's a subfolder, so store it's name for checking later.
+          if (file.attr == ATTR_FOLDER)    // It's a subfolder, so store it's name for checking later.
           {
              if (!FileExistsInList(directory, file, dirNumber, &foundIndex))    // If the file doesn't exist in this directory,create a new entry.
              {
@@ -1070,7 +1070,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
                 subfolders[subFolderCount].directoryNumber = myfiles[dirNumber][foundIndex]->directoryNumber;     // Save the current directory number for this existing folder.
              }   
           }
-*/             
+             
           TAP_Hdd_FindNext (&file);
     }
    
