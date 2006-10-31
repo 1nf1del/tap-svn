@@ -31,7 +31,7 @@ dword changeTime;
 void ShrinkPictureWindows( void )
 {
     TAP_Channel_Scale( CHANNEL_Main, SCREEN_X, SCREEN_Y, SCREEN_W, SCREEN_H, TRUE );
-	TAP_Channel_Scale( CHANNEL_Sub, PIP_SCRX, PIP_SCRY, PIP_SCRW, PIP_SCRH, TRUE );			// define the PIP window
+	TAP_Channel_Scale( CHANNEL_Sub,  PIP_SCRX, PIP_SCRY, PIP_SCRW, PIP_SCRH, TRUE );			// define the PIP window
 }
 
 
@@ -148,7 +148,7 @@ void DelayPipChange( dword currentTickTime )						// called when a new key press
 void ActivatePicture( void )
 {
 	savedWidescreen = (*TAP_GetSystemVar)( SYSVAR_TvRatio );
-	savedLetterBox = (*TAP_GetSystemVar)( SYSVAR_16_9_Display );
+	savedLetterBox  = (*TAP_GetSystemVar)( SYSVAR_16_9_Display );
 																		// display both screen as 16:9
 //	if ( savedWidescreen == SCREEN_RATIO_4_3 ) (*TAP_SetSystemVar)( SYSVAR_16_9_Display, DISPLAY_MODE_LetterBox );
 //	if ( savedWidescreen == SCREEN_RATIO_16_9 )  SetWideScreenSizes(); // Change the screen size variables to suit the Widescreen proportions.
@@ -161,7 +161,12 @@ void ActivatePicture( void )
 //   }
 	if ( TvRatioOption == 0 )   // Standard display option
          (*TAP_SetSystemVar)( SYSVAR_16_9_Display, DISPLAY_MODE_LetterBox );  // display both screen as 16:9
-	
+
+// *********
+// 31 July
+// savedPipSvcNum is not initially set !
+// and there hasn't been any scaling yet.
+//	
     if ( savedPipType == SVC_TYPE_Tv  )  // Activate the PIP Window if it is in TV mode.
 	{
 				TAP_Osd_FillBox( rgn, PIP_X, PIP_Y, PIP_W, PIP_H, 0 );				// clear any overlay graphics

@@ -32,16 +32,27 @@ bool FindMatchingService( int LCN, word *svcNum, byte *svcType)
 
 	for ( i=0; i<maxTvSvc; i++)				// first compare all the TV services
 	{
-		if (logoArrayTv[i].svcLCN == LCN )	//We have a matching LCN
+//		if (logoArrayTv[i].svcLCN == LCN )	//We have a matching LCN
+        // Special handling for the 5500.
+		if ((LCN ==999) && (logoArrayTv[i].svcLCN == LCN ))//We have a matching service number (for Topfield 5500)
 		{
-			*svcNum  = i;
+//			*svcNum  = i;
+			*svcNum  = i;  
+			*svcType = logoArrayTv[i].svcType;
+			return TRUE;
+		}
+		if (logoArrayTv[i].svcNum == LCN )   //We have a matching service number (for Topfield 5500)
+		{
+//			*svcNum  = i;
+			*svcNum  = i-1;  // Special handling for the 5500.
 			*svcType = logoArrayTv[i].svcType;
 			return TRUE;
 		}
 	}
 	for ( i=0; i<maxRadioSvc; i++)										// then compare all the Radio services
 	{
-		if (logoArrayRadio[i].svcLCN == LCN )	//We have a matching LCN
+//		if (logoArrayRadio[i].svcLCN == LCN )	//We have a matching LCN
+		if (logoArrayRadio[i].svcNum == LCN )	//We have a matching service number (for Topfield 5500)
 		{
 			*svcNum  = i;
 			*svcType = logoArrayRadio[i].svcType;

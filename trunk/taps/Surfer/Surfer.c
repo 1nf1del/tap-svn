@@ -79,7 +79,7 @@ static byte generateStage;
 static bool MainChangeOnOK;
 static bool InfoKeyPressed;
 static bool guideWindowDisplayed;
-
+ 
 static byte TvRatioOption;  // Moved from IniFile.c  
    
 int _language;
@@ -130,14 +130,14 @@ void ActivationRoutine( void )
     currentGuideIndex  = 0;
 	ScreenOn           = TRUE;
 
+	TAP_ExitNormal();
+	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );					// define the whole screen for us to draw on
+	TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );							// clear the screen
+
     appendToLogfile("ActivationRoutine: calling ActivatePicture routine.");
 
     SwitchScreenToNormal();
     ActivatePicture();													// set size & aspect ratio for main window & PIP
-	    
-	TAP_ExitNormal();
-	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );					// define the whole screen for us to draw on
-	TAP_Osd_FillBox( rgn, 0, 0, 720, 576, 0 );							// clear the screen
 
     appendToLogfile("ActivationRoutine: calling TAP_Channel_GetCurrent.");
     TAP_Channel_GetCurrent( &firstSvcType, &firstSvcNum );
