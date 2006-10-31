@@ -14,7 +14,7 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 	Last change:  USE   2 Aug 105   11:59 pm
 ************************************************************/
 
-#define PROJECT_DIRECTORY "UK TAP Project"
+#define PROJECT_DIRECTORY  "UK TAP Project"
 #define OPTIONS_FILENAME "OZArchive.ini"
 
 #define DATA_BUFFER_SIZE_ini 1024
@@ -28,8 +28,6 @@ static int dataBufferPtr_ini;
 //
 void WriteIniFile( TYPE_File *writeFile )
 {
-//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-//    CurrentDir = GetCurrentDir();
     GotoPath( TAPIniDir );
 	if ( TAP_Hdd_Exist( OPTIONS_FILENAME ) ) TAP_Hdd_Delete( OPTIONS_FILENAME );	// Just delete any old copies
 
@@ -41,8 +39,7 @@ void WriteIniFile( TYPE_File *writeFile )
 	TAP_Hdd_Fwrite( dataBuffer_ini, DATA_BUFFER_SIZE_ini, 1, writeFile );	// dump the whole buffer in one hit
 
 	TAP_Hdd_Fclose( writeFile );
-    GotoPath( CurrentDir );
-//	TAP_Hdd_ChangeDir("..");												// return to original directory
+    GotoPath( CurrentDir );												// return to original directory
 }
 
 
@@ -251,7 +248,6 @@ bool ReadConfigurationFile( void )
 	int i;
 	dword fileLength;
 
-//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 	GotoPath( TAPIniDir );
 	if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) ) return FALSE;			// check the timer file exits in the current directory
 	
@@ -268,7 +264,6 @@ bool ReadConfigurationFile( void )
 	TAP_Hdd_Fread( dataBuffer_ini, fileLength, 1, readFile );			// grab all the data from the file
 
 	TAP_Hdd_Fclose( readFile );
-//	TAP_Hdd_ChangeDir("..");											// return to original directory
 
 	SetConfigurationVariables();
 
@@ -324,3 +319,85 @@ void LoadConfiguration( void )
     }
 }
 
+void locateIniDirectory()
+{
+     bool UKProjectExists, SettingsExists;
+     
+     char* StartingDir;
+     
+     // Looks for the ini and logo.dat directory.
+     //  Sets TAPIniDir and TAPLogoDir to the directories holding the INI and Logo files.
+     //
+     // 1. Will look for "/ProgramFiles/Settings/Archive" and "/ProgramFiles/Settings/Logos".  If present will use them.
+     // 2. Will look for "UK TAP Project" in current directory.  If present, will set that as the TAPIniDir and TAPLogoDir.
+     // 3. If it doesn't find either (1) or (2) it will create directories for (1) and set TAPIniDir and TAPLogoDir as per (1)
+     
+     UKProjectExists = FALSE;
+     SettingsExists  = FALSE;
+     
+     StartingDir = GetCurrentDir();  // Save the current directory.
+     
+     // See if the "UK TAPS PROJECT" Directory exists.
+	 if ( TAP_Hdd_Exist( PROJECT_DIRECTORY) ) 
+	 {
+         UKProjectExists = TRUE;
+     }
+     
+     // Look for "/ProgramFiles/Settings/Archive"
+     GotoPath("/ProgramFiles");              // Go back to the ProgramFiles Directory
+     if ( TAP_Hdd_Exist( "Settings" ) )      // Check for the "Settings" subdirectory
+     {
+         TAP_Hdd_ChangeDir( "Settings" );       
+         if ( TAP_Hdd_Exist( "Archive" ) ) 
+         {
+              if ( TAP_Hdd_Exist( "Logos" ) )     // Check for the "Archive" and "Logos" subdirectory
+              {
+                   SettingsExists  = TRUE;         // Flag that the Settings Directories are present. 
+              } 
+         }      
+     }       
+
+     if ((!SettingsExists) && (!UKProjectExists))  // If neither lot of directories exist, create and use the "settings" directories.
+     {
+         GotoPath("/ProgramFiles");              // Go back to the ProgramFiles Directory
+         // Look for, and create if missing, "Settings"
+	     if ( !TAP_Hdd_Exist( "Settings" ) )     // Check for the "Settings" subdirectory
+	     {
+              TAP_Hdd_Create( "Settings", ATTR_FOLDER );     // If it's missing, create it.
+         }
+         TAP_Hdd_ChangeDir( "Settings" );        // Switch into the "Settings" subdirectory
+         
+         // Look for, and create if missing, "Archive"
+	     if ( !TAP_Hdd_Exist( "Archive" ) )      // Check for the "Archive" subdirectory
+	     {
+               TAP_Hdd_Create( "Archive", ATTR_FOLDER );     // If it's missing, create a new "Archive" subdirectory
+         }
+         
+         // Look for, and create if missing, "Logos"
+	     if ( !TAP_Hdd_Exist( "Logos" ) )        // Check for the "Archive" subdirectory
+	     {
+               TAP_Hdd_Create( "Logos", ATTR_FOLDER );       // If it's missing, create a new "Archive" subdirectory
+         }
+         SettingsExists  = TRUE;         // Flag that the Settings Directories are present. 
+      }
+     
+     if (SettingsExists)   // Use the Settings dirs.
+     {
+         TAPIniDir  = TAP_MemAlloc (strlen("/ProgramFiles/Settings/Archive")+2);
+         strcpy(TAPIniDir,  "/ProgramFiles/Settings/Archive");
+         TAPLogoDir = TAP_MemAlloc (strlen("/ProgramFiles/Settings/Logos")+2);
+         strcpy(TAPLogoDir, "/ProgramFiles/Settings/Logos");
+     }
+     else
+     if (UKProjectExists)   // Use the UK TAP Project dirs.
+     {
+         GotoPath(StartingDir);                  // Return to the directory we started from.
+         TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);   // Change to the UK TAP Project SubDirectory.
+         TAPIniDir  = GetCurrentDir();           // Store the directory location of the INI file.	
+         TAPLogoDir = GetCurrentDir();           // Store the directory location of the LOGO file.	
+     }
+         
+
+}
+     
+     

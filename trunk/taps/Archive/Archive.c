@@ -29,7 +29,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                         
+                           
   
 #define DEBUG   0       // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
 
@@ -42,8 +42,8 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL WARNING        // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive" 
-#define VERSION "0.08q"          
-
+#define VERSION "0.08r"          
+ 
 #include "tap.h"
 
 #ifdef WIN32
@@ -75,7 +75,8 @@ TAP_ETCINFO(__DATE__);
 
 #include "TSRCommander.inc"
  
-char* TAPIniDir;
+char* TAPIniDir;           // Stores the fully qualified directory path of the directory holding the ini  file for the TAP.
+char* TAPLogoDir;          // Stores the fully qualified directory path of the directory holding the logo file for the TAP.
                                 
 #include "morekeys.h"
   
@@ -575,7 +576,7 @@ int TAP_Main (void)
 //	TAP_Print("%d\n", CallFirmware( 0,0,0,0, 0x80003a58, tapProcess, currentTAPIndex ));
 
     #ifdef WIN32
-       appendToLogfile("TAP_Main: Detected model is NOT TF5800.", WARNING);
+       appendToLogfile("TAP_Main: Set model to TF5000t.", WARNING);
        unitModelType=TF5000t;
        headerOffset =0;        // Do not apply any offset when reading the header.
        headerOffset2=0;        // Do not apply any offset when reading the header.
@@ -584,7 +585,7 @@ int TAP_Main (void)
     {
            case TF5800t: 
                          unitModelType=TF5800t;
-                         appendToLogfile("TAP_Main: Detected model TF5800.", WARNING);
+                         appendToLogfile("TAP_Main: Detected model TF5800t.", WARNING);
                          headerOffset =4;        // The TF5800 has some fields out 4 bytes compared to the TF500.
                          headerOffset2=0;        // Do not apply any offset when reading the header.
                          break;
@@ -592,7 +593,7 @@ int TAP_Main (void)
            case PC5101c_5102c:	// Procaster
 	       case PC5101t_5102t: 
                          unitModelType=PC5101c_5102c;
-                         appendToLogfile("TAP_Main: Detected model PC5101.", WARNING);
+                         appendToLogfile("TAP_Main: Detected model PC5101c_5102c.", WARNING);
                          headerOffset =0;        // The PC5101 has the main fields the same as the TF5000.
                          headerOffset2=1;        // But some fields are out by 1.
                          break;
@@ -609,15 +610,18 @@ int TAP_Main (void)
                          
            default:
                          unitModelType=TF5000t;
-                         appendToLogfile("TAP_Main: Detected model TF5100.", WARNING);
+                         appendToLogfile("TAP_Main: Defaulted to model TF5000t.", WARNING);
                          headerOffset =0;        // Do not apply any offset when reading the header.
                          headerOffset2=0;        // Do not apply any offset when reading the header.
                          break;
     } 
-    #endif
-    
-	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
-    TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
+    #endif 
+       
+//	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
+//    TAPIniDir  = GetCurrentDir();           // Store the directory location of the INI file.	
+//    TAPLogoDir = GetCurrentDir();           // Store the directory location of the LOGO file.	
+    locateIniDirectory();                       // Locate the INI and LOGO directories to be used.
+        
     strcpy(CurrentDir,"/DataFiles");
     
     appendToLogfile("TAP_Main: Loading configuration data.", INFO);
@@ -695,7 +699,7 @@ int TAP_Main (void)
     memset(myfiles[0][0],0,sizeof (*myfiles[0][0]));
     myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
     memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
- 
+   
     ChangeDirRoot();
     GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");
@@ -731,7 +735,7 @@ int TAP_Main (void)
 
     return 1;
 }
- 
+     
 #ifdef WIN32
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,

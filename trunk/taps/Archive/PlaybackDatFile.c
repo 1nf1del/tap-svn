@@ -14,7 +14,6 @@ History	: v0.0 kidhazy: 2-11-05 	Inception date
 	Last change:  USE   2 Aug 105   11:59 pm
 ************************************************************/
 
-#define PROJECT_DIRECTORY "UK TAP Project"
 #define PLAYDATA_FILENAME "OZArchivePlayback.dat"
 
 #define PLAYBACKDATA_BUFFER_SIZE_ini 10240   // How many KB to read from the dat file.  (was 1024)
@@ -195,7 +194,6 @@ bool ReadDatFile( void )
 
     appendToLogfile("ReadDatFile: Started.", INFO);
 
-//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
 	GotoPath( TAPIniDir );
 	if ( ! TAP_Hdd_Exist( PLAYDATA_FILENAME ) ) 
     {
@@ -216,7 +214,6 @@ bool ReadDatFile( void )
 	TAP_Hdd_Fread( playDataBuffer_ini, fileLength, 1, readFile );			// grab all the data from the file
 
 	TAP_Hdd_Fclose( readFile );
-//	TAP_Hdd_ChangeDir("..");											// return to original directory
 
 	SetDatVariables();
 

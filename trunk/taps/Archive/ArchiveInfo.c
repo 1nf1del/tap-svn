@@ -73,8 +73,12 @@ void DisplayInfoLine(void)
 	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
     PrintCenter(rgn, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(0*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "OK", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 
-	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
-	PrintCenter(rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+    // If we are in Recycle Bin Mode and are displaying Folder information, do NOT show the Delete option.
+	if ((!recycleWindowMode) || (currentFile.attr != ATTR_FOLDER))
+    {
+	     TAP_Osd_PutGd( rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
+	     PrintCenter(rgn, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(1*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Delete", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+    }     
 
 	TAP_Osd_PutGd( rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y, &_keyblue82x43Gd, FALSE );
 	PrintCenter(rgn, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE), INFO_OPTION_Y+9, INFO_OPTION_X+(2*INFO_OPTION_X_SPACE)+INFO_OPTION_W, "Rename", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
@@ -376,11 +380,17 @@ dword ArchiveInfoKeyHandler(dword key)
                             }     
                             currentFile   = *myfiles[CurrentDirNumber][chosenLine];
                             currentFolder = *myfolders[myfiles[CurrentDirNumber][chosenLine]->directoryNumber];
-							DisplayArchiveInfoWindow();
 							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
 							// or the Recycle Bin is active.
 							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
 							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
+							// Check if in Recycle Bin mode we're showing folder information.  If so, make sure we skip the "Delete" option button.
+	                        if ((recycleWindowMode)&& (currentFile.attr == ATTR_FOLDER) && (infoCommandOption == 1))
+                            {
+							   infoCommandOption = 0;    // Reset to the "OK" option
+                            }                                                      
+
+							DisplayArchiveInfoWindow();
 
 /*	
 						page = (chosenLine-1) / NUMBER_OF_LINES;
@@ -433,6 +443,11 @@ dword ArchiveInfoKeyHandler(dword key)
 							// Check if we're showing folder information.  If so, make sure we skip the "Reset Progress" option button.
 							if ((( currentFile.attr == ATTR_FOLDER )  || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
 							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
+							// Check if in Recycle Bin mode we're showing folder information.  If so, make sure we skip the "Delete" option button.
+	                        if ((recycleWindowMode)&& (currentFile.attr == ATTR_FOLDER) && (infoCommandOption == 1))
+                            {
+							   infoCommandOption = 0;    // Reset to the "OK" option
+                            }                                                      
 
 							DisplayArchiveInfoWindow();
 /*							
@@ -462,6 +477,11 @@ dword ArchiveInfoKeyHandler(dword key)
 							// or if the Recycle Bin is active
 							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
 							   infoCommandOption = 0;    // Skip past the "Reset Progress" option.
+							// Check if in Recycle Bin mode we're showing folder information.  If so, make sure we skip the "Delete" option button.
+	                        if ((recycleWindowMode)&& (currentFile.attr == ATTR_FOLDER) && (infoCommandOption == 1))
+                            {
+							   infoCommandOption = 2;    // Skip past the Delete option
+                            }                                                      
                             DisplayInfoLine();
 		     				break;
 
@@ -471,6 +491,11 @@ dword ArchiveInfoKeyHandler(dword key)
 							// or if the Recycle Bin is active
 							if ((( currentFile.attr == ATTR_FOLDER ) || (recycleWindowMode)) && (infoCommandOption == (INFO_COMMAND_OPTIONS-1)))
 							   infoCommandOption = (INFO_COMMAND_OPTIONS-2);    // Skip past the "Reset Progress" option.
+							// Check if in Recycle Bin mode we're showing folder information.  If so, make sure we skip the "Delete" option button.
+	                        if ((recycleWindowMode)&& (currentFile.attr == ATTR_FOLDER) && (infoCommandOption == 1))
+                            {
+							   infoCommandOption = 0;    // Skip past the Delete option
+                            }                                                      
 							DisplayInfoLine();
 							break;
 

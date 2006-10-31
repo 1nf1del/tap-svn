@@ -281,7 +281,7 @@ void ReadLogoFile()
 	int i; //+++
 
 //	TAP_Hdd_ChangeDir("UK TAP Project");
-	GotoPath( TAPIniDir );
+	GotoPath( TAPLogoDir );
 	if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
 	
 	logoFile = TAP_Hdd_Fopen( "logo.dat" );

@@ -389,7 +389,11 @@ void RecycleRestoreAction(void)
     {
          fileDeleted      = TRUE;    // Indicate the the file has been deleted (restored).
          returnFromDelete = TRUE;	 //  Set flag that will cause a redraw of file list.
-         
+         // Check if we had to rename the file when it was restored.  If yes, then display a message.
+         if (fileIncrement > 0)
+         {
+               ShowMessageWin( rgn, "File Restored.", "File restored and renamed to", fileName, 400 ); 
+         }
     }                           
     else // There was an error during the rename process, so display an error message.
     {
