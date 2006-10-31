@@ -1,7 +1,7 @@
 [Project]
 FileName=Surfer.dev
 Name=Surfer
-UnitCount=26
+UnitCount=23
 Type=1
 Ver=1
 ObjFiles=
@@ -12,7 +12,7 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=
 CppCompiler=
-Linker=../../TopfieldDisk/DataFiles/SDK/libTAP_SDK_DLL.a_@@_
+Linker=../../../../../../../TopfieldDisk/DataFiles/SDK/libTAP_SDK_DLL.a_@@_
 IsCpp=0
 Icon=
 ExeOutput=
@@ -168,26 +168,6 @@ OverrideBuildCmd=0
 BuildCmd=$(CC) -c UkGraphics.c -o UkGraphics.o $(CFLAGS)
 
 [Unit13]
-FileName=..\TAP.H
-CompileCpp=0
-Folder=UK Channel Surfer V07
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit14]
-FileName=..\..\TopfieldDisk\DataFiles\SDK\TAP_Emulations.h
-CompileCpp=0
-Folder=UK Channel Surfer V07
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit15]
 FileName=PlaybackChannel.c
 CompileCpp=0
 Folder=
@@ -197,7 +177,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c PlaybackChannel.c -o PlaybackChannel.o $(CFLAGS)
 
-[Unit16]
+[Unit14]
 FileName=NowNextDisplay.c
 CompileCpp=0
 Folder=
@@ -207,7 +187,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c NowNextDisplay.c -o NowNextDisplay.o $(CFLAGS)
 
-[Unit17]
+[Unit15]
 FileName=Clock.c
 CompileCpp=0
 Folder=UK Channel Surfer V07e
@@ -217,7 +197,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c Clock.c -o Clock.o $(CFLAGS)
 
-[Unit18]
+[Unit16]
 FileName=Timers.c
 CompileCpp=0
 Folder=
@@ -227,7 +207,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c DisplayTimers.c -o DisplayTimers.o $(CFLAGS)
 
-[Unit19]
+[Unit17]
 FileName=Tools.c
 CompileCpp=0
 Folder=
@@ -237,7 +217,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c Tools.c -o Tools.o $(CFLAGS)
 
-[Unit20]
+[Unit18]
 FileName=ScreenControls.c
 CompileCpp=0
 Folder=
@@ -247,7 +227,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ScreenControls.c -o ScreenControls.o $(CFLAGS)
 
-[Unit21]
+[Unit19]
 FileName=GlobalScreenSizes.c
 CompileCpp=0
 Folder=
@@ -257,7 +237,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c GlobalScreenSizes.c -o GlobalScreenSizes.o $(CFLAGS)
 
-[Unit22]
+[Unit20]
 FileName=ManualChannels.c
 CompileCpp=0
 Folder=
@@ -267,7 +247,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c ManualChannels.c -o ManualChannels.o $(CFLAGS)
 
-[Unit23]
+[Unit21]
 FileName=LogFile.c
 CompileCpp=0
 Folder=
@@ -276,6 +256,26 @@ Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c LogFile.c -o LogFile.o $(CFLAGS)
+
+[Unit22]
+FileName=EventInfoConfig.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit23]
+FileName=DisplayLogosConfig.c
+CompileCpp=0
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c DisplayLogosConfig.c -o DisplayLogosConfig.o $(CFLAGS)
 
 [Unit24]
 FileName=..\HDD.H
