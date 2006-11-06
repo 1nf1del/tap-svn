@@ -24,6 +24,7 @@ v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
 v0.15 sl8	29-09-06	Added separate conflict handler.
 v0.16 sl8	11-10-06	Separate conflict bug fix. Changes made so that icons can update in 'Show' screen.
 v0.17 sl8	13-10-06	Update move information when timer modified due to conflict.
+v0.18 sl8	23-10-06	Incorrectly indicating a timer success when timer fails due to different channel conflict.
 
 **************************************************************/
 
@@ -898,7 +899,11 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 #else
 	timerError = TAP_Timer_Add_SDK(&schTimerInfo);
 #endif
-	if ((timerError==1) || (timerError==2)){
+	if(timerError == 0)
+	{
+		result = SCH_MAIN_TIMER_SUCCESS;
+	}
+	ef ((timerError==1) || (timerError==2)){
 		// 1 - Can't add
 		// 2 - Invalid Tuner
 	}
@@ -1172,7 +1177,6 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	}
 	else
 	{
-		result = SCH_MAIN_TIMER_SUCCESS;
 	}
 
 	if (( timerError == 0) && ((conflictStatus & 6)==0)) {  

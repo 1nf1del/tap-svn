@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.11
+Version	: 0.12
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -21,12 +21,14 @@ History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.9 sl8		28-08-06	Keyboard types.
 	  v0.10 sl8		28-09-06	Recall bug fix. Options 4 - 9 would not revert to default.
 	  v0.11 sl8		28-09-06	Conflict handler option.
+	  v0.12 sl8		23-10-06	Added legend.
 
 **************************************************************/
 
 #include "RemoteKeys.c"
 
 void configTimeKeyHandler(dword);
+void configDrawLegend(void);
 
 #define CONFIG_X1	130
 #define CONFIG_X2	300
@@ -525,8 +527,7 @@ void RedrawConfigWindow( void )
 		DisplayConfigLine(i);
 	}
 
-	TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, "Quick keys", COLOR_DarkGray, 0 );
-	TAP_Osd_PutStringAf1419( rgn, 58, 528, 666, "EXIT = quit without saving, RECORD = save and exit", COLOR_DarkGray, 0 );
+	configDrawLegend();
 }
 
 
@@ -1290,7 +1291,6 @@ void configTimeKeyHandler(dword key)
 
 
 
-
 //------------
 //
 void InitialiseConfigRoutines(void)
@@ -1309,3 +1309,30 @@ void TerminateConfigMenu( void )
 {
 	KeyDestory( &localKeyCodes );
 }
+
+
+// Dimensions of Information Window
+#define INFO_AREA_X 53
+#define INFO_AREA_Y 490
+#define INFO_AREA_W 614  // Total width of list window.
+#define INFO_AREA_H 83
+
+
+// Dimensions for instructions on Info Window
+#define INSTR_AREA_W 116
+#define INSTR_AREA_X 550
+#define INSTR_AREA_Y INFO_AREA_Y
+#define INSTR_AREA_H 83
+
+
+void configDrawLegend(void)
+{
+	TAP_Osd_FillBox( rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
+
+	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 1, &_exitoval38x19Gd, TRUE );	
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 2, INSTR_AREA_X + INSTR_AREA_W, "Cancel", INFO_COLOUR, INFO_FILL_COLOUR );
+
+	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 21, &_recordoval38x19Gd, TRUE );	
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 22, INSTR_AREA_X + INSTR_AREA_W, "Save", INFO_COLOUR, INFO_FILL_COLOUR );
+}	
+

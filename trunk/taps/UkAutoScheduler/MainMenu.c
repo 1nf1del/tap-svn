@@ -4,7 +4,7 @@
 
 Name	: MainMenu.c
 Author	: Darkmatter
-Version	: 0.3
+Version	: 0.4
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -13,6 +13,7 @@ History	: v0.0 Darkmatter:	30-07-05	Split from menu.c as part of making the menu
 v0.1	sl8:	06-02-06	Config menu enabled
 v0.2	sl8:	15-02-06	Credits modified.
 v0.3	sl8:	11-04-06	Tidy up.
+v0.4	sl8:	23-10-06	Credits modified.
 
 
 ************************************************************/
@@ -39,13 +40,13 @@ void DisplayCredits( void )
 	
 	TAP_Osd_PutStringAf1622( rgn, 58, 160, 650, "Written by sl8", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 190, 650, "Graphical concept by Quixotic", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 220, 650, "Code contributions by Darkmatter, IanP and kidhazy", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 220, 650, "Code contributions by Darkmatter, IanP, kidhazy and sgtwilko", MAIN_TEXT_COLOUR, 0 );
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 270, 650, "Testing, and contibutions from the UK Project team:", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 300, 650, "Darkmatter, IanP, nwhitfield, richmac, sunstealer, Sulli, sgtwilko, matt", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 330, 650, "Traxmaster, garethm, rexy, chunkywizard, benhinman, tyreless", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 360, 650, "ando9185, sl8, bev, kidhazy, ROWANMOOR, awallin, BobD, DB1, DGB", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 390, 650, "janilxx, rwg, simonc, tichtich", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 390, 650, "janilxx, rwg, simonc, tichtich, sjk, Jammer", MAIN_TEXT_COLOUR, 0 );
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 500, 650, "Press EXIT to return to the menu", COLOR_DarkGray, 0 );
 }
