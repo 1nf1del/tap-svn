@@ -1,7 +1,7 @@
 [Project]
 FileName=Archive.dev
 Name=Archive
-UnitCount=26
+UnitCount=27
 Type=1
 Ver=1
 ObjFiles=
@@ -258,14 +258,14 @@ OverrideBuildCmd=0
 BuildCmd=$(CC) -c ProgressBar.c -o ProgressBar.o $(CFLAGS)
 
 [Unit27]
-FileName=ArchiveRecycle.c
+FileName=CheckNewFiles.c
 CompileCpp=0
 Folder=
 Compile=0
 Link=0
 Priority=1000
 OverrideBuildCmd=0
-BuildCmd=$(CC) -c ArchiveRecycle.c -o ArchiveRecycle.o $(CFLAGS)
+BuildCmd=$(CC) -c CheckNewFiles.c -o CheckNewFiles.o $(CFLAGS)
 
 [Unit28]
 FileName=ArchiveMove.c

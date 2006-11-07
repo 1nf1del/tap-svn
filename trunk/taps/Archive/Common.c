@@ -186,6 +186,8 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/BlueGlassCircle25x25.GD"
 #include "graphics/BlueGlassCircleTick25x25.GD"
 #include "graphics/RedGlassCircle25x25.GD"
+#include "graphics/orange_star.GD"
+
 
 #include "graphics/InfoOval38x19.GD"
 #include "graphics/RedOval38x19.GD"
@@ -299,6 +301,7 @@ static word clockRgn;												    // a memory region used for the line count 
 static int chosenLine, printLine;
 
 static bool tapStartup;                       // Flag to indicate if we are just starting up the TAP.
+static bool initialLoad;                      // Flag to indicate if we are doing a full, initial load of the Archive data.
 
 // Variables showing which windows are currently displayed.
 static bool editWindowShowing;
@@ -355,11 +358,14 @@ static int recycleBinThresholdOption;
 static int fileListKeyOption;
 static int splashScreenOption;
 static int PBKgmtOffsetOption;
+static int NewIndicatorOption;
 
 static bool  listMoved;
 static bool  returnFromInfo;
 static bool  returnFromRecycleBinEmpty;         // Flag to indicate when we have returned from emptying the Recycle Bin.                
 static bool  returnFromRecycleBinWindowEmpty;   // Flag to indicate when we have returned from emptying the Recycle Bin from the Recycle Bin Window.                
+
+static bool  initialFileLoad;                   // Flag to indicate first initial file load.
 
        
 static char gstr[500];

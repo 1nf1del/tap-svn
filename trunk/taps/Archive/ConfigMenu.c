@@ -71,6 +71,7 @@ static int currentRecycleBinThresholdOption;
 static int currentFileListKeyOption;
 static int currentSplashScreenOption;
 static int currentPBKgmtOffsetOption;
+static int currentNewIndicatorOption;
 
 
 static bool enterActivateKey;
@@ -486,6 +487,25 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 
+		case 27 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "New file indicators", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentNewIndicatorOption )
+				{
+				    case 0 : 	sprintf( str, "Displayed with star and count" );
+								break;
+								
+				    case 1 : 	sprintf( str, "Displayed with star only" );
+								break;
+								
+					case 2 : 	sprintf( str, "Not Displayed" );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
 
 		case 10 :		
 		case 20 :
@@ -553,6 +573,7 @@ void CopyConfiguration( void )
     currentRecycleBinThresholdOption = recycleBinThresholdOption;
     currentFileListKeyOption         = fileListKeyOption;
     currentSplashScreenOption        = splashScreenOption;
+    currentNewIndicatorOption        = NewIndicatorOption;
 }
 
 void SaveConfiguration( void )
@@ -581,6 +602,8 @@ void SaveConfiguration( void )
     fileListKeyOption   = currentFileListKeyOption;   
     splashScreenOption  = currentSplashScreenOption; 
     PBKgmtOffsetOption  = currentPBKgmtOffsetOption;
+    NewIndicatorOption  = currentNewIndicatorOption;
+    
 
     ResetScreenColumns();        // Set column widths according to column options.
 
@@ -1108,6 +1131,23 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentPBKgmtOffsetOption > 0 ) currentPBKgmtOffsetOption--;
 		            	                    else currentPBKgmtOffsetOption = 1;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+					
+		case 27 :	switch ( key )										// New File indicators
+					{                           
+		            	case RKEY_VolUp:	if (currentNewIndicatorOption < 2 ) currentNewIndicatorOption++;
+		            	                    else currentNewIndicatorOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentNewIndicatorOption > 0 ) currentNewIndicatorOption--;
+		            	                    else currentNewIndicatorOption = 2;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 

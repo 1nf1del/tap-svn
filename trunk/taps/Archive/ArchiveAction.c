@@ -385,7 +385,6 @@ void RestartPlayback(int line, int jump)
 }
 
 
-
 //------------
 //
 void ArchiveAction (int line)
@@ -396,12 +395,21 @@ void ArchiveAction (int line)
     {
            case 250:
            case 240:  // Parent directory.
+                      if (!recycleWindowMode) 
+                      {
+                          ResetNewFileIndicators(CurrentDirNumber);   // Reset all the new recording indicators for all files in the current directory.
+                          SetDirectoryLastViewed(CurrentDirNumber);   // Set the Last View date/time for the current directory.
+                      }    
           	          ChangeToParentDir();
           	          break;
           	          
            case ATTR_FOLDER:  // Sub folder
                       appendStringToLogfile("ArchiveAction: Calling TAP_Hdd_ChangeDir to %s<.",myfiles[CurrentDirNumber][line]->name, WARNING);
+                      if (!recycleWindowMode) ResetNewFileIndicators(CurrentDirNumber);   // Reset all the new recording indicators for all files in the current directory.
+                      // SetDirectoryLastViewed(CurrentDirNumber);   // Set the Last View date/time for the current directory.
+     // Write the date last viewed for this current directory.
           	          TAP_Hdd_ChangeDir(myfiles[CurrentDirNumber][line]->name);
+     // Write the date last viewed for this new directory.
                       TAP_SPrint(newDir, "%s/%s",CurrentDir,myfiles[CurrentDirNumber][line]->name);
                       
                       appendStringToLogfile("ArchiveAction: Copying newDir.  newDir=%s<.",newDir, WARNING);
@@ -410,6 +418,13 @@ void ArchiveAction (int line)
                       appendStringToLogfile("ArchiveAction: Copied to CurrentDir.  CurrentDir=%s<.",CurrentDir, WARNING);
                       // Change the CurrentDirNumber to be the new directory number.
                       CurrentDirNumber = myfiles[CurrentDirNumber][line]->directoryNumber;
+                      // Check if the new folder has new recordings.  If so, we've seen them now, 
+                      // so cascade up and reduce the number of subfolders the new recordings.
+                      if ( myfolders[CurrentDirNumber]->newRecs > 0)
+                      {
+                              CascadeFolderHasNewChange(myfolders[CurrentDirNumber]->parentDirNumber, -1);
+                      }
+                      if (!recycleWindowMode) SetDirectoryLastViewed(CurrentDirNumber);   // Set the Last View date/time for this new directory.
                       
 	                  maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
 	                  numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;

@@ -643,6 +643,14 @@ void CloseArchiveWindow( void )
 	TAP_Osd_Delete( listRgn );
 	TAP_Osd_Delete( clockRgn );
 	TAP_Osd_Delete( rgn );
+
+    ResetNewFileIndicators(CurrentDirNumber);   // Reset all the new recording indicators for all files in the current directory.
+	
+	GotoPath(TAPIniDir);
+    SaveLastViewDatToFile();                    // Write to disk all the Last View dates/times for the folders.
+    GotoPath(CurrentDir);
+    
+	
 }
 
 
@@ -715,6 +723,40 @@ void DisplayFolderText(int line, int i)
     // Print the Folder name
 	TAP_SPrint(str,"%s", myfiles[CurrentDirNumber][line]->name);
     PrintLeft( listRgn, COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
+    
+    if ((!recycleWindowMode) && (NewIndicatorOption<2))   // If we're in the Recycle Bin and the New Flag option is turned on.
+    {
+            // Print the new recordings indicator over the folder icon if the next, or subsequent, subdirectories have new files.
+            if (((myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecDirs > 0) || (myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs > 0))
+               && (strncmp( myfiles[CurrentDirNumber][line]->name, PARENT_DIR_TEXT, MAX_FULL_DIR_NAME_LENGTH) != 0))
+            {
+        //	     TAP_SPrint(str,"%d new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
+        //         PrintLeft( listRgn, COLUMN5_START+4, i*Y1_STEP+Y1_OFFSET, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+                 TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
+        //	     TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
+        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1419 );
+        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
+            }     
+            
+            // Print the number of new recordings in Column 5 for the immediate subirectory
+            if ((myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs > 0) && (NewIndicatorOption==0))
+            {
+        //	     TAP_SPrint(str,"%d new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
+        //         PrintLeft( listRgn, COLUMN5_START+4, i*Y1_STEP+Y1_OFFSET, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+        //         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
+        	     TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
+                 PrintCenter( listRgn, COLUMN5_START, i*Y1_STEP+Y1_OFFSET-6, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	     
+        	     TAP_SPrint(str,"new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
+                 PrintCenter( listRgn, COLUMN5_START, i*Y1_STEP+Y1_OFFSET+13, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );	     
+        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1419 );
+        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
+            }
+    }
+    
+#ifdef WIN32         
+TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecDirs);
+PrintCenter( listRgn, COLUMN2_END - 100, i*Y1_STEP+Y1_OFFSET+2, COLUMN2_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
+#endif
 
 }
 
@@ -963,6 +1005,7 @@ void FormatFilename(int x, int y, int max, int line, char* strSource, int option
     }
     
     PrintLeft( listRgn, x, y, max, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	
+       
 }    
 
 
@@ -1029,7 +1072,7 @@ void DisplayFileText(int line, int i)
 
     // For testing purposes on Windows - always assume some set data.
 #ifdef WIN32    
-       myfiles[CurrentDirNumber][line]->hasPlayed=TRUE;
+       myfiles[CurrentDirNumber][line]->hasPlayed=FALSE;
        myfiles[CurrentDirNumber][line]->currentBlock = 200;
        myfiles[CurrentDirNumber][line]->totalBlock = 300;
        myfiles[CurrentDirNumber][line]->recDuration = 240;
@@ -1076,6 +1119,7 @@ void DisplayFileText(int line, int i)
             FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
          }    
     }
+    else
     
     if (myfiles[CurrentDirNumber][line]->isRecording)
     {
@@ -1105,11 +1149,22 @@ void DisplayFileText(int line, int i)
          // Display the progress in minutes watched and minutes not watch at the end of the progress bar in small font.
          TAP_SPrint( str, "+%dm/-%dm", curDuration, myfiles[CurrentDirNumber][line]->recDuration-curDuration);
          PrintLeft( listRgn, COLUMN2_TEXT_START + LIST_PROGRESS_BAR_WIDTH + 5, i*Y1_STEP+Y1_OFFSET+14, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+         PrintLeft( listRgn, COLUMN2_TEXT_START + LIST_PROGRESS_BAR_WIDTH + 5, i*Y1_STEP+Y1_OFFSET+14, COLUMN2_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
     }
-    
-    if ((!myfiles[CurrentDirNumber][line]->hasPlayed) && (!myfiles[CurrentDirNumber][line]->isRecording))
+    else
+    // Print the new file indicator
+    if ((myfiles[CurrentDirNumber][line]->isNew) && (!recycleWindowMode) && (NewIndicatorOption==0) )
     {
-         appendToLogfile("DisplayFileText: isRecording FALSE and  hasPlayed FALSE", WARNING);
+//         TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_greenglasscircle25x25Gd, TRUE );
+         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
+         // Print the Filename in the middle of the row.
+         FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
+    }     
+
+    
+    if ((!myfiles[CurrentDirNumber][line]->hasPlayed) && (!myfiles[CurrentDirNumber][line]->isRecording) && (!myfiles[CurrentDirNumber][line]->isNew))
+    {
+         appendToLogfile("DisplayFileText: isRecording FALSE and  hasPlayed FALSE and isNew FALSE", WARNING);
          FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
     }
     
@@ -1223,12 +1278,14 @@ void DrawArchiveList(void)
 	start = (chosenLine + 1) - printLine;
 
     // Blank out the flags that indicate whether there are active playbacks or recordings on the screen.
-    playbackOnScreenEntry = 0;
-    playbackOnScreenLine = 0;
+    playbackOnScreenEntry   = 0;
+    playbackOnScreenLine    = 0;
     recordingOnScreenEntry1 = 0;
-    recordingOnScreenLine1 = 0;
+    recordingOnScreenLine1  = 0;
     recordingOnScreenEntry2 = 0;
-    recordingOnScreenLine2 = 0;
+    recordingOnScreenLine2  = 0;
+    
+    myfolders[CurrentDirNumber]->newRecs = 0;    // Zero out the number of new recordings for this directory as we've now 'seen' them all.
 
     listLine = start;
 	for ( pLine=1; pLine<=NUMBER_OF_LINES ; pLine++)
@@ -1658,6 +1715,11 @@ dword ArchiveWindowKeyHandler(dword key)
                                  ShowMessageWin( rgn, "File Move Not Allowed", "Moving of files that are playing", "is not allowed.", 350 );
                                  break; 
                             }
+                            if (numberOfFolders == 0)  // We don't have any folders to move to.
+                            {
+                                 ShowMessageWin( rgn, "File Move Not Allowed", "There are no subdirectories", "available to move file to.", 350 );
+                                 break; 
+                            }
                             if (( chosenLine > 0 ) && (myfiles[CurrentDirNumber][chosenLine]->attr != PARENT_DIR_ATTR) && (!myfiles[CurrentDirNumber][chosenLine]->isRecording) )
                             { 
                                  ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message
@@ -1731,6 +1793,8 @@ void ActivateArchiveWindow( void )
 	UpdateListClock();
     appendToLogfile("ActivateArchiveWindow: Calling DrawFreeSpaceBar.", WARNING);
     DrawFreeSpaceBar();              
+    appendToLogfile("ActivateArchiveWindow: Calling SetDirectoryLastViewed.", WARNING);
+    SetDirectoryLastViewed(CurrentDirNumber);   // Set the Last View date/time for the current directory.
     appendToLogfile("ActivateArchiveWindow: Finished.", INFO);
 
 }

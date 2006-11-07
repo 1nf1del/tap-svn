@@ -526,6 +526,11 @@ dword ArchiveInfoKeyHandler(dword key)
                                                  ShowMessageWin( rgn, "File Move Not Allowed", "Moving of files that are playing", "is not allowed.", 350 );
                                                  break; 
                                            }
+                                           if (numberOfFolders == 0)  // We don't have any folders to move to.
+                                           {
+                                                 ShowMessageWin( rgn, "File Move Not Allowed", "There are no subdirectories", "available to move file to.", 350 );
+                                                 break; 
+                                           }
                                            ActivateMoveWindow();            // Display initial move window with an empty list and "Loading..." message
                                            populateMoveFileList();          // Populate the list of move folders.
                                            DisplayArchiveMoveFolderList();  // Display the list of move folders.

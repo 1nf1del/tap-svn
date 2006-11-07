@@ -131,6 +131,7 @@ typedef struct
 	
     bool    isPlaying;      // Flag to indicate that this file is actually being played now.
     bool    hasPlayed;      // Flag to indicate whether file has been played or not.
+    bool    isNew;          // Flag to indicate if the file is a new file since the last time Archive was activated.
 	dword   totalBlock;     // Stores the total blocks in the file.
 	dword   currentBlock;   // Stores the current playback block position.
 	int     playIndex;      // Index entry to point to matching playedFiles array
@@ -167,6 +168,14 @@ typedef struct
     int     numberOfFolders;
     int     numberOfRecordings;
     int     parentDirNumber;
+    int     newRecs;             // Counter to indicate how many new files this folder holds since the last time Archive was activated.
+    int     newRecDirs;          // Counter to indicate how many subfolders from this folder holds new recordings since the last time Archive was activated.
+	dword	lastViewMjd:16;      // Store the variables that indicate when this folder was last viewed.
+	dword	lastViewHour:8;
+	dword	lastViewMin :8;
+	dword	lastViewSec :8;
+    
+    
 } TYPE_Dir_List;
 
 typedef struct 
@@ -179,7 +188,7 @@ typedef struct
 
 
 TYPE_My_Files *myfiles[MAX_DIRS][MAX_FILES], currentFile;  // Establish a global array that will hold the file details for all the files in the current directory.
-TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder, subfolders[MAX_DIRS];
+TYPE_Dir_List *myfolders[MAX_DIRS], currentFolder, folderLastViewInfo[MAX_DIRS];
 TYPE_File     file, blankFile;
 TYPE_RecInfo  recInfo[2];
 TYPE_Played_Files *playedFiles[MAX_FILES];
@@ -643,6 +652,55 @@ void AddCommonInfo(char* directory, int dirNumber, int index, TYPE_File file )
         myfiles[dirNumber][index]->present      = TRUE;    // Mark it as being present
 }
 
+bool AfterLastView(char* directory, TYPE_File file)
+{
+     // Routine will check if the specified file has a date/time after the Last View date/time of the specified directory.
+     
+     int i;
+     
+     for (i = 0; i <= numberOfFolders; i++)
+     {
+         // See if this is a matching directory name.
+         if (strncmp( directory, folderLastViewInfo[i].name, TS_FILE_NAME_SIZE ) == 0) 
+         {
+//TAP_Print("Dir match i=%d %s fileMJD=%d folderMJD=%d\r\n",i,folderLastViewInfo[i].name,file.mjd, folderLastViewInfo[i].lastViewMjd);        
+//TAP_Print("%d %d %d %d \r\n",folderLastViewInfo[i].lastViewMjd,folderLastViewInfo[i].lastViewHour,folderLastViewInfo[i].lastViewMin,folderLastViewInfo[i].lastViewSec);
+//TAP_Print("%d %d %d %d \r\n",file.mjd,file.hour,file.min,file.sec);
+              // Check the MJD and time of the file to see if it is after the Last View date/time.        
+              if ( file.mjd  > folderLastViewInfo[i].lastViewMjd  )  return TRUE;   // The file date is after  the Last View Date.
+              if ( file.mjd  < folderLastViewInfo[i].lastViewMjd  )  return FALSE;  // The file date is before the Last View Date.
+              // At this point the file DATE = Last view DATE
+              if ( file.hour > folderLastViewInfo[i].lastViewHour )  return TRUE;   // The file hour is after  the Last View Date.
+              if ( file.hour < folderLastViewInfo[i].lastViewHour )  return FALSE;  // The file hour is before the Last View Date.
+              // At this point the file HOUR = Last view HOUR
+              if ( file.min  > folderLastViewInfo[i].lastViewMin  )  return TRUE;   // The file min  is after  the Last View Date.
+              if ( file.min  < folderLastViewInfo[i].lastViewMin  )  return FALSE;  // The file min  is before the Last View Date.
+              if ( file.sec  > folderLastViewInfo[i].lastViewSec  )  return TRUE;   // The file sec  is after  the Last View Date.
+              if ( file.sec  < folderLastViewInfo[i].lastViewSec  )  return FALSE;  // The file sec  is before the Last View Date.
+              
+              return FALSE;   // Return FALSE if the file date/time is the same as the directory Last View.
+         }
+                            
+     }
+     
+     // No match found, then we assume this is a new file, so return TRUE.
+     return TRUE;
+}
+
+void CascadeFolderHasNewChange( int dirNumber, int amount )
+{
+     // Routine will recursively climb up the myfolders directory structure, changing the "hasNew" recordings flag in each of the parent directories.
+     
+     while (dirNumber != 0)
+     {
+           
+             myfolders[dirNumber]->newRecDirs = myfolders[dirNumber]->newRecDirs + amount;   // Modifiy the number of subfolders holding new recordings. 
+             dirNumber = myfolders[dirNumber]->parentDirNumber;
+     }
+     
+}
+
+
 void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
 {
 
@@ -656,13 +714,86 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
         AddCommonInfo( directory, dirNumber, index, file);
+
+        #ifdef WIN32
+//        if (tapStartup)
+//        {
+             file.mjd  = 54042;
+             file.hour = 8;
+             file.min  = 0;
+             file.sec  = 0;
+//        }
+        #endif
+        // If we are checking at an initial load of Archive data, check if this file has a date after the Last Viewed date/time for this directory.                                   
+        if (!recycleWindowMode)
+        {
+            if (AfterLastView(directory, file) )
+            {
+                if (myfolders[dirNumber]->newRecs == 0)   // This is the first 'new' recording for this folder, so increase count up parent directories.
+                    CascadeFolderHasNewChange(myfolders[dirNumber]->parentDirNumber, +1);
+                myfiles[dirNumber][index]->isNew = TRUE;         // Mark it as being a new file since Archive was last activated.
+                myfolders[dirNumber]->newRecs++;                 // Increase the number of new recordings in this folder.
+            }
+        }
+/*      if (initialLoad) 
+        {
+            if (AfterLastView(directory, file) )
+            {
+               if (myfolders[dirNumber]->newRecs == 0) // This is the first 'new' recording for this folder, so increase count up parent directories.
+                  CascadeFolderHasNewChange(myfolders[dirNumber]->parentDirNumber, +1);
+               myfiles[dirNumber][index]->isNew = TRUE;         // Mark it as being a new file since Archive was last activated.
+               myfolders[dirNumber]->newRecs++;                 // Increase the number of new recordings in this folder.
+            }   
+        }
+        else   // Assume TAP has already started, so this must be a new file - if we are not in Recycle Bin mode.
+        if (!recycleWindowMode)
+        {
+//            if (AfterLastView(directory, file) )
+//            {
+            if (myfolders[dirNumber]->newRecs == 0)   // This is the first 'new' recording for this folder, so increase count up parent directories.
+                CascadeFolderHasNewChange(myfolders[dirNumber]->parentDirNumber, +1);
+            myfiles[dirNumber][index]->isNew = TRUE;         // Mark it as being a new file since Archive was last activated.
+            myfolders[dirNumber]->newRecs++;                 // Increase the number of new recordings in this folder.
+//            }
+        }
+*/              
         if (recCheckOption ==1)   // If option to ignore Attribute in recording check is set, then force the TS Attribute in case this recording doesn't have it set.
            myfiles[dirNumber][index]->attr = ATTR_TS;   
         FormatSortName(myfiles[dirNumber][index]->sortName,file.name);
 }
 
-void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int newFolderNumber)
+void SetLastView(char* directoryName, int dirNumber)
 {
+     // Routine that will set the Last View date/time for a new folder based on saved information.
+     
+     int i;
+     
+     for (i = 0; i <= numberOfFolders; i++)
+     {
+         // See if this is a matching directory name.
+         if (strncmp( directoryName, folderLastViewInfo[i].name, MAX_FULL_DIR_NAME_LENGTH ) == 0) 
+         {
+                      
+//TAP_Print("Dir match i=%d %s fileMJD=%d folderMJD=%d\r\n",i,folderLastViewInfo[i].name,file.mjd, folderLastViewInfo[i].lastViewMjd);        
+//TAP_Print("%d %d %d %d \r\n",folderLastViewInfo[i].lastViewMjd,folderLastViewInfo[i].lastViewHour,folderLastViewInfo[i].lastViewMin,folderLastViewInfo[i].lastViewSec);
+//TAP_Print("%d %d %d %d \r\n",file.mjd,file.hour,file.min,file.sec);
+//TAP_Print("Dir match i=%d dir=%s< %s Match=%s\r\n",i,directoryName,folderLastViewInfo[i].name,myfolders[dirNumber]->name);
+              myfolders[dirNumber]->lastViewMjd  = folderLastViewInfo[i].lastViewMjd;
+              myfolders[dirNumber]->lastViewHour = folderLastViewInfo[i].lastViewHour;
+              myfolders[dirNumber]->lastViewMin  = folderLastViewInfo[i].lastViewMin;
+              myfolders[dirNumber]->lastViewSec  = folderLastViewInfo[i].lastViewSec;
+              return;   // We found our match, so no need to check any more.
+         }
+                            
+     }
+}
+
+
+
+void AddNewFolder(char* parentDirectoryName, int dirNumber, int index, TYPE_File file, int newFolderNumber)
+{
+        char newDirectoryName[MAX_FULL_DIR_NAME_LENGTH] ;
+        
 
         // Allocate & blank out existing new 'myfiles' entry.
         myfiles[dirNumber][index] = TAP_MemAlloc(sizeof (*myfiles[dirNumber][index]));
@@ -673,7 +804,7 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
         }
         memset(myfiles[dirNumber][index],0,sizeof (*myfiles[dirNumber][index]));
 
-        AddCommonInfo( directory, dirNumber, index, file);
+        AddCommonInfo( parentDirectoryName, dirNumber, index, file);
         myfiles[dirNumber][index]->size = 0;
         strcpy(myfiles[dirNumber][index]->sortName,file.name);
 
@@ -695,6 +826,9 @@ void AddNewFolder(char* directory, int dirNumber, int index, TYPE_File file, int
         myfolders[newFolderNumber]->numberOfFiles      = 0;
         myfolders[newFolderNumber]->numberOfFolders    = 0;
         myfolders[newFolderNumber]->numberOfRecordings = 0;
+        
+        TAP_SPrint(newDirectoryName, "%s/%s",parentDirectoryName,file.name);   // Create the new fully qualified directory name.
+        if (tapStartup) SetLastView( newDirectoryName, newFolderNumber);       // If this is adding a folder during TAP startup, set any Last View Date/Times.
 }
 
 void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDirNumber)
@@ -819,7 +953,8 @@ void SetDirFilesToNotPresent(int dirNumber)
     {
             myfiles[dirNumber][fileIndex]->present     = FALSE;   // Mark it as being NOT present
             myfiles[dirNumber][fileIndex]->isRecording = FALSE;   // Default the isRecording flag to FALSE.
-            myfiles[dirNumber][fileIndex]->isPlaying   = FALSE;   // Default the isPlaying flag to FALSE.
+            myfiles[dirNumber][fileIndex]->isPlaying   = FALSE;   // Default the isPlaying   flag to FALSE.
+//            myfiles[dirNumber][fileIndex]->isNew       = FALSE;   // Default the isNew       flag to FALSE.
     }
 }
 
@@ -832,6 +967,9 @@ void SetAllFilesToNotPresent(void)
 	for ( dirNumber=0; dirNumber<= numberOfFolders; dirNumber++)
 	{
 	    SetDirFilesToNotPresent( dirNumber );    // Set the files in this directory to not present.
+	    myfolders[dirNumber]->newRecs    = 0;
+	    myfolders[dirNumber]->newRecDirs = 0;
+	    
     }
 }
 
@@ -875,6 +1013,10 @@ void DeleteMyfilesFolderEntry(int dirNumber)
 {
      int i;
      
+     // emove any 'new'file indicators for any parent directories.
+     if (myfolders[dirNumber]->newRecDirs > 0)
+         CascadeFolderHasNewChange(myfolders[dirNumber]->parentDirNumber, -myfolders[dirNumber]->newRecDirs);
+         
      for ( i=1; i <= myfolders[dirNumber]->numberOfFiles; i++)
      {
          if (myfiles[dirNumber][i]->attr == ATTR_FOLDER)  // This is a subfolder that we need to recursively delete.
@@ -1056,7 +1198,6 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
                 numberOfDirFiles++;           // Increase local directory count for number of folders/files (count starts at 0, so first file/folder is #1).
                 numberOfDirFolders++;         // Increase local directory count for the number of subfolders (count starts at 0).
                 numberOfFolders++;            // Increase global count for number of folders (/Datafiles is #0).
-
                 AddNewFolder(directory, dirNumber, numberOfDirFiles, file, numberOfFolders);     // Create subfolder entry in the "myfiles" array.
                 // Add the name of this folder to the list of files to recursively check at the end.  Index 1 is the first subfolder to check.
                 strcpy( subfolders[numberOfDirFolders].name, file.name );
@@ -1094,7 +1235,7 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
 
           // Change directory to the subfolder.
           TAP_Hdd_ChangeDir(subfolders[i].name);  // Change to the sub directory.
-          // Recurcively call the LoadArchiveInfo to read/load the information for te subfolder.
+          // Recurcively call the LoadArchiveInfo to read/load the information for the subfolder.
 //          LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, TRUE);   
           if (recursiveDepth == 1)  // Then we only want to go 1 sub-directory deep, so load one more sub-directory, but no more recursive levels.        
              LoadArchiveInfo(subdir, subfolders[i].directoryNumber, dirNumber, 0);          // Only go recursive 1 directory.
@@ -1139,7 +1280,9 @@ void loadInitialArchiveInfo(bool clearProgressInfo, int recursiveLevel)
     GotoDataFiles();                                // Change directory to the root /DataFiles directory.
     GetRecordingInfo();
     SetAllFilesToNotPresent();                      // Flag all of the files/folders in our myfiles list as not present.
+    initialLoad = TRUE;
     LoadArchiveInfo("/DataFiles", 0, 0, recursiveLevel);        // Check all of the files/folders again to see if there are any new files/folders.
+    initialLoad = FALSE;
     DeleteAllFilesNotPresent();                     // Delete any of the files/folders that are no longer on the disk
   
     GotoPath(CurrentDir);                           // Change directory back to the directory that we were last in.
@@ -1161,6 +1304,7 @@ void loadSubsequentArchiveInfo(bool clearProgressInfo, int recursiveLevel)
     
     GetRecordingInfo();
     SetDirFilesToNotPresent(CurrentDirNumber);            // Flag all of the files/folders in our myfiles list as not present.
+    initialLoad = FALSE;
     LoadArchiveInfo(CurrentDir, CurrentDirNumber,  myfolders[CurrentDirNumber]->parentDirNumber, recursiveLevel);    // Check all of the files/folders again to see if there are any new files/folders.
     DeleteDirFilesNotPresent(CurrentDirNumber);           // Delete any of the files/folders that are no longer on the disk
     
@@ -1172,5 +1316,6 @@ void loadSubsequentArchiveInfo(bool clearProgressInfo, int recursiveLevel)
 
 	sortOrder = sortOrderOption;                    // Default to default sort order.
 	SortList(sortOrder);		                    // Sort the list.
+	
 
 }

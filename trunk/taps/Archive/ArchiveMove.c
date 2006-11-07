@@ -88,6 +88,34 @@ void populateMoveFileList(void)
      appendToLogfile("populateMoveFileList: Finished.", WARNING);
 }
 
+//-----------------------------------------------------------------------
+//
+void ReturnFromMoveRenameYesNo( bool result)
+{
+    // Routine if invoked upon return from the "Automatic Rename on Move" confirmation prompt.
+     
+    char str1[200], str2[200];
+
+    appendToLogfile("ReturnFromMoveRenameYesNo: Started.", INFO);
+
+    // Check the result of the confirmation panel to decide what to do.
+	switch (result)
+    {
+           case TRUE:  // YES
+                       ShowMessageWin( rgn, "Archive Recycle Bin", "Recycle Bin Emptied.", " ", 300 );
+                       returnFromRecycleBinEmpty = TRUE;         // Set flag to cause reload and redraw of Recycle Bin info after we leave the main menu.
+         fileMoved = TRUE;
+     returnFromMove = TRUE;   // Force a closer of the Move window, and refresh the list.
+         myfiles[CurrentDirNumber][chosenLine]->isNew = FALSE;   // Clear the 'new' flag for this file.
+                       break;
+                      
+	       case FALSE: // NO
+                       break;	
+    }   
+    appendToLogfile("ReturnFromMoveRenameYesNo: Finished.", INFO);
+}
+
+
 //------------
 //
 void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
@@ -166,8 +194,10 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
          fileMoved = FALSE;
      }
      else
+     {
          fileMoved = TRUE;
-     
+         myfiles[CurrentDirNumber][chosenLine]->isNew = FALSE;   // Clear the 'new' flag for this file.
+     }    
      returnFromMove = TRUE;   // Force a closer of the Move window, and refresh the list.
      
 /*     

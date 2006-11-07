@@ -1,8 +1,8 @@
 /************************************************************
-		 		OZ Archive
+		 		OZ Archive  
 	Archive Recordings display, and management TAP
-                               
-
+                                 
+      
 	This module is the main event handler
   
 Name	: OZ Archive.c   
@@ -10,8 +10,8 @@ Author	: kidhazy
 Version	: 0.08
 For		: Topfield TF5x00 series PVRs
 Licence	:  
-Descr.	:
-Usage	: 
+Descr.	: 
+Usage	:         
 History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.02 kidhazy    11-05   TF5800 support
           v0.03 kidhazy    11-05 
@@ -20,7 +20,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
           V0.08 kidhazy            
-  
+     
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
 #ifdef WIN32
@@ -42,8 +42,8 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL WARNING        // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive" 
-#define VERSION "0.08r"          
- 
+#define VERSION "0.08s4"          
+  
 #include "tap.h"
 
 #ifdef WIN32
@@ -52,16 +52,16 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #else
 #include "TAPExtensions.h"
 #include "FirmwareCalls.h"
-#include "model.h"
-#endif      
+#include "model.h"   
+#endif       
 
 //#define ID_UK_Timers 		0x800440FE
 //#define ID_UK_Makelogos	0x800440FD
 //#define ID_UK_Channels 		0x800440FC
 //#define ID_UK_USB			0x800440FB
 #define ID_OZ_Archive			0x800440FA
-                 
-TAP_ID( ID_OZ_Archive );
+                               
+TAP_ID( ID_OZ_Archive ); 
             
 #if DEBUG != 0
    TAP_PROGRAM_NAME(TAP_NAME " v" VERSION " DEBUG ONLY" __TIME__);
@@ -71,7 +71,7 @@ TAP_ID( ID_OZ_Archive );
                
 TAP_AUTHOR_NAME("kidhazy");
 TAP_DESCRIPTION("View and monitor recordings.");
-TAP_ETCINFO(__DATE__);
+TAP_ETCINFO(__DATE__); 
 
 #include "TSRCommander.inc"
  
@@ -80,46 +80,50 @@ char* TAPLogoDir;          // Stores the fully qualified directory path of the d
                                 
 #include "morekeys.h"
   
-                                                                                     
+                                                                                         
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
 #include "ProgressBar.c"
 #include "TextTools.c"  
-#include "YesNoBox.c"
+#include "YesNoBox.c"  
 #include "Tools.c"
 #include "LoadArchiveInfo.c" 
-#include "PlaybackDatFile.c"
-#include "logo.C"
-#include "TimeBar.c" 
-#include "ArchiveDisplay.c"
-//#include "ArchiveDelete.c" 
+#include "CheckNewFiles.c"
+#include "PlaybackDatFile.c"  
+#include "logo.C"  
+#include "TimeBar.c"      
+#include "ArchiveDisplay.c"   
+//#include "ArchiveDelete.c"    
 #include "ArchiveStop.c"
-#include "ArchiveAction.c"
+#include "ArchiveAction.c"      
 #include "ArchiveRename.c"
 #include "ArchiveRecycle.c" 
-#include "ArchiveDelete.c"
+#include "ArchiveDelete.c"   
 #include "ArchiveMove.c" 
 #include "ArchiveInfo.c" 
 #include "MainMenu.c"
 #include "ConfigMenu.c"
-#include "GmtOffset.c"
-#include "IniFile.c"
-          
-                              
-static dword lastTick;
+#include "GmtOffset.c"    
+#include "IniFile.c" 
+           
+                                     
+static dword lastTick; 
 static byte oldHour;
 static byte oldMin;
 static byte oldSec;
                                       
-                                                                      
+                                                                         
                                          
 //------------  
-//                   
+//                      
 void ActivationRoutine( void )
-{         
+{               
+                
+int i; 
+                
     appendToLogfile("ActivationRoutine: Started.", INFO);
   	TAP_ExitNormal();
-
+  
     tapStartup = FALSE;              // clear flag to indicate that TAP has finished startup and this is a reactivation.
   	
   	// Define on screen region to draw on.
@@ -133,12 +137,14 @@ void ActivationRoutine( void )
 	recycleWindowMode = FALSE;  
     strcpy( tagStr, REC_STRING);   // Set the tag at the end of the filenames to ".rec"
     tagLength = strlen( tagStr );  // Calculate the length of the tag.  
-
+ 
     // Initial loading of info may take some time due to the recursive calls.  Users can therefore select the splashScreenOption in the config menu.
     // So display a "Please wait..."  message.
     if (splashScreenOption == 1)
         TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
 //      ShowMessageBox( rgn, "Archive Starting", "Loading file information.", "Please wait ...");
+
+    ReadLastViewDatFile();  // Read information regarding the the date/time of last view of directories.
         
 	if (PBKgmtOffsetOption == 0)  // Check for PBK GMT_Offset.ini file in case daylight savings has kicked in.
 	{
@@ -146,7 +152,7 @@ void ActivationRoutine( void )
         ChangeDirRoot();          // Jump back to the root directory.
         GotoPath(CurrentDir);     // Return to the previous data directory.
     }    
-
+ 
     // Check that we are in the /DataFiles directory, or a subdirectory.  If not, change to the /DataFiles directory.   
     appendToLogfile("ActivationRoutine: Checking currentDir to make sure we're in /Datafiles or a subdir.", INFO);
     if ((!InDataFilesFolder( CurrentDir )) && (!InDataFilesSubFolder( CurrentDir )))
@@ -155,23 +161,24 @@ void ActivationRoutine( void )
         GotoDataFiles();
         strcpy(CurrentDir,"/DataFiles");            // Set the current directory name.
     }    
-
-
+ 
+  
     // Load information about the archive files.
-    loadSubsequentArchiveInfo(TRUE, 1);    
+    loadSubsequentArchiveInfo(TRUE, 99);    
+
     DetermineStartingLine( &chosenLine );           // Determine which line to highlight when we start.
 
     appendToLogfile("ActivationRoutine: Activating Archive Window.", INFO);
 	ActivateArchiveWindow();
  
     appendToLogfile("ActivationRoutine: Finished.", INFO);
-}
-   
+}   
+        
  
 void ExitRoutine( void )
 {
     CloseArchiveWindow();
-    
+     
     if ( recycleWindowMode )     // Reset to standard view mode, and reload the data so that it is ready for next activation.
     {
 	    recycleWindowMode = FALSE;  
@@ -183,13 +190,13 @@ void ExitRoutine( void )
 	TAP_EnterNormal();
 }          
 
-
+  
 //------------
 //
 void TerminateRoutine( void )											// Performs the clean-up and terminate TAP
 {
     int dirNumber, fileIndex;
-    
+     
     SaveDatToFile();
 	TerminateMenu();
 	TerminateConfigMenu();
@@ -225,7 +232,7 @@ dword My_KeyHandler(dword key, dword param2)
 	dword state, subState ;
 	
 	if ( yesnoWindowShowing )  { return( YesNoKeyHandler( key ) ); }
-																			
+		   																	
 // 	if ( msgWindowShowing )    { return( MsgWindowKeyHandler( key) ); }
 	    
 	if ( configWindowShowing ) { return( ConfigKeyHandler( key ) ); }
@@ -276,7 +283,7 @@ void CheckFlags( void )
 	if ( exitFlag == TRUE ) { ExitRoutine(); exitFlag = FALSE; return; }	// close window and enter normal state
 	if ( terminateFlag == TRUE ) { TerminateRoutine(); return; }			// clean-up and terminate TAP
 
- 
+    
 	if ( returnFromInfo == TRUE )											// Handle returning from the info window.
 	{																		// redraw the underlying window if it's changed.
 	    returnFromInfo = FALSE;
@@ -343,7 +350,7 @@ void CheckFlags( void )
 	}
    
 	if ( returnFromStop == TRUE )								// Handle returning from stop.
-	{															// redraw the underlying window if it's changed.
+	{					   										// redraw the underlying window if it's changed.
 	    returnFromStop = FALSE;
 		if ( fileStopped )                                      // If the file was stopped, reload the file/folder data and refresh the list.
         {
@@ -354,12 +361,12 @@ void CheckFlags( void )
              fileStopped = FALSE; 
              RefreshArchiveList(FALSE);                         // Redisplay the entire list.
         }
-	}
+	}  
     
 	if ( returnFromRename == TRUE )								// Handle returning from rename.
 	{															// redraw the underlying window
 	    returnFromRename = FALSE;
-	} 
+	}       
 
     if ( returnFromRecycleBinWindowEmpty == TRUE )              // Handle returning from the Recycle Bin window after deleting recycled files.
     {
@@ -368,7 +375,7 @@ void CheckFlags( void )
         TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );
         loadInitialArchiveInfo(FALSE, 99); // Load all the files for the new view, but don't delete any progress info.
         RefreshArchiveList(TRUE);      // Redraw the contents of the screen.
-    }
+    } 
 
 	if ( returnFromMenu == TRUE )								// Handle returning from main menu.
 	{															// redraw the underlying window
@@ -556,7 +563,7 @@ bool TSRCommanderExitTAP (void)
           
 int TAP_Main (void)
 {
-    int i,d, dirNumber, fileIndex;
+    int i,i2,d, dirNumber, fileIndex;
 
     TSRCommanderInit( 0, TRUE );    // Include the TSR Commander function.  
 
@@ -652,12 +659,14 @@ int TAP_Main (void)
     for (fileIndex=0; fileIndex <= MAX_FILES; fileIndex++)
     {
         playedFiles[fileIndex] = NULL;
-    }
+    }  
 	LoadPlayData();  // Load up the playback status information from the dat file.
+
+    ReadLastViewDatFile();  // Read information regarding the the date/time of last view of directories.
 
     appendToLogfile("TAP_Main: Caching logos.", INFO);
 	CacheLogos();    
-  
+    
     appendToLogfile("TAP_Main: Starting initialisation routines.", INFO);
     appendToLogfile("TAP_Main: Initialising ArchiveRecycle.", INFO);
     initialiseArchiveRecycle();            
@@ -688,10 +697,10 @@ int TAP_Main (void)
             myfiles[dirNumber][fileIndex] = NULL;
         }   
     }
- 	
+ 	  
     CreateBlankFile();
      
-  
+    
     // Blank out initial folder & file variable space.
     myfolders[0] = TAP_MemAlloc( sizeof  currentFolder); 
     memset(myfolders[0],0,sizeof (*myfolders[0]));
@@ -699,17 +708,19 @@ int TAP_Main (void)
     memset(myfiles[0][0],0,sizeof (*myfiles[0][0]));
     myfiles[0][1] = TAP_MemAlloc(sizeof (*myfiles[0][1]));
     memset(myfiles[0][1],0,sizeof (*myfiles[0][1]));
-   
+    
     ChangeDirRoot();
     GotoDataFiles();
     strcpy(CurrentDir,"/DataFiles");
     CurrentDirNumber = 0;      // Start off in the DataFiles directory which is number 0 in our array.
     GetRecordingInfo();
-
+  
     SetAllFilesToNotPresent();
     strcpy(myfolders[0]->name,"/DataFiles");
+    initialLoad = TRUE;
 	LoadArchiveInfo("/DataFiles", 0, 0, 99);  // Do a full recursive load of the Archive files/folders.
-
+    initialLoad = FALSE;
+             
     numberOfFiles = myfolders[CurrentDirNumber]->numberOfFiles;
     maxShown      = numberOfFiles;
  
@@ -732,6 +743,19 @@ int TAP_Main (void)
     TAP_Osd_Delete( rgn );
 
     tapStartup = FALSE;              // clear flag to indicate that TAP has finished startup.
+    
+/*    for (i=0; i <= numberOfFolders; i += 1)
+    {
+        
+        TAP_Print("%d %d %s\r\n",i,numberOfFolders,myfolders[i]->name);            
+                
+        for (i2=1; i2 <= myfolders[i]->numberOfFiles; i2 += 1)
+        {
+            TAP_Print("%d %d %d %s\r\n",i,i2,myfolders[i]->numberOfFiles,myfiles[i][i2]->name);            
+        }   
+        TAP_Delay(200);        
+    }
+*/    
 
     return 1;
 }

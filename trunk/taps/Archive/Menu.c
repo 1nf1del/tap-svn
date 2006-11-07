@@ -54,7 +54,7 @@ void MenuSetCurrentLine( menu_Struct *menu, int lineNumber)
 }
 
 
-void MenuDestory( menu_Struct *menu )
+void MenuDestroy( menu_Struct *menu )
 {
     int i;
 	

@@ -353,13 +353,20 @@ bool	IsFileRecycledRec( char *recFile, 	dword	attr )
 //----------------  DIRECTORY TOOLS        ---------------------------------------------
 // 
 //--------------------------------------------------------------------------------------
+void GotoRoot(){
+	TAP_Hdd_ChangeDir("/");
+	_currentDir[0] = '/';
+	_currentDir[1] = '\0';
+}
+
 
 bool GotoPath(char *path){
 	char *startPos;
 	char *endPos;
 	bool ready;
 
-	ChangeDirRoot();
+//	ChangeDirRoot();
+GotoRoot();
 
 	startPos=path;
 	if ((*startPos)!='/'){
@@ -402,12 +409,6 @@ bool GotoProgramFiles(){
 
 bool GotoDataFiles(){
 	return GotoPath("/DataFiles");
-}
-
-void GotoRoot(){
-	TAP_Hdd_ChangeDir("/");
-	_currentDir[0] = '/';
-	_currentDir[1] = '\0';
 }
 
 
