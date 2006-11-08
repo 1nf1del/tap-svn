@@ -1153,10 +1153,9 @@ void DisplayFileText(int line, int i)
     }
     else
     // Print the new file indicator
-    if ((myfiles[CurrentDirNumber][line]->isNew) && (!recycleWindowMode) && (NewIndicatorOption==0) )
+    if ((myfiles[CurrentDirNumber][line]->isNew) && (!recycleWindowMode))
     {
-//         TAP_Osd_PutGd( listRgn, COLUMN1_START+6, i*Y1_STEP+Y1_OFFSET, &_greenglasscircle25x25Gd, TRUE );
-         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
+         if (NewIndicatorOption<2) TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
          // Print the Filename in the middle of the row.
          FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
     }     
@@ -1740,7 +1739,9 @@ dword ArchiveWindowKeyHandler(dword key)
                             else
                             {
                                 recycleWindowMode = TRUE;
-                                strcpy( tagStr, RECYCLED_STRING);   // Set the tag at the end of the filenames to ".rec.del"
+                                strcpy( tagStr, RECYCLED_STRING);            // Set the tag at the end of the filenames to ".rec.del"
+                                SetDirectoryLastViewed(CurrentDirNumber);    // Set the Last View date/time for the current directory.
+                                ReloadLastViewDatVariables();                // Reload the Last View date/times from the current MyFolders.
                             }
                             tagLength = strlen( tagStr );  // Calculate the length of the tag.  
                             TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "             LOADING...            ", TITLE_COLOUR, COLOR_Black );

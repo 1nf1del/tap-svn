@@ -365,8 +365,12 @@ bool GotoPath(char *path){
 	char *endPos;
 	bool ready;
 
-//	ChangeDirRoot();
-GotoRoot();
+
+	#ifdef WIN32
+    GotoRoot();
+    #else
+    ChangeDirRoot();
+    #endif
 
 	startPos=path;
 	if ((*startPos)!='/'){

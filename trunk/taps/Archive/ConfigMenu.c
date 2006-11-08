@@ -491,7 +491,7 @@ void DisplayConfigLine(char lineNumber)
 				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "New file indicators", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				switch ( currentNewIndicatorOption )
 				{
-				    case 0 : 	sprintf( str, "Displayed with star and count" );
+				    case 0 : 	sprintf( str, "Displayed with star & folder file count" );
 								break;
 								
 				    case 1 : 	sprintf( str, "Displayed with star only" );

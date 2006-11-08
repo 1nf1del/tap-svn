@@ -634,6 +634,13 @@ _#
 void AddCommonInfo(char* directory, int dirNumber, int index, TYPE_File file )
 {
         // Set the standard settings.
+        #ifdef WIN32
+             file.mjd  = 54042;
+             file.hour = 8;
+             file.min  = 0;
+             file.sec  = 0;
+        #endif
+        
         myfiles[dirNumber][index]->attr         = file.attr;
         myfiles[dirNumber][index]->mjd          = file.mjd;
         myfiles[dirNumber][index]->hour         = file.hour;
@@ -661,7 +668,7 @@ bool AfterLastView(char* directory, TYPE_File file)
      for (i = 0; i <= numberOfFolders; i++)
      {
          // See if this is a matching directory name.
-         if (strncmp( directory, folderLastViewInfo[i].name, TS_FILE_NAME_SIZE ) == 0) 
+         if (strncmp( directory, folderLastViewInfo[i].name, MAX_FULL_DIR_NAME_LENGTH ) == 0) 
          {
 //TAP_Print("Dir match i=%d %s fileMJD=%d folderMJD=%d\r\n",i,folderLastViewInfo[i].name,file.mjd, folderLastViewInfo[i].lastViewMjd);        
 //TAP_Print("%d %d %d %d \r\n",folderLastViewInfo[i].lastViewMjd,folderLastViewInfo[i].lastViewHour,folderLastViewInfo[i].lastViewMin,folderLastViewInfo[i].lastViewSec);
@@ -716,13 +723,10 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
         AddCommonInfo( directory, dirNumber, index, file);
 
         #ifdef WIN32
-//        if (tapStartup)
-//        {
              file.mjd  = 54042;
              file.hour = 8;
              file.min  = 0;
              file.sec  = 0;
-//        }
         #endif
         // If we are checking at an initial load of Archive data, check if this file has a date after the Last Viewed date/time for this directory.                                   
         if (!recycleWindowMode)

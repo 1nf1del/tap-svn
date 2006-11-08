@@ -10,7 +10,7 @@ Author	: kidhazy
 Version	: 0.08
 For		: Topfield TF5x00 series PVRs
 Licence	:  
-Descr.	: 
+Descr.	:     
 Usage	:         
 History	: v0.01 kidhazy 17-10-05   Inception date.
           v0.02 kidhazy    11-05   TF5800 support
@@ -29,7 +29,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
 #endif           
-                           
+
   
 #define DEBUG   0       // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
 
@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL WARNING        // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive" 
-#define VERSION "0.08s4"          
+#define VERSION "0.08t"          
   
 #include "tap.h"
 
@@ -107,7 +107,7 @@ char* TAPLogoDir;          // Stores the fully qualified directory path of the d
 #include "IniFile.c" 
            
                                      
-static dword lastTick; 
+static dword lastTick;     
 static byte oldHour;
 static byte oldMin;
 static byte oldSec;
@@ -628,7 +628,7 @@ int TAP_Main (void)
 //    TAPIniDir  = GetCurrentDir();           // Store the directory location of the INI file.	
 //    TAPLogoDir = GetCurrentDir();           // Store the directory location of the LOGO file.	
     locateIniDirectory();                       // Locate the INI and LOGO directories to be used.
-        
+       
     strcpy(CurrentDir,"/DataFiles");
     
     appendToLogfile("TAP_Main: Loading configuration data.", INFO);
@@ -660,7 +660,7 @@ int TAP_Main (void)
     {
         playedFiles[fileIndex] = NULL;
     }  
-	LoadPlayData();  // Load up the playback status information from the dat file.
+	LoadPlayData();  // Load up the playback status information from the dat file. 
 
     ReadLastViewDatFile();  // Read information regarding the the date/time of last view of directories.
 

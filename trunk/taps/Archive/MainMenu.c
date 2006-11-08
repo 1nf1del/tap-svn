@@ -85,10 +85,10 @@ void ProcessMenuSelection( TYPE_MenuProcess menuProcess, int param1 )
 			case 5 :	ClearLastViewFlags();
 					    break;
 
-			case 6 :	SetLastViewFlags();
-					    break;
+//			case 6 :	SetLastViewFlags();
+//					    break;
 
-			case 7 :	DisplayCredits();
+			case 6 :	DisplayCredits();
 					    break;
 
 			default:	break;
@@ -120,7 +120,7 @@ void initialiseMenu( void )
 	MenuAdd( &mainMenu, "Delete All Progress Information", "Removes all playback progress information" );
 	MenuAdd( &mainMenu, "Empty the Recycle Bin", "Removes all files in the recycle bin" );
 	MenuAdd( &mainMenu, "Clear All 'New' Flags", "Removes all 'new' file indicators" );
-	MenuAdd( &mainMenu, "Set All 'New' Flags TEST", "TESTING ONLY - delete lastview.dat" );
+//	MenuAdd( &mainMenu, "Set All 'New' Flags TEST", "TESTING ONLY - delete lastview.dat" );
 	MenuAdd( &mainMenu, "Credits & About Information", "Project Team & TAP Version information" );
 }
 
