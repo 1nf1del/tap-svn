@@ -18,13 +18,14 @@ v0.8 sl8:	07-06-06	Bug fix - 1 hour padding caused incorrect start/end times.
 v0.9 sl8:	05-08-06	Search ahead, Date, Time format. Keep feature.
 v0.10 SgtWilko:	28-08-06	Added conflict handling code.
 v0.11 sl8:	28-08-06	EPG event qualifier. Record check and more Date formats added.
-v0.12 sl8	29-08-06	Ignore character table code in event name is present
-v0.13 sl8	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
-v0.14 sl8	28-09-06	TRC bug fix. Check for remote file if no schedules set.
-v0.15 sl8	29-09-06	Added separate conflict handler.
-v0.16 sl8	11-10-06	Separate conflict bug fix. Changes made so that icons can update in 'Show' screen.
-v0.17 sl8	13-10-06	Update move information when timer modified due to conflict.
-v0.18 sl8	23-10-06	Incorrectly indicating a timer success when timer fails due to different channel conflict.
+v0.12 sl8:	29-08-06	Ignore character table code in event name is present
+v0.13 sl8:	03-09-06	Max chars changed to 40 for single and multi timers. TAP_Timer_Add_SDK, TAP_Timer_Modifiy_SDK added.
+v0.14 sl8:	28-09-06	TRC bug fix. Check for remote file if no schedules set.
+v0.15 sl8:	29-09-06	Added separate conflict handler.
+v0.16 sl8:	11-10-06	Separate conflict bug fix. Changes made so that icons can update in 'Show' screen.
+v0.17 sl8:	13-10-06	Update move information when timer modified due to conflict.
+v0.18 sl8:	23-10-06	Incorrectly indicating a timer success when timer fails due to different channel conflict.
+v0.19 janilxx:	03-11-06	Added ability to keep end padding between consecutive timers.
 
 **************************************************************/
 
@@ -888,7 +889,7 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	schTimerInfo.svcType = schUserData[searchIndex].searchTvRadio;		// 0 TV, 1 Radio
 	schTimerInfo.reserved = 0;	
 	schTimerInfo.svcNum = svcNum;						// Channel number
-	schTimerInfo.reservationType = 0;					// ?
+	schTimerInfo.reservationType = 0;					// one time
 	schTimerInfo.nameFix = 1;
 	schTimerInfo.duration = (schTimerEndInMins - schTimerStartInMins);
 	schTimerInfo.startTime = (schTimerStartMjd << 16) + (schTimerStartHour << 8) + schTimerStartMin;
@@ -1092,7 +1093,7 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 			sprintf( logBuffer, "--Done timer error : %d\r\n", timerError & 0x0000ffff);
 			logStoreEvent(logBuffer);*/
 		}
-		else if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE)
+		else if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE || schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING)
 		{
 			timerErrorA = timerError;
 
@@ -1378,14 +1379,7 @@ char buffer1[256];
 
 	TAP_Timer_GetInfo( (timerError & 0x0000ffff), &conflictTimerInfo );
 
-	if
-	(
-		(schTimerInfo->svcNum == conflictTimerInfo.svcNum)
-		&&
-		(conflictTimerInfo.reservationType == RESERVE_TYPE_Onetime)
-		&&
-		(schMainConvertTimeToMins(conflictTimerInfo.startTime) > (currentTimeInMins + 2))
-	)
+	if(schMainConvertTimeToMins(conflictTimerInfo.startTime) > (currentTimeInMins + 2))
 	{
 		endConflictInMins = schMainConvertTimeToMins(conflictTimerInfo.startTime) + schMainConvertTimeToMins(conflictTimerInfo.duration);
 		endTimerInMins = schMainConvertTimeToMins(schTimerInfo->startTime) + schMainConvertTimeToMins(schTimerInfo->duration);
@@ -1421,28 +1415,54 @@ char buffer1[256];
 			(endConflictInMins < endTimerInMins)
 		)
 		{
-//TAP_Print("Conflict Before Event\r\n");
+//TAP_Print("Conflict Before New Event\r\n");
 
-			/* Conflict before event */
+			/* Conflict before new event */
 
-			schTimerInfo->startTime = eventStartTime;
-			schTimerInfo->duration = endTimerInMins - schMainConvertTimeToMins(eventStartTime);
-
-			if(endConflictInMins > schMainConvertTimeToMins(eventStartTime))
+			if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE) //Discard paddings between timers
 			{
-				// Remove end padding from conflict
-
-				conflictTimerInfo.duration -= (endConflictInMins - schMainConvertTimeToMins(eventStartTime));
-
-				if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+				if(conflictTimerInfo.reservationType == RESERVE_TYPE_Onetime)
 				{
-					result = TRUE;
+					if(schTimerInfo->svcNum == conflictTimerInfo.svcNum)
+					{
+						schTimerInfo->startTime = eventStartTime;
+						schTimerInfo->duration = endTimerInMins - schMainConvertTimeToMins(eventStartTime);
+	
+						if(endConflictInMins > schMainConvertTimeToMins(eventStartTime))
+						{
+							// Remove end padding from conflict
+	
+							conflictTimerInfo.duration -= (endConflictInMins - schMainConvertTimeToMins(eventStartTime));
+	
+							if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+							{
+								result = TRUE;
+							}
+						}
+						else
+						{
+							result = TRUE;
+						}
+					}
+					else //conflict with timer in another channel
+					{
+//janilxx: This should work but for some reason this code is not called at all
+						schTimerInfo->startTime = schMainConvertMinsToTime(schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration);
+						schTimerInfo->duration = endTimerInMins - schMainConvertTimeToMins(schTimerInfo->startTime);
+		
+						result = TRUE;
+					}
 				}
 			}
-			else
+			else if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING) //Keep end padding between timers
 			{
+//janilxx: This works for one channel timers. 
+//This should work also for multi-channel timers but for some reason this code is not called at all
+				schTimerInfo->startTime = schMainConvertMinsToTime(schMainConvertTimeToMins(conflictTimerInfo.startTime) + conflictTimerInfo.duration);
+				schTimerInfo->duration = endTimerInMins - schMainConvertTimeToMins(schTimerInfo->startTime);
+
 				result = TRUE;
-			}
+			}	
 		}
 		else if
 		(
@@ -1453,28 +1473,97 @@ char buffer1[256];
 			(conflictTimerInfo.startTime > schTimerInfo->startTime)
 		)
 		{
-//TAP_Print("Conflict After Event\r\n");
+//TAP_Print("Conflict After New Event\r\n");
 
-			/* Conflict after event */
-
-			schTimerInfo->duration = endEventInMins - schMainConvertTimeToMins(schTimerInfo->startTime);
-
-			if(schMainConvertTimeToMins(conflictTimerInfo.startTime) < endEventInMins)
+			/* Conflict after new event */
+			
+			if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE) //Discard paddings between timers
 			{
-				// Remove start padding from conflict
-
-				conflictTimerInfo.duration -= (endEventInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime));
-				conflictTimerInfo.startTime = eventEndTime;
-
-				if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+				if(conflictTimerInfo.reservationType == RESERVE_TYPE_Onetime)
 				{
-					result = TRUE;
+					if(schTimerInfo->svcNum == conflictTimerInfo.svcNum)
+					{
+						schTimerInfo->duration = endEventInMins - schMainConvertTimeToMins(schTimerInfo->startTime);
+	
+						if(schMainConvertTimeToMins(conflictTimerInfo.startTime) < endEventInMins)
+						{
+							// Remove start padding from conflict
+	
+							conflictTimerInfo.duration -= (endEventInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime));
+							conflictTimerInfo.startTime = eventEndTime;
+	
+							if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+							{
+								result = TRUE;
+							}
+						}
+						else
+						{
+							result = TRUE;
+						}
+					}
+					else //conflict with timer in another channel
+					{
+//janilxx: This should work but I suppose this is not called either (because codes above are not run either (codes with "janilxx comment))
+						//Let's make an assumption:
+						//Usually start padding is smaller than end padding and usually used paddings are quite same size.
+						//-->
+						//If old timer's (conflict timer) start padding (difference to new timer program's end time)
+						//is smaller or equal than new timer's end padding,
+						//let's assume that instead of timering two or more programs with one timer, 
+						//it is only a start padding for one timered program.
+						//-->
+						//And because of this, we can safely remove the start padding.
+
+						//old timer's start padding: endEventInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime)
+						//new timer's end padding: endTimerInMins - endEventInMins
+						if 
+						( 							
+							(endEventInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime)) 
+							<= 
+							(endTimerInMins - endEventInMins)
+						)
+						{
+//janilxx: Timer change code missing here
+						}
+
+					}
 				}
 			}
-			else
+			else if(schMainConflictOption == SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING) //Keep end padding between timers
 			{
-				result = TRUE;
-			}
+				if(schTimerInfo->svcNum == conflictTimerInfo.svcNum)
+				{
+					conflictTimerInfo.startTime = schMainConvertMinsToTime(schMainConvertTimeToMins(schTimerInfo->startTime) + schTimerInfo->duration);
+					conflictTimerInfo.duration = endConflictInMins - schMainConvertTimeToMins(conflictTimerInfo.startTime);
+	
+					if(TAP_Timer_Modify((timerError & 0x0000ffff), &conflictTimerInfo) == 0)
+					{
+						result = TRUE;
+					}
+				}
+				else //conflict with timer in another channel
+				{
+//janilxx: This is not coded yet. The same idea than above was designed to be used
+					//Let's make an assumption:
+					//Usually start padding is smaller than end padding and usually used paddings are quite same size.
+					//-->
+					//If old timer's (conflict timer) start padding (difference to new timer program's end time)
+					//is smaller or equal than new timer's end padding,
+					//let's assume that instead of timering two or more programs with one timer, 
+					//it is only a start padding for one timered program.
+					//-->
+					//And because of this, we can safely remove the start padding.
+
+//janilxx: If missing here
+					//old timer's start padding: [[[something]]]
+					//new timer's end padding: [[[something]]]
+					if ( TRUE )
+					{
+//janilxx: Timer change code missing here						
+					}		
+				}
+			}	
 		}
 		else
 		{

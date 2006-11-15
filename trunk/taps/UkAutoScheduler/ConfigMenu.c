@@ -9,19 +9,21 @@ For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
 Usage	:
-History	: v0.0 Darkmatter:	31-05-05	Inception date
+History	: 
+	  v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.1 sl8:		20-11-05	Modified for Auto Scheduler
 	  v0.2 sl8:		20-01-06	All variables initialised
 	  v0.3 sl8:		06-02-06	Config menu enabled
-	  v0.4 sl8		16-02-06	Activation key enabled. 'Perform Search' option added
-	  v0.5 sl8		09-03-06	Option added to enable/disable firmware calls
-	  v0.6 sl8		11-04-06	Show window added and tidy up.
-	  v0.7 sl8		19-04-06	TRC option added.
-	  v0.8 sl8		05-08-06	Search ahead, date and time format added.
-	  v0.9 sl8		28-08-06	Keyboard types.
-	  v0.10 sl8		28-09-06	Recall bug fix. Options 4 - 9 would not revert to default.
-	  v0.11 sl8		28-09-06	Conflict handler option.
-	  v0.12 sl8		23-10-06	Added legend.
+	  v0.4 sl8:		16-02-06	Activation key enabled. 'Perform Search' option added
+	  v0.5 sl8:		09-03-06	Option added to enable/disable firmware calls
+	  v0.6 sl8:		11-04-06	Show window added and tidy up.
+	  v0.7 sl8:		19-04-06	TRC option added.
+	  v0.8 sl8:		05-08-06	Search ahead, date and time format added.
+	  v0.9 sl8:		28-08-06	Keyboard types.
+	  v0.10 sl8:		28-09-06	Recall bug fix. Options 4 - 9 would not revert to default.
+	  v0.11 sl8:		28-09-06	Conflict handler option.
+	  v0.12 sl8:		23-10-06	Added legend.
+	  v0.13 janilxx:	03-11.06	Added SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING conflict handler option.
 
 **************************************************************/
 
@@ -439,7 +441,13 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_SEPARATE:
 
-			TAP_SPrint( str,"Separate Timers");
+			TAP_SPrint( str,"Separate Timers, Discard End Padding");
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING:
+
+			TAP_SPrint( str,"Separate Timers, Keep End Padding");
 
 			break;
 		/*--------------------------------------------------*/
@@ -942,7 +950,7 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(currentConflictOption < SCH_MAIN_CONFLICT_SEPARATE)
+			if(currentConflictOption < SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING)
 			{
 				currentConflictOption++;
 			}
@@ -963,7 +971,7 @@ void ConfigActionHandler(dword key)
 			}
 			else
 			{
-				currentConflictOption = SCH_MAIN_CONFLICT_SEPARATE;
+				currentConflictOption = SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
