@@ -150,6 +150,9 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", (NewIndicatorOption) );
 	WriteStrToIniBuf( str );
 
+	TAP_SPrint(str, "%d\r\n", (RenameOnMoveOption) );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile( writeFile );										// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -243,6 +246,7 @@ void SetConfigurationVariables( void )
 	splashScreenOption        = ReadIniDecimal();  
 	PBKgmtOffsetOption        = ReadIniDecimal();
 	NewIndicatorOption        = ReadIniDecimal();
+    RenameOnMoveOption        = ReadIniDecimal();
 }
 
 
@@ -313,6 +317,7 @@ void LoadConfiguration( void )
         splashScreenOption        = 0;
         PBKgmtOffsetOption        = 0;
         NewIndicatorOption        = 0;
+        RenameOnMoveOption        = 0;
 
 		SaveConfigurationToFile();
 	}

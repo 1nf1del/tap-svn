@@ -634,13 +634,6 @@ _#
 void AddCommonInfo(char* directory, int dirNumber, int index, TYPE_File file )
 {
         // Set the standard settings.
-        #ifdef WIN32
-             file.mjd  = 54042;
-             file.hour = 8;
-             file.min  = 0;
-             file.sec  = 0;
-        #endif
-        
         myfiles[dirNumber][index]->attr         = file.attr;
         myfiles[dirNumber][index]->mjd          = file.mjd;
         myfiles[dirNumber][index]->hour         = file.hour;
@@ -722,7 +715,7 @@ void AddNewFile(char* directory, int dirNumber, int index, TYPE_File file)
 
         AddCommonInfo( directory, dirNumber, index, file);
 
-        #ifdef WIN32
+        #ifdef WIN32   // If testing on WIN32 platform set some file date/time attributes as not yet implemented in the TAP SDK.
              file.mjd  = 54042;
              file.hour = 8;
              file.min  = 0;
@@ -861,7 +854,7 @@ void AddNewParentFolder(char* directory, int dirNumber, int index, int parentDir
 
 bool FileExists(char* directory, TYPE_File file, int dirNumber, int fileIndex)
 {
-//TAP_Print("FE Comapring< to %s< dn=%d, fi=%d\r\n",myfiles[dirNumber][fileIndex]->name,dirNumber,fileIndex);
+//TAP_Print("FE Comparing to %s< dn=%d, fi=%d\r\n",myfiles[dirNumber][fileIndex]->name,dirNumber,fileIndex);
 //    TAP_Print("IN FE\r\n");
  
     if (myfiles[dirNumber][fileIndex] == NULL)           
@@ -874,9 +867,8 @@ bool FileExists(char* directory, TYPE_File file, int dirNumber, int fileIndex)
         }
         memset(myfiles[dirNumber][fileIndex],0,sizeof (*myfiles[dirNumber][fileIndex]));
     }
-    
     // If the directory name is different it's not a match.
-    if (strncmp( directory, myfiles[dirNumber][fileIndex]->directory, TS_FILE_NAME_SIZE ) != 0) return FALSE;
+    if (strncmp( directory, myfiles[dirNumber][fileIndex]->directory, MAX_FULL_DIR_NAME_LENGTH ) != 0) return FALSE;
     
     // Check for the existance of the file/folder.
     switch (file.attr)
@@ -910,7 +902,7 @@ bool FileExists(char* directory, TYPE_File file, int dirNumber, int fileIndex)
 bool FileExistsInList(char* directory, TYPE_File file, int dirNumber, int *foundIndex)
 {
     int fileIndex;
-//TAP_Print("FEIL Comapring %s< to list dn=%d\r\n",filename,dirNumber);
+//TAP_Print("FEIL Comparing %s< to list dn=%d\r\n",file.name,dirNumber);
 //TAP_Print("FEIL dir %s< \r\n",directory);
 //TAP_Print("FEIL myfd %s< \r\n",myfiles[dirNumber][1]->directory);
     if (myfiles[dirNumber][0] == NULL)           
@@ -934,7 +926,7 @@ bool FileExistsInList(char* directory, TYPE_File file, int dirNumber, int *found
         memset(myfiles[dirNumber][1],0,sizeof (*myfiles[dirNumber][1]));
     }
     
-    if (strncmp( directory, myfiles[dirNumber][1]->directory, TS_FILE_NAME_SIZE ) != 0) return FALSE;
+    if (strncmp( directory, myfiles[dirNumber][1]->directory, MAX_FULL_DIR_NAME_LENGTH ) != 0) return FALSE;
     
     for ( fileIndex=1; fileIndex<= myfolders[dirNumber]->numberOfFiles; fileIndex++)
 	{
@@ -1076,11 +1068,9 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
 {
 
     int i, cnt, foundIndex;
-    char str1[1024];
-    char str[200];
+    char str[200], str1[1024], subdir[1024];
     int numberOfDirFiles, numberOfDirFolders, numberOfDirRecordings, subFolderCount;
     TYPE_Dir_List subfolders[MAX_DIRS];
-    char subdir[1024];
 
     appendToLogfile("LoadArchiveInfo: Started.", INFO);
   
@@ -1110,6 +1100,13 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
 
     // Find all the Files and Folders in the current directory.
     cnt = TAP_Hdd_FindFirst(&file); 
+    #ifdef WIN32    // If testing on WIN32 platform set some file date/time attributes as not yet implemented in the TAP SDK.
+       file.mjd  = 54042;  // 3rd November 2006
+       file.hour = 8;
+       file.min  = 0;
+       file.sec  = 0;
+    #endif
+    
 
     appendStringToLogfile("LoadArchiveInfo: Started for directory=%s<<",directory, WARNING);
     appendIntToLogfile("LoadArchiveInfo: Count=%d",cnt, WARNING);
@@ -1217,6 +1214,13 @@ void LoadArchiveInfo(char* directory, int dirNumber, int parentDirNumber, int re
           }
              
           TAP_Hdd_FindNext (&file);
+          #ifdef WIN32
+             file.mjd  = 54042;  // 3rd November 2006
+             file.hour = 8;
+             file.min  = 0;
+             file.sec  = 0;
+          #endif
+          
     }
    
     // Save new or updated information on file and sub-folder counts for THIS directory.

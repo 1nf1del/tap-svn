@@ -72,6 +72,7 @@ static int currentFileListKeyOption;
 static int currentSplashScreenOption;
 static int currentPBKgmtOffsetOption;
 static int currentNewIndicatorOption;
+static int currentRenameOnMoveOption;
 
 
 static bool enterActivateKey;
@@ -506,6 +507,28 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 
+		case 28 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Rename on Move", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentRenameOnMoveOption )
+				{
+				    case 0 : 	sprintf( str, "Rename and confirm" );
+								break;
+								
+				    case 1 : 	sprintf( str, "Rename automatically (no message)" );
+								break;
+								
+				    case 2 : 	sprintf( str, "Rename automatically (with message)" );
+								break;
+								
+					case 3 : 	sprintf( str, "Do not rename" );
+						    	break;
+
+					default : 	sprintf( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;
+
 
 		case 10 :		
 		case 20 :
@@ -574,6 +597,7 @@ void CopyConfiguration( void )
     currentFileListKeyOption         = fileListKeyOption;
     currentSplashScreenOption        = splashScreenOption;
     currentNewIndicatorOption        = NewIndicatorOption;
+    currentRenameOnMoveOption        = RenameOnMoveOption;
 }
 
 void SaveConfiguration( void )
@@ -603,6 +627,7 @@ void SaveConfiguration( void )
     splashScreenOption  = currentSplashScreenOption; 
     PBKgmtOffsetOption  = currentPBKgmtOffsetOption;
     NewIndicatorOption  = currentNewIndicatorOption;
+    RenameOnMoveOption  = currentRenameOnMoveOption;
     
 
     ResetScreenColumns();        // Set column widths according to column options.
@@ -1148,6 +1173,23 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentNewIndicatorOption > 0 ) currentNewIndicatorOption--;
 		            	                    else currentNewIndicatorOption = 2;
+                                            DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+					
+		case 28 :	switch ( key )										// Rename on move
+					{                           
+		            	case RKEY_VolUp:	if (currentRenameOnMoveOption < 3 ) currentRenameOnMoveOption++;
+		            	                    else currentRenameOnMoveOption = 0;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+											
+						case RKEY_VolDown:	if (currentRenameOnMoveOption > 0 ) currentRenameOnMoveOption--;
+		            	                    else currentRenameOnMoveOption = 3;
                                             DisplayConfigLine( chosenConfigLine );
 											break;
 

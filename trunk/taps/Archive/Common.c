@@ -186,7 +186,7 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 #include "graphics/BlueGlassCircle25x25.GD"
 #include "graphics/BlueGlassCircleTick25x25.GD"
 #include "graphics/RedGlassCircle25x25.GD"
-#include "graphics/orange_star.GD"
+#include "graphics/newstar.GD"
 
 
 #include "graphics/InfoOval38x19.GD"
@@ -239,12 +239,14 @@ static  int column5Width=COLUMN5_DEFAULT_W;
 void CloseArchiveInfoWindow(void);            // ArchiveRecycle.c
 void DeleteAction(int type);
 void DisplayArchiveMoveFolderList(void);
+void CloseArchiveMoveWindow(void);
+
 
 void ReadGmtOffset();
 
 void ActivateMoveWindow(void);                // ArchiveMove.c
 void populateMoveFileList(void);
-void MoveAFile(char* sourceDir, char* destDir, char* sourceFile);
+void MoveAFile(char* sourceDir, char* destDir, char* sourceFile, dword attr);
 
 void GenerateExitRequest( void );				// UkTimers.c
 void DrawGraphicBoarders(void);
@@ -359,6 +361,7 @@ static int fileListKeyOption;
 static int splashScreenOption;
 static int PBKgmtOffsetOption;
 static int NewIndicatorOption;
+static int RenameOnMoveOption;
 
 static bool  listMoved;
 static bool  returnFromInfo;

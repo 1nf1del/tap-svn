@@ -730,30 +730,21 @@ void DisplayFolderText(int line, int i)
             if (((myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecDirs > 0) || (myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs > 0))
                && (strncmp( myfiles[CurrentDirNumber][line]->name, PARENT_DIR_TEXT, MAX_FULL_DIR_NAME_LENGTH) != 0))
             {
-        //	     TAP_SPrint(str,"%d new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
-        //         PrintLeft( listRgn, COLUMN5_START+4, i*Y1_STEP+Y1_OFFSET, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
-                 TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
-        //	     TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
-        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1419 );
-        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
+                 TAP_Osd_PutGd( listRgn, COLUMN1_START+9, i*Y1_STEP+Y1_OFFSET-1, &_newstarGd, TRUE );
             }     
             
             // Print the number of new recordings in Column 5 for the immediate subirectory
             if ((myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs > 0) && (NewIndicatorOption==0))
             {
-        //	     TAP_SPrint(str,"%d new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
-        //         PrintLeft( listRgn, COLUMN5_START+4, i*Y1_STEP+Y1_OFFSET, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
-        //         TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
         	     TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
                  PrintCenter( listRgn, COLUMN5_START, i*Y1_STEP+Y1_OFFSET-6, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );	     
         	     TAP_SPrint(str,"new", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecs);
                  PrintCenter( listRgn, COLUMN5_START, i*Y1_STEP+Y1_OFFSET+13, COLUMN5_END, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );	     
-        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+3, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1419 );
-        //         PrintCenter( listRgn, COLUMN1_START, i*Y1_STEP+Y1_OFFSET+2, COLUMN1_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
             }
     }
     
-#ifdef WIN32         
+// For testing on Windows SDK, print the number of new Recording Directories    
+#ifdef WIN32
 TAP_SPrint(str,"%d", myfolders[myfiles[CurrentDirNumber][line]->directoryNumber]->newRecDirs);
 PrintCenter( listRgn, COLUMN2_END - 100, i*Y1_STEP+Y1_OFFSET+2, COLUMN2_END, str, INFO_FILL_COLOUR, 0, FNT_Size_1622 );
 #endif
@@ -1155,7 +1146,7 @@ void DisplayFileText(int line, int i)
     // Print the new file indicator
     if ((myfiles[CurrentDirNumber][line]->isNew) && (!recycleWindowMode))
     {
-         if (NewIndicatorOption<2) TAP_Osd_PutGd( listRgn, COLUMN1_START+3, i*Y1_STEP+Y1_OFFSET-7, &_orange_storaGd, TRUE );
+         if (NewIndicatorOption<2) TAP_Osd_PutGd( listRgn, COLUMN1_START+9, i*Y1_STEP+Y1_OFFSET-1, &_newstarGd, TRUE );
          // Print the Filename in the middle of the row.
          FormatFilename( COLUMN2_TEXT_START, i*Y1_STEP+Y1_OFFSET, COLUMN2_END, line, myfiles[CurrentDirNumber][line]->name, column2Option);
     }     

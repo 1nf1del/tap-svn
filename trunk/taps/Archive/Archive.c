@@ -1,8 +1,8 @@
 /************************************************************
 		 		OZ Archive  
 	Archive Recordings display, and management TAP
-                                 
-      
+                                  
+         
 	This module is the main event handler
   
 Name	: OZ Archive.c   
@@ -19,7 +19,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
           V0.05 kidhazy    12-05   Now uses arrays to hold recordings and directories.
           V0.06 kidhazy 20-12-05   Fixes and added line number display.  
           V0.07 kidhazy 23-12-05
-          V0.08 kidhazy            
+          V1.0a kidhazy 18-11-06          
      
 	Last change:  USE   3 Aug 105    0:02 am
 **************************************************************/
@@ -28,7 +28,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #undef RGB
 #define RGB(r,g,b)		   		 ( (0x8000) | ((r)<<10) | ((g)<<5) | (b) )
 //#define RGB(r,g,b) ((COLORREF)(((BYTE)(r<<3)|((WORD)((BYTE)(g<<3))<<8))|(((DWORD)(BYTE)(b<<3))<<16)))
-#endif           
+#endif            
 
   
 #define DEBUG   0       // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen, 3 = TAP_Print output, 4 = Message Box
@@ -42,7 +42,7 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 #define LOGLEVEL WARNING        // 1 = errors         2 = warnings      3 = information
     
 #define TAP_NAME "Archive" 
-#define VERSION "0.08t"          
+#define VERSION "1.0a"          
   
 #include "tap.h"
 
@@ -60,19 +60,19 @@ History	: v0.01 kidhazy 17-10-05   Inception date.
 //#define ID_UK_Channels 		0x800440FC
 //#define ID_UK_USB			0x800440FB
 #define ID_OZ_Archive			0x800440FA
-                               
+                                 
 TAP_ID( ID_OZ_Archive ); 
             
 #if DEBUG != 0
    TAP_PROGRAM_NAME(TAP_NAME " v" VERSION " DEBUG ONLY" __TIME__);
 #else
    TAP_PROGRAM_NAME(TAP_NAME " v" VERSION);
-#endif
-               
+#endif 
+                         
 TAP_AUTHOR_NAME("kidhazy");
 TAP_DESCRIPTION("View and monitor recordings.");
 TAP_ETCINFO(__DATE__); 
-
+     
 #include "TSRCommander.inc"
  
 char* TAPIniDir;           // Stores the fully qualified directory path of the directory holding the ini  file for the TAP.
@@ -83,25 +83,25 @@ char* TAPLogoDir;          // Stores the fully qualified directory path of the d
                                                                                          
 #include "Common.c"													// Global prototypes, graphics, and global variables
 #include "LogFile.c"
-#include "ProgressBar.c"
+#include "ProgressBar.c"      
 #include "TextTools.c"  
 #include "YesNoBox.c"  
 #include "Tools.c"
 #include "LoadArchiveInfo.c" 
 #include "CheckNewFiles.c"
-#include "PlaybackDatFile.c"  
-#include "logo.C"  
-#include "TimeBar.c"      
-#include "ArchiveDisplay.c"   
-//#include "ArchiveDelete.c"    
-#include "ArchiveStop.c"
+#include "PlaybackDatFile.c"   
+#include "logo.C"   
+#include "TimeBar.c"       
+#include "ArchiveDisplay.c"     
+//#include "ArchiveDelete.c"     
+#include "ArchiveStop.c" 
 #include "ArchiveAction.c"      
 #include "ArchiveRename.c"
 #include "ArchiveRecycle.c" 
 #include "ArchiveDelete.c"   
 #include "ArchiveMove.c" 
 #include "ArchiveInfo.c" 
-#include "MainMenu.c"
+#include "MainMenu.c" 
 #include "ConfigMenu.c"
 #include "GmtOffset.c"    
 #include "IniFile.c" 
@@ -113,7 +113,7 @@ static byte oldMin;
 static byte oldSec;
                                       
                                                                          
-                                         
+                                             
 //------------  
 //                      
 void ActivationRoutine( void )

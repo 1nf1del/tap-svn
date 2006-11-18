@@ -23,6 +23,7 @@ static TYPE_My_Files *moveFiles[MAX_DIRS];  // Array of pointers pointing to fol
 static int   numberOfDestinationFolders;    // Number of directories that are in the destination window.
 static char  *currentMoveDestination;
 static int   printMoveFolderLine;
+static char  GlbSourceDir[256], GlbTargetDir[256], GlbSourceFile[256], GlbRenamedFile[256];
 
 static word  moveRgn;						// a memory region used for the move window to display in.
 
@@ -88,6 +89,63 @@ void populateMoveFileList(void)
      appendToLogfile("populateMoveFileList: Finished.", WARNING);
 }
 
+     
+
+//-----------------------------------------------------------------------
+//
+void PerformMove(void)
+{
+     bool moveres;
+          
+     appendToLogfile("PerformMove: Started.", INFO);
+     
+     // Call the move routine and track the result code.
+     #ifdef WIN32
+            moveres = TRUE;
+     #else
+            appendToLogfile("PerformMove: Calling TAP_Hdd_Move", WARNING);
+            appendStringToLogfile("PerformMove: Calling TAP_Hdd_Move GlbSourceDir: %s",GlbSourceDir, WARNING);
+            appendStringToLogfile("PerformMove: Calling TAP_Hdd_Move GlbTargetDir: %s",GlbTargetDir, WARNING);
+            appendStringToLogfile("PerformMove: Calling TAP_Hdd_Move GlbSourceFile: %s",GlbSourceFile, WARNING);
+            moveres = TAP_Hdd_Move( GlbSourceDir, GlbTargetDir, GlbSourceFile);
+            appendToLogfile("PerformMove: TAP_Hdd_Move finished.", WARNING);
+     #endif
+
+
+     // Check and handle the result of the move routine.
+     // Check the file actually moved via file exists.
+     #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
+     if (FALSE)
+     #else  
+     appendToLogfile("PerformMove: Calling TAP_Hdd_Exist", WARNING);
+     if (TAP_Hdd_Exist(GlbSourceFile))  // If the file/folder still exists in the current directory, then the move didn't work.
+     #endif
+     {
+         ShowMessageWin( rgn, "File/Folder Move Failed.", "Failed to move file/folder:", GlbSourceFile, 400 );
+         fileMoved = FALSE;
+     }
+     else
+     {
+         fileMoved = TRUE;
+         myfiles[CurrentDirNumber][chosenLine]->isNew = FALSE;   // Clear the 'new' flag for this file.
+     }    
+     returnFromMove = TRUE;   // Force a closer of the Move window, and refresh the list.
+     
+/*     
+     ShowMessageWin( rgn, "Move Test #1.", "Moving Test.rec", "to MINE folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine", "Test.rec");
+   
+     ShowMessageWin( rgn, "Move Test #2.", "Moving MINE folder", "to MINE2 folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine2", "Mine");
+     
+     ShowMessageWin( rgn, "Move Test #3.", "Moving Test2.rec", "to .. folder", 400 );
+     moveres = TAP_Hdd_Move( "DataFiles/Mine2", "DataFiles/Mine2/..", "Test2.rec");
+*/   
+     appendToLogfile("PerformMove: Finished.", WARNING);
+     
+}     
+
+
 //-----------------------------------------------------------------------
 //
 void ReturnFromMoveRenameYesNo( bool result)
@@ -95,6 +153,7 @@ void ReturnFromMoveRenameYesNo( bool result)
     // Routine if invoked upon return from the "Automatic Rename on Move" confirmation prompt.
      
     char str1[200], str2[200];
+    int  renameResult;
 
     appendToLogfile("ReturnFromMoveRenameYesNo: Started.", INFO);
 
@@ -102,14 +161,44 @@ void ReturnFromMoveRenameYesNo( bool result)
 	switch (result)
     {
            case TRUE:  // YES
-                       ShowMessageWin( rgn, "Archive Recycle Bin", "Recycle Bin Emptied.", " ", 300 );
-                       returnFromRecycleBinEmpty = TRUE;         // Set flag to cause reload and redraw of Recycle Bin info after we leave the main menu.
-         fileMoved = TRUE;
-     returnFromMove = TRUE;   // Force a closer of the Move window, and refresh the list.
-         myfiles[CurrentDirNumber][chosenLine]->isNew = FALSE;   // Clear the 'new' flag for this file.
+                       appendStringToLogfile("ReturnFromMoveRenameYesNo: Rename from %s", GlbSourceFile, WARNING);
+                       appendStringToLogfile("ReturnFromMoveRenameYesNo: to %s", GlbRenamedFile, WARNING);
+                       #ifdef WIN32  // If testing on WIN32 platform don't do rename as not yet implemented in the TAP SDK.
+                       renameResult=0;
+                       #else
+                  	   renameResult=TAP_Hdd_Rename(GlbSourceFile,GlbRenamedFile);
+                       #endif          
+                  	   if (renameResult!=0)
+                       {
+                          TAP_SPrint(str1,"Error renaming: '%s'", GlbSourceFile);
+                          TAP_SPrint(str2,"to: '%s'", GlbRenamedFile);
+                          fileMoved      = FALSE;
+                          returnFromMove = FALSE;   // Don't close the Move window to give user a chance to choose a different folder.
+                          ShowMessageWin( rgn, "Rename On Move Failed.", str1, str2, 500 ); 
+                          break;
+                       }   
+                       strncpy( GlbSourceFile, GlbRenamedFile, 256 );   // Copy the renamed filename into the Global variable so that we move the renamed file.
+                       PerformMove();
+                       switch (RenameOnMoveOption)
+                       {
+                              case 0:   // "Rename and confirm"
+                                        // Close the Move Window after this, otherwise it is closed as part of the other routines.
+                                        CloseArchiveMoveWindow();			    // Close the move window
+                                        break;
+                                        
+                              case 2:   // "Rename automatically (with message) "
+                                        TAP_SPrint(str1, "%s/%s", GlbTargetDir, GlbRenamedFile);  
+                                        ShowMessageWin( rgn, "File Move Successful.", "Moved and renamed file to:", str1, 400 ); 
+                                        break;
+                                        
+                              default:  // "Rename automatically (no message) "
+                                        break;
+                       }
                        break;
                       
 	       case FALSE: // NO
+                       fileMoved      = FALSE;
+                       returnFromMove = FALSE;   // Don't close the Move window to give user a chance to choose a different folder.
                        break;	
     }   
     appendToLogfile("ReturnFromMoveRenameYesNo: Finished.", INFO);
@@ -118,12 +207,31 @@ void ReturnFromMoveRenameYesNo( bool result)
 
 //------------
 //
-void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
+void MoveAFile(char* sourceDir, char* destDir, char* sourceFile, dword attr)
 {
-     bool moveres, fileExistRes;
+     bool fileAlreadyExists;
      char targetDir[500];
+	 char currentFileName[256], baseFileName[256], title1[50], title2[50], str1[256], str2[256], fileName[256], counter[6];
+	 int  fileIncrement;       // A counter used in case we need to append a number to an already existing file name. 
+
+     
 
      appendToLogfile("MoveAFile: Started.", WARNING);
+ 	 
+      // If we try to move a file and there is already an existing file in the target directory
+	 // with the same name, we will append an incrementing counter to the file name. (eg. news-1.rec  news-23.rec)
+	 fileAlreadyExists = FALSE;          // Flag to indicate that the renamed file already exists.
+	 fileIncrement     = 0;              // Counter in case we need to append a number to an already existing file name.
+
+     if (attr != ATTR_FOLDER)
+     {
+         strncpy( currentFileName, sourceFile, 256 );   // Copy the current filename
+         strncpy( fileName,        sourceFile, 256 );   // Copy the current filename
+         strncpy( baseFileName,    sourceFile, 256 );   // Copy the current filename
+    	 StripFileName( baseFileName );                       // Strip off the ".rec"
+         strncpy( fileName, baseFileName, 256 );              // Copy the stripped off filename in case we need to rename on a move.
+    	 strcat( fileName, REC_STRING );	                  // Append ".rec" to the base filename
+     }
 
      // Perform check that the Move routine is available for this firmware.
      #ifdef WIN32
@@ -154,64 +262,79 @@ void MoveAFile(char* sourceDir, char* destDir, char* sourceFile)
      GotoPath( targetDir );
      // Check for the same file.
      appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Exist for:%s",sourceFile, WARNING);
-     fileExistRes = TAP_Hdd_Exist(sourceFile);
+     fileAlreadyExists = TAP_Hdd_Exist(sourceFile);
+
+     // If we're moving a file and the target already exists, try to rename it - if the config option #28 has been set to allow rename..
+     while ((fileAlreadyExists) && (fileIncrement < 99999) && (attr != ATTR_FOLDER) && (RenameOnMoveOption!=3))
+     {
+         fileIncrement++;         // Increase the counter for the number to append to the filename.
+         appendIntToLogfile("MoveAFile: fileAlreadyExists loop:%d",fileIncrement, WARNING);
+         sprintf(counter, "-%d", fileIncrement);        // Create the counter text
+         strncpy( fileName, baseFileName, 256);         // Copy back the original filename
+         strcat(  fileName, counter);                   // Append the counter text to the filename
+ 	     strcat(  fileName, REC_STRING );	            // Append the ".rec" to the end.
+         appendStringToLogfile("MoveAFile: fileAlreadyExists loop calling TAP_Hdd_Exist for: %s", fileName, WARNING);
+         fileAlreadyExists = TAP_Hdd_Exist(fileName);   // Check if the file exists.
+         appendToLogfile("MoveAFile: fileAlreadyExists loop TAP_Hdd_Exist finished", WARNING);
+     }
+
      // Return to the original directory.
      appendStringToLogfile("MoveAFile: Changing to sourceDir: %s.",sourceDir, WARNING);
      GotoPath( sourceDir );
-     // If the same file exists in the targetdir then exit.
-     if (fileExistRes)
+     
+    // Set up appropriate text strings for message windows, depending on whether it's a file or folder. 
+     switch (attr)
      {
-         ShowMessageWin( rgn, "File/Folder Move Failed.", "Same file/folder already exists", sourceFile, 400 );
+           case ATTR_FOLDER: TAP_SPrint(title1, "Folder Move Failed.");
+                             TAP_SPrint(title2, "");
+                             TAP_SPrint(str1,   "Same folder already exists:");
+                             TAP_SPrint(str2,   "");
+                             break;
+                
+           default:          TAP_SPrint(title1, "File Move Failed.");
+                             TAP_SPrint(title2, "File Move Conflict.");
+                             TAP_SPrint(str1,   "Same file already exists.");
+                             TAP_SPrint(str2,   "Same file already exists.  Rename to:");
+                             break;
+     }
+     
+     // Copy source and destination information to Global variables so that they are available for the actual move routine.
+     strncpy( GlbSourceFile, sourceFile, 256 );   // Copy the source filename
+     strncpy( GlbSourceDir,  sourceDir,  256 );   // Copy the source directory
+     strncpy( GlbTargetDir,  targetDir,  256 );   // Copy the target directory
+     
+     // If the target file already exists in the target directory we can't move.
+     if (fileAlreadyExists)
+     {
+         ShowMessageWin( rgn, title1, str1, sourceFile, 400 );
          fileMoved      = FALSE;
          returnFromMove = FALSE;   // Don't close the Move window to give user a chance to choose a different folder.
-         return;
+         return;                   // Jump out of this routine as we can't do the move.
+     }
+
+     // Check if we needed to rename the file in the target directory.
+     if (fileIncrement > 0) 
+     {
+         strncpy( GlbRenamedFile, fileName, 256 );   // Copy the renamed filename into the Global variable
+         // Check the config option #28 to see if the Rename On Move requires a confirmation or not.
+         if (RenameOnMoveOption == 0)   // Need to display a confirmation panel.
+         {
+                  DisplayYesNoWindow(title2, str2, fileName, "Yes", "No", 1, &ReturnFromMoveRenameYesNo );
+                  fileMoved      = FALSE;
+                  returnFromMove = FALSE;   // Don't close the Move window until after the Yes/No window.
+                  return;                   // Jump out of this routine as Move will be done after Yes/No window.
+         }
+         else   // Otherwise call routine as if we said "Yes" on the confirmation window.
+         {
+                  ReturnFromMoveRenameYesNo( TRUE );
+                  return;                    // Jump out of this routine as we've already done the move in the ReturnFromMoveRenameYesNo routine.
+         }
+         
      }
      
-     
-     // Call the move routine and track the result code.
-     #ifdef WIN32
-            moveres = TRUE;
-     #else
-            appendToLogfile("MoveAFile: Calling TAP_Hdd_Move", WARNING);
-            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move sourceDir: %s",sourceDir, WARNING);
-            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move targetDir: %s",targetDir, WARNING);
-            appendStringToLogfile("MoveAFile: Calling TAP_Hdd_Move sourceFile: %s",sourceFile, WARNING);
-            moveres = TAP_Hdd_Move( sourceDir, targetDir, sourceFile);
-            appendToLogfile("MoveAFile: TAP_Hdd_Move finished.", WARNING);
-     #endif
+     // Call the routine to perform the actual move.
+     PerformMove();
 
-
-     // Check and handle the result of the move routine.
-     // Check the file actually moved via file exists.
-     #ifdef WIN32  // If testing on Windows platform, assume success rather than physically deleting file.
-     if (FALSE)
-     #else  
-     appendToLogfile("MoveAFile: Calling TAP_Hdd_Exist", WARNING);
-     if (TAP_Hdd_Exist(sourceFile))  // If the file/folder still exists in the current directory, then the move didn't work.
-     #endif
-     {
-         ShowMessageWin( rgn, "File/Folder Move Failed.", "Failed to move file/folder:", sourceFile, 400 );
-         fileMoved = FALSE;
-     }
-     else
-     {
-         fileMoved = TRUE;
-         myfiles[CurrentDirNumber][chosenLine]->isNew = FALSE;   // Clear the 'new' flag for this file.
-     }    
-     returnFromMove = TRUE;   // Force a closer of the Move window, and refresh the list.
-     
-/*     
-          
-
-     ShowMessageWin( rgn, "Move Test #1.", "Moving Test.rec", "to MINE folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine", "Test.rec");
-   
-     ShowMessageWin( rgn, "Move Test #2.", "Moving MINE folder", "to MINE2 folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles", "DataFiles/Mine2", "Mine");
-     
-     ShowMessageWin( rgn, "Move Test #3.", "Moving Test2.rec", "to .. folder", 400 );
-     moveres = TAP_Hdd_Move( "DataFiles/Mine2", "DataFiles/Mine2/..", "Test2.rec");
-*/   
      appendToLogfile("MoveAFile: Finished.", WARNING);
    
 }
@@ -294,7 +417,7 @@ void DisplayArchiveMoveWindow()
 {
     char title[50];
 
-    appendToLogfile("DisplayArchiveMoveWindow: Started.", WARNING);
+    appendToLogfile("DisplayArchiveMoveWindow: Started.", INFO);
  
     // Display the pop-up window - will also clear any old text if we are doing a refresh.
     TAP_Osd_PutGd( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, &_popup476x416Gd, TRUE );
@@ -305,7 +428,7 @@ void DisplayArchiveMoveWindow()
     PrintCenter( rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y +  14, MOVE_WINDOW_X+MOVE_WINDOW_W, title, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	
     DisplayMoveLine();
-    appendToLogfile("DisplayArchiveMoveWindow: Finised.", WARNING);
+    appendToLogfile("DisplayArchiveMoveWindow: Finised.", INFO);
 }
 
 
@@ -335,6 +458,8 @@ void ActivateMoveWindow()
 void CloseArchiveMoveWindow(void)
 {
     int index;
+
+    appendToLogfile("CloseArchiveMoveWindow: Started.", INFO);
      
 	moveWindowShowing = FALSE;
 	TAP_Osd_RestoreBox(rgn, MOVE_WINDOW_X, MOVE_WINDOW_Y, MOVE_WINDOW_W, MOVE_WINDOW_H, moveWindowCopy);
@@ -349,6 +474,7 @@ void CloseArchiveMoveWindow(void)
            moveFiles[index] = NULL;        // Set the pointer to NULL so that it's all cleared.                   
        }
     }  
+    appendToLogfile("CloseArchiveMoveWindow: Finished.", INFO);
 }
 
 
@@ -446,7 +572,7 @@ dword ArchiveMoveKeyHandler(dword key)
 		case RKEY_Ok :		switch ( moveCommandOption )
 							{
 								case 0 :   // Move
-								           MoveAFile( myfiles[CurrentDirNumber][chosenLine]->directory,  moveFiles[chosenFolderLine]->name, myfiles[CurrentDirNumber][chosenLine]->name);
+								           MoveAFile( myfiles[CurrentDirNumber][chosenLine]->directory,  moveFiles[chosenFolderLine]->name, myfiles[CurrentDirNumber][chosenLine]->name, myfiles[CurrentDirNumber][chosenLine]->attr);
 								           // If the Move was successful, or had a fatal error, close the Move window.
 								           if (returnFromMove)
 							                  CloseArchiveMoveWindow();	// Close the move window

@@ -167,7 +167,6 @@ void ChangeToParentDir()
 
      strcpy(subFolder,myfolders[CurrentDirNumber]->name);  // Extract the current qunquailified directory name from the fully qualified directory name.
      TAP_Hdd_ChangeDir("..");                    // Switch to the parent directory.
-
      CurrentDirNumber = myfolders[CurrentDirNumber]->parentDirNumber;  // Retrieve the new directory number
      maxShown         = myfolders[CurrentDirNumber]->numberOfFiles;
      numberOfFiles    = myfolders[CurrentDirNumber]->numberOfFiles;
@@ -175,20 +174,6 @@ void ChangeToParentDir()
      if (CurrentDirNumber == 0) strcpy(CurrentDir, "/DataFiles");     // We're pointing at the DataFiles directory
      else strcpy(CurrentDir, myfiles[CurrentDirNumber][1]->directory); // else get the full directory name from the first file/folder.
 
-/*
-     if (recursiveLoadOption)
-     {     
-        SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
- 	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, FALSE);            // Check all of the files/folders again to see if there are any new files/folders.
-        DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
-        LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
-     }   
-
-        SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
- 	    LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);    // Check all of the files/folders again to see if there are any new files/folders.
-        DeleteDirFilesNotPresent(CurrentDirNumber);     // Delete any of the files/folders that are no longer on the disk.
-        LoadPlaybackStatusInfo();  // Update 'myfiles' entries with latest playback information.
- */    
      loadSubsequentArchiveInfo(FALSE, 0);    
  
      chosenLine = 1;                             // By default select the first line to highlight.
@@ -434,7 +419,7 @@ void ArchiveAction (int line)
 
                       appendIntToLogfile("ArchiveAction: Calling SetDirFilesToNotPresent CurrentDirNumber=%d",CurrentDirNumber, WARNING);
                       SetDirFilesToNotPresent(CurrentDirNumber);                      // Flag all of the files/folders in our myfiles list as not present.
-                         
+
                       appendIntToLogfile("ArchiveAction: Calling LoadArchiveInfo parentDirNumber=%d.",myfolders[CurrentDirNumber]->parentDirNumber, WARNING);
  	                  LoadArchiveInfo(CurrentDir, CurrentDirNumber, myfolders[CurrentDirNumber]->parentDirNumber, 1);            // Check all of the files/folders again to see if there are any new files/folders.
                          
