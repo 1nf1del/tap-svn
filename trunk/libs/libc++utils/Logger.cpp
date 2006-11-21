@@ -114,6 +114,16 @@ void Logger::Logv(const char* format, const va_list &arglist)
 	char buf[2048];
 	vsprintf(buf, format, arglist);
 
+
+	if (m_Destination & File)
+	{
+		fputs(buf, m_pFile);
+//		fflush(m_pFile);
+	}
+
+	buf[255] = 0; // TAP_Print, and probably Osd_PutString can only cope with 256 chars maximum
+	// no point in trying to split - write shorter logging messages...
+
 	if (m_Destination & Serial)
 		TAP_Print(buf);
 
@@ -126,9 +136,4 @@ void Logger::Logv(const char* format, const va_list &arglist)
 			m_yOffs = 0;
 	}
 
-	if (m_Destination & File)
-	{
-		fputs(buf, m_pFile);
-//		fflush(m_pFile);
-	}
 }

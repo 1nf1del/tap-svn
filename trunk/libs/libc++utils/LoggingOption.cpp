@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Logger.h"
 
 LoggingOption::LoggingOption(Options* pContainer, const string& key, const string& name, const string& description, OptionUpdateNotifier* pNotifier) :
-Option(pContainer, key, "Serial", name, description, pNotifier)
+Option(pContainer, key, "None", name, description, pNotifier)
 {
 	m_choices.push_back("None");
 	m_choices.push_back("Serial");
