@@ -297,14 +297,38 @@ void ToppyFramework::PutByte(BYTE c)
 	return;
 }
 
+void ToppyFramework::CheckBufferSize(const char* buffer, int iMaxLen, const char* failPoint)
+{
+	int iLen = strlen(buffer);
+	if (iLen <= iMaxLen)
+		return;
+
+	CString sMsg;
+	sMsg.Format("Buffer overrun in API : in %s got %d chars where limit is %d", failPoint, iLen, iMaxLen);
+
+	LogError(sMgs);
+	AfxMessageBox(sMgs + "\n(This error will crash the toppy...)", 0, 0);
+}
+
+
 void ToppyFramework::PrintSys(const void *fmt, va_list args)
 {
-    LogUser((const char*)fmt, args);
+	char buf[2048];
+	_vsnprintf(buf, 2048, (LPCTSTR)sFmt, argList);
+
+	CheckBufferSize(buf, 255, "TAP_PrintSys");
+
+	LogUser((const char*)fmt, args);
 	return;
 }
 
 void ToppyFramework::Print(const void *fmt, va_list args)
 {
+	char buf[2048];
+	_vsnprintf(buf, 2048, (LPCTSTR)sFmt, argList);
+
+	CheckBufferSize(buf, 255, "TAP_Print");
+
     LogUser((const char*)fmt, args);
 	return;
 }
