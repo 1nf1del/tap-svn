@@ -120,7 +120,7 @@ void schShowDrawBackground(void)
 {
 	char	str[128];
 
-	strcpy(str, "Auto Schedule - Show");
+	strcpy(str, "Search Results");
 
 	switch(schShowSortOrder)
 	{

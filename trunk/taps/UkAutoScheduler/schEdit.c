@@ -77,7 +77,6 @@ static bool schEditModified = FALSE;
 
 #define SCH_EDIT_NUMBER_OF_DISPLAYED_OPTIONS	10
 #define SCH_EDIT_TOTAL_NUMBER_OF_OPTIONS	10
-#define SCH_EDIT_NUMBER_OF_LINES		10
 
 #define SCH_EDIT_CELL_MEDIUM		117
 #define SCH_EDIT_CELL_SMALL		66
@@ -148,7 +147,7 @@ void schEditCreateWindow(void)
 {
 	schEditWindowShowing = TRUE;
 	sysDrawGraphicBorders();
-	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Auto Schedule - Edit", TITLE_COLOUR, COLOR_Black );
+	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Edit Search", TITLE_COLOUR, COLOR_Black );
 }
 
 
@@ -207,7 +206,13 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_DISABLED:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM, "Disabled", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + 40, "Search Only", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+			if( schEditChosenLine == SCH_EDIT_STATUS )
+			{
+				sprintf(str, "Search Only: Timers will not be automatically set.");
+				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+			}
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -218,6 +223,12 @@ void schEditDrawLine(int option)
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 101, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 111, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
 
+			if( schEditChosenLine == SCH_EDIT_STATUS )
+			{
+				sprintf(str, "Record: Automatically set 'Record' timers.");
+				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+			}
+
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_WATCH:
@@ -226,6 +237,12 @@ void schEditDrawLine(int option)
 
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 101, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 109, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "W", MAIN_TEXT_COLOUR, 0 );
+
+			if( schEditChosenLine == SCH_EDIT_STATUS )
+			{
+				sprintf(str, "Watch: Automatically set 'Watch' timers. ");
+				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+			}
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -1922,7 +1939,7 @@ void schEditKeyHandler(dword key)
 
 			if(schEditTopLine != 1)
 			{
-				schEditTopLine = SCH_EDIT_TOTAL_NUMBER_OF_OPTIONS + 1 - SCH_EDIT_NUMBER_OF_LINES;
+				schEditTopLine = SCH_EDIT_TOTAL_NUMBER_OF_OPTIONS + 1 - SCH_EDIT_NUMBER_OF_DISPLAYED_OPTIONS;
 
 				for ( i = schEditTopLine; i <= schEditChosenLine; i++)
 				{
@@ -1945,7 +1962,7 @@ void schEditKeyHandler(dword key)
 			searchIndex++;
 			CopySearchFields(searchIndex);
 
-			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES; i++)		// redraw all fields
+			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_DISPLAYED_OPTIONS; i++)		// redraw all fields
 			{
 				schEditDrawLine(i);
 			}
@@ -1960,7 +1977,7 @@ void schEditKeyHandler(dword key)
 			searchIndex--;
 			CopySearchFields(searchIndex);
 
-			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_LINES; i++)	// redraw all fields
+			for ( i = 1; i <= SCH_EDIT_NUMBER_OF_DISPLAYED_OPTIONS; i++)	// redraw all fields
 			{
 				schEditDrawLine(i);
 			}

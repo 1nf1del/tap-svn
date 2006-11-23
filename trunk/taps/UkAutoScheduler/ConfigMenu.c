@@ -33,13 +33,17 @@ void configTimeKeyHandler(dword);
 void configDrawLegend(void);
 
 #define CONFIG_X1	130
-#define CONFIG_X2	300
-#define CONFIG_E0	113
-#define CONFIG_E1	275
-#define CONFIG_E2	627
-#define CONFIG_LINES 10
-#define Y1_OFFSET 36
-#define CONFIG_MENU_NUMBER_OF_LINES	10
+#define CONFIG_X2	282	// 300
+
+#define CONFIG_E0	53
+#define CONFIG_E1	95	// 113
+#define CONFIG_E2	257	// 275
+#define CONFIG_E3	627
+
+#define Y1_OFFSET	36
+
+#define CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS		10
+#define CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS		11
 
 static	keyCodes_Struct	localKeyCodes;
 
@@ -53,24 +57,31 @@ static	int	currentPerformSearchDays = 0;
 static	byte	currentDateFormat = 0;
 static	byte	currentTimeFormat = 0;
 static	byte	currentConflictOption = 0;
+static	bool	currentAlreadyRecordedEnabled = TRUE;
 
 static	bool	enterActivateKey = 0;
 static	byte	keyStage = 0;
+
 static	int	chosenConfigLine = 0;
+static	int	configTopLine = 1;
+
 static	char	configOption = 0;
 static	bool	configEnableEditTime = 0;
 
 
 //--------------
 //
-void DisplayConfigLine(char lineNumber)
+void DisplayConfigLine(int option)
 {
 	char	str[80], str2[80];
 	char	*text = NULL;
+	int	lineNumber = 0;
 
-	if (( lineNumber < 1 ) || ( lineNumber > CONFIG_LINES )) return;		// bound check
-	
-	if ( chosenConfigLine == lineNumber )			// highlight the current cursor line
+	if (( option < 1 ) || ( option > CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS )) return;		// bound check
+
+	lineNumber = option - configTopLine + 1;
+
+	if ( chosenConfigLine == option )			// highlight the current cursor line
 	{																	// save, cancel, delete looks after itself
 		TAP_Osd_PutGd( rgn, 53, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, &_highlightGd, FALSE );
 	}
@@ -79,11 +90,15 @@ void DisplayConfigLine(char lineNumber)
 		TAP_Osd_PutGd( rgn, 53, lineNumber * SYS_Y1_STEP + Y1_OFFSET - 8, &_rowaGd, FALSE );
 	}
 
-	switch ( lineNumber )
+	memset(str,0,80);
+	TAP_SPrint(str,"%d", option);
+	PrintCenter(rgn, 56, (lineNumber * SYS_Y1_STEP) + Y1_OFFSET, CONFIG_E1, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+	switch ( option )
 	{
 	/*--------------------------------------------------*/
 	case 1 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if ( currentModelType == TF5800 )
 		{
@@ -94,31 +109,31 @@ void DisplayConfigLine(char lineNumber)
 			TAP_SPrint(str,"TF5000  (International)");
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 2 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1, "Keyboard", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Keyboard", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( currentKeyboardLanguage )
 		{
 		/*--------------------------------------------------*/
 		case KEYBOARD_ENGLISH:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "English", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "English", MAIN_TEXT_COLOUR, 0 );
 		
 			break;
 		/*--------------------------------------------------*/
 		case KEYBOARD_FINNISH:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Finnish", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Finnish", MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/*--------------------------------------------------*/
 		case KEYBOARD_GERMAN:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "German", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "German", MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/*--------------------------------------------------*/
@@ -127,7 +142,7 @@ void DisplayConfigLine(char lineNumber)
 		break;
 	/*--------------------------------------------------*/
 	case 3 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( keyStage )
 		{
@@ -156,12 +171,12 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 4 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( currentPerformSearchMode )
 		{
@@ -202,40 +217,40 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 5 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (currentFirmwareCallsEnabled == FALSE)
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
 		}
 
 		break;
 	/*--------------------------------------------------*/
 	case 6 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "TRC", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "TRC", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (currentTRCEnabled == FALSE)
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Disabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Enabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
 		}
 
 		break;
 	/*--------------------------------------------------*/
 	case 7 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Search Ahead", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Search Ahead", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentPerformSearchDays)
 		{
@@ -257,12 +272,12 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 8 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Date Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Date Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentDateFormat)
 		{
@@ -382,12 +397,12 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/		
 	case 9 :
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Time Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Time Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentTimeFormat)
 		{
@@ -416,13 +431,13 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/*--------------------------------------------------*/
 	case 10 :
 
-		PrintCenter(rgn, CONFIG_E0, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E1,  "Conflict Handling", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Conflict Handling", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentConflictOption)
 		{
@@ -441,13 +456,13 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_SEPARATE:
 
-			TAP_SPrint( str,"Separate Timers, Discard End Padding");
+			TAP_SPrint( str,"Separate Timers");
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING:
 
-			TAP_SPrint( str,"Separate Timers, Keep End Padding");
+			TAP_SPrint( str,"Separate Timers - Keep End Padding");
 
 			break;
 		/*--------------------------------------------------*/
@@ -457,7 +472,22 @@ void DisplayConfigLine(char lineNumber)
 		/*--------------------------------------------------*/
 		}
 
-		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
+
+		break;
+	/*--------------------------------------------------*/
+	case 11 :
+
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Already Recorded", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+
+		if (currentAlreadyRecordedEnabled == FALSE)
+		{
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
+		}
+		else
+		{
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
+		}
 
 		break;
 	/*--------------------------------------------------*/
@@ -466,8 +496,8 @@ void DisplayConfigLine(char lineNumber)
 	/*--------------------------------------------------*/
 	}
 
-	TAP_Osd_FillBox( rgn, CONFIG_E0, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
-	TAP_Osd_FillBox( rgn, CONFIG_E1, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );
+	TAP_Osd_FillBox( rgn, CONFIG_E1, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
+	TAP_Osd_FillBox( rgn, CONFIG_E2, lineNumber*SYS_Y1_STEP+Y1_OFFSET-8, 3, SYS_Y1_STEP, FILL_COLOUR );
 }
 
 
@@ -486,6 +516,7 @@ void CopyConfiguration( void )
 	currentDateFormat = schMainDateFormat;
 	currentTimeFormat = schMainTimeFormat;
 	currentConflictOption = schMainConflictOption;
+	currentAlreadyRecordedEnabled = schMainAlreadyRecordedEnabled;
 }
 
 void SaveConfiguration( void )
@@ -500,6 +531,7 @@ void SaveConfiguration( void )
 	schMainDateFormat = currentDateFormat;
 	schMainTimeFormat = currentTimeFormat;
 	schMainConflictOption = currentConflictOption;
+	schMainAlreadyRecordedEnabled = currentAlreadyRecordedEnabled;
 
 	SaveConfigurationToFile();
 }
@@ -530,7 +562,7 @@ void RedrawConfigWindow( void )
 	UpdateListClock();
 	CopyConfiguration();
 
-	for ( i=1; i<=CONFIG_MENU_NUMBER_OF_LINES ; i++)
+	for (i = 1; i <= CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS; i++)
 	{
 		DisplayConfigLine(i);
 	}
@@ -542,6 +574,7 @@ void RedrawConfigWindow( void )
 void DisplayConfigWindow( void )
 {
 	chosenConfigLine = 0;
+	configTopLine = 1;
 	configOption = 1;
 	
 	RedrawConfigWindow();
@@ -978,6 +1011,31 @@ void ConfigActionHandler(dword key)
 
 			break;
 		/*--------------------------------------------------*/
+		}
+
+		break;
+	/*--------------------------------------------------*/
+	case 11 :
+		switch ( key )						// Already Recorded
+		{
+		/*--------------------------------------------------*/
+		case RKEY_VolUp:
+		case RKEY_VolDown:
+		case RKEY_Ok :
+
+			if ( currentAlreadyRecordedEnabled == FALSE )
+			{
+				currentAlreadyRecordedEnabled = TRUE;
+			}
+			else
+			{
+				currentAlreadyRecordedEnabled = FALSE;
+			}
+
+			DisplayConfigLine( chosenConfigLine );
+
+			break;
+		/*--------------------------------------------------*/
 		default :
 			break;
 		/*--------------------------------------------------*/
@@ -996,9 +1054,9 @@ void ConfigActionHandler(dword key)
 //
 void ConfigKeyHandler(dword key)
 {
-	int	i = 0, oldEditLine = 0;
+	int	i = 0, oldChosenConfigLine = 0;
 
-	oldEditLine = chosenConfigLine;
+	oldChosenConfigLine = chosenConfigLine;
 
 	if ( enterActivateKey ) { NewActiveKeyHandler( key ); return; }			// handle our sub processes
 	if ( configEnableEditTime ) { configTimeKeyHandler( key ); return; }			// handle Time Edit
@@ -1009,34 +1067,86 @@ void ConfigKeyHandler(dword key)
 	case RKEY_ChDown :
 		configOption = 0;
 
-		if ( chosenConfigLine < CONFIG_LINES )
+		if ( chosenConfigLine < CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS )
 		{
 			chosenConfigLine++;
-			DisplayConfigLine( chosenConfigLine - 1);
-			DisplayConfigLine( chosenConfigLine );
+
+			if ( chosenConfigLine > (configTopLine + CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS - 1) )
+			{
+				configTopLine++;
+
+				for ( i = configTopLine; i <= chosenConfigLine; i++)
+				{
+					DisplayConfigLine(i);
+				}
+			}
+			else
+			{
+				DisplayConfigLine( oldChosenConfigLine );
+				DisplayConfigLine( chosenConfigLine );
+			}
 		}
-		else
+		else		// wrap around
 		{
-			chosenConfigLine = 1;						// 0=hidden - can't hide once cursor moved
-			DisplayConfigLine( CONFIG_LINES );
-			DisplayConfigLine( chosenConfigLine );
+			chosenConfigLine = 1;				// 0=hidden - can't hide once cursor moved
+
+			if(configTopLine != 1)
+			{
+				configTopLine = 1;
+
+				for ( i = 1; i <= CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS; i++)
+				{
+					DisplayConfigLine(i);
+				}
+			}
+			else
+			{
+				DisplayConfigLine( oldChosenConfigLine );
+				DisplayConfigLine( chosenConfigLine );
+			}
 		}
+
 		break;
 	/*--------------------------------------------------*/
 	case RKEY_ChUp :
-		configOption = 0;
 
-		if ( chosenConfigLine > 1 )					// 0=hidden - can't hide once cursor moved
+		if ( chosenConfigLine > 1 )				// 0=hidden - can't hide once cursor moved
 		{
 			chosenConfigLine--;
-			DisplayConfigLine( chosenConfigLine + 1 );
-			DisplayConfigLine( chosenConfigLine );
+
+			if(chosenConfigLine < configTopLine)
+			{
+				configTopLine--;
+
+				for ( i = configTopLine; i <= (configTopLine + CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS - 1) ; i++)
+				{
+					DisplayConfigLine(i);
+				}
+			}
+			else
+			{
+				DisplayConfigLine( oldChosenConfigLine );
+				DisplayConfigLine( chosenConfigLine );
+			}
 		}
 		else
 		{
-			chosenConfigLine = CONFIG_LINES;
-			DisplayConfigLine( 1 );
-			DisplayConfigLine( chosenConfigLine );
+			chosenConfigLine = CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS;
+
+			configTopLine = CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS + 1 - CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS;
+
+			if(configTopLine != 1)
+			{
+				for ( i = configTopLine; i <= chosenConfigLine; i++)
+				{
+					DisplayConfigLine(i);
+				}			
+			}
+			else
+			{
+				DisplayConfigLine( oldChosenConfigLine );
+				DisplayConfigLine( chosenConfigLine );
+			}
 		}
 
 		break;
@@ -1051,7 +1161,7 @@ void ConfigKeyHandler(dword key)
 	case RKEY_8 :
 	case RKEY_9 :
 		chosenConfigLine = key - RKEY_0;				// direct keyboard selection of any line
-		DisplayConfigLine( oldEditLine );
+		DisplayConfigLine( oldChosenConfigLine );
 		DisplayConfigLine( chosenConfigLine );
 		configOption = 0;						// will move the cursor to "Save" when last line selected
 
@@ -1060,7 +1170,7 @@ void ConfigKeyHandler(dword key)
 	case RKEY_0 :
 		chosenConfigLine = 10;						// make "0" select the last line
 
-		DisplayConfigLine( oldEditLine );
+		DisplayConfigLine( oldChosenConfigLine );
 		DisplayConfigLine( chosenConfigLine );
 
 		break;
@@ -1306,6 +1416,7 @@ void InitialiseConfigRoutines(void)
 	configWindowShowing = FALSE;
 	enterActivateKey = FALSE;
 	chosenConfigLine = 0;
+	configTopLine = 1;
 	configOption = 0;
 	keyStage = 0;
 

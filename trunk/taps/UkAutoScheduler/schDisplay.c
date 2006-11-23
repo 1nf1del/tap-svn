@@ -118,7 +118,7 @@ void schDispDrawBackground(void)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_DISP_FILTER_DISABLED:
 	default:
-		strcat(str, " [Disabled Only]");
+		strcat(str, " [Search Only]");
 
 		break;
 	/* ---------------------------------------------------------------------------- */

@@ -49,7 +49,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler"
+#define TAP_NAME "UK Auto Scheduler - Already Rec 2"
 #define VERSION "0.61"
 
 TAP_ID( ID_UKAUTO );
@@ -297,6 +297,7 @@ dword My_IdleHandler(void)
 		InitialiseConfigRoutines();
 		schShowWindowInitialise();
 		logInitialise();
+		schMainAlreadyRecordedInitialise();
 
 		schMainApiMoveAvailable = FALSE;
 		schMainDebugMoveAvailable = FALSE;
