@@ -1062,7 +1062,11 @@ void schShowService( void )
 			(
 				(schShowFilter == SCH_DISP_FILTER_RECORD)
 				&&
-				(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+				(
+					(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_ALL)
+					||
+					(schUserData[schShowSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW)
+				)
 			)
 			||
 			(

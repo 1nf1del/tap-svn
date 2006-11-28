@@ -210,33 +210,49 @@ void schEditDrawLine(int option)
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Search Only: Timers will not be automatically set.");
+				sprintf(str, "Timers will not be automatically set.");
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 			}
 
 			break;
 		/* ---------------------------------------------------------------------------- */
-		case SCH_USER_DATA_STATUS_RECORD:
+		case SCH_USER_DATA_STATUS_RECORD_ALL:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM, "Record", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-
-			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 101, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 111, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Record All", MAIN_TEXT_COLOUR, 0 );
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Record: Automatically set 'Record' timers.");
+				sprintf(str, "Automatically set 'Record' timers for all programmes.");
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+			}
+
+			break;
+		/* ---------------------------------------------------------------------------- */
+		case SCH_USER_DATA_STATUS_RECORD_NEW:
+
+			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Record New - Ignore Repeats", MAIN_TEXT_COLOUR, 0 );
+
+
+			if( schEditChosenLine == SCH_EDIT_STATUS )
+			{
+				sprintf(str, "Automatically set 'Record' timers for new programmes and");
+				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+
+				sprintf(str, "ignore repeats.");
+				TAP_Osd_PutStringAf1419( rgn, 70, 523, 666, str, INFO_COLOUR, 0 );
 			}
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_WATCH:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2  + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM, "Watch", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-
-			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 101, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 109, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 33, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Watch", MAIN_TEXT_COLOUR, 0 );
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
@@ -1127,11 +1143,17 @@ void EditLineKeyHandler(dword key)
 			/* ---------------------------------------------------------------------------- */
 			case SCH_USER_DATA_STATUS_DISABLED:
 
-				schEdit.searchStatus = SCH_USER_DATA_STATUS_RECORD;
+				schEdit.searchStatus = SCH_USER_DATA_STATUS_RECORD_ALL;
 
 				break;
 			/* ---------------------------------------------------------------------------- */
-			case SCH_USER_DATA_STATUS_RECORD:
+			case SCH_USER_DATA_STATUS_RECORD_ALL:
+
+				schEdit.searchStatus = SCH_USER_DATA_STATUS_RECORD_NEW;
+
+				break;
+			/* ---------------------------------------------------------------------------- */
+			case SCH_USER_DATA_STATUS_RECORD_NEW:
 
 				schEdit.searchStatus = SCH_USER_DATA_STATUS_WATCH;
 

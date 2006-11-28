@@ -112,9 +112,6 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", schMainConflictOption );
 	WriteStrToIniBuf( str );
 
-	TAP_SPrint(str, "%d\r\n", schMainAlreadyRecordedEnabled );
-	WriteStrToIniBuf( str );
-
 	WriteIniFile( writeFile );					// write all the data in one pass
 
 	TAP_MemFree( dataBuffer_ini );					// must return the memory back to the heap
@@ -212,7 +209,6 @@ bool SetConfigurationVariables( void )
 	schMainTimeFormat = ReadIniDecimal(0, &configPassed);
 	keyboardLanguage = ReadIniDecimal(0, &configPassed);
 	schMainConflictOption = ReadIniDecimal(0, &configPassed);
-	schMainAlreadyRecordedEnabled = ReadIniDecimal(FALSE, &configPassed);
 
 	return configPassed;
 }
@@ -273,7 +269,6 @@ void LoadConfiguration( void )
 		schMainTimeFormat = 0;
 		keyboardLanguage = 0;
 		schMainConflictOption = 0;
-		schMainAlreadyRecordedEnabled = FALSE;
 
 		SaveConfigurationToFile();
 	}

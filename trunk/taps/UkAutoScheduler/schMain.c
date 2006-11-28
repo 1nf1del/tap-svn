@@ -482,15 +482,15 @@ void schMainService(void)
 		{
 			if((schMainPerformSearch(schEpgData, schEpgIndex, schUserSearchIndex)) == TRUE)
 			{
-				if(schMainAlreadyRecordedEnabled == FALSE)
+				if(schUserData[schUserSearchIndex].searchStatus != SCH_USER_DATA_STATUS_RECORD_NEW)
 				{
-					schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD));					
+					schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, (schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_ALL));
 				}
 				else
 				{
 					if( schMainAlreadyRecorded(&schEpgData[schEpgIndex]) == FALSE )
 					{
-						schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD));
+						schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW));
 					}
 				}
 			}

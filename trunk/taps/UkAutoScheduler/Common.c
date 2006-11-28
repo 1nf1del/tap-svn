@@ -203,8 +203,6 @@ static word schMainChangeDirFail = 0;
 
 static bool schMainChangeDirAvailable = FALSE;
 
-static bool schMainAlreadyRecordedEnabled = FALSE;
-
 static byte keyboardLanguage = KEYBOARD_ENGLISH;
 
 

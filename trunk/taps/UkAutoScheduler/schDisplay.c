@@ -167,7 +167,12 @@ void schDispDrawText(int line, int dispLine)
 	{
 
 	// Record/Watch Icon
-		if(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+		if
+		(			
+			(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_RECORD_ALL)
+			||
+			(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW)
+		)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET - 8, &_redcircleGd, TRUE );
 			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
@@ -871,7 +876,11 @@ void schDispFilterPopulateList(void)
 			(
 				(schDispFilter == SCH_DISP_FILTER_RECORD)
 				&&
-				(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+				(
+					(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD_ALL)
+					||
+					(schUserData[i].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW)
+				)
 			)
 			||
 			(

@@ -72,7 +72,11 @@ void schKeepService(void)
 
 		if
 		(
-			(schUserData[schKeepIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD)
+			(
+				(schUserData[schKeepIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_ALL)
+				||
+				(schUserData[schKeepIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW)
+			)
 			&&
 			(strlen(schUserData[schKeepIndex].searchFolder) > 0)
 			&&

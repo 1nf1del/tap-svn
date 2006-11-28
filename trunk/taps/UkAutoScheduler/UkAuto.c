@@ -49,7 +49,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler - Already Rec 2"
+#define TAP_NAME "UK Auto Scheduler - Already Rec 3"
 #define VERSION "0.61"
 
 TAP_ID( ID_UKAUTO );

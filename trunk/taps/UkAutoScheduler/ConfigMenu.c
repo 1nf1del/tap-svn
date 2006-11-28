@@ -43,7 +43,7 @@ void configDrawLegend(void);
 #define Y1_OFFSET	36
 
 #define CONFIG_MENU_NUMBER_OF_DISPLAYED_OPTIONS		10
-#define CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS		11
+#define CONFIG_MENU_TOTAL_NUMBER_OF_OPTIONS		10
 
 static	keyCodes_Struct	localKeyCodes;
 
@@ -57,7 +57,6 @@ static	int	currentPerformSearchDays = 0;
 static	byte	currentDateFormat = 0;
 static	byte	currentTimeFormat = 0;
 static	byte	currentConflictOption = 0;
-static	bool	currentAlreadyRecordedEnabled = TRUE;
 
 static	bool	enterActivateKey = 0;
 static	byte	keyStage = 0;
@@ -476,21 +475,6 @@ void DisplayConfigLine(int option)
 
 		break;
 	/*--------------------------------------------------*/
-	case 11 :
-
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Already Recorded", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
-
-		if (currentAlreadyRecordedEnabled == FALSE)
-		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
-		}
-		else
-		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
-		}
-
-		break;
-	/*--------------------------------------------------*/
 	default :
 		break;
 	/*--------------------------------------------------*/
@@ -516,7 +500,6 @@ void CopyConfiguration( void )
 	currentDateFormat = schMainDateFormat;
 	currentTimeFormat = schMainTimeFormat;
 	currentConflictOption = schMainConflictOption;
-	currentAlreadyRecordedEnabled = schMainAlreadyRecordedEnabled;
 }
 
 void SaveConfiguration( void )
@@ -531,7 +514,6 @@ void SaveConfiguration( void )
 	schMainDateFormat = currentDateFormat;
 	schMainTimeFormat = currentTimeFormat;
 	schMainConflictOption = currentConflictOption;
-	schMainAlreadyRecordedEnabled = currentAlreadyRecordedEnabled;
 
 	SaveConfigurationToFile();
 }
@@ -1009,34 +991,6 @@ void ConfigActionHandler(dword key)
 
 			DisplayConfigLine( chosenConfigLine );
 
-			break;
-		/*--------------------------------------------------*/
-		}
-
-		break;
-	/*--------------------------------------------------*/
-	case 11 :
-		switch ( key )						// Already Recorded
-		{
-		/*--------------------------------------------------*/
-		case RKEY_VolUp:
-		case RKEY_VolDown:
-		case RKEY_Ok :
-
-			if ( currentAlreadyRecordedEnabled == FALSE )
-			{
-				currentAlreadyRecordedEnabled = TRUE;
-			}
-			else
-			{
-				currentAlreadyRecordedEnabled = FALSE;
-			}
-
-			DisplayConfigLine( chosenConfigLine );
-
-			break;
-		/*--------------------------------------------------*/
-		default :
 			break;
 		/*--------------------------------------------------*/
 		}
