@@ -37,6 +37,8 @@ public:
 private:
 	void PopulateList();
 	void EnableTAP( unsigned int index, bool enable );
+	bool CanExit();
+	void Save();
 
 	static dword Commit(ListPage* page, ListItem* item, dword key, dword extKey);
 	static dword Backup(ListPage* page, ListItem* item, dword key, dword extKey);

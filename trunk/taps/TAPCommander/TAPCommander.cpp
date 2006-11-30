@@ -65,19 +65,25 @@ const char* TAPCommander::GetIniName() const
 }
 
 
+extern "C" void TAP_Hdd_GetCurrentDirectory(char* buffer, int bufferSize);
+
 bool TAPCommander::Start()
 {
+	char buffer[1024];
+	TAP_Hdd_GetCurrentDirectory(buffer,1024);
+
 	// Initialise the firmware hack
 	if ( !StartTAPExtensions() )
 		return false;
 
 	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit Key Activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(m_exitActivates)));
 
-	Tapplication::Start();
+	if (!Tapplication::Start())
+		return false;
 
-	// if started manually then immediately show the running TAPs page
+	// if TAP not launched from Auto Start then immediately show the running TAPs page
 	// must be done in the idle loop or ExitNormal will not work
-	if (TAP_GetTick() > 3000) // 30 seconds since startup
+	if (startupDirectory != "/ProgramFiles/Auto Start")
 		m_showStartPage = true;
 
 	return true;

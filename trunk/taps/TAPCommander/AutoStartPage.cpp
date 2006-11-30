@@ -121,7 +121,7 @@ void AutoStartPage::PopulateList()
 	TAP_Hdd_ChangeDir( autoStartPath );
 
 	TYPE_File file;
-	
+
 	int index = 0;
 	for ( dword totalEntry = TAP_Hdd_FindFirst( &file ); totalEntry > 0; )
 	{
@@ -165,7 +165,8 @@ void AutoStartPage::PopulateList()
 			}
 		}
 
-		if ( totalEntry==0 || TAP_Hdd_FindNext( &file ) == 0 )
+		dword currentEntry = TAP_Hdd_FindNext( &file );
+		if ( totalEntry == currentEntry || currentEntry == 0 )
 			break;
 	}
 
@@ -180,26 +181,31 @@ void AutoStartPage::PopulateList()
 	Draw();
 }
 
+bool AutoStartPage::CanExit()
+{
+	if (m_dirty)
+	{
+		switch (MessageBox::Show("Reorder TAPs", "You have unsaved changes", "Save\nDiscard\nCancel"))
+		{
+		case 1:
+			Save();
+			break;
+		case 0:
+		case 3:
+			return false;
+		}
+	}
+	return true;
+}
+
 
 dword AutoStartPage::OnKey( dword key, dword extKey )
 {
 	switch ( key )
 	{
 	case RKEY_Exit:
-		if (m_dirty)
-		{
-			switch (MessageBox::Show("Reorder TAPs", "You have unsaved changes", "Save\nDiscard\nCancel"))
-			{
-			case 1:
-				Commit(this, NULL, RKEY_Ok,0);
-				Close();
-				break;
-			case 0:
-			case 3:
-				return 0;
-			}
-		}
-		Close();
+		if ( CanExit() )
+			Close();
 		return 0;
 	case RKEY_Mute:
 		// pass Mute to the firmware
@@ -212,7 +218,8 @@ dword AutoStartPage::OnKey( dword key, dword extKey )
 		return 0;
 	}
 	case RKEY_PlayList:
-		Replace(new LoadedTAPPage());
+		if ( CanExit() )
+			Replace(new LoadedTAPPage());
 		return 0;
 	case RKEY_VolUp:
 	{
@@ -273,7 +280,8 @@ dword AutoStartPage::OnKey( dword key, dword extKey )
 		return 0;
 	// Save Changes
 	case RKEY_Record:
-		Commit(this, NULL, RKEY_Ok,0);
+		Save();
+		Close();
 		return 0;
 	}
 	ListPage::OnKey( key, extKey );
@@ -393,21 +401,28 @@ dword AutoStartPage::Restore( ListPage* page, ListItem* item, dword key, dword e
 
 dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword extKey )
 {
-	if ( key != RKEY_Ok )
-		return key;
+	if ( key == RKEY_Ok )
+	{
+		((AutoStartPage*)page)->Save();
+		page->Close();
+	}
+	return key;
+}
 
-	array<AutoStartTAP>& taps = ((AutoStartPage*)page)->m_taps;
-	if ( taps.size() == 0 )
+
+void AutoStartPage::Save()
+{
+	if ( m_taps.size() == 0 )
 	{
 		MessageBox::Show( messageBoxTitle, "No TAPs are installed in Auto Start", "OK" );
-		return 0;
+		return;
 	}
 
 	// Set current directory to ProgramFiles
 	if ( !TAP_Hdd_ChangeDir( programFilesPath ) )
 	{
 		MessageBox::Show( messageBoxTitle, "ProgramFiles directory could not be found", "OK" );
-		return 0;
+		return;
 	}
 
 	// display a progress box
@@ -423,18 +438,18 @@ dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword ex
 	{
 		progress.DestroyDialog();
 		MessageBox::Show("Reorder TAPs", "Failed to find Auto Start folder", "OK");
-		return 0;
+		return;
 	}
-	for ( unsigned int i = 0; i < taps.size(); ++i )
+	for ( unsigned int i = 0; i < m_taps.size(); ++i )
 	{
-		if ( taps[i].index != i )
+		if ( m_taps[i].index != i )
 			reorder = true;
-		if ( !TAP_Hdd_Exist( (char*)taps[i].filename.c_str() ) )
+		if ( !TAP_Hdd_Exist( (char*)m_taps[i].filename.c_str() ) )
 		{
-			int extOffset = taps[i].filename.size()-3;
+			int extOffset = m_taps[i].filename.size()-3;
 			if ( extOffset > 0)
 			{
-				taps[i].filename[extOffset] = taps[i].filename[extOffset] == 't' ? 'n' : 't';
+				m_taps[i].filename[extOffset] = m_taps[i].filename[extOffset] == 't' ? 'n' : 't';
 			}
 		}
 	}
@@ -448,27 +463,27 @@ dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword ex
 		{
 			progress.DestroyDialog();
 			MessageBox::Show( messageBoxTitle, "Failed to create Temp Auto Start folder", "OK");
-			return 0;
+			return;
 		}
 		// Move the TAPs to the Temporary Auto Start directory
 		progress.UpdateLine1("Preparing TAP:");
-		short int stepSize = 50/taps.size();
-		for ( unsigned int i = 0; i < taps.size(); ++i )
+		short int stepSize = 50/m_taps.size();
+		for ( unsigned int i = 0; i < m_taps.size(); ++i )
 		{
-			TRACE1("Moving %s\n",(char*)taps[i].filename.c_str());
-			progress.StepProgress( stepSize, NULL, taps[i].name );
-			TAP_Hdd_Move( "/ProgramFiles/Auto Start", "/ProgramFiles/Temp Auto Start", (char*)taps[i].filename.c_str());
-			if ( !TAP_Hdd_Exist( (char*)taps[i].filename.c_str() ) )
+			TRACE1("Moving %s\n",(char*)m_taps[i].filename.c_str());
+			progress.StepProgress( stepSize, NULL, m_taps[i].name );
+			TAP_Hdd_Move( "/ProgramFiles/Auto Start", "/ProgramFiles/Temp Auto Start", (char*)m_taps[i].filename.c_str());
+			if ( !TAP_Hdd_Exist( (char*)m_taps[i].filename.c_str() ) )
 			{
 				// TAP wasn't moved, flag the failure and
 				if ( warnings.size() > 0 )
 					warnings += ", ";
-				warnings += taps[i].name;
-				taps[i].spare = false;
+				warnings += m_taps[i].name;
+				m_taps[i].spare = false;
 				progress.StepProgress( stepSize );
 			}
 			else
-				taps[i].spare = true;
+				m_taps[i].spare = true;
 		}
 		TRACE("Done moving\n");
 
@@ -478,21 +493,21 @@ dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword ex
 		{
 			progress.DestroyDialog();
 			MessageBox::Show("Reorder TAPs", "Failed to find Auto Start folder", "OK");
-			return 0;
+			return;
 		}
 		int count = 0;
-		for ( unsigned int i = 0; i < taps.size(); ++i )
+		for ( unsigned int i = 0; i < m_taps.size(); ++i )
 		{
-			if ( taps[i].spare )
+			if ( m_taps[i].spare )
 			{
-				TRACE1("Moving TAP %s\n",(char*)taps[i].filename.c_str());
-				progress.StepProgress( stepSize, NULL, taps[i].name );
-				TAP_Hdd_Move( "/ProgramFiles/Temp Auto Start", "/ProgramFiles/Auto Start", (char*)taps[i].filename.c_str());
-				if ( !TAP_Hdd_Exist( (char*)taps[i].filename.c_str() ) )
+				TRACE1("Moving TAP %s\n",(char*)m_taps[i].filename.c_str());
+				progress.StepProgress( stepSize, NULL, m_taps[i].name );
+				TAP_Hdd_Move( "/ProgramFiles/Temp Auto Start", "/ProgramFiles/Auto Start", (char*)m_taps[i].filename.c_str());
+				if ( !TAP_Hdd_Exist( (char*)m_taps[i].filename.c_str() ) )
 				{
 					if ( errors.size() > 0 )
 						errors += ", ";
-					errors += taps[i].name;
+					errors += m_taps[i].name;
 				}
 				++count;
 			}
@@ -500,14 +515,14 @@ dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword ex
 	}
 
 	// Finally, deal with enabled and disabled
-	for ( unsigned int i = 0; i < taps.size(); ++i )
+	for ( unsigned int i = 0; i < m_taps.size(); ++i )
 	{
-		int extOffset = taps[i].filename.size()-3;
-		string tapName = taps[i].filename;
+		int extOffset = m_taps[i].filename.size()-3;
+		string tapName = m_taps[i].filename;
 		tapName[extOffset] = 't';
-		string napName = taps[i].filename;
+		string napName = m_taps[i].filename;
 		napName[extOffset] = 'n';
-		if ( taps[i].enabled )
+		if ( m_taps[i].enabled )
 		{
 			// ensure TAP is enabled
 			if ( TAP_Hdd_Exist( (char*)tapName.c_str() ) )
@@ -560,8 +575,4 @@ dword AutoStartPage::Commit( ListPage* page, ListItem* item, dword key, dword ex
 		if ( MessageBox::Show("Reorder TAPs", "Finished", "OK\nReboot") == 2 )
 			TAP_Reboot(false);
 	}
-
-	page->Close();
-
-	return 0;
 }
