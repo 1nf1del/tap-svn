@@ -23,25 +23,8 @@ include ../../tools/build/tap.mk
 
 TAPNAME=DescriptionExtender
 
-ifdef CT
-CFLAGS+=-DCT
-CXXFLAGS+=-DCT
-TAPNAME:=$(TAPNAME)CT
-endif
-
-ifdef NG
-CFLAGS+=-DNG
-CXXFLAGS+=-DNG
-TAPNAME:=$(TAPNAME)NG
-endif
-
-all:
-	$(MAKE) single
-	$(MAKE) single CT=1
-	$(MAKE) single NG=1
-
-single: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-	tfcopy $(TAPNAME).tap '#:\ProgramFiles\'
+all: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+	tfcopy.cmd $(TAPNAME).tap '#:\ProgramFiles\'
 
 
 # A target for removing generated files.
@@ -53,8 +36,10 @@ $(TAPNAME).tap: DescriptionExtender.elf
 #	@mips-objdump -D $(TAPNAME).elf > $(TAPNAME).asm
 	-rm -f *.o *.elf *.map
 
-DescriptionExtender.elf::	DescriptionExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-DescriptionExtender.o:		DescriptionExtender.c 
+DescriptionExtender.elf::	Main.o DescriptionExtender.o Settings.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+Main.o:						Main.c Settings.h 
+DescriptionExtender.o:		DescriptionExtender.c DescriptionExtender.h Settings.h
+Settings.o:					Settings.c Settings.h
 
 CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 

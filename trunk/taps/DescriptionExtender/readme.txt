@@ -1,37 +1,23 @@
-Description Extender 1.6
+Description Extender 2.0
 ------------------------
-Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information.
+Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information. Improbox, Surfer, Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
 
-There are 3 versions of Description Extender. Choose the version most appropriate to your EPG data:
-Standard:	Adds a space between the programme description and extended information.
-CT:			Programme description and extended information are contiguous. A space is not inserted.
-NG:			Adds a space between the programme description and extended information. On the TF5800 does not add programme genre details to the extended information. Use this version if you are running Jag's EPG 3.0 beta 5.
+There is now an options screen for configuring Description Extender. This can only be accessed using TAP Commander or TSR Commander. The 2 available options are:
+Add a space between the programme description and extended information
+Add the broadcast genre (on TF5800 firmware 12.88 or greater)
 
-This TAP currently only supports the following firmware
-TF5000t:		05/09/2006, 20/02/2006, 05/10/2005
-TF5000/5500:	13/09/2005
-TF5010/5510:	05/10/2005
-TF5100c:		15/09/2006, 12/06/2006, 19/04/2006, 15/03/2006, 12/09/2005, 04/05/2005, 19/04/2006
-TF5100c MP:		25/09/2006, 24/04/2006, 15/03/2006, 05/10/2005, 24/04/2006
-TF5100t:		15/09/2006, 19/04/2006, 15/03/2006, 12/09/2005, 19/04/2006
-TF5100t MP:		15/03/2006, 04/10/2005, 24/04/2006
-TF5200c:		13/09/2005
-TF5800:			19/09/2006 (13.26), 14/07/2006 (12.88), 08/12/2005 (12.25), 14/10/2005 (12.09), 12.05, 12.04
+To configure or stop the TAP you must use TAP Commander or TSR Commander.
 
-Procaster PVRs:
-PC5101c/5102c:	12/06/2006*, 15/03/2006*, 05/10/2005
-PC5101t/5102t:	15/03/2006*, 05/10/2005
-*These versions are crossflashed TF5100c and TF5100t firmwares as 05/10/2005 was the last Procaster firmware Topfield will provide.
+Description Extender currently supports the following Topfield models:
+TF5000t, TF5000/5500, TF5010/5510, TF5100c, TF5100c MP, TF5100t, TF5100t MP, TF5200c, TF5800
+and Procaster models:
+PC5101c/5102c, PC5101t/5102t
 
-If your firmware isn't supported, run the TAP and email me the text that's displayed on screen.
-
-The TAP can be stopped using TAP Commander or TSR Commander. No configuration is necessary, just place your chosen version in the Auto Start directory.
-
-Improbox, UKOZSurfer and Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
-
+If your firmware isn't supported, run the TAP and email me the text that's displayed on screen or the DescriptionExtenderLog.txt file in ProgramFiles.
 
 History
 -------
+2.0		Support for loads of new firmware. Added an options screen.
 1.6		Support for 5800 19/09/2006 (13.26) firmware. Fixes missing genre information.
 1.5		Fixes a bug in extended information support for 5800 12.88 firmware.
 1.4		Support for 5800 14/07/2006 (12.88) firmware.
