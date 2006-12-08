@@ -49,7 +49,7 @@ typedef struct
 
 static FirmwareDetail firmware[] = 
 {
-	// Model, FW ver,	GetCurEvent,	Event Table,	Size	Length	len,  name, genre
+	// FW ver,	GetCurEvent,	Event Table,	Size	Length	len,  name, genre
 	// TF5800t - 456
 	0x1326,		0x80181df0,		0x80335504,		14000,	0x44,	0x32, 0x2c, 0x40,	// 19 Sep 2006
 	0x1299,		0x80181840,		0x80334f3c,		14000,	0x44,	0x32, 0x2c, 0x40,	// 18 Aug 2006
@@ -59,6 +59,7 @@ static FirmwareDetail firmware[] =
 	0x1205,		0x80178788,		0x8032e818,		5000,	0x40,	0x2e, 0x30, 0,		// 07 Sep 2005
 
 	// TF5000t - 416
+	0x1330,		0x801827b8,		0x802a0964,		5000,	0x40,	0x32, 0x2c, 0,		// 03 Nov 2006
 	0x1306,		0x80181b08,		0x8029e8c4,		5000,	0x40,	0x32, 0x2c, 0,		// 12 Sep 2006
 	0x1304,		0x8017d66c,		0x8029b1f4,		5000,	0x40,	0x32, 0x2c, 0,		// 05 Sep 2006
 	0x1248,		0x80179378,		0x802961c4,		5000,	0x40,	0x2e, 0x30, 0,		// 20 Feb 2006
@@ -391,7 +392,7 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 	return result;
 }
 
-void DescriptionExtender_Init()
+bool DescriptionExtender_Init()
 {
 	dword eventTable;
 	bool supported = FALSE;
@@ -439,6 +440,7 @@ void DescriptionExtender_Init()
 			"A log file has been created in ProgramFiles",
 			*sysID, _appl_version, TAP_GetCurrentEvent-0x80000000, TAP_EPG_GetExtInfo-0x80000000 );
 		ShowMessage( buffer, 1000 );
+		return FALSE;
 	}
 	else
 	{
