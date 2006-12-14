@@ -363,6 +363,48 @@ bool DirectoryRestorer::WasSuccesful()
 	return m_bWorked;
 }
 
+#define BLOCK_SIZE 4096
+
+bool CopyFile(const string& sSource, const string& sDestination, bool bFailIfExists)
+{
+	if (FileExists(sDestination))
+	{
+		if (bFailIfExists)
+			return false;
+
+		DeleteFile(sDestination);
+
+		if (FileExists(sDestination))
+			return false;
+	}
+
+	TYPE_File* srcFile = OpenRawFile(sSource, "r");
+	if (srcFile == NULL) 
+		return false;
+
+	TYPE_File* destFile = OpenRawFile(sDestination, "w");
+	if (destFile == NULL)
+	{
+		TAP_Hdd_Fclose(srcFile);
+		return false;
+	}
+
+	dword dwSize = TAP_Hdd_Flen(srcFile);
+	char buf[BLOCK_SIZE];
+
+	while (dwSize > 0)
+	{
+		dword dwBlock = min(dwSize, BLOCK_SIZE);
+		TAP_Hdd_Fread(buf, dwBlock, 1, srcFile);
+		TAP_Hdd_Fwrite(buf, dwBlock, 1, destFile);
+		dwSize-=dwBlock;
+	}
+
+	TAP_Hdd_Fclose(srcFile);
+	TAP_Hdd_Fclose(destFile);
+
+	return true;
+}
 
 void GetDetailFolderContents(const string& sFolderName, array<TYPE_File>& results, const string& sExt, bool bFolders)
 {

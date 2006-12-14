@@ -22,10 +22,13 @@
 #ifndef __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 #define __string_18CE3693_FC3F_4d4b_A9E0_66CD4F632AE1_h
 
-#ifndef WIN32
+#ifndef _WIN32
 #define _strnicmp strnicmp
 #define _strlwr strlwr
 #define _strupr strupr
+#define PURE(x) {return x;}
+#else
+#define PURE(x) = 0
 #endif
 
 template<typename T> class array;

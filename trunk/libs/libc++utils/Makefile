@@ -287,7 +287,7 @@ IniFile.o: /usr/local/topfield-gcc/topfield-sdk/include/font.h
 IniFile.o: /usr/local/topfield-gcc/topfield-sdk/include/win.h
 IniFile.o: ../libutils/tapapifix.h inifile.h taparray.h /usr/include/memory.h
 IniFile.o: quicksort.h tapstring.h ../libutils/file.h ../libutils/Utils.h
-IniFile.o: DirectoryUtils.h
+IniFile.o: DirectoryUtils.h logger.h
 JagCSVReader.o: JagCSVreader.h MEIReader.h /usr/include/stdlib.h
 JagCSVReader.o: /usr/include/features.h /usr/include/sys/cdefs.h
 JagCSVReader.o: /usr/include/gnu/stubs.h /usr/include/sys/types.h

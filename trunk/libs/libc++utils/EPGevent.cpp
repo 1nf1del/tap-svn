@@ -564,14 +564,12 @@ bool EPGevent::WriteMyStuffControlTimer() const
 	{
 		return false;
 	}
-
-
 }
 
 string EPGevent::GetYear() const
 {
 	string result;
-	if (m_wYear != -1)
+	if (m_wYear > 0)
 		result.format("%d", m_wYear);
 
 	return result;

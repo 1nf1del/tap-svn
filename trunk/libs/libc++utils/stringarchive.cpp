@@ -50,6 +50,14 @@ stringarchive& stringarchive::operator <<(int iValue)
 	return *this;
 }
 
+stringarchive& stringarchive::operator <<(unsigned int iValue)
+{
+	string sNew;
+	sNew.format("i%d;", iValue);
+	m_sBackingData += sNew;
+	return *this;
+}
+
 stringarchive& stringarchive::operator <<(word wValue)
 {
 	string sNew;
@@ -98,6 +106,20 @@ stringarchive& stringarchive::operator >>(int& iValue)
 		{
 			TRACE("Error reading int field from stringarchive\n");
 		}
+	}
+	return *this;
+}
+
+stringarchive& stringarchive::operator >>(unsigned int& uiValue)
+{
+	if (ValidToRead())
+	{
+		int iValue = 0;
+		if (!ReadIntValue('i',';',iValue))
+		{
+			TRACE("Error reading int field from stringarchive\n");
+		}
+		uiValue = (unsigned int) iValue;
 	}
 	return *this;
 }
@@ -201,4 +223,29 @@ void stringarchive::insert(const string& typeId)
 	string sNew;
 	sNew.format(":%s:", typeId.c_str());
 	m_sBackingData += sNew;
+}
+
+string stringarchive::getTypeId()
+{
+	string sResult;
+	if (m_sBackingData[m_iReadPos]==':')	
+	{
+		m_iReadPos++;
+
+
+		while (m_sBackingData[m_iReadPos] != ':')
+		{
+			sResult += m_sBackingData[m_iReadPos];
+			m_iReadPos++;
+
+		}
+
+		m_iReadPos++;
+	}
+	else
+	{
+		TRACE("Error reading typeid from stringarchive\n");
+	}
+	return sResult;
+
 }

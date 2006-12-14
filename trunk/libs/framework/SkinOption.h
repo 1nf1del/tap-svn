@@ -31,5 +31,8 @@ public:
 
 	virtual void OnUpdate() const;
 	virtual bool ImmediateUpdateNeeded() const; 
+
+private:
+	bool m_bOldFolder;
 };
 #endif

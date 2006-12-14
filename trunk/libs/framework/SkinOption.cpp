@@ -27,8 +27,14 @@ SkinOption::SkinOption(Options* pContainer) :
 Option(pContainer, "Skin", "Default", "Select Skin Colours (*.mcf)", "", NULL)
 {
 	m_choices.push_back("Default");
+	m_bOldFolder = false;
 
-	array<string> skins = GetFilesInFolder("/ProgramFiles", ".mcf");
+	array<string> skins = GetFilesInFolder("/ProgramFiles/Settings/Skins", ".mcf");
+	if (skins.size() == 0)
+	{
+		skins = GetFilesInFolder("/ProgramFiles", ".mcf");
+		m_bOldFolder = true;
+	}
 
 	for (unsigned int i=0; i<skins.size(); i++)
 	{
@@ -54,7 +60,10 @@ void SkinOption::OnUpdate() const
 	}
 	else
 	{
-		pTap->LoadSkin("/ProgramFiles/" + value + ".mcf");
+		if (m_bOldFolder)
+			pTap->LoadSkin("/ProgramFiles/" + value + ".mcf");
+		else
+			pTap->LoadSkin("/ProgramFiles/Settings/Skins/" + value + ".mcf");
 	}
 }
 
