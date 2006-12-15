@@ -406,8 +406,11 @@ bool CopyFile(const string& sSource, const string& sDestination, bool bFailIfExi
 	return true;
 }
 
-void GetDetailFolderContents(const string& sFolderName, array<TYPE_File>& results, const string& sExt, bool bFolders)
+void GetDetailFolderContents(string sFolderName, array<TYPE_File>& results, const string& sExt, bool bFolders)
 {
+	if (sFolderName.reverseFind('/') == sFolderName.size()-1)
+		sFolderName = sFolderName.substr(0, sFolderName.size()-1);
+
 	DirectoryRestorer dr(sFolderName);
 	if (!dr.WasSuccesful())
 		return;
