@@ -19,6 +19,7 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 						'/' now reverts next character back to a capital
 						 when 'Abc' mode selected.
 	  v0.6 sl8		29-08-06	':' and '1' added to the number one key
+	  v0.7 sl8		15-12-06	Advanced search characters added. 
 
 **************************************************************/
 
@@ -290,7 +291,7 @@ char KeyboardSelection( int row, int column )
 		/* ---------------------------------------------------------------------------- */
 		case KEYBOARD_ENGLISH:
 
-			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ      /" );
+			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZ+|_*~ /" );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -611,6 +612,16 @@ void AppendCharacter( char newCharacter, TYPE_EntryType entryType )
 				(currentString[currentIndex - 1] != ' ')
 				&&
 				(currentString[currentIndex - 1] != '/')
+				&&
+				(currentString[currentIndex - 1] != '+')
+				&&
+				(currentString[currentIndex - 1] != '|')
+				&&
+				(currentString[currentIndex - 1] != '(')
+				&&
+				(currentString[currentIndex - 1] != ')')
+				&&
+				(currentString[currentIndex - 1] != '~')
 			)
 			{
 				bLowerCase = TRUE;
@@ -1108,9 +1119,9 @@ void InitialiseKeyboard( void )
 	savedFlash = FALSE;
 	insertMode = 0;  // Start in insert mode.
 	caseMode = 0; // Start in word Capital Mode (ie. Abcd Efg)
-    remoteKeyPressCount=0;
-    remoteKeyPrevKey=0;
-    remoteKeyFirstPress=FALSE;
-    remoteKeyActive=FALSE;
+	remoteKeyPressCount=0;
+	remoteKeyPrevKey=0;
+	remoteKeyFirstPress=FALSE;
+	remoteKeyActive=FALSE;
 }
 

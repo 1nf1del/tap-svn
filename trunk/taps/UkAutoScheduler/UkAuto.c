@@ -37,6 +37,8 @@ History	: v0.1  sl8:	11-11-05	Initial release
 	  v0.9  sl8:	11-04-06	Show window added and tidy up.
 	  v0.10 sl8:	08-05-06	API move added.
 	  v0.11 sl8:	05-08-06	Keep added. Search ahead, date and time format added. Load order changed.
+	  v0.12 sl8:	15-12-06	Message box. Settings/UkAuto folder
+
 
 **************************************************************/
 
@@ -49,7 +51,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler - Already Rec 3"
+#define TAP_NAME "UK Auto Scheduler - Advanced 2"
 #define VERSION "0.61"
 
 TAP_ID( ID_UKAUTO );
@@ -78,6 +80,7 @@ void ShowMessageWin(char*, char*);
 #include "logo.c"
 #include "TextTools.c"
 #include "YesNoBox.c"
+#include "MessageBox.c"
 #include "schMain.c"
 #include "schDisplay.c"
 #include "schEdit.c"
@@ -243,6 +246,8 @@ dword My_KeyHandler(dword key, dword param2)
 
 	if ( yesnoWindowShowing ) { YesNoKeyHandler( key ); return 0; }
 
+	if ( MessageWindowShowing ) { MessageKeyHandler( key ); return 0; }
+
 	if ( configWindowShowing ) { ConfigKeyHandler( key ); return 0; }
 
 	if ( creditsShowing ) { CreditsKeyHandler( key ); return 0; }
@@ -288,6 +293,7 @@ dword My_IdleHandler(void)
 
 		FindTapDir();
 		schMainDetermineChangeDirType();
+		schFileCreateSettingsFolder();
 		LoadConfiguration();
 		CacheLogos();
 		schMainInitLcnToSvcNumMap();

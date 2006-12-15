@@ -18,6 +18,7 @@ History	: v0.0 Darkmatter:	02-08-05 	Inception date
 	  v0.6 sl8		05-08-06	Search ahead, date and time format added.
 	  v0.7 sl8		28-08-06	Keyboard types.
 	  v0.8 sl8		28-09-06	Conflict handler option added.
+	  v0.9 sl8		15-12-06	Settings/UkAuto folder
 
 ************************************************************/
 
@@ -33,8 +34,7 @@ static int dataBufferPtr_ini = 0;
 //
 void WriteIniFile( TYPE_File *writeFile )
 {
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+	GotoPath(SETTINGS_FOLDER);
 	if ( TAP_Hdd_Exist( OPTIONS_FILENAME ) ) TAP_Hdd_Delete( OPTIONS_FILENAME );	// Just delete any old copies
 
 	TAP_Hdd_Create( OPTIONS_FILENAME, ATTR_PROGRAM );				// Create the file
@@ -219,10 +219,17 @@ bool ReadConfigurationFile( void )
 	TYPE_File *readFile = NULL;
 	int	i = 0;
 	dword	fileLength = 0;
+	bool	schSaveIniFile = FALSE;
 
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-	if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) ) return FALSE;			// check the timer file exits in the current directory
+	GotoPath( SETTINGS_FOLDER );
+	if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) )
+	{
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+		if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) ) return FALSE;
+
+		schSaveIniFile = TRUE;
+	}
 	
 	readFile = TAP_Hdd_Fopen( OPTIONS_FILENAME );
 	if ( readFile == NULL ) return FALSE;						// and we can open it ok
@@ -247,6 +254,16 @@ bool ReadConfigurationFile( void )
 	else
 	{
 		TAP_MemFree( dataBuffer_ini );						// must return the memory back to the heap
+	}
+
+	if(schSaveIniFile == TRUE)
+	{
+		SaveConfigurationToFile();
+
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+
+		if ( TAP_Hdd_Exist( OPTIONS_FILENAME ) ) TAP_Hdd_Delete( OPTIONS_FILENAME );
 	}
 
 	return TRUE;

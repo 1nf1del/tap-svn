@@ -14,6 +14,7 @@ History	: v0.0 Kidhazy: 10-09-05	Inception Date
 	  v0.2 sl8:	16-02-06	sysID removed
 	  v0.3 sl8:	05-08-06	Modified to return result of change dir
 	  v0.4 sl8:	28-09-06	GotoPath changed for TF5000.
+	  v0.5 sl8:	15-12-06	GotoPath returns FALSE if result of TAP_Hdd_ChangeDir unknown.
 
 **************************************************************/
 
@@ -142,6 +143,11 @@ bool GotoPath(char *fullPath)
 		}
 	}
 	else
+	{
+		result = FALSE;
+	}
+
+	if(schMainChangeDirAvailable == FALSE)
 	{
 		result = FALSE;
 	}

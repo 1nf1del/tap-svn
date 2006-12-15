@@ -15,6 +15,7 @@ v0.7: sl8	08-05-06	API move added.
 v0.8: sl8	05-08-06	Keep added, Yes/No Box used.
 v0.9: sl8	28-09-06	Do not allow 'move' and 'keep' if unable to determine 'changeDir' type.
 v0.10: sl8	11-10-06	Copy search term to folder. Allow user to create folder if it doesn't exist.
+v0.11: sl8	15-12-06	Advanced search option. Error messages.
 
 **************************************************************/
 
@@ -35,6 +36,7 @@ void schEditDrawLegend(void);
 void schEditReturnFromExitYesNo(bool);
 void schEditReturnFromDeleteYesNo(bool);
 void schEditReturnFromFolderWarningYesNo(bool);
+void schEditReturnFromInvalidSearchMessage(bool);
 
 static int schEditChosenLine = 0;
 static int schEditChosenCell = 0;
@@ -294,7 +296,11 @@ void schEditDrawLine(int option)
 		}
 
 		// -------------------------------------------------
-		if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH)
+		if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH) == SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH)
+		{
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Advanced");
+		}
+		else if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH)
 		{
 			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Exact");
 		}
@@ -1196,13 +1202,30 @@ void EditLineKeyHandler(dword key)
 			switch( schEditChosenCell )
 			{
 			case 0:
-				if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH ) 
+				if
+				(
+					((schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH )
+					&&
+					((schEdit.searchOptions & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH) != SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH )
+				)
 				{
 					schEdit.searchOptions &= ~SCH_USER_DATA_OPTIONS_EXACT_MATCH;
+					schEdit.searchOptions &= ~SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH;
+				}
+				else if
+				(
+					((schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) != SCH_USER_DATA_OPTIONS_EXACT_MATCH )
+					&&
+					((schEdit.searchOptions & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH) != SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH )
+				)
+				{
+					schEdit.searchOptions &= ~SCH_USER_DATA_OPTIONS_EXACT_MATCH;
+					schEdit.searchOptions |= SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH;
 				}
 				else
 				{
 					schEdit.searchOptions |= SCH_USER_DATA_OPTIONS_EXACT_MATCH;
+					schEdit.searchOptions &= ~SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH;
 				}
 
 				break;
@@ -1716,26 +1739,46 @@ void EditLineKeyHandler(dword key)
 //
 bool schEditValidateSearch(void)
 {
-	bool valid = TRUE;
+	SEARCH	mysearch;
+	int	rc = 0;
 
 	if
 	(
-		(strlen(schEdit.searchTerm) == 0) 
+		(strlen(schEdit.searchTerm) == 0)
 		||
-		(strlen(schEdit.searchTerm) > 128) 
+		(strlen(schEdit.searchTerm) > 128)
 	)
 	{
-		valid = FALSE;
+		DisplayMessageWindow("Invalid Search String Length!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+
+		return FALSE;
+	}
+
+	if((schEdit.searchOptions & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH) == SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH)
+	{
+		schMainSearchInit(&mysearch,"dummystring");
+		rc = schMainSearch(&mysearch,schEdit.searchTerm);
+
+		if( rc < 0  )
+		{
+			DisplayMessageWindow("Invalid Advanced Search String!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+
+			return FALSE;
+		}
 	}
 
 	if(schEdit.searchDay == 0)
 	{
-		valid = FALSE;
+		DisplayMessageWindow("Invalid Number Of Days!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+
+		return FALSE;
 	}
 
 	if((schEdit.searchOptions & (SCH_USER_DATA_OPTIONS_EVENTNAME + SCH_USER_DATA_OPTIONS_DESCRIPTION + SCH_USER_DATA_OPTIONS_EXT_INFO)) == 0)
 	{
-		valid = FALSE;
+		DisplayMessageWindow("Invalid Match Options!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+
+		return FALSE;
 	}
 	
 	if
@@ -1745,10 +1788,18 @@ bool schEditValidateSearch(void)
 		(channelMode == SCH_DISPLAY_CHANNEL_RANGE)
 	)
 	{
-		valid = FALSE;
+		DisplayMessageWindow("Invalid Channel Range!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+
+		return FALSE;
 	}
 	
-	return valid;
+	return TRUE;
+}
+
+
+void schEditReturnFromInvalidSearchMessage(bool result)
+{
+
 }
 
 

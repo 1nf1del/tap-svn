@@ -14,6 +14,8 @@ v0.7 sl8:	05-08-06	Keep added.
 v0.8 sl8:	11-10-06	Check AutoStart folder for remote file. Add 512 bytes to remotefile
 				 if found in ProgramFiles folder. Delete remote file when finished.
 v0.9 sl8:	13-10-06	Default remote file 'Keep' data. Delete remote file when read complete.
+v0.10 sl8	15-12-06	Settings/UkAuto folder
+
 
 **************************************************************/
 
@@ -55,28 +57,46 @@ byte schFileRetreiveSearchData(void)
 	word	wTemp = 0;
 	char	buffer1[256];
 	int	schNewLineCount = 0;
-	
+	bool	schSaveSearchFile = FALSE;
+
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+	if(GotoPath(SETTINGS_FOLDER) == TRUE)
+	{
+		if ( TAP_Hdd_Exist( SEARCH_FILENAME ) )
+		{
+			type = 2;
 
-	if ( TAP_Hdd_Exist( SEARCH_FILENAME ) )
-	{
-		type = 2;
+			searchFile = TAP_Hdd_Fopen( SEARCH_FILENAME );
+		}
+	}
 
-		searchFile = TAP_Hdd_Fopen( SEARCH_FILENAME );
-	}
-	else if ( TAP_Hdd_Exist( "SearchList.txt" ) )
+	if(type == 0)
 	{
-		type = 1;
-		version = 1;
-		
-		searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
-	}
-	else
-	{
-		return 0;
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+
+		if ( TAP_Hdd_Exist( SEARCH_FILENAME ) )
+		{
+			type = 2;
+
+			searchFile = TAP_Hdd_Fopen( SEARCH_FILENAME );
+
+			schSaveSearchFile = TRUE;
+		}
+		else if ( TAP_Hdd_Exist( "SearchList.txt" ) )
+		{
+			type = 1;
+			version = 1;
+			
+			searchFile = TAP_Hdd_Fopen( "SearchList.txt" );
+
+			schSaveSearchFile = TRUE;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	if ( searchFile == NULL ) return 0;
@@ -248,6 +268,16 @@ byte schFileRetreiveSearchData(void)
 	if(version == 1)
 	{
 		schWriteSearchList();
+	}
+
+	if(schSaveSearchFile == TRUE)
+	{
+		schWriteSearchList();
+
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+
+		if ( TAP_Hdd_Exist( SEARCH_FILENAME ) ) TAP_Hdd_Delete( SEARCH_FILENAME );
 	}
 
 	return schMainTotalValidSearches;
@@ -446,8 +476,7 @@ void schPrintSearchLine( int searchIndex, TYPE_File *searchFile )
 
 void schWriteFile( dword bufferSize, TYPE_File *file, char* fileName )
 {
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+	GotoPath(SETTINGS_FOLDER);
 	if ( TAP_Hdd_Exist( fileName ) ) TAP_Hdd_Delete( fileName );	// Just delete any old copies
 
 	TAP_Hdd_Create( fileName, ATTR_PROGRAM );				// Create the file
@@ -496,16 +525,20 @@ byte schFileRetreiveMoveData(void)
 	char	tempBuffer[10];
 	int	maxBufferSize = 0;
 	int	schNewLineCount = 0;
+	bool	schSaveMoveFile = FALSE;
 
 	maxBufferSize = (((SCH_MAX_MOVES * ((sizeof( struct schMoveTag )) + 20)) / 512) + 1) * 512;
 
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-
+	GotoPath( SETTINGS_FOLDER );
 	if ( ! TAP_Hdd_Exist( MOVE_FILENAME ) )
 	{
-		return 0;
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+		if ( ! TAP_Hdd_Exist( MOVE_FILENAME ) ) return 0;
+
+		schSaveMoveFile = TRUE;
 	}
+
 	moveFile = TAP_Hdd_Fopen( MOVE_FILENAME );
 
 	if ( moveFile == NULL )
@@ -585,6 +618,16 @@ byte schFileRetreiveMoveData(void)
 	}
 
 	TAP_MemFree( buffer );
+
+	if(schSaveMoveFile == TRUE)
+	{
+		schWriteMoveList();
+
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+
+		if ( TAP_Hdd_Exist( MOVE_FILENAME ) ) TAP_Hdd_Delete( MOVE_FILENAME );
+	}
 
 	return schMainTotalValidMoves;
 }
@@ -1089,5 +1132,26 @@ dword schFileParseTime(bool* valid, int* newLineCount, char* buffer, int* buffer
 	
 	return dwResult;
 }
+
+
+
+void schFileCreateSettingsFolder(void)
+{
+	if(GotoPath("ProgramFiles/Settings") == FALSE)
+	{
+		if(GotoPath("ProgramFiles") == TRUE)
+		{
+			TAP_Hdd_Create("Settings",ATTR_FOLDER);
+		}
+	}
+
+	if(GotoPath("ProgramFiles/Settings/UkAuto") == FALSE)
+	{
+		if(GotoPath("ProgramFiles/Settings") == TRUE)
+		{
+			TAP_Hdd_Create("UkAuto",ATTR_FOLDER);
+		}
+	}
+}	
 
 

@@ -26,6 +26,9 @@ v0.16 sl8	11-10-06	Separate conflict bug fix. Changes made so that icons can upd
 v0.17 sl8	13-10-06	Update move information when timer modified due to conflict.
 v0.18 sl8	23-10-06	Incorrectly indicating a timer success when timer fails due to different channel conflict.
 v0.19 janilxx:	03-11-06	Added ability to keep end padding between consecutive timers.
+v0.20 Harvey    22-11-06	Added Already Recorded feature
+v0.21 Harvey	03-12-06	Added Searching features (and,or,not) and wildcards
+v0.22 sl8	15-12-06	Settings/UkAuto folder
 
 **************************************************************/
 
@@ -36,6 +39,9 @@ v0.19 janilxx:	03-11-06	Added ability to keep end padding between consecutive ti
 #endif
 
 #define SCH_MAX_FILENAME_LENGTH			40	// Max Length of filename - 4 (.rec)
+
+#define STRING_LENGTH 255
+#define MAX_STACK_VAL  50
 
 #define RECORDED_DB_DIR "UKAuto_db"
 #define REC_TYPE_EMPTY 0
@@ -53,7 +59,7 @@ v0.19 janilxx:	03-11-06	Added ability to keep end padding between consecutive ti
 #define SEEK_END 2
 #endif
 
-bool schMainCompareStrings(char *, char *);
+bool schMainCompareStrings(char *, char *,int);
 bool schMainPerformSearch(TYPE_TapEvent *, int, int);
 byte schMainSetTimer(char*, dword, dword, int, word, byte);
 void schMainService(void);
@@ -155,6 +161,68 @@ typedef struct
 
 #define HASH_RECORDS_PER_BLOCK 512/sizeof(TYPE_Hash_Record)
 
+typedef enum {
+Or,
+And,
+Not,
+LParen,
+RParen,
+EndOfLine,
+
+/* How may operators are there? */
+T_Max,
+
+/* None operators */
+Word,
+
+} Token_val;
+
+enum {
+S,                 /* shift */
+R,                 /* reduce */
+A,                 /* accept */
+E1,                /* error: missing right parenthesis */
+E2,                /* error: missing operator */
+E3,                /* error: unbalanced right parenthesis */
+};
+
+int parseTable[T_Max][T_Max] = {
+/* stack  input ------------------------ */
+/*          |   +   !   (   )  EOL  */
+/*         --  --  --  --  --  ---  */
+/* | */   { R,  S,  S,  S,  R,  R },
+/* + */   { R,  R,  S,  S,  R,  R },
+/* ! */   { R,  R,  S,  S,  R,  R },
+/* ( */   { S,  S,  S,  S,  S,  E1},
+/* ) */   { R,  R,  S,  E2, R,  R },
+/* EOL*/  { S,  S,  S,  S,  E3, A }
+} ;
+
+typedef struct _search_stack
+{
+   char value[MAX_STACK_VAL];
+   int top;
+} SEARCH_STACK;
+
+typedef struct _search
+{
+   Token_val T_LookAhead;
+   char description[STRING_LENGTH];
+   char expr[STRING_LENGTH];
+   char string_buf[STRING_LENGTH];
+
+   char search_len;
+   int search_ptr;
+
+   char token_buf[STRING_LENGTH];
+   int token_ptr;
+
+   SEARCH_STACK operator_stack;
+   SEARCH_STACK value_stack;
+
+} SEARCH;
+
+
 unsigned long schMainGenerateHash(unsigned char *buf)
 {
    unsigned long crc32=0;
@@ -178,7 +246,8 @@ bool schMainAlreadyRecorded(TYPE_TapEvent *event)
 
    // Given the eventName and the description, does this exist in the recorded database?
    //
-   GotoTapDir();
+
+   GotoPath(SETTINGS_FOLDER);
    TAP_Hdd_ChangeDir(RECORDED_DB_DIR);
 
    // Generate a hash for the description
@@ -284,7 +353,7 @@ bool schMainAlreadyRecorded(TYPE_TapEvent *event)
 
 void schMainAlreadyRecordedInitialise()
 {
-   GotoTapDir();
+   GotoPath(SETTINGS_FOLDER);
    TAP_Hdd_Create(RECORDED_DB_DIR,ATTR_FOLDER);
 }
 
@@ -741,7 +810,7 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 			)
 		)
 		{
-			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm);
+			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
 		}
 
 		if
@@ -751,7 +820,7 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION) == SCH_USER_DATA_OPTIONS_DESCRIPTION)
 		)
 		{
-			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm);
+			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
 		}
 
 		if
@@ -770,7 +839,7 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 
 			if(schEpgDataExtendedInfo)
 			{
-				foundSearchTerm = schMainCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm);
+				foundSearchTerm = schMainCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
 			}
 		}
 	}
@@ -1439,9 +1508,390 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 
 
 
+char *schMainstrstrwc_i(char *text,char *pattern)
+{
+   char *pptr,*tptr;
+
+   pptr=pattern;
+   tptr=text;
+
+   // Sanity check
+   //
+   if ( *tptr == '\0' )
+      return text;
+
+   // Enter search loop while we have a pattern to match
+   //
+   while ( *pptr != '\0' )
+   {
+      // We have more to match - if we are at the end of text string then no match found
+      // (unless the next char is $
+      //
+      if ( *tptr ==  '\0' )
+      {
+         if ( *pptr == '$' )
+            return text;
+         else
+            return NULL;
+      }
+
+      switch(*pptr)
+      {
+      case '_':
+         break;
+
+      case '*':
+         // Recursivly search
+         //
+         if ( schMainstrstrwc_i(tptr,pptr+1) != NULL )
+            return text;
+
+         // No match here - move on to next char - but pattern pos stays the same
+         //
+         tptr++;
+         continue;
+
+      default:
+         // Just compare characters
+         //
+         if ( *pptr != *tptr )
+            return NULL;
+         break;
+      }
+   
+      // Advance both pattern and search pos
+      //
+      pptr++;
+      tptr++;
+   }
+
+   return text;
+}
+
+char *schMainstrstrwc(char *text,char *pattern)
+{
+   char upattern[255];
+   char *val;
+
+   if ( text == NULL || pattern == NULL )
+      return NULL;
+
+   // Mangle the search pattern 
+   //
+   switch(*pattern)
+   {
+   case '*':
+      strcpy(upattern,pattern); 
+      break;
+
+   case '^':
+      strcpy(upattern,pattern+1); 
+      break;
+
+   default:
+      // Add a * to the beginning of the pattern
+      //
+      strcpy(upattern,"*");
+      strcat(upattern,pattern); 
+      break;
+   }
+
+   val=schMainstrstrwc_i(text,upattern);
+   return val;
+}
+
+void schMainGetNextChar(SEARCH *search,char *c)
+{
+   search->search_ptr+=1;
+   *c=search->expr[search->search_ptr];
+}
+
+void schMainBufTok(SEARCH *search, char c)
+{
+   int i;
+   char inspect;
+
+   search->token_buf[search->token_ptr++]=c;
+   schMainGetNextChar(search,&inspect);
+
+   while ( (inspect >= 'a' && inspect <='z' ) ||
+           (inspect >= 'A' && inspect <='Z' ) ||
+           (inspect >= '0' && inspect <='9' ) ||
+           (inspect == '*' ) || 
+           (inspect == ' ' ) || 
+           (inspect == '$' ) || 
+           (inspect == '^' ) || 
+           (inspect == '_' ) )
+   {
+      search->token_buf[search->token_ptr++]=inspect;
+      schMainGetNextChar(search,&inspect);
+   }
+
+   // Put the last character back
+   //
+   search->search_ptr-=1;
+
+   // Terminate the string
+   //
+   search->token_buf[search->token_ptr++]='\0';
+
+   // Trim the string of extra spaces at the end
+   //
+   i=search->token_ptr-2;
+
+   while (i && search->token_buf[i] == ' ' )
+      search->token_buf[i--]='\0';
+
+}
+
+int schMainGetNextTok(SEARCH *search)
+{
+   char c;
+
+   search->token_buf[0]='\0';
+   search->token_ptr=0;
+
+   // Trim the string of extra spaces at the beginning
+   //
+   while( search->search_ptr + 1 <= search->search_len )
+   {
+      schMainGetNextChar(search,&c);
+
+      if ( c != ' ' )
+         break;
+   }
+
+   switch(c)
+   {
+   case '(':
+      return LParen;
+
+   case ')':
+      return RParen;
+
+   case '+':
+      return And;
+
+   case '|':
+      return Or;
+
+   case '!':
+      return Not;
+
+   case '\0':
+      return EndOfLine;
+
+   default:
+      // Default - its a word
+      //
+      schMainBufTok(search,c);
+      return Word;
+   }
+}
+
+int schMainCompare(char *string,char *what)
+{
+   if ( schMainstrstrwc(string,what) )
+      return -1;
+
+   return 0;
+}
+
+void schMainSearchStackInit(SEARCH_STACK *stack)
+{
+   stack->top=-1;
+}
+
+int schMainSearchPush(SEARCH_STACK *stack, int value)
+{
+   stack->top++;
+
+   if ( stack->top == MAX_STACK_VAL )
+      return -1;
+
+   stack->value[stack->top]=value;
+
+   return 0;
+}
+
+int schMainSearchReduce(SEARCH *search)
+{
+   int top=search->value_stack.top;
+
+   switch(search->operator_stack.value[search->operator_stack.top])
+   {
+   case And:
+      if ( top < 1 )
+         return -1;
+
+      search->value_stack.value[top-1]=search->value_stack.value[top-1] && 
+                                       search->value_stack.value[top];
+
+      search->value_stack.top--;
+      break;
+
+   case Or:
+      if ( top < 1 )
+         return -1;
+
+      search->value_stack.value[top-1]=search->value_stack.value[top-1] ||
+                                       search->value_stack.value[top];
+
+      search->value_stack.top--;
+      break;
+
+   case Not:
+      if ( top < 0 )
+         return -1;
+
+      search->value_stack.value[top]=!search->value_stack.value[top];
+      break;
+
+   case RParen:
+      search->operator_stack.top--;
+      break;
+   }
+
+   search->operator_stack.top--;
+   return 0;
+}
+
+int schMainSearchAdvanced(SEARCH *search)
+{
+   int token,val;
+
+   search->search_len=strlen(search->expr);
+   search->search_ptr=-1;
+
+   schMainSearchStackInit(&search->operator_stack);
+   schMainSearchStackInit(&search->value_stack);
+
+   schMainSearchPush(&search->operator_stack,EndOfLine);
+ 
+   token=schMainGetNextTok(search);
+
+   for(;;)
+   {
+      if ( token == Word )
+      {
+         val=schMainCompare(search->description, search->token_buf);
+
+         if ( schMainSearchPush(&search->value_stack,val) != 0 )
+            return -1;
+
+         token=schMainGetNextTok(search);
+         continue;
+      }
+
+      // Token is an operator 
+      //
+      switch(parseTable[search->operator_stack.value[search->operator_stack.top]][token])
+      {
+      case R:
+         if ( schMainSearchReduce(search) != 0 )
+            return -1;
+
+         break;
+
+      case S:
+         if ( schMainSearchPush(&search->operator_stack,token) != 0 )
+            return -1;
+
+         token=schMainGetNextTok(search);
+         break;
+
+      case A:
+         if ( search->value_stack.top != 0 )
+            return -999;
+   
+         if ( search->value_stack.value[0] )
+            val=1;
+         else
+            val=0;
+
+         return val;
+
+      case E1:
+         return -2;
+
+      case E2:
+         return -3;
+ 
+      case E3:
+         return -4;
+
+      default:
+         return -998;
+         return -5;
+ 
+      }
+   }
+}
+
+int schMainSearchNormal(SEARCH *search)
+{
+   if ( strstr(search->description, search->expr) )
+      return 1;
+
+   return 0;
+}
+
+int schMainSearch(SEARCH *search,char *expr)
+{
+   char *src,*tgt;
+   int advanced=0;
+
+   src=expr;
+   tgt=search->expr;
+
+   // Convert to lowercase and determin normal or advanced search
+   //
+   while (*src != '\0')
+   {
+      if ( *src == '(' || *src == ')' ||
+           *src == '^' || *src == '&' ||
+           *src == '+' || *src == '!' ||
+           *src == '$' || *src == '|' ||
+           *src == '_' || *src == '*'  )
+         advanced=-1;
+   
+      *tgt++=tolower(*src++);
+   }
+
+   *tgt='\0';
+
+   if ( advanced )
+      return schMainSearchAdvanced(search);
+
+   // Default its a normal search
+   //
+   return schMainSearchNormal(search);
+}
+
+int schMainSearchInit(SEARCH *search,char *description)
+{
+   char *src,*tgt;
+
+   if ( search == NULL || description == NULL )
+      return -1;
+
+   memset(search,0,sizeof(SEARCH));
+
+   // Convert description to lower case
+   //
+   src=description;
+   tgt=search->description;
+
+   while (*src != '\0')
+      *tgt++=tolower(*src++);
+
+   *tgt='\0';
+
+   return 0;
+}
 
 
-bool schMainCompareStrings(char *eventName, char *searchTerm)
+bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 {
 	int eventNameIndex = 0;
 	bool foundSearchTerm = FALSE;
@@ -1451,26 +1901,49 @@ bool schMainCompareStrings(char *eventName, char *searchTerm)
 	eventNameLength = strlen(eventName);
 	searchTermLength = strlen(searchTerm);
 
-	if
-	(
-		(eventNameLength > 0)
-		&&
-		(searchTermLength > 0)
-	)
+	// Sanity checks
+	//
+	if ( (eventNameLength == 0) || (searchTermLength == 0) )
+		return FALSE;
+
+	if(strlen(eventName) < strlen(searchTerm))
+		return FALSE;
+
+	// Are we doing advanced searching ( +, | and ! with wildcards?)
+	//
+	if ( options & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH )
 	{
-		if(strlen(eventName) >= strlen(searchTerm))
-		{
-			for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
-			{
-//				if(eventName[eventNameIndex] == searchTerm[0])
-//				{
-					if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
-					{
-						foundSearchTerm = TRUE;
-					}
-//				}
-			}
+		SEARCH mysearch;
+
+		if ( schMainSearchInit(&mysearch,eventName) != 0 )
+			return FALSE;
+
+                switch ( schMainSearch(&mysearch,searchTerm) )
+                {
+                case 0: // search not found
+			return FALSE;
+ 
+                case 1: // search found
+			return TRUE;
+
+                default: // error
+			break;
 		}
+
+		return FALSE;
+	}
+
+	// Default - existing search
+	//
+	for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
+	{
+//		if(eventName[eventNameIndex] == searchTerm[0])
+//		{
+			if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
+			{
+				foundSearchTerm = TRUE;
+		}
+//		}
 	}
 
 	return foundSearchTerm;
@@ -1837,5 +2310,4 @@ void schConflictUpdateMoveList(TYPE_TimerInfo* origConflictTimerInfo, dword modT
 		}
 	}
 }
-
 

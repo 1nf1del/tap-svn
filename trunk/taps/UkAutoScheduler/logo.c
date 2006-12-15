@@ -21,6 +21,7 @@ History	: v0.0 Darkmatter:	06-06-05	Inception date
 	  v0.6 sl8:		20-01-06	Uses Kidhazy's method of changing directory. All variables initialised.
 						Uses Kidhazy's logo LCN routine.
 	  v0.7 sl8:		06-02-06	Use Project directory define
+	  v0.8 sl8:		15-12-06	Settings/UkAuto folder
 
 ************************************************************/
 
@@ -282,10 +283,14 @@ void ReadLogoFile()
 	char channelName[CHANNEL_NAME_SIZE];
 	int i = 0; //+++
 
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-	if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
-	
+	GotoPath("ProgramFiles/Settings/Logos");
+	if ( ! TAP_Hdd_Exist( "logo.dat" ) )
+	{
+		GotoTapDir();
+		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+		if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
+	}
+
 	logoFile = TAP_Hdd_Fopen( "logo.dat" );
 	if ( logoFile == NULL ) return;										// and we can open it ok
 

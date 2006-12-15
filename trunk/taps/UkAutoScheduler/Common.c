@@ -20,6 +20,7 @@ v0.6 sl8		11-04-06	Show window added and tidy up.
 v0.7 sl8		08-05-06	API move added.
 v0.8 sl8		05-08-06	Keep added.
 v0.9 sl8		28-08-06	Keyboard types.
+v0.10 sl8		15-12-06	Settings/UkAuto folder
 
 ************************************************************/
 
@@ -92,6 +93,7 @@ v0.9 sl8		28-08-06	Keyboard types.
 
 
 #define PROJECT_DIRECTORY "UK TAP Project"
+#define SETTINGS_FOLDER	"ProgramFiles/Settings/UkAuto"
 
 
 //#define FILL_COLOUR RGB(0,0,102)

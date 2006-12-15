@@ -12,6 +12,8 @@ Usage	:
 History	: v0.0 sl8:	16-02-06 	Inception date
 	  v0.1 sl8:	09-03-06	Function added to log archive
 	  v0.2 sl8:	11-04-06	Improvements to file handling
+	  v0.3 sl8:	15-12-06	Settings/UkAuto folder
+
 
 ************************************************************/
 
@@ -40,8 +42,7 @@ void logInitialise(void)
 
 	memset (logBuffer, 0, LOG_FILE_BLOCK_SIZE);
 
-	GotoTapDir();
-	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+	GotoPath(SETTINGS_FOLDER);
 
 	if (!TAP_Hdd_Exist (LOG_FILENAME))
 	{
@@ -113,8 +114,7 @@ void logStoreEvent(char* logEvent)
 
 		sprintf( logBuffer, "%02u:%02u:%02u %02u/%02u/%04u - %s\r\n", schTimeHour, schTimeMin, schTimeSec, day, month, year, logEvent );
 
-		GotoTapDir();
-		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+		GotoPath(SETTINGS_FOLDER);
 
 		if (fp = TAP_Hdd_Fopen (LOG_FILENAME))
 		{
@@ -181,8 +181,7 @@ void logArchive(void)
 			TAP_Hdd_FindNext(&tempFile);
 		}
 
-		GotoTapDir();
-		TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
+		GotoPath(SETTINGS_FOLDER);
 
 		if (fp = TAP_Hdd_Fopen (LOG_FILENAME))
 		{
