@@ -85,6 +85,7 @@ public:
 
 	static void SetFlags(dword dwNewFlags);
 	static unsigned short GetDaysToLoad();
+	static string GetControlTimerFolder();
 
 private:
 	

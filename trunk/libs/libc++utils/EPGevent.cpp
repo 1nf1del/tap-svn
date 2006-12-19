@@ -522,6 +522,13 @@ string EPGevent::GetCleanTitle() const
 
 }
 
+string EPGevent::GetControlTimerFolder()
+{
+	if (FileExists("/ProgramFiles/Settings/MyStuff"))
+		return "/ProgramFiles/Settings/MyStuff/CTs";
+	return "/ProgramFiles/MST";
+}
+
 bool EPGevent::WriteMyStuffControlTimer() const
 {
 
@@ -551,8 +558,9 @@ bool EPGevent::WriteMyStuffControlTimer() const
 	string sMSTText;
 	sMSTText.format("9|%s|-1|1|1|1|-1|0|0000|0|200|200|", GetTitle().c_str());
 	string sFileName;
-	CreateDirectory("/ProgramFiles/MST");
-	sFileName.format("/ProgramFiles/MST/MeiSearch_%s.mst", GetCleanTitle().c_str());
+	string sFolder = GetControlTimerFolder(); 
+	CreateDirectory(sFolder);
+	sFileName.format("%s/MeiSearch_%s.mst", sFolder.c_str(), GetCleanTitle().c_str());
 	TYPE_File* pFile = OpenRawFile(sFileName, "w");
 	if (pFile != NULL)
 	{

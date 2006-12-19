@@ -78,6 +78,11 @@ void Archive::BuildDeletedArchive()
 void Archive::Populate()
 {
 	LoadCache();
+	//for (unsigned int i=0; i<m_cachedArchive.size(); i++)
+	//{
+	//	m_theArchive.push_back(m_cachedArchive[i]);
+	//}
+	//m_cachedArchive.clear();
 	PopulateFromFolder("/DataFiles");
 	SaveCache();
 	BuildDeletedArchive();
