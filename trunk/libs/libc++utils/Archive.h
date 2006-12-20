@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "ArchivedProgram.h"
 #include "taparray.h"
+#include "tapmap.h"
 class ArchivedProgram;
 class ArchiveVisitor;
 class Archive
@@ -46,9 +47,11 @@ private:
 	const ArchivedProgram* FindInCache(const string& folderName, TYPE_File& file);
 	void SaveCache();
 	void BuildDeletedArchive();
+	void Index();
 
 	array<const ArchivedProgram*> m_theArchive;
 	array<const ArchivedProgram*> m_cachedArchive;
+	mutable map<string, array<const ArchivedProgram*> > m_index;
 	string m_sCacheFile;
 	Archive* m_pDeletedPrograms;
 };

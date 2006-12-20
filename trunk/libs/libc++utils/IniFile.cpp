@@ -80,7 +80,7 @@ bool IniFile::Load( const char* filename )
 		{
 			if (line[i][isize-1] == '\r')
 				line[i].resize(isize-1);
-			TRACE1("%s\n",line[i].c_str());
+//			TRACE1("%s\n",line[i].c_str());
 		}
 	}
 
@@ -110,7 +110,7 @@ bool IniFile::Save( const char* filename ) const
 	buffer.resize( length );
 	for ( unsigned int u = 0; u < line.size(); ++u )
 	{
-		TRACE1("%s\n", line[u].c_str());
+//		TRACE1("%s\n", line[u].c_str());
 		buffer += line[u] + "\r\n";
 	}
 	while ( buffer.size() < length )

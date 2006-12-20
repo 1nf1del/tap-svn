@@ -31,6 +31,7 @@ Archive::Archive(const string& sCacheFile)
 	if (m_sCacheFile == "")
 		m_sCacheFile = "/ProgramFiles/Archive.cache";
 	Populate();
+	Index();
 }
 
 Archive::Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>& deletedStuff)
@@ -54,6 +55,7 @@ Archive::Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>&
 		m_theArchive.push_back(pProg);
 	}
 	SaveCache();
+	Index();
 }
 
 
@@ -174,9 +176,12 @@ const array<const ArchivedProgram*>& Archive::GetPrograms()
 
 bool Archive::Visit(ArchiveVisitor* pVisitor) const
 {
-	for (unsigned int i=0; i<m_theArchive.size(); i++)
+	string sTitle = pVisitor->GetReducedTitle();
+	const array<const ArchivedProgram*>& items = m_index[sTitle];
+
+	for (unsigned int i=0; i<items.size(); i++)
 	{
-		if (!pVisitor->VisitProgram(m_theArchive[i]))
+		if (!pVisitor->VisitProgram(items[i]))
 			return false;
 
 	}
@@ -201,11 +206,38 @@ const ArchivedProgram* Archive::FindInCache(const string& folderName, TYPE_File&
 	{
 		if (m_cachedArchive[i]->Represents(folderName, file))
 		{
+			TRACE2("Found program in cache %s\\%s\n", folderName.c_str(), file.name);
 			const ArchivedProgram* pResult = m_cachedArchive[i];
 			m_cachedArchive.erase(i);
 			return pResult;
 
 		}
 	}
+	TRACE2("Program not in cache %s\\%s\n", folderName.c_str(), file.name);
 	return NULL;
+}
+
+string RemovePrefix(const string& s)
+{
+	int iPos = s.find(':');
+
+	if (iPos == -1)
+		return s;
+
+	string sSub = s.substr(iPos+1);
+
+	while (sSub.size() && sSub[0] == ' ')
+		sSub = sSub.substr(1);
+
+	return sSub;
+}
+
+void Archive::Index()
+{
+	for (unsigned int i=0; i<m_theArchive.size(); i++)
+	{
+		string sTitle = RemovePrefix(m_theArchive[i]->GetTitle());
+		m_index[sTitle].push_back(m_theArchive[i]);
+	}
+
 }

@@ -21,6 +21,7 @@
 #ifndef cpputils_archivevisitor_h
 #define cpputils_archivevisitor_h
 #include <stdlib.h>
+#include "tapstring.h"
 class ArchivedProgram;
 
 class ArchiveVisitor
@@ -29,6 +30,7 @@ public:
 	ArchiveVisitor(void);
 	virtual ~ArchiveVisitor(void);
 	virtual bool VisitProgram(const ArchivedProgram* pProgram);
+	virtual string GetReducedTitle() PURE("");
 };
 
 
