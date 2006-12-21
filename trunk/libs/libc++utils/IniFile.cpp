@@ -92,6 +92,8 @@ bool IniFile::Load( const char* filename )
 bool IniFile::Save( const char* filename ) const
 {
 	TRACE1("Saving ini file %s\n", filename);
+	DeleteFile(filename);
+
 	TYPE_File* file = OpenRawFile(filename, "w");
 	if ( !file )
 		return false;

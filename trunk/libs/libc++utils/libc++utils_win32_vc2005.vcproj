@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="libc++utils"
 	ProjectGUID="{E1089DEC-F1CB-43AA-B00B-9F58AEC6FAD7}"
+	RootNamespace="libc++utils"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -317,6 +318,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Task.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Timer.cpp"
 				>
 			</File>
@@ -468,6 +473,10 @@
 			</File>
 			<File
 				RelativePath=".\tapstring.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Task.h"
 				>
 			</File>
 			<File
