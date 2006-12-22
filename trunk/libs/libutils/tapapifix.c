@@ -8,6 +8,10 @@
 
 extern int _appl_version;
 
+#ifdef WIN32
+int _appl_version = 0x1225;
+#endif
+
 bool (*real_TAP_Hdd_GetRecInfo)( byte recSlot, TYPE_RecInfo *recInfo ) = 0;
 bool (*real_TAP_Hdd_GetPlayInfo)( TYPE_PlayInfo *playInfo ) = 0;
 dword (*real_TAP_Hdd_Flen)( TYPE_File *file ) = 0;
@@ -136,7 +140,7 @@ word Fixed_TAP_Hdd_ChangeDir( char *dir )
 
 
 
-#define FIXAPI(api) real_##api = api; api = Fixed_##api
+#define FIXAPI(api) if (real_##api == 0) {real_##api = api; api = Fixed_##api;}
 
 void InitTAPAPIFix()
 {

@@ -24,6 +24,7 @@
 #include "dlmalloc.h"
 #include "Tapplication.h"
 #include "Logger.h"
+#include "tapapifix.h"
 
 void (*_cached_TAP_Exit)() = NULL;
 extern "C" void dummy_TAP_Exit()
@@ -54,6 +55,7 @@ dword TAP_Main()
     TRACE("Fixed VTables\n");
 	_cached_TAP_Exit = TAP_Exit;
 	TAP_Exit = &cpp_TAP_Exit;
+	InitTAPAPIFix();
 	return 1;
 }
 
