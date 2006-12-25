@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 EPGdata::EPGdata(void)
 {
+	m_pReader = NULL;
 }
 
 EPGdata::~EPGdata(void)
@@ -39,6 +40,8 @@ EPGdata::~EPGdata(void)
 	{
 		delete m_channels[i];
 	}
+
+	delete m_pReader;
 }
 
 void EPGdata::AddEvent(EPGevent* newEvent)
@@ -141,69 +144,101 @@ bool EPGdata::HasData() const
 	return m_channels.size()>0;
 }
 
-bool EPGdata::ReadData(IEPGReader& reader, ProgressNotification* pProgress)
+bool EPGdata::ReadSomeData(ProgressNotification* pProgress, int iCount)
 {
-	if (reader.CanRead())
+	if (m_pReader->CanRead())
 	{
-		if (pProgress)
-			pProgress->Start();
 
-		while (reader.Read(*this, 250))
+		if (m_pReader->Read(*this, iCount))
 		{
 			if (pProgress)
-				pProgress->Step(reader.GetPercentDone());
+				pProgress->Step(m_pReader->GetPercentDone());
+
+			return true;
 		}
 
-		if (pProgress)
-			pProgress->Step(100);
-
-		CheckForContinuedPrograms();
-
-		if (pProgress)
-			pProgress->Finish();
-
-		TRACE("Loaded EPG data\n");
-		TRACE_MEMORY();
-
-		return true;
+		return false;
 	}
 
 	return false;
 }
 
+bool EPGdata::FinishReading(ProgressNotification* pProgress)
+{
+
+
+	if (pProgress)
+		pProgress->Step(100);
+
+	CheckForContinuedPrograms();
+
+	if (pProgress)
+		pProgress->Finish();
+
+	TRACE("Loaded EPG data\n");
+	TRACE_MEMORY();
+
+	delete m_pReader;
+	m_pReader = NULL;
+
+	return true;
+
+}
+
 bool EPGdata::TryReadingBuiltin(ProgressNotification* pProgress)
 {
-	EPGReader reader(false);
-	return ReadData(reader, pProgress);
+	delete m_pReader;
+	m_pReader = new EPGReader(false);
+	return ReadSomeData(pProgress,1);
 }
 
 bool EPGdata::TryReadingExtendedBuiltin(ProgressNotification* pProgress)
 {
-	EPGReader reader(true);
-	return ReadData(reader, pProgress);
+	delete m_pReader;
+	m_pReader = new EPGReader(true);
+	return ReadSomeData(pProgress,1);
 }
 
 bool EPGdata::TryReadingMei(ProgressNotification* pProgress)
 {
-	MEIReader reader;
-	return ReadData(reader, pProgress);
+	delete m_pReader;
+	m_pReader = new MEIReader();
+	return ReadSomeData(pProgress,1);
 }
 
 bool EPGdata::TryReadingFreeViewMei(ProgressNotification* pProgress)
 {
-	MEIReader reader("/ProgramFiles/Freeview.mei");
-	return ReadData(reader, pProgress);
+	delete m_pReader;
+	m_pReader = new MEIReader("/ProgramFiles/Freeview.mei");
+	return ReadSomeData(pProgress,1);
 }
 
 bool EPGdata::TryReadingJagsCSV(ProgressNotification* pProgress)
 {
-	JagCSVReader reader;
-	return ReadData(reader, pProgress);
+	delete m_pReader;
+	m_pReader = new JagCSVReader();
+	return ReadSomeData(pProgress,1);
 }
 
 
 bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags)
 {
+	if (!BeginReading(dataSource, pProgress, dwFlags))
+		return false;
+
+	while (ReadSomeData(pProgress, 250))
+	{
+	}
+
+	return FinishReading(pProgress);
+}
+
+
+bool EPGdata::BeginReading(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags)
+{
+	if (pProgress)
+		pProgress->Start();
+
 	EPGevent::SetFlags(dwFlags);
 	switch (dataSource)
 	{

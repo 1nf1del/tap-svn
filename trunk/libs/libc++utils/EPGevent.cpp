@@ -185,7 +185,7 @@ void EPGevent::Parse(const string& sMEIdata)
 				return;
 			break;
 		case channelNum:
-			m_wChannelNum = (word) Globals::GetChannels()->LogicalToToppy(atoi(sSub));
+			m_wChannelNum = (word) Globals::GetTheGlobals().GetChannels()->LogicalToToppy(atoi(sSub));
 			break;
 		case title:
 			m_sTitle = sSub;
@@ -400,12 +400,12 @@ bool EPGevent::CanRecord() const
 	if (m_TimeSlot.Start().IsInPast())
 		return false;
 
-	return Globals::GetTimers()->CanRecord(this);
+	return Globals::GetTheGlobals().GetTimers()->CanRecord(this);
 }
 
 bool EPGevent::IsScheduledToRecord() const
 {
-	return (Globals::GetTimers()->IsScheduled(this));
+	return (Globals::GetTheGlobals().GetTimers()->IsScheduled(this));
 }
 
 int EPGevent::Recordability(RecordabilityCalculationFlags flags) const
@@ -422,7 +422,7 @@ int EPGevent::Recordability(RecordabilityCalculationFlags flags) const
 			return 200;
 	}
 
-	int iCount = Globals::GetTimers()->GetClashingTimers(this).size();
+	int iCount = Globals::GetTheGlobals().GetTimers()->GetClashingTimers(this).size();
 
 	int iScore = 0;
 

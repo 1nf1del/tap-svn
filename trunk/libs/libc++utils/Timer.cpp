@@ -189,7 +189,7 @@ array<EPGevent*> Timer::GetScheduledEvents() const
 	}
 
 	array<EPGevent*> results;
-	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(GetChannelNum());
+	EPGchannel* pChannel = Globals::GetTheGlobals().GetEPGdata()->GetChannel(GetChannelNum());
 	if (pChannel)
 	{
 		const array<EPGevent*>& events = pChannel->GetEvents();
@@ -205,7 +205,7 @@ array<EPGevent*> Timer::GetScheduledEvents() const
 
 EPGevent* Timer::GetFirstScheduledEvent(const TimeSlot& timeSlot, int iChannelNum)
 {
-	EPGchannel* pChannel = Globals::GetEPGdata()->GetChannel(iChannelNum);
+	EPGchannel* pChannel = Globals::GetTheGlobals().GetEPGdata()->GetChannel(iChannelNum);
 	if (pChannel)
 	{
 		EPGevent* pEvent = pChannel->FindEvent(timeSlot.Start() + GetDefaultStartPadding());
@@ -233,7 +233,7 @@ string Timer::Description() const
 		result = result.substr(0,20) + "...";
 
 	result+= "(";
-	result+= (GetChannelNum() == -1 ? string("????") : Globals::GetChannels()->NameForChannel(GetChannelNum()));
+	result+= (GetChannelNum() == -1 ? string("????") : Globals::GetTheGlobals().GetChannels()->NameForChannel(GetChannelNum()));
 	result += ":" + m_time.Description() + ")";
 
 	return result;

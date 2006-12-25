@@ -18,16 +18,28 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#ifndef cpputils_taskschedule_h
+#define cpputils_taskschedule_h
 
-#ifndef cpputils_progressnotification_h
-#define cpputils_progressnotification_h
-class ProgressNotification
+#include "PackedDateTime.h"
+#include "tap.h"
+
+class TaskSchedule
 {
 public:
-	ProgressNotification();
-	virtual ~ProgressNotification();
-	virtual void Start();
-	virtual void Step(short int iPercent);
-	virtual void Finish();
+	TaskSchedule(dword dwDelayInTicks);
+	TaskSchedule(dword dwDelayInTicks, dword dwRepeatInTicks);
+	TaskSchedule(PackedDateTime when);
+	TaskSchedule(PackedDateTime when, dword dwRepeatInTicks);
+	virtual ~TaskSchedule(void);
+
+	dword GetNextRunTime();
+	bool Reset();
+	void Kick();
+
+private:
+	dword m_dwNextRunTick;
+	dword m_dwRepeatInterval;
 };
+
 #endif

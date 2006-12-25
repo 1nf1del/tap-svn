@@ -18,16 +18,34 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#ifndef cpputils_task_h
+#define cpputils_task_h
 
-#ifndef cpputils_progressnotification_h
-#define cpputils_progressnotification_h
-class ProgressNotification
+#include "tapstring.h"
+#include "PackedDateTime.h"
+#include "tap.h"
+class TaskSchedule;
+
+class Task
 {
 public:
-	ProgressNotification();
-	virtual ~ProgressNotification();
-	virtual void Start();
-	virtual void Step(short int iPercent);
-	virtual void Finish();
+	Task(string name, TaskSchedule* pSchedule);
+	virtual ~Task(void);
+
+	bool DoWork(int iAmount);
+	void Reset();
+	string GetName();
+	virtual bool DoSomeWork(int iAmount) PURE(false); // return true when more to do on this run of the task, false when done
+	virtual bool BeginTask() PURE(true);
+	virtual void EndTask() PURE(;);
+	virtual int GetPercentComplete() PURE(50);
+	TaskSchedule* GetSchedule();
+
+private:
+
+	bool m_bBegun;
+	string m_sName;
+	TaskSchedule* m_pSchedule;
 };
+
 #endif

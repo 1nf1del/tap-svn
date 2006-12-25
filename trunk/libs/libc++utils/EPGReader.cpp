@@ -70,7 +70,7 @@ bool IEPGReader::IsEventWantedInEPG(EPGevent* pEvent)
 
 EPGReader::EPGReader(bool bUseExtendedInfo, dword dwFlags)
 {
-	m_iTotalChan = Globals::GetChannels()->GetCount();
+	m_iTotalChan = Globals::GetTheGlobals().GetChannels()->GetCount();
 	m_iCurrentChan = 0;
 	m_bUseExtendedInfo = bUseExtendedInfo;
 	m_dwFlags = dwFlags;

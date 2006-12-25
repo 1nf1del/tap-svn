@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="framework"
 	ProjectGUID="{DCFCB096-328A-4D7E-8932-FC3013547D6D}"
+	RootNamespace="framework"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

@@ -27,6 +27,7 @@
 class Page;
 class Dialog;
 class Decorator;
+class TaskManager;
 
 extern "C" const dword  __tap_ud__;
 extern "C" void cpp_TAP_Exit();
@@ -67,6 +68,7 @@ public:
 	// Accessors
 	word GetScreenRegion();
 	dword GetID() const;
+	TaskManager* GetTaskManager();
 
 protected:
 	Tapplication();
@@ -95,6 +97,7 @@ private:
 	dword m_reshowUIKey;
 	bool m_isClosing;
 	static Tapplication* tap;
+	TaskManager* m_pTaskManager;
 };
 
 // inline accessors

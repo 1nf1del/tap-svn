@@ -75,9 +75,11 @@ public:
 	bool HasData() const;	
 
 	static dword BuildFlags(unsigned short iDaysToLoad, DescriptionMaxLength iMaxDescrLength);
+	bool FinishReading(ProgressNotification* pProgress);
+	bool BeginReading(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags);
+	bool ReadSomeData(ProgressNotification* pProgress, int iCount); 
 
 private:
-	bool ReadData(IEPGReader& reader, ProgressNotification* pProgress); 
 	bool TryReadingMei(ProgressNotification* pProgress);
 	bool TryReadingBuiltin(ProgressNotification* pProgress);
 	bool TryReadingJagsCSV(ProgressNotification* pProgress);
@@ -87,5 +89,6 @@ private:
 	EPGchannel* FindChannelByNum(word channelNum);
 	array<EPGchannel*> m_channels;
 	array<EPGevent*> m_emptyData;
+	IEPGReader* m_pReader;
 };
 #endif

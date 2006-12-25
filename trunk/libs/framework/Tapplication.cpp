@@ -29,6 +29,7 @@
 #include "logger.h"
 #include "dialog.h"
 #include "Decorator.h"
+#include "TaskManager.h"
 
 Tapplication* Tapplication::tap = NULL;
 
@@ -43,6 +44,8 @@ Tapplication::Tapplication() :
 	if ( tap != 0 )
 		TAP_Print( "Tapplication already exists\n" );
 #endif
+
+	m_pTaskManager = new TaskManager();
 
 	pageCount = 0;
 
@@ -62,6 +65,8 @@ Tapplication::~Tapplication()
 
 	TAP_Osd_Delete( screenRgn );
 	screenRgn = 0;
+
+	delete m_pTaskManager;
 
 	// Clear the global TAP object pointer
 	tap = 0;
@@ -115,6 +120,9 @@ void Tapplication::OnIdle()
 	// Dispatch idle messages to all pages
 	for ( int i = 0; i < pageCount; ++i )
 		pageStack[i]->OnIdle();
+
+	if (m_pTaskManager)
+		m_pTaskManager->OnIdleEvent();
 }
 
 dword Tapplication::OnKeyWhenHidden( dword key, dword extKey )
@@ -364,4 +372,9 @@ bool Tapplication::IsNormalState()
 void Tapplication::DrawHiddenUIMessage()
 {
 
+}
+
+TaskManager* Tapplication::GetTaskManager()
+{
+	return m_pTaskManager;
 }

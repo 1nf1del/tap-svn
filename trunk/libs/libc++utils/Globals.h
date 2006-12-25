@@ -26,6 +26,7 @@ class EPGdata;
 class Channels;
 class ProgressNotification;
 class Archive;
+class TaskManager;
 #include "EPGdata.h"
 
 class Globals
@@ -34,18 +35,27 @@ public:
 	Globals(void);
 	~Globals(void);
 
-	static void Cleanup();
-	static Timers* GetTimers();
-	static EPGdata* GetEPGdata();
-	static Channels* GetChannels();
-	static bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
-	static Archive* GetArchive(const string& sCacheFile);
+	void Cleanup();
+	Timers* GetTimers();
+	EPGdata* GetEPGdata();
+	Channels* GetChannels();
+	bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
+	Archive* GetArchive(const string& sCacheFile);
+	void ScheduleEPGLoad(int iSecondsDelay, DataSources dataSource, dword dwFlags);
+	void Initialize(TaskManager* pTaskManager);
+	bool WaitingForEPGLoad();
 
+	static Globals& GetTheGlobals();
 private:
+	void WaitForTaskComplete(ProgressNotification* pProgress, const string& taskName, bool& bWaitFlag);
 
-	static Timers* m_pTheTimers;
-	static EPGdata* m_pEPGdata;
-	static Channels* m_pChannels;
-	static Archive* m_pArchive;
+	static Globals* m_pTheGlobals;
+
+	Timers* m_pTheTimers;
+	EPGdata* m_pEPGdata;
+	Channels* m_pChannels;
+	Archive* m_pArchive;
+	TaskManager* m_pTaskManager;
+	bool m_bWaitingForEPGLoad;
 };
 #endif

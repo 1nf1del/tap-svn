@@ -18,16 +18,52 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "Task.h"
+#include "TaskSchedule.h"
 
-#ifndef cpputils_progressnotification_h
-#define cpputils_progressnotification_h
-class ProgressNotification
+
+Task::Task(string name, TaskSchedule* pSchedule)
 {
-public:
-	ProgressNotification();
-	virtual ~ProgressNotification();
-	virtual void Start();
-	virtual void Step(short int iPercent);
-	virtual void Finish();
-};
-#endif
+	m_sName = name;
+	m_pSchedule = pSchedule;
+	Reset();
+}
+
+
+Task::~Task()
+{
+	delete m_pSchedule;
+}
+
+bool Task::DoWork(int iAmount)
+{
+	if (!m_bBegun)
+	{
+		m_bBegun = true;
+		return BeginTask();
+	}
+
+	if (!DoSomeWork(iAmount))
+	{
+		EndTask();
+		return false;
+	}
+
+	return true;
+}
+
+void Task::Reset()
+{
+	m_bBegun = false;
+}
+
+string Task::GetName()
+{
+	return m_sName;
+}
+
+TaskSchedule* Task::GetSchedule()
+{
+	return m_pSchedule;
+}
+
