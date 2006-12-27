@@ -24,14 +24,32 @@
 #include "inifile.h"
 #include "Logger.H"
 
-Archive::Archive(const string& sCacheFile)
+Archive::Archive(const string& sCacheFile, bool bLoadInChunks)
 {
 	m_sCacheFile = sCacheFile;
 	m_pDeletedPrograms = NULL;
 	if (m_sCacheFile == "")
 		m_sCacheFile = "/ProgramFiles/Archive.cache";
-	Populate();
-	Index();
+
+	LoadCache();
+	ProcessFolder("/DataFiles");
+
+	if (!bLoadInChunks)
+		Initialize();
+}
+
+
+
+void Archive::Initialize()
+{
+
+	while (DoSomeLoading())
+	{
+
+	}
+
+	return;
+
 }
 
 Archive::Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>& deletedStuff)
@@ -77,18 +95,6 @@ void Archive::BuildDeletedArchive()
 	m_cachedArchive.clear();
 }
 
-void Archive::Populate()
-{
-	LoadCache();
-	//for (unsigned int i=0; i<m_cachedArchive.size(); i++)
-	//{
-	//	m_theArchive.push_back(m_cachedArchive[i]);
-	//}
-	//m_cachedArchive.clear();
-	PopulateFromFolder("/DataFiles");
-	SaveCache();
-	BuildDeletedArchive();
-}
 
 void Archive::LoadCache()
 {
@@ -127,36 +133,42 @@ void Archive::SaveCache()
 //	TRACE1("Saved cache %d items", ini.GetKeyCount());
 }
 
-void Archive::PopulateFromFolder(const string& sFolderName)
+bool Archive::DoSomeLoading()
 {
-//	TRACE1("Looking in folder %s", sFolderName.c_str());
-	DirectoryRestorer dr(sFolderName);
+	if (!m_filesToDo.empty())
+	{
+		ProcessFile(m_filesToDo[0], m_startClusters[0]);
+		m_filesToDo.erase(0);
+		m_startClusters.erase(0);
+		return true;
+	}
+
+	if (!m_foldersToDo.empty())
+	{
+		ProcessFolder(m_foldersToDo[0]);
+		m_foldersToDo.erase(0);
+		return true;
+	}
+
+	SaveCache();
+	BuildDeletedArchive();
+	Index();
+
+	return false;
+
+
+}
+
+
+void Archive::ProcessFolder(const string& sFolderName)
+{
 
 	array<TYPE_File> files;
 	GetDetailFolderContents(sFolderName, files, ".rec", false);
 	for (unsigned int i=0; i<files.size(); i++)
 	{
-		TYPE_File& file = files[i];
-		const ArchivedProgram* pProg = FindInCache(sFolderName, file);
-		if (pProg == NULL)
-		{
-//			TRACE("Adding Program from folder");
-			pProg = new ArchivedProgram(sFolderName, file.name, file.startCluster, file.totalCluster);
-		}
-		else
-		{
-//			TRACE("Adding program from cache");
-
-		}
-
-		if (pProg->IsValid())
-		{
-			m_theArchive.push_back(pProg);
-		}
-		else
-		{
-			delete pProg;
-		}
+		m_filesToDo.push_back(sFolderName + "/" + files[i].name);
+		m_startClusters.push_back(files[i].startCluster);
 	}
 
 
@@ -164,9 +176,40 @@ void Archive::PopulateFromFolder(const string& sFolderName)
 	for (unsigned int i=0; i<folders.size(); i++)
 	{
 		if (folders[i][0]!='.')
-			PopulateFromFolder(sFolderName + "/" + folders[i]);
+			m_foldersToDo.push_back(sFolderName + "/" + folders[i]);
 	}
 }
+
+void Archive::ProcessFile(const string& fileName, dword dwStartCluster)
+{
+	int iSplit = fileName.reverseFind('/');
+	string sFolderName = fileName.substr(0, iSplit);
+	string file = fileName.substr(iSplit+1);
+	const ArchivedProgram* pProg = FindInCache(sFolderName, file, dwStartCluster);
+	if (pProg == NULL)
+	{
+//			TRACE("Adding Program from folder");
+		pProg = new ArchivedProgram(sFolderName, file, dwStartCluster, 0);
+	}
+	else
+	{
+//			TRACE("Adding program from cache");
+
+	}
+
+	if (pProg->IsValid())
+	{
+		m_theArchive.push_back(pProg);
+	}
+	else
+	{
+		delete pProg;
+	}
+
+
+}
+
+
 
 
 const array<const ArchivedProgram*>& Archive::GetPrograms()
@@ -200,20 +243,20 @@ bool Archive::VisitDeletedPrograms(ArchiveVisitor* pVisitor) const
 }
 
 
-const ArchivedProgram* Archive::FindInCache(const string& folderName, TYPE_File& file)
+const ArchivedProgram* Archive::FindInCache(const string& folderName, const string& fileName, dword dwStartCluster)
 {
 	for (unsigned int i=0; i<m_cachedArchive.size(); i++)
 	{
-		if (m_cachedArchive[i]->Represents(folderName, file))
+		if (m_cachedArchive[i]->Represents(folderName, fileName, dwStartCluster))
 		{
-			TRACE2("Found program in cache %s\\%s\n", folderName.c_str(), file.name);
+			TRACE2("Found program in cache %s\\%s\n", folderName.c_str(), fileName);
 			const ArchivedProgram* pResult = m_cachedArchive[i];
 			m_cachedArchive.erase(i);
 			return pResult;
 
 		}
 	}
-	TRACE2("Program not in cache %s\\%s\n", folderName.c_str(), file.name);
+	TRACE2("Program not in cache %s\\%s\n", folderName.c_str(), fileName.c_str());
 	return NULL;
 }
 

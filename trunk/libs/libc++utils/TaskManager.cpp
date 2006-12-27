@@ -1,10 +1,11 @@
 #include "TaskManager.h"
 #include "Task.h"
 #include "TaskSchedule.h"
+#include "Logger.h"
 
 #define IDLE_CHECK_TIMESLICE 50
-#define MIN_IDLE_PER_SEC_TARGET 10
-#define MAX_IDLE_PER_SEC_TARGET 20
+#define MIN_IDLE_PER_SEC_TARGET 2
+#define MAX_IDLE_PER_SEC_TARGET 10
 
 TaskManager::TaskManager(void)
 {
@@ -105,6 +106,8 @@ bool TaskManager::CountIdleEvents(dword dwThisTick)
 	if (dwThisTick>=m_dwNextResetTick)
 	{
 		m_dwIdleFreq = m_dwIdleCount * (100 / IDLE_CHECK_TIMESLICE);
+		//if ((dwThisTick/100) % 5 == 0)
+		//	TRACE1("Idle rate is %d per second\n", m_dwIdleFreq);
 		m_dwIdleCount = 0;
 		m_dwNextResetTick = dwThisTick + IDLE_CHECK_TIMESLICE;
 
@@ -133,7 +136,7 @@ void TaskManager::OnIdleEvent()
 		}
 
 		if (bUpdate)
-			AdjustWorkAmount();
+			AdjustWorkAmount(pTheTask->GetSchedule()->BeenKicked());
 
 
 		if (!pTheTask->DoWork(m_iAmount))
@@ -171,27 +174,39 @@ void TaskManager::Kick(const string& taskName)
 	m_dwNextRunAtTick = m_runList[0]->GetSchedule()->GetNextRunTime();
 }
 
-void TaskManager::AdjustWorkAmount()
+void TaskManager::AdjustWorkAmount(bool bHighPriority)
 {
-	if (m_dwIdleFreq <=  MIN_IDLE_PER_SEC_TARGET)
+	dword iFactor = bHighPriority ? 1 : 5;
+
+	if (m_dwIdleFreq <=  MIN_IDLE_PER_SEC_TARGET * iFactor)
 	{
-		int newAmount =  m_iAmount * (m_dwIdleFreq) / MIN_IDLE_PER_SEC_TARGET;
+		int newAmount =  m_iAmount * (m_dwIdleFreq) / (MIN_IDLE_PER_SEC_TARGET * iFactor);
 		if (newAmount < m_iAmount / 4)
 			newAmount = m_iAmount / 4;
+		if (newAmount == m_iAmount)
+			newAmount--;
+
 		m_iAmount = newAmount;
+
+		if (m_iAmount == 0)
+			m_iAmount = 1; 
+
+		TRACE1("Reducing work rate to %d\n", m_iAmount);
 	}
 
-	if (m_dwIdleFreq > MAX_IDLE_PER_SEC_TARGET)
+	if (m_dwIdleFreq > MAX_IDLE_PER_SEC_TARGET * iFactor)
 	{
-		int newAmount = (m_iAmount * m_dwIdleFreq) / MAX_IDLE_PER_SEC_TARGET;
+		int newAmount = (m_iAmount * m_dwIdleFreq) / (MAX_IDLE_PER_SEC_TARGET * iFactor);
 		if (newAmount > m_iAmount * 4)
 			newAmount = m_iAmount * 4;
+
+		if (newAmount == m_iAmount)
+			newAmount++;
 		m_iAmount = newAmount;
 
+		TRACE1("Increasing work rate to %d\n", m_iAmount);
 	}
 
-	if (m_iAmount == 0)
-		m_iAmount = 1; 
 
 	return;
 }

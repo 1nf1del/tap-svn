@@ -28,7 +28,7 @@ OBJECTS+=MEIReader.o EPGVisitor.o TimeSlot.o PackedDateTime.o ProgressNotificati
 OBJECTS+=DirectoryUtils.o Option.o Options.o KeyDef.o EPGReader.o EPGSourceOption.o
 OBJECTS+=YesNoOption.o NumericOption.o KeyOption.o OptionUpdateNotifier.o
 OBJECTS+=JagCSVReader.o stringarchive.o Archive.o ArchivedProgram.o ArchiveVisitor.o
-OBJECTS+=LoggingOption.o
+OBJECTS+=LoggingOption.o TaskManager.o EPGLoadTask.o Task.o TaskSchedule.o ArchiveLoadTask.o
 LIBRARIES=../libutils/libutils.a 
 LIBDIRS=-L ../libutils
 

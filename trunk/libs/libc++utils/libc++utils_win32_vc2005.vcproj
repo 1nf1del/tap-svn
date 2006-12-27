@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ArchiveLoadTask.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ArchiveVisitor.cpp"
 				>
 			</File>
@@ -365,6 +369,10 @@
 			</File>
 			<File
 				RelativePath=".\ArchivedProgram.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ArchiveLoadTask.h"
 				>
 			</File>
 			<File

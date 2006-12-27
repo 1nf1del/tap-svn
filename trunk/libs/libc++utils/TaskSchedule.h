@@ -36,10 +36,13 @@ public:
 	dword GetNextRunTime();
 	bool Reset();
 	void Kick();
+	bool BeenKicked();
+
 
 private:
 	dword m_dwNextRunTick;
 	dword m_dwRepeatInterval;
+	bool m_bKicked;
 };
 
 #endif

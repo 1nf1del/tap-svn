@@ -42,6 +42,7 @@ public:
 	bool LoadEPGData(DataSources dataSource, ProgressNotification* pProgress = 0, dword dwFlags = 0);
 	Archive* GetArchive(const string& sCacheFile);
 	void ScheduleEPGLoad(int iSecondsDelay, DataSources dataSource, dword dwFlags);
+	void ScheduleArchiveLoad(int iSecondsDelay, const string& sCacheFile);
 	void Initialize(TaskManager* pTaskManager);
 	bool WaitingForEPGLoad();
 
@@ -57,5 +58,6 @@ private:
 	Archive* m_pArchive;
 	TaskManager* m_pTaskManager;
 	bool m_bWaitingForEPGLoad;
+	bool m_bWaitingForArchiveLoad;
 };
 #endif

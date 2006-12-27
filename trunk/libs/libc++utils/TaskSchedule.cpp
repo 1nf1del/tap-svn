@@ -22,27 +22,30 @@
 
 TaskSchedule::TaskSchedule(dword dwDelayInTicks)
 {
+	m_bKicked = false;
 	m_dwNextRunTick = TAP_GetTick() + dwDelayInTicks;
 	m_dwRepeatInterval = 0;
 }
 
 TaskSchedule::TaskSchedule(dword dwDelayInTicks, dword dwRepeatInTicks)
 {
+	m_bKicked = false;
 	m_dwNextRunTick = TAP_GetTick() + dwDelayInTicks;
 	m_dwRepeatInterval = dwRepeatInTicks;
 }
 
 TaskSchedule::TaskSchedule(PackedDateTime when)
 {
+	m_bKicked = false;
 	m_dwNextRunTick = TAP_GetTick() + (when - PackedDateTime::Now()) * 100;
 	m_dwRepeatInterval = 0;
 }
 
 TaskSchedule::TaskSchedule(PackedDateTime when, dword dwRepeatInTicks)
 {
+	m_bKicked = false;
 	m_dwNextRunTick = TAP_GetTick() + (when - PackedDateTime::Now()) * 100;
 	m_dwRepeatInterval = dwRepeatInTicks;
-
 }
 
 TaskSchedule::~TaskSchedule()
@@ -51,6 +54,7 @@ TaskSchedule::~TaskSchedule()
 
 void TaskSchedule::Kick()
 {
+	m_bKicked = true;
 	m_dwNextRunTick = TAP_GetTick();
 }
 
@@ -65,5 +69,11 @@ bool TaskSchedule::Reset()
 		return false;
 	
 	m_dwNextRunTick = TAP_GetTick() + m_dwRepeatInterval;
+	m_bKicked =false;
 	return true;
+}
+
+bool TaskSchedule::BeenKicked()
+{
+	return m_bKicked;
 }

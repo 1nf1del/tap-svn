@@ -47,7 +47,7 @@ private:
 	Task* GetTaskFromMap(const string& taskName);
 	void Schedule(Task* pTask);
 	bool CountIdleEvents(dword dwThisTick);
-	void AdjustWorkAmount();
+	void AdjustWorkAmount(bool bHighPriority);
 
 	array<Task*> m_runList;
 	map<string, Task*> m_taskMap;

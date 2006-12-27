@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Archive.h"
 #include "Logger.h"
 #include "EPGLoadTask.h"
+#include "ArchiveLoadTask.h"
 #include "TaskManager.h"
 
 Globals* Globals::m_pTheGlobals = NULL;
@@ -46,6 +47,7 @@ Globals::Globals(void)
 	m_pArchive = NULL;
 	m_pTaskManager = NULL;
 	m_bWaitingForEPGLoad = false;
+	m_bWaitingForArchiveLoad = false;
 }
 
 Globals::~Globals(void)
@@ -95,6 +97,16 @@ void Globals::ScheduleEPGLoad(int iSecondsDelay, DataSources dataSource, dword d
 	m_bWaitingForEPGLoad = true;
 }
 
+void Globals::ScheduleArchiveLoad(int iSecondsDelay, const string& sCacheFile)
+{
+	delete m_pArchive;
+	m_pArchive = NULL;
+	ArchiveLoadTask* pLoader = new ArchiveLoadTask(m_pArchive, sCacheFile, new TaskSchedule(iSecondsDelay * 100));
+	m_pTaskManager->AddTask(pLoader);
+	m_bWaitingForArchiveLoad = true;
+}
+
+
 EPGdata* Globals::GetEPGdata()
 {
 	if (m_bWaitingForEPGLoad)
@@ -133,7 +145,7 @@ void Globals::WaitForTaskComplete(ProgressNotification* pProgress, const string&
 		if (pProgress)
 		{
 			int iPercent = m_pTaskManager->GetTaskPercentComplete(taskName);
-			if (iPercent != iLastPercent)
+			if (iPercent > iLastPercent + 1)
 			{
 				pProgress->Step((short)iPercent);
 				iLastPercent = iPercent;
@@ -157,10 +169,15 @@ void Globals::Cleanup()
 
 Archive* Globals::GetArchive(const string& sCacheFile)
 {
+	if (m_bWaitingForArchiveLoad)
+	{
+		WaitForTaskComplete(NULL, ArchiveLoadTask::TaskName(), m_bWaitingForArchiveLoad);
+	}
+
 	if (m_pArchive == NULL)
 	{
 		//		TRACE("building archive");	
-		m_pArchive = new Archive(sCacheFile);
+		m_pArchive = new Archive(sCacheFile, false);
 	}
 
 	return m_pArchive;

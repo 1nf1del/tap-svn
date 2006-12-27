@@ -40,7 +40,7 @@ public:
 	string GetFileName() const;
 	string Serialize() const;
 	static ArchivedProgram DeSerialize(const string& data);
-	bool Represents(const string& folderName, TYPE_File& file) const;
+	bool Represents(const string& folderName, const string& fileName, dword dwStartCluster) const;
 	bool operator==(const ArchivedProgram& other) const;
 
 private:

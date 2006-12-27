@@ -23,6 +23,7 @@
 #include <string.h>
 #include "RecHeader.h"
 #include "stringarchive.h"
+#include "DirectoryUtils.h"
 #include "logger.h"
 
 ArchivedProgram::ArchivedProgram(const string& folderName, const string& fileName, dword dwStartCluster, dword dwClusterCount)
@@ -48,7 +49,7 @@ string BuildStringFromChars(const char* pData, int iMaxLen)
 
 void ArchivedProgram::Init()
 {
-	UFILE* f = fopen((char*) m_sFileName.c_str(), "r");
+	UFILE* f = OpenFile(m_sFolderName + "/" + m_sFileName, "r");
 	if (f == NULL)
 		return;
 
@@ -144,15 +145,15 @@ ArchivedProgram::ArchivedProgram(stringarchive& sa)
 }
 
 
-bool ArchivedProgram::Represents(const string& folderName, TYPE_File& file) const
+bool ArchivedProgram::Represents(const string& folderName, const string& fileName, dword dwStartCluster) const
 {
 	if (m_sFolderName.compareNoCase(folderName)!=0)
 		return false;
 
-	if (m_sFileName.compareNoCase(file.name)!=0)
+	if (m_sFileName.compareNoCase(fileName)!=0)
 		return false;
 
-	if (m_wClusterNum != file.startCluster)
+	if (m_wClusterNum != dwStartCluster)
 		return false;
 
 	//if (m_wTotalCluster != file.totalCluster)

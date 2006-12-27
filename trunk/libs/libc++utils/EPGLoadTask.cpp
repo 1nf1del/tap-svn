@@ -1,7 +1,8 @@
 #include "EPGLoadTask.h"
+#include "Logger.h"
 
 EPGLoadTask::EPGLoadTask(EPGdata* pTarget, DataSources dataSource, dword dwFlags, TaskSchedule* pSchedule) : 
-	Task(TaskName(), pSchedule)
+	Task(TaskName(), pSchedule)	
 {
 	m_dataSource = dataSource;
 	m_dwFlags = dwFlags;
@@ -20,6 +21,7 @@ EPGLoadTask::~EPGLoadTask(void)
 
 bool EPGLoadTask::BeginTask()
 {
+	TRACE("Starting load of EPG\n");
 	return m_pTarget->BeginReading(m_dataSource, this, m_dwFlags);
 
 }
@@ -31,6 +33,7 @@ bool EPGLoadTask::DoSomeWork(int iAmount)
 
 void EPGLoadTask::EndTask()
 {
+	TRACE("Finished load of EPG\n");
 	m_pTarget->FinishReading(this);
 
 }

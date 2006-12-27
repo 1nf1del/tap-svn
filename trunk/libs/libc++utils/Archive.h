@@ -29,7 +29,7 @@ class ArchiveVisitor;
 class Archive
 {
 public:
-	Archive(const string& sCacheFile);
+	Archive(const string& sCacheFile, bool bLoadInChunks);
 	~Archive();
 
 	const array<const ArchivedProgram*>& GetPrograms();
@@ -38,22 +38,29 @@ public:
 	const array<const ArchivedProgram*>& GetDeletedPrograms();
 	bool VisitDeletedPrograms(ArchiveVisitor* pVisitor) const;
 
+	bool DoSomeLoading();
+
 private:
 
 	Archive(const string& sDeletedCacheFile, array<const ArchivedProgram*>& deletedStuff);
-	void Populate();
-	void PopulateFromFolder(const string & sFolderName);
 	void LoadCache();
-	const ArchivedProgram* FindInCache(const string& folderName, TYPE_File& file);
+	const ArchivedProgram* FindInCache(const string& folderName, const string& fileName, dword dwStartCluster);
 	void SaveCache();
 	void BuildDeletedArchive();
 	void Index();
+	void Initialize();
+	void ProcessFolder(const string& sFolderName);
+	void ProcessFile(const string& sFileName, dword dwStartCluster);
 
 	array<const ArchivedProgram*> m_theArchive;
 	array<const ArchivedProgram*> m_cachedArchive;
 	mutable map<string, array<const ArchivedProgram*> > m_index;
 	string m_sCacheFile;
 	Archive* m_pDeletedPrograms;
+
+	array<string> m_foldersToDo;
+	array<string> m_filesToDo;
+	array<dword>  m_startClusters;
 };
 
 #endif
