@@ -29,6 +29,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 word ListPage::m_osdRegionIndex = 0;
 int ListPage::m_iPageCount = 0;
 
+// remove these two to get back the detailed logging of the  page drawing
+#undef TRACE
+#define TRACE(x)
+
 ListPage::ListPage(dword dwFlags, Rect rcPosition, short itemHeight,  short headerHeight, short footerHeight)
 {
 	TRACE_MEMORY();
