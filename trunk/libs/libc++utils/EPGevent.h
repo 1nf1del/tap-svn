@@ -94,6 +94,7 @@ private:
 	void Init();
 	void SetGenre();
 	void SetDescription();
+	void ReadCrids(char* pExtData);
 
 	enum jagfieldIndex
 	{
@@ -163,6 +164,8 @@ private:
 
 	EPGevent* m_pContinuesAs;
 	bool m_bContinuation;
+	string m_sSeriesId;
+	string m_sProgramId;
 
 	static unsigned short GetMaxDescriptionLength();
 

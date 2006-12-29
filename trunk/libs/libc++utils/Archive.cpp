@@ -249,7 +249,7 @@ const ArchivedProgram* Archive::FindInCache(const string& folderName, const stri
 	{
 		if (m_cachedArchive[i]->Represents(folderName, fileName, dwStartCluster))
 		{
-			TRACE2("Found program in cache %s\\%s\n", folderName.c_str(), fileName);
+			TRACE2("Found program in cache %s\\%s\n", folderName.c_str(), fileName.c_str());
 			const ArchivedProgram* pResult = m_cachedArchive[i];
 			m_cachedArchive.erase(i);
 			return pResult;

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <crtdbg.h>
 #endif
 #include "DirectoryUtils.h"
+#include "Logger.h"
 
 dword EPGevent::sm_dwFlags = 0;
 
@@ -60,6 +61,10 @@ EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData)
 		if (strncmp(pExtData, m_sDescription, m_sDescription.size()) == 0)
 		{
 			m_sDescription = pExtData;
+		}
+		else if (strncmp(pExtData, "crid", 4) == 0)
+		{
+			ReadCrids(pExtData);
 		}
 		else
 		{
@@ -601,4 +606,20 @@ string EPGevent::GetStars() const
 const string& EPGevent::GetAgeRating() const
 {
 	return m_sAgeRating;
+}
+
+void EPGevent::ReadCrids(char* pExtData)
+{
+	while (strncmp(pExtData, "crid", 4) == 0)
+	{
+		string sKey = pExtData;
+		pExtData += sKey.size()+1; 
+		string sValue = pExtData;
+		pExtData+=sValue.size()+1;
+//		TRACE2("Read crid of key,value %s\n", sKey.c_str(), sValue.c_str());
+
+		m_sDescription += "\n" + sKey + sValue;
+	}
+
+
 }
