@@ -60,7 +60,7 @@ private:
 
 	array<string> m_foldersToDo;
 	array<string> m_filesToDo;
-	array<dword>  m_startClusters;
+	array<dword>  m_totalClusters;
 };
 
 #endif

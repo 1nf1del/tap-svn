@@ -145,7 +145,7 @@ ArchivedProgram::ArchivedProgram(stringarchive& sa)
 }
 
 
-bool ArchivedProgram::Represents(const string& folderName, const string& fileName, dword dwStartCluster) const
+bool ArchivedProgram::Represents(const string& folderName, const string& fileName, dword dwTotalCluster) const
 {
 	if (m_sFolderName.compareNoCase(folderName)!=0)
 		return false;
@@ -153,10 +153,10 @@ bool ArchivedProgram::Represents(const string& folderName, const string& fileNam
 	if (m_sFileName.compareNoCase(fileName)!=0)
 		return false;
 
-	if (m_wClusterNum != dwStartCluster)
-		return false;
+	//if (m_wClusterNum != dwStartCluster)
+	//	return false;
 
-	//if (m_wTotalCluster != file.totalCluster)
+	//if (m_wTotalCluster != dwTotalCluster)
 	//	return false;
 
 	return true;
