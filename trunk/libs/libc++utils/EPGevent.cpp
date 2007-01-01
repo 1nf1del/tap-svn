@@ -55,7 +55,6 @@ EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData)
 	m_TimeSlot.SetEnd(pEventData->endTime);
 	m_wChannelNum = (short)iChannelNum;
 	SetGenre();
-	SetDescription();
 	if (pExtData)
 	{
 		if (strncmp(pExtData, m_sDescription, m_sDescription.size()) == 0)
@@ -72,6 +71,7 @@ EPGevent::EPGevent(TYPE_TapEvent* pEventData, int iChannelNum, char* pExtData)
 			m_sDescription += pExtData;
 		}
 	}
+	SetDescription();
 }
 
 void EPGevent::Init()
@@ -254,6 +254,12 @@ void EPGevent::Parse(const string& sMEIdata)
 			if (sSub.size() > 0)
 				m_iStars = (signed char) atoi(sSub);
 			break;
+		case crid31:
+			m_sProgramId = sSub;
+			break;
+		case crid32:
+			m_sSeriesId = sSub;
+			break;
 		}
 
 		iPos = iNextPos;
@@ -261,14 +267,18 @@ void EPGevent::Parse(const string& sMEIdata)
 		if (bLast)
 			break;
 	}
-#ifdef WIN32
-	_ASSERT(iField == end_of_fields);
-#endif
+//#ifdef WIN32
+//	_ASSERT(iField == end_of_fields);
+//#endif
 	SetDescription();
 }
 
 void EPGevent::SetDescription()
 {
+	if (m_sProgramId.size()>0)
+		m_sDescription +="\nProgramID = " + m_sProgramId;
+	if (m_sSeriesId.size()>0)
+		m_sDescription += "\nSeriesID = " + m_sSeriesId;
 	int iMaxLen = GetMaxDescriptionLength();
 	if (m_sDescription.size() > iMaxLen)
 	{
@@ -618,8 +628,23 @@ void EPGevent::ReadCrids(char* pExtData)
 		pExtData+=sValue.size()+1;
 //		TRACE2("Read crid of key,value %s\n", sKey.c_str(), sValue.c_str());
 
-		m_sDescription += "\n" + sKey + sValue;
+		if (sKey.find("31")!=-1)
+			m_sProgramId = sValue;
+
+		if (sKey.find("32")!=-1)
+			m_sSeriesId = sValue;
+
 	}
 
 
+}
+
+const string& EPGevent::GetSeriesId() const
+{
+	return m_sSeriesId;
+}
+
+const string& EPGevent::GetProgramId() const
+{
+	return m_sProgramId;
 }

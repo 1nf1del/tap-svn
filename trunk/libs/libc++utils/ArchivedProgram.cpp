@@ -153,6 +153,7 @@ bool ArchivedProgram::Represents(const string& folderName, const string& fileNam
 	if (m_sFileName.compareNoCase(fileName)!=0)
 		return false;
 
+	dwTotalCluster;
 	//if (m_wClusterNum != dwStartCluster)
 	//	return false;
 

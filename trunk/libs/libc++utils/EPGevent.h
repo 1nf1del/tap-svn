@@ -57,6 +57,9 @@ public:
 	const TimeSlot& GetTimeSlot() const;
 	const string& GetAgeRating() const;
 
+	const string& GetSeriesId() const;
+	const string& GetProgramId() const;
+
 	bool IsContinuationOf(const EPGevent* other) const;
 	void SetContinuation(EPGevent* pCont);
 	int Duration() const;
@@ -136,6 +139,8 @@ private:
 		ratingsys,
 		rating,
 		starrating,
+		crid31,
+		crid32,
 		end_of_fields
 	};
 
