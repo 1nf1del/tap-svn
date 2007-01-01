@@ -642,3 +642,21 @@ void ListPage::OnItemAboutToDelete(ListItem* pItem)
 {
 	(pItem);
 }
+
+
+void ListPage::FlashHighlight()
+{
+	unsigned short int iSaveHighglight = m_selectedItem;
+	m_selectedItem = 0xFFFF;
+	Draw();
+#ifdef WIN32
+	TAP_SystemProc();
+#endif
+	TAP_Delay(10);
+	m_selectedItem = iSaveHighglight;
+	Draw();
+#ifdef WIN32
+	TAP_SystemProc();
+#endif
+
+}

@@ -79,6 +79,7 @@ public:
 	dword GetColumnFlags(int i) const;
 
 	bool MoveItem(int index, bool down);
+	void FlashHighlight();
 
 protected:
 	array<ListItem*> m_items;
