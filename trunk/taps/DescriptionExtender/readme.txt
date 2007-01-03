@@ -1,5 +1,5 @@
-Description Extender 2.0
-------------------------
+Description Extender 2.01
+-------------------------
 Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information. Improbox, Surfer, Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
 
 There is now an options screen for configuring Description Extender. This can only be accessed using TAP Commander or TSR Commander. The 2 available options are:
