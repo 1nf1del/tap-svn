@@ -367,6 +367,16 @@ void EPGevent::SetContinuation(EPGevent* pCont)
 
 bool EPGevent::IsDuplicateShowingOf(const EPGevent* pEvent) const
 {
+	if (!m_sProgramId.empty())
+	{
+		if (m_sProgramId.compare(pEvent->m_sProgramId)==0)
+			return true; // the programids are the same, so same program, even if other stuff does not match exactly
+
+		if (!pEvent->m_sProgramId.empty())
+			return false; // program ids are both present, but different - different programs
+
+	}
+
 	if (m_sTitle.compareNoCase(pEvent->m_sTitle)!=0)
 		return false;
 

@@ -150,10 +150,14 @@ bool Archive::DoSomeLoading()
 		return true;
 	}
 
-	SaveCache();
-	BuildDeletedArchive();
-	Index();
+	TRACE("About to save cache file\n");
 
+	SaveCache();
+	TRACE("About to update deleted program list\n");
+	BuildDeletedArchive();
+	TRACE("About to index the archive\n");
+	Index();
+	TRACE("Archive Load finished!\n");
 	return false;
 
 
@@ -162,11 +166,13 @@ bool Archive::DoSomeLoading()
 
 void Archive::ProcessFolder(const string& sFolderName)
 {
+	TRACE1("Doing folder %s\n", sFolderName.c_str());
 
 	array<TYPE_File> files;
 	GetDetailFolderContents(sFolderName, files, ".rec", false);
 	for (unsigned int i=0; i<files.size(); i++)
 	{
+		TRACE1("Queueing file %s\n", files[i].name);
 		m_filesToDo.push_back(sFolderName + "/" + files[i].name);
 		m_totalClusters.push_back(files[i].totalCluster);
 	}
@@ -176,12 +182,16 @@ void Archive::ProcessFolder(const string& sFolderName)
 	for (unsigned int i=0; i<folders.size(); i++)
 	{
 		if (folders[i][0]!='.')
+		{
+			TRACE1("Queueing folder %s\n", folders[i].c_str());
 			m_foldersToDo.push_back(sFolderName + "/" + folders[i]);
+		}
 	}
 }
 
 void Archive::ProcessFile(const string& fileName, dword dwTotalCluster)
 {
+	TRACE1("Checking file %s...", fileName.c_str());
 	int iSplit = fileName.reverseFind('/');
 	string sFolderName = fileName.substr(0, iSplit);
 	string file = fileName.substr(iSplit+1);
@@ -205,7 +215,7 @@ void Archive::ProcessFile(const string& fileName, dword dwTotalCluster)
 	{
 		delete pProg;
 	}
-
+	TRACE("...done\n");
 
 }
 

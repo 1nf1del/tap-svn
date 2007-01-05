@@ -418,6 +418,9 @@ void GetDetailFolderContents(string sFolderName, array<TYPE_File>& results, cons
 	TYPE_File file;
 	int iCount = TAP_Hdd_FindFirst(&file);
 
+	if (iCount == 0)
+		return;
+
 	do
 	{
 		if ((file.attr == ATTR_FOLDER) != bFolders)
