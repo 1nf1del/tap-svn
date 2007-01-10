@@ -233,7 +233,7 @@ private:
 	void PopulateTYPE_File(TYPE_File* file, WIN32_FIND_DATA& findData);
 	DWORD GetStartClusterHash(const CString& filename);
 	bool IsLengthForFlenFSeekBug(DWORD dwLen);
-	private void CheckBufferSize(const char* buffer, int iMaxLen, const char* failPoint);
+	void CheckBufferSize(const char* buffer, int iMaxLen, const char* failPoint);
 
 	Regions m_OSDregions;
 	Windows m_Windows;

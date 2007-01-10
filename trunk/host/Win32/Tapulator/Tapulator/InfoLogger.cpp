@@ -62,6 +62,7 @@ void InfoLogger::LogVerbose(LPCTSTR sFmt, ...)
 
 void InfoLogger::LogUser(LPCTSTR sFmt, va_list argList)
 {
+
 	if ((GetFilter() & LOG_SEVERITY_USER) == 0)
 		return;
 	LogVarArgs(sFmt, "USER: ", argList);
