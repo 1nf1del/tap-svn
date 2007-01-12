@@ -377,6 +377,9 @@ bool EPGevent::IsDuplicateShowingOf(const EPGevent* pEvent) const
 
 	}
 
+	if (m_sSeriesId.compareNoCase(pEvent->m_sSeriesId))
+		return false;  // different series and the program id's didn't match
+
 	if (m_sTitle.compareNoCase(pEvent->m_sTitle)!=0)
 		return false;
 
