@@ -43,13 +43,14 @@ void DisplayCredits( void )
 	
 	TAP_Osd_PutStringAf1622( rgn, 58, 160, 650, "Written by sl8", MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutStringAf1622( rgn, 58, 190, 650, "Graphical concept by Quixotic", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 220, 650, "Code contributions by Darkmatter, IanP, kidhazy, sgtwilko, janilxx and Harvey", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 220, 650, "Code contributions by Darkmatter, IanP, kidhazy, sgtwilko, janilxx and", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 250, 650, "Rv", MAIN_TEXT_COLOUR, 0 );
 
-	TAP_Osd_PutStringAf1622( rgn, 58, 270, 650, "Testing, and contibutions from the UK Project team:", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 300, 650, "Darkmatter, IanP, nwhitfield, richmac, sunstealer, Sulli, sgtwilko, matt", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 330, 650, "Traxmaster, garethm, rexy, chunkywizard, benhinman, tyreless", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 360, 650, "ando9185, sl8, bev, kidhazy, ROWANMOOR, awallin, BobD, DB1, DGB", MAIN_TEXT_COLOUR, 0 );
-	TAP_Osd_PutStringAf1622( rgn, 58, 390, 650, "janilxx, rwg, simonc, tichtich, sjk, Jammer, Harvey", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 300, 650, "Testing, and contibutions from the UK Project team:", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 330, 650, "Darkmatter, IanP, nwhitfield, richmac, sunstealer, Sulli, sgtwilko, matt", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 360, 650, "Traxmaster, garethm, rexy, chunkywizard, benhinman, tyreless", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 390, 650, "ando9185, sl8, bev, kidhazy, ROWANMOOR, awallin, BobD, DB1, DGB", MAIN_TEXT_COLOUR, 0 );
+	TAP_Osd_PutStringAf1622( rgn, 58, 420, 650, "janilxx, rwg, simonc, tichtich, sjk, Jammer, Rv", MAIN_TEXT_COLOUR, 0 );
 
 	TAP_Osd_PutStringAf1622( rgn, 58, 500, 650, "Press EXIT to return to the menu", COLOR_DarkGray, 0 );
 }

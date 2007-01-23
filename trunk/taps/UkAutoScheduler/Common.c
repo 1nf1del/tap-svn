@@ -21,6 +21,7 @@ v0.7 sl8		08-05-06	API move added.
 v0.8 sl8		05-08-06	Keep added.
 v0.9 sl8		28-08-06	Keyboard types.
 v0.10 sl8		15-12-06	Settings/UkAuto folder
+v0.11 sl8		23-01-07	Cross channel conflict handling
 
 ************************************************************/
 
@@ -156,6 +157,16 @@ void logStoreEvent(char*);
 void logArchive(void);
 
 bool GotoRoot(void);
+
+byte schConflictCombineHandler(TYPE_TimerInfo*);
+byte schConflictSeparateHandler(TYPE_TimerInfo*, dword, dword, bool*);
+bool schConflictCheckEvent(TYPE_TapEvent*, int, word, byte);
+void schConflictFindSameChannelConflicts(TYPE_TimerInfo*, int*, int*);
+void schConflictFindCrossChannelConflicts(TYPE_TimerInfo*, int*, int*);
+bool schConflictProcessSeparateTimers(TYPE_TimerInfo*, dword, dword, int);
+void schConflictUpdateMoveList(TYPE_TimerInfo*, dword);
+void schConflictResolveCrossChannelConflicts(TYPE_TimerInfo*, dword, dword, bool*, byte*);
+
 
 struct _reent *_impure_ptr; 					// need this declared for reentrant functions in ANSI C library [comment by Sunstealer]
 

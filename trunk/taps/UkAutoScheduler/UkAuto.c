@@ -38,6 +38,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 	  v0.10 sl8:	08-05-06	API move added.
 	  v0.11 sl8:	05-08-06	Keep added. Search ahead, date and time format added. Load order changed.
 	  v0.12 sl8:	15-12-06	Message box. Settings/UkAuto folder
+	  v0.13 sl8:	23-01-07	Cross channel conflict handling
 
 
 **************************************************************/
@@ -51,8 +52,8 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler - Advanced 2"
-#define VERSION "0.61"
+#define TAP_NAME "UK Auto Scheduler - Conflict 2"
+#define VERSION "0.70"
 
 TAP_ID( ID_UKAUTO );
 
@@ -82,6 +83,7 @@ void ShowMessageWin(char*, char*);
 #include "YesNoBox.c"
 #include "MessageBox.c"
 #include "schMain.c"
+#include "schConflict.c"
 #include "schDisplay.c"
 #include "schEdit.c"
 #include "schFile.c"
@@ -217,6 +219,11 @@ void TerminateRoutine( void )				// Performs the clean-up and terminate TAP
 	if( schEpgDataExtendedInfo )
 	{
 		TAP_MemFree( schEpgDataExtendedInfo );
+	}
+
+	if( schConflictEpgData )
+	{
+		TAP_MemFree( schConflictEpgData );
 	}
 
 	TAP_Exit();															// exit
