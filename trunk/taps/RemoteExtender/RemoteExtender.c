@@ -45,7 +45,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.2");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.4");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -358,7 +358,9 @@ typedef struct {
 FirmwareDetail firmware[] = 
 {
 	// Model	FW version,	registerGroup
+	456,		0x1339,		0x804d549c,		// 21 Dec 2006
 	456,		0x1326,		0x804cd3a4,		// 19 Sep 2006
+	456,		0x1299,		0x804ccddc,		// 18 Aug 2006
 	456,		0x1288,		0x804cb11c,		// 14 Jul 2006
 	456,		0x1225,		0x80427bfc		// 08 Dec 2005
 };

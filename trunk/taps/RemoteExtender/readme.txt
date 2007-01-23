@@ -1,4 +1,4 @@
-Remote Extender 1.2
+Remote Extender 1.4
 -------------------
 
 Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys. The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively. Just put the standard or MHEG version into AutoStart if you're running MyStuff.
@@ -93,6 +93,8 @@ On all models, for providing extra functions for users of programmable remotes.
 
 History
 -------
+1.4		Support for 5800 21/12/2006 (13.39) firmware.
+1.3		Support for 5800 17/08/2006 (12.99) firmware.
 1.2		Support for 5800 19/09/2006 (13.26) firmware.
 1.1		Support for 5800 14/07/2006 (12.88) firmware.
 1.0		Initial release
