@@ -243,8 +243,6 @@ int TAP_Start(char *pFilename)
 		return 0;
 	}
 
-	TAP_Print("starting TAP ...\n");
-
 	// store the current TAP index
 	tapIndex = *hookData.pTapIndex;;
 	// Instead of using a code wrapper just save the value of the $gp register
@@ -261,14 +259,12 @@ int TAP_Start(char *pFilename)
 	// restore the TAP index which has been overwritten by fwStartTap
 	*hookData.pTapIndex = tapIndex;
 
-	if(rc != 0)
-	{
-		TAP_Print("succeeded (%p)\n", rc);
-	}
+	if (rc > 0x82000000)
+		TAP_Print("Loaded %s at %08X\n", pFilename, rc);
+	else if ( rc > 0x80100000 )
+		TAP_Print("%s is already loaded\n", pFilename);
 	else
-	{
-		TAP_Print("failed\n");
-	}
+		TAP_Print("Failed to load %s\n", pFilename);
 
 	return rc;
 }

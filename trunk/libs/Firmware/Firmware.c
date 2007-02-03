@@ -1,5 +1,6 @@
 /*
-	Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
+	Portions copyright other authors
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -44,6 +45,14 @@ dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start,
 	}
 
 	return 0;
+}
+
+
+dword GetFirmwareVariable( dword baseAddress, dword hwAddr, dword lwAddr )
+{
+	if (hwAddr == lwAddr)
+		return *(word*)(baseAddress+lwAddr);
+    return (*(word*)(baseAddress+hwAddr) << 16) + (short)(*(word*)(baseAddress+lwAddr));
 }
 
 
@@ -225,4 +234,42 @@ void UndoFirmwareHacks()
 #endif
 		*firmwareHacks[hackCount].address = firmwareHacks[hackCount].oldValue;
 	}
+}
+
+
+dword FindEEPROM()
+{
+   dword   gph = 0, gpl = 0, gp, *p;
+   dword   pEEPROM = 0;
+
+   #define Cmd_JR_RA 0x03e00008
+   #define Mask_LW_GP 0xffe00000
+   #define Cmd_LW_GP 0x8f800000
+   #define Cmd_LUI_GP 0x3c1c0000
+   #define Cmd_ADDIU_GP 0x279c0000
+
+   //Get the firmwares $gp
+   p = (dword *) 0x80000000;
+   do
+   {
+      if ((*p & 0xffff0000) == Cmd_LUI_GP) gph = *p & 0xffff;
+      if ((*p & 0xffff0000) == Cmd_ADDIU_GP) gpl = *p & 0xffff;
+      p++;
+   } while ((gpl == 0) || (gph == 0));
+   gp = (gph << 16) + (short) gpl;
+
+   //Scan for the "lw $??, ????($gp)" instruction in TAP_Channel_GetCurrent
+   p = (dword *) TAP_Channel_GetCurrent;
+   do
+   {
+      if ((*p & Mask_LW_GP) == Cmd_LW_GP)
+      {
+         pEEPROM = gp + (short) (*p & 0x0000ffff);
+         break;
+      }
+      p++;
+   } while (*p != Cmd_JR_RA);
+   if (pEEPROM != 0) pEEPROM = *(dword *) pEEPROM - 2;
+
+   return pEEPROM;
 }

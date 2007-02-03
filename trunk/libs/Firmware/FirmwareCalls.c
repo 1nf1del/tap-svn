@@ -178,7 +178,7 @@ static dword rebootSignature[] =
 	0xafbf0014,
 	0x0080f025,
 	0x00a0b025,
-	0x2fc10014,
+	0x2fc100ff,
 	0x14200004,
 	0x00000000,
 	0x24020090,

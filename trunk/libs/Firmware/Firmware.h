@@ -1,5 +1,6 @@
 /*
-	Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
+	Portions copyright other authors
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -27,6 +28,7 @@ extern "C" {
 #endif
 
 dword FindFirmwareFunction( dword* signature, size_t signatureSize, dword start, dword end );
+dword GetFirmwareVariable( dword baseAddress, dword hwAddr, dword lwAddr );
 dword CallFirmware( dword address, dword param1, dword param2, dword param3, dword param4 );
 dword* CreateAPIWrapper( dword functionAddress );
 
@@ -34,6 +36,7 @@ dword HackFirmware( dword* address, dword value );
 dword* FindAndHackFirmware( dword* start, dword length, dword oldOpCode, dword newOpCode );
 void UndoFirmwareHacks();
 
+dword FindEEPROM();
 
 #ifdef __cplusplus
 }
