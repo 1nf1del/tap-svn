@@ -6,17 +6,17 @@ typedef struct
 {
 	bool insertSpace;
 	bool addGenre;
-} Options;
+} Settings;
 
-extern Options options;
+extern Settings settings;
 
 void OptionsMenu_Show();
 void OptionsMenu_Close();
 dword OptionsMenu_HandleKey( dword key, dword keyHW );
 
-void LoadSettings();
-void SaveSettings();
-void ResetSettings();
+void Settings_Load();
+void Settings_Save();
+void Settings_Reset();
 
 
 #endif

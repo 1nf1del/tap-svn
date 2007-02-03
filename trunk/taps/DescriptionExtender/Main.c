@@ -32,7 +32,7 @@
 #define LOGFILE "DescriptionExtenderLog.txt"
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 2.01");
+TAP_PROGRAM_NAME("DescriptionExtender 2.1 beta 3");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);
@@ -85,7 +85,7 @@ int TAP_Main(void)
 {
 	if (!DescriptionExtender_Init())
 		return 0;
-	LoadSettings();
+	Settings_Load();
 
 	return TAP_HASCONFIGMENU;
 }

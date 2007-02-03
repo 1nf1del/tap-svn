@@ -1,5 +1,5 @@
-Description Extender 2.01
--------------------------
+Description Extender 2.1
+------------------------
 Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information. Improbox, Surfer, Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
 
 There is now an options screen for configuring Description Extender. This can only be accessed using TAP Commander or TSR Commander. The 2 available options are:
@@ -13,10 +13,11 @@ TF5000t, TF5000/5500, TF5010/5510, TF5100c, TF5100c MP, TF5100t, TF5100t MP, TF5
 and Procaster models:
 PC5101c/5102c, PC5101t/5102t
 
-If your firmware isn't supported, run the TAP and email me the text that's displayed on screen or the DescriptionExtenderLog.txt file in ProgramFiles.
+If your firmware isn't supported, run the TAP and email me the DescriptionExtenderLog.txt file in ProgramFiles.
 
 History
 -------
+2.1		Auto detect new firmware.
 2.0		Support for loads of new firmware. Added an options screen.
 1.6		Support for 5800 19/09/2006 (13.26) firmware. Fixes missing genre information.
 1.5		Fixes a bug in extended information support for 5800 12.88 firmware.

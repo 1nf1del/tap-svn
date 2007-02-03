@@ -33,96 +33,7 @@
 #define LOGFILE "DescriptionExtenderLog.txt"
 
 
-//-----------------------------------------------------------------------------
-typedef struct
-{
-    int		firmwareVersion;
-	dword	getCurrentEvent;
-	dword	eventTable;
-	word	eventTableLength;
-	word	eventLength;
-	byte	extendedLengthOffset;
-	byte	extendedEventNameOffset;
-	byte	genreOffset;
-} FirmwareDetail;
-
-
-static FirmwareDetail firmware[] = 
-{
-	// FW ver,	GetCurEvent,	Event Table,	Size	Length	len,  name, genre
-	// TF5800t - 456
-	0x1326,		0x80181df0,		0x80335504,		14000,	0x44,	0x32, 0x2c, 0x40,	// 19 Sep 2006
-	0x1299,		0x80181840,		0x80334f3c,		14000,	0x44,	0x32, 0x2c, 0x40,	// 18 Aug 2006
-	0x1288,		0x8017fc08,		0x80333284,		14000,	0x44,	0x32, 0x2c, 0x40,	// 14 Jul 2006
-	0x1225,		0x8017a3ec,		0x8032a7c8,		5000,	0x40,	0x2e, 0x30, 0,		// 08 Dec 2005
-	0x1209,		0x801792f8,		0x80326c4c,		5000,	0x40,	0x2e, 0x30, 0,		// 15 Sep 2005 
-	0x1205,		0x80178788,		0x8032e818,		5000,	0x40,	0x2e, 0x30, 0,		// 07 Sep 2005
-
-	// TF5000t - 416
-	0x1330,		0x801827b8,		0x802a0964,		5000,	0x40,	0x32, 0x2c, 0,		// 03 Nov 2006
-	0x1306,		0x80181b08,		0x8029e8c4,		5000,	0x40,	0x32, 0x2c, 0,		// 12 Sep 2006
-	0x1304,		0x8017d66c,		0x8029b1f4,		5000,	0x40,	0x32, 0x2c, 0,		// 05 Sep 2006
-	0x1248,		0x80179378,		0x802961c4,		5000,	0x40,	0x2e, 0x30, 0,		// 20 Feb 2006
-	0x1212,		0x8017a67c,		0x8028ebf4,		5000,	0x40,	0x2e, 0x30, 0,		// 05 Oct 2005
-
-	// TF5000_5500 - 406
-	0x1293,		0x801928f8,		0x802e1c20,		4000,	0x40,	0x32, 0x2c, 0,		// 20 Jul 2006
-	0x1292,		0x80192e94,		0x802e3d80,		4000,	0x40,	0x32, 0x2c,	0,		// 13 Jul 2006
-	0x1205,		0x8018d604,		0x802d6bb4,		4000,	0x40,	0x2e, 0x30, 0,		// 13 Sep 2005
-
-	// TF5010_5510 - 436
-	0x1212,		0x80188b0c,		0x802d84e0,		4000,	0x40,	0x2e, 0x30, 0,		// 05 Oct 2005
-
-	// TF5010_MP - 1456
-	0x1253,		0x80185a58,		0x802ee2f4,		4000,	0x40,	0x2e, 0x30, 0,		// 02 Mar 2006
-	0x1218,		0x80182b0c,		0x802e64ac,		4000,	0x40,	0x2e, 0x30, 0,		// 15 Sep 2005
-
-	// TF5100c - 12406
-	0x1332,		0x8018e300,		0x802c0c88,		5000,	0x48,	0x32, 0x2c, 0,		// 10 Nov 2006
-	0x1329,		0x8018e26c,		0x802c06e0,		5000,	0x48,	0x32, 0x2c, 0,		// 02 Nov 2005
-	0x1328,		0x8018e15c,		0x802c04e8,		5000,	0x48,	0x32, 0x2c, 0,		// 22 Oct 2006
-	0x1306,		0x8018de70,		0x802bf080,		5000,	0x48,	0x32, 0x2c, 0,		// 15 Sep 2006
-	0x1281,		0x80190b5c,		0x802b74c4,		5000,	0x40,	0x2e, 0x30, 0,		// 12 Jun 2006
-	0x1264,		0x8018ad58,		0x802b5be4,		5000,	0x40,	0x2e, 0x30, 0,		// 19 Apr 2006
-	0x1260,		0x8018a628,		0x802b5498,		5000,	0x40,	0x2e, 0x30, 0,		// 15 Mar 2006
-	0x1248,		0x8018a3e8,		0x802b5120,		5000,	0x40,	0x2e, 0x30, 0,		// 20 Feb 2006
-	0x1205,		0x80187960,		0x802ad730,		5000,	0x40,	0x2e, 0x30, 0,		// 12 Sep 2005
-
-	// TF5100c_MP - 1486
-	0x1328,		0x8019487c,		0x802e1738,		5000,	0x48,	0x32, 0x2c, 0,		// 22 Oct 2006
-	0x1327,		0x801946b0,		0x802e0360,		5000,	0x48,	0x32, 0x2c, 0,		// 25 Sep 2006
-	0x1266,		0x801905cc,		0x802d823c,		5000,	0x40,	0x2e, 0x30, 0,		// 24 Apr 2006
-	0x1260,		0x8018fde0,		0x802d7b60,		5000,	0x40,	0x2e, 0x30, 0,		// 15 Mar 2006
-
-	// TF5100 - 13406
-	0x1332,		0x8018be34,		0x802b5324,		5000,	0x40,	0x32, 0x2c, 0,		// 13 Nov 2006
-	0x1300,		0x8018b578,		0x802b33ac,		5000,	0x40,	0x32, 0x2c, 0,		// ?? Sep 2006
-	0x1264,		0x80187df4,		0x802ae9a0,		5000,	0x40,	0x2e, 0x30, 0,		// 19 Apr 2006
-	0x1260,		0x80187778,		0x802ae474,		5000,	0x40,	0x2e, 0x30, 0,		// 15 Mar 2006
-	0x1205,		0x80184650,		0x802a5cac,		5000,	0x40,	0x2e, 0x30, 0,		// 12 Sep 2005
-
-	// TF5100t_MP - 1466
-	0x1327,		0x801918ec,		0x802d6a64,		5000,	0x40,	0x32, 0x2c, 0,		// 13 Oct 2006
-	0x1266,		0x8018d5f8,		0x802d1040,		5000,	0x40,	0x2e, 0x30, 0,		// 24 Apr 2006
-	0x1260,		0x8018d024,		0x802d0b9c,		5000,	0x40,	0x2e, 0x30, 0,		// 15 Mar 2006
-	0x1212,		0x801897cc,		0x802c7ab4,		5000,	0x40,	0x2e, 0x30, 0,		// 04 Oct 2005
-
-	// TF5200c - 10446
-	0x1335,		0x80191b80,		0x802bbfd0,		5000,	0x40,	0x32, 0x2c, 0,		// 06 Dec 2006
-	0x1328,		0x80191478,		0x802b9f2c,		5000,	0x40,	0x32, 0x2c, 0,		// 18 Oct 2006
-	0x1306,		0x80191240,		0x802b9a04,		5000,	0x40,	0x32, 0x2c, 0,		// 12 Sep 2006
-	0x1296,		0x80190d7c,		0x802b7710,		5000,	0x40,	0x2e, 0x30, 0,		// 29 Jul 2006
-	0x1205,		0x80187114,		0x802ac8e8,		5000,	0x40,	0x2e, 0x30, 0,		// 13 Sep 2005
-
-	// Dedicated Procaster firmware is no longer developed. Update with TF5100 firmwares instead
-	// PC5101c_5102c - 10416
-	0x1212,		0x801884e8,		0x802a8fe4,		5000,	0x40,	0x2e, 0x30, 0,		// 05 Oct 2005
-
-	// PC5101t_5102t - 10426
-	0x1212,		0x801851d4,		0x802a1578,		5000,	0x40,	0x2e, 0x30, 0,		// 05 Oct 2005
-};
-
-
+// $gp independent calls to TAP API functions
 static void* FW_MemAlloc(dword size)
 {
 }
@@ -134,6 +45,20 @@ static void FW_Print(const void *fmt, ...)
 }
 
 
+typedef struct
+{
+    Settings*	settings;
+	dword		eventTable;
+	word		eventTableLength;
+	word		eventLength;
+	byte		extendedLengthOffset;
+	byte		extendedEventNameOffset;
+	byte		genreOffset;
+} FirmwareDetail;
+
+FirmwareDetail firmwareDetail;
+
+// $gp independent running parameters accessor
 static FirmwareDetail* GetFirmwareDetail()
 {
 	__asm__ __volatile__ (
@@ -143,6 +68,8 @@ static FirmwareDetail* GetFirmwareDetail()
 		);
 }
 
+
+// Map of genre/subgenre to description
 typedef struct
 {
     byte genre;
@@ -269,9 +196,9 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 	if ( event && event->svcId )
 	{
 		FirmwareDetail* parameters = GetFirmwareDetail();
-		Options* options = (Options*)parameters->firmwareVersion;
 		if ( parameters )
 		{
+			Settings* settings = parameters->settings;
 			type_eventtable* e = (type_eventtable*)parameters->eventTable;
 			int eventTableLength = parameters->eventTableLength;
 			int eventLength = parameters->eventLength;
@@ -312,14 +239,14 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 						if ( extendedLength > 0 )
 						{
 							// if additional space is enabled and there is some extended info to append
-							if ( options->insertSpace && addSpace )
+							if ( settings->insertSpace && addSpace )
 								++outputLength;
 							outputLength += extendedLength + 1;
 							addSpace = FALSE;
 						}
 
 						// if the genre is enabled and the firmware supports it
-						if ( options->addGenre && parameters->genreOffset )
+						if ( settings->addGenre && parameters->genreOffset )
 						{
 							// Add on the genre length, plus space for brackets and a zero terminator
 							genre = GetGenreName( *(((byte*)e)+parameters->genreOffset),
@@ -354,12 +281,12 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 									addSpace = TRUE;
 								}
 
-								// Append the existing extended infomation
+								// Append the existing extended information
 								if ( extendedLength > 0 )
 								{
 									byte* extText = (((byte*)e)+parameters->extendedEventNameOffset);
 									// if additional space is enabled and there is some extended info to append
-									if ( options->insertSpace && addSpace )
+									if ( settings->insertSpace && addSpace )
 										*p++ = ' ';
 									memcpy( p, (void*)*((dword*)extText), extendedLength );
 									p += extendedLength;
@@ -393,46 +320,132 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 	return result;
 }
 
-bool DescriptionExtender_Init()
-{
-	dword eventTable;
-	bool supported = FALSE;
-	int index;
 
-	// Look up the current firmware
-	// Since Topfield release different firmware for different models with the same ID, we have to use some other easily
-	// accessible unique value to allow users to crossflash their firmware (popular amongst 5100 and 5200 users).
-	// TAP_GetCurrentEvent's address appears to be unique.
-	for (index=0; index<sizeof(firmware)/sizeof(FirmwareDetail); ++index)
+static dword TAP_GetCurrentEventSignature[] = {
+	0x27bdffb8,                             //addiu   $sp, -0x48
+	0xafb1002c,                             //sw      $s12c($sp)
+	0xafb20030,                             //sw      $s230($sp)
+	0xafb30034,                             //sw      $s334($sp)
+	0xafb40038,                             //sw      $s438($sp)
+	0xafb5003c,                             //sw      $s53c($sp)
+	0xafb60040,                             //sw      $s640($sp)
+	0xafbe0044,                             //sw      $fp44($sp)
+	0x3c11FFFF,                             //lui     $s1, XXXX
+	0xafbf0028,                             //sw      $ra48+var_20($sp)
+	0x2631FFFF,                             //la      $s1, TapIdent
+	0x8eFF0000,                             //lw      $XX, 0($s1)
+	0x3cFFFFFF,                             //la      $XX, TapTable
+	0xffFFFFFF,                             //
+	0x00FFFF40,                             //sll     $XX, 5
+	0xffFFFF21,                             //addu    $XX, $XX
+
+	0xFFFF0000,                             //lw      $XX, 0($XX)
+	0x0080ff25,                             //move    $s4, $a0
+	0x00a0ff25,                             //move    $s5, $a1
+	0x00000000,                             //nop
+	0x00000000,                             //nop
+	0x03801025,                             //move    $v0, $gp
+	0x00000000,                             //nop
+	0x00000000,                             //nop
+	0x02c0e025,                             //move    $gp, $s6
+	0x3c16FFFF,                             //li      $s6, XXXXXXXX
+	0x26d6FFFF,                             //
+	0x02c02025,                             //move    $a0, $s6
+	0x00002825,                             //move    $a1, $0
+	0x0cFFFFFF,                             //jal     XXXXXX                    ; setmem
+	0x2406FFFF,                             //li      $a2, XXXX                 ; sizeof(type_tapevent)118
+	0x3c1eFFFF,                             //la      $fp, XXXXXXXX             ; event_table
+
+	0x27deFFFF,                             //
+	0x2413FFFF,                             //li      $s3, XXXX                 ; 1388 = 5000 = MAX_EVENTS
+	0x8fc50000,                             //lw      $a100($fp)
+	0x240f0004,                             //li      $t7, 4
+
+	0x0005c0FF,                             //sll     $t8, $a1, 3               ;2 from 1288
+	0x0018FFFF,                             //srl     $t8, 27                   ;29 from 1288
+	0x570fFFFF,                             //bnel    $t8, $t7, XXXX
+	0x27de00FF,                             //addiu   $fp40                 ;44 from 1288
+};
+
+
+// Look event table details up from the TAP_GetCurrentEvent code
+bool AnalyseFirmware()
+{
+	// Verify that we can reliably pick parameters from TAP_GetCurrentEvent
+	if ( FindFirmwareFunction( TAP_GetCurrentEventSignature, sizeof(TAP_GetCurrentEventSignature),
+		(dword)TAP_GetCurrentEvent, (dword)TAP_GetCurrentEvent + 0x100 ) != (dword)TAP_GetCurrentEvent )
+		return FALSE;
+
+	firmwareDetail.eventTable = GetFirmwareVariable( (dword)TAP_GetCurrentEvent, 0x7e, 0x82 );
+	firmwareDetail.eventTableLength = GetFirmwareVariable( (dword)TAP_GetCurrentEvent, 0x86, 0x86 );
+	firmwareDetail.eventLength = GetFirmwareVariable( (dword)TAP_GetCurrentEvent, 0x9e, 0x9e );
+
+	// Firmware 5.12.88 and onwards reorganised the event table
+	// Genre and subgenre bytes were added for TF5800 firmwares
+	if ( _appl_version >= 0x1288 )
 	{
-		if ( _appl_version == firmware[index].firmwareVersion && (dword)TAP_GetCurrentEvent == firmware[index].getCurrentEvent  )
-		{
-			supported = TRUE;
-			break;
-		}
+		firmwareDetail.extendedLengthOffset = 0x32;
+		firmwareDetail.extendedEventNameOffset = 0x2c;
+		firmwareDetail.genreOffset = 0x40;
+	}
+	else
+	{
+		firmwareDetail.extendedLengthOffset = 0x2e;
+		firmwareDetail.extendedEventNameOffset = 0x30;
+		firmwareDetail.genreOffset = 0;
 	}
 
-	if ( !supported )
+	// Do a sanity check on the searched firmware parameters
+	if ( firmwareDetail.eventTable < 0x80280000 || firmwareDetail.eventTable >= 0x80400000 ||
+		 firmwareDetail.eventTableLength < 4000 || firmwareDetail.eventTableLength >= 15000 ||
+		 firmwareDetail.eventLength < 0x40 || firmwareDetail.eventLength >= 0x50 )
+		return FALSE;
+
+	return TRUE;
+}
+
+
+// Try and get some helpful information from users with unsupported firmware
+void WriteErrorLog()
+{
+	TYPE_File* fp;
+	char buffer[4096];
+	int i;
+	char* p;
+
+	TAP_Hdd_ChangeDir("..");
+	TAP_Hdd_ChangeDir("..");
+	TAP_Hdd_ChangeDir("ProgramFiles");
+	TAP_Hdd_Delete( LOGFILE );
+	if ( !TAP_Hdd_Exist( LOGFILE ) )
+		TAP_Hdd_Create( LOGFILE, ATTR_NORMAL );
+	if ( fp = TAP_Hdd_Fopen( LOGFILE ) )
 	{
-		// Try and get some helpful information from users with unsupported firmware
-		TYPE_File* fp;
+		memset( buffer, ' ', sizeof(buffer) );
+		p = buffer;
+		sprintf( p, "%d, 0x%04x, 0x%x, 0x%x\n\n", *sysID, _appl_version, TAP_GetCurrentEvent, TAP_EPG_GetExtInfo );
+		p += strlen(p);
+		sprintf( p, "TAP_GetCurrentEvent\n" );
+		p += strlen(p);
+		for ( i = 0; i < 0x40; ++i )
+		{
+			sprintf( p, "%08X %08X \r\n", &((dword*)TAP_GetCurrentEvent)[i], ((dword*)TAP_GetCurrentEvent)[i] );
+			p += strlen(p);
+		}
+		*p = ' ';
+		TAP_Hdd_Fwrite( buffer, 1, (p-buffer+511) & ~0x1ff, fp );
+		TAP_Hdd_Fclose( fp );
+	}
+}
+
+
+bool DescriptionExtender_Init()
+{
+	if ( !AnalyseFirmware() )
+	{
 		char buffer[512];
 
-		TAP_Hdd_ChangeDir("..");
-		TAP_Hdd_ChangeDir("..");
-		TAP_Hdd_ChangeDir("ProgramFiles");
-		TAP_Hdd_Delete( LOGFILE );
-		if ( !TAP_Hdd_Exist( LOGFILE ) )
-			TAP_Hdd_Create( LOGFILE, ATTR_NORMAL );
-		if ( fp = TAP_Hdd_Fopen( LOGFILE ) )
-		{
-			memset( buffer, ' ', sizeof(buffer) );
-			sprintf( buffer, "%d, 0x%04x, 0x%x, 0x%x\n", *sysID, _appl_version, TAP_GetCurrentEvent, TAP_EPG_GetExtInfo );
-			buffer[strlen(buffer)] = ' ';
-			TAP_Hdd_Fwrite( buffer, 1, sizeof(buffer), fp );
-			TAP_Hdd_Fclose( fp );
-		}
-
+		WriteErrorLog();
 		sprintf( buffer,
 			"Description Extender is not compatible with your firmware\n"
 			"For an update, please contact the author for an update\n"
@@ -446,10 +459,10 @@ bool DescriptionExtender_Init()
 	else
 	{
 		// We need to know various settings without needing to use $gp
-		// firmwareVersion is no longer needed, use it to pass the options structure
-		firmware[index].firmwareVersion = (int)&options;
-		((word*)GetFirmwareDetail)[1] = ((dword)(firmware+index) >> 16) & 0xffff;
-		((word*)GetFirmwareDetail)[3] = (dword)(firmware+index) & 0xffff;
+		// firmwareVersion is no longer needed, use it to pass the settings structure
+		firmwareDetail.settings = &settings;
+		((word*)GetFirmwareDetail)[1] = ((dword)&firmwareDetail >> 16) & 0xffff;
+		((word*)GetFirmwareDetail)[3] = (dword)&firmwareDetail & 0xffff;
 
 		// Replace TAP_EPG_GetExtInfo with a jump to our GetEventDescription function
 		HackFirmware( (dword*)TAP_EPG_GetExtInfo, J(GetEventDescription) );

@@ -33,11 +33,11 @@ clean:
 
 $(TAPNAME).tap: DescriptionExtender.elf
 	$(OBJCOPY) -O binary $< $@
-#	@mips-objdump -D $(TAPNAME).elf > $(TAPNAME).asm
+	@mips-objdump -D $(TAPNAME).elf > $(TAPNAME).asm
 	-rm -f *.o *.elf *.map
 
 DescriptionExtender.elf::	Main.o DescriptionExtender.o Settings.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-Main.o:						Main.c Settings.h 
+Main.o:						Main.c Settings.h
 DescriptionExtender.o:		DescriptionExtender.c DescriptionExtender.h Settings.h
 Settings.o:					Settings.c Settings.h
 

@@ -3,10 +3,10 @@
 #include "Settings.h"
 
 
-#define optionsFile "DescriptionExtender.dat"
+#define settingsFile "DescriptionExtender.dat"
 #define INI_VERSION 1
 
-Options options;
+Settings settings;
 
 static TYPE_Window window;
 static bool windowActive = FALSE;
@@ -75,7 +75,7 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 			{
 				// Cancel - Reload original settings
 				OptionsMenu_Close();
-				LoadSettings();
+				Settings_Load();
 			}
 			return 0;
 
@@ -83,29 +83,29 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 			if ( selection == optionCount )
 			{
 				// Reset to defaults
-				ResetSettings();
+				Settings_Reset();
 				OptionsMenu_UpdateText();
 			}
 			return 0;
 
 		case RKEY_Exit:
 			OptionsMenu_Close();
-			SaveSettings();
+			Settings_Save();
 			return 0;
 
 		case RKEY_VolUp:
 			if ( selection == 0 )
-				options.insertSpace = !options.insertSpace;
+				settings.insertSpace = !settings.insertSpace;
 			else if ( selection == 1 )
-				options.addGenre = !options.addGenre;
+				settings.addGenre = !settings.addGenre;
 			OptionsMenu_UpdateText();
 			return 0;
 
 		case RKEY_VolDown:
 			if ( selection == 0 )
-				options.insertSpace = !options.insertSpace;
+				settings.insertSpace = !settings.insertSpace;
 			else if ( selection == 1 )
-				options.addGenre = !options.addGenre;
+				settings.addGenre = !settings.addGenre;
 			OptionsMenu_UpdateText();
 			return 0;
 
@@ -142,11 +142,11 @@ void OptionsMenu_UpdateText()
 	p = optionTextBuffer;
 
 	strcpy( p, "Extra space@|" );
-	strcat( p, options.insertSpace ? "Yes" : "No" );
+	strcat( p, settings.insertSpace ? "Yes" : "No" );
 	p += 0x40;
 
 	strcpy( p, "Genre@|" );
-	strcat( p, options.addGenre ? "Yes" : "No" );
+	strcat( p, settings.addGenre ? "Yes" : "No" );
 	window.check[1] = (GetModel() == TF5800t && _appl_version >= 0x1288) ? 0 : 2;
 	p += 0x40;
 
@@ -180,7 +180,7 @@ void OptionsMenu_UpdateText()
 }
 
 
-void SaveSettings()
+void Settings_Save()
 {
 	TYPE_File* fp;
 
@@ -191,23 +191,23 @@ void SaveSettings()
 		TAP_Hdd_Create( "Settings", ATTR_FOLDER );
 	TAP_Hdd_ChangeDir( "Settings" );
 
-	if ( !TAP_Hdd_Exist( optionsFile ) )
-		TAP_Hdd_Create( optionsFile, ATTR_NORMAL );
+	if ( !TAP_Hdd_Exist( settingsFile ) )
+		TAP_Hdd_Create( settingsFile, ATTR_NORMAL );
 
-	if ( fp = TAP_Hdd_Fopen(optionsFile) )
+	if ( fp = TAP_Hdd_Fopen(settingsFile) )
 	{
 		int version = INI_VERSION;
 		int zero[64];
 		memset( zero, 0, sizeof(zero) );
 		TAP_Hdd_Fwrite( &version, 1, sizeof(version), fp );
-		TAP_Hdd_Fwrite( &options, 1, sizeof(options), fp );
+		TAP_Hdd_Fwrite( &settings, 1, sizeof(settings), fp );
 		TAP_Hdd_Fwrite( zero, 1, sizeof(zero), fp );
 		TAP_Hdd_Fclose( fp );
 	}
 }
 
 
-void LoadSettings()
+void Settings_Load()
 {
 	TYPE_File* fp;
 	bool validSettings = FALSE;
@@ -217,13 +217,13 @@ void LoadSettings()
 	TAP_Hdd_ChangeDir( "ProgramFiles" );
 	TAP_Hdd_ChangeDir( "Settings" );
 
-	if ( fp = TAP_Hdd_Fopen(optionsFile) )
+	if ( fp = TAP_Hdd_Fopen(settingsFile) )
 	{
 		int version = 0;
 		TAP_Hdd_Fread( &version, 1, sizeof(version), fp );
 		if ( version == INI_VERSION )
 		{
-			TAP_Hdd_Fread( &options, 1, sizeof(options), fp );
+			TAP_Hdd_Fread( &settings, 1, sizeof(settings), fp );
 			validSettings = TRUE;
 		}
 		TAP_Hdd_Fclose( fp );
@@ -231,22 +231,22 @@ void LoadSettings()
 
 	if ( !validSettings )
 	{
-		ResetSettings();
-		SaveSettings();
+		Settings_Reset();
+		Settings_Save();
 	}
 }
 
 
-void ResetSettings()
+void Settings_Reset()
 {
 	if ( GetModel() == TF5800t )
 	{
-		options.insertSpace = TRUE;
-		options.addGenre = _appl_version >= 0x1288;
+		settings.insertSpace = TRUE;
+		settings.addGenre = _appl_version >= 0x1288;
 	}
 	else
 	{
-		options.insertSpace = FALSE;
-		options.addGenre = FALSE;
+		settings.insertSpace = FALSE;
+		settings.addGenre = FALSE;
 	}
 }
