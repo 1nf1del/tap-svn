@@ -1,18 +1,18 @@
-Remote Extender 1.4
+Remote Extender 1.5
 -------------------
 
-Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys. The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively. Just put the standard or MHEG version into AutoStart if you're running MyStuff.
+Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys. The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively.
 
 At any time, you can shut down Remote Extender by pressing the front panel OK button 5 times in succession. This is a good way to revert to the standard remote if you're running the Toppy2 version of Remote Extender.
 
-Remote Extender has no options screen and instead comes in 4 versions: Standard, MHEG and Toppy2 and Toppy2MHEG.
+There is now an options screen for configuring Remote Extender. This can only be accessed using TAP Commander or TSR Commander. The 2 available options are:
+MHEG Detection - This setting is for the TF5800 only and fixes a bug in the firmware that prevents TAPs from detecting Teletext. This is particularly useful for Jag's EPG as it will allow OK to be used to activate the Channel List view without blocking entry of Teletext page numbers.
+0 Switches aspect ratio - This setting allows you to disable the quick TV aspect ratio change that happens when 0 is pressed during viewing.
 
-MHEG
-----
-MHEG versions are for the TF5800 only and fix a bug in the firmware that prevents TAPs from detecting Teletext. This is particularly useful for Jag's EPG as it will allow OK to be used to activate the Channel List view without blocking entry of Teletext page numbers.
+To configure or stop the TAP you must use TAP Commander or TSR Commander.
 
-Toppy2
-------
+Toppy2 Version
+--------------
 Toppy2 will be of interest to people with 2 Topfield PVRs. It translates codes from a programmable remote into standard Topfield commands to allow you to operate each independently. All buttons except Power are supported. The codes to base your remote's programme on are listed below.
 
 5800/5000 key	Normal Remote	Toppy2 Second Remote
@@ -93,6 +93,9 @@ On all models, for providing extra functions for users of programmable remotes.
 
 History
 -------
+1.5		Auto detect new firmware.
+		Zero key aspect ratio switching disable mode.
+		Options screen.
 1.4		Support for 5800 21/12/2006 (13.39) firmware.
 1.3		Support for 5800 17/08/2006 (12.99) firmware.
 1.2		Support for 5800 19/09/2006 (13.26) firmware.

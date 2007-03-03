@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2006 Simon Capewell. All Rights Reserved.
+#  Copyright (c) 2006-2007 Simon Capewell. All Rights Reserved.
 #
 #  This file is part of the TAPs for Topfield PVRs project.
 #      http://tap.berlios.de/
@@ -29,20 +29,12 @@ CXXFLAGS+=-DTOPPY2
 TAPNAME:=$(TAPNAME)Toppy2
 endif
 
-ifdef MHEG
-CFLAGS+=-DMHEG
-CXXFLAGS+=-DMHEG
-TAPNAME:=$(TAPNAME)MHEG
-endif
-
 all:
 	$(MAKE) single
-	$(MAKE) single MHEG=1
-	$(MAKE) single MHEG=1 TOPPY2=1
 	$(MAKE) single TOPPY2=1
 
 single: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-	tfcopy $(TAPNAME).tap '#:\ProgramFiles\'
+	tfcopy.cmd $(TAPNAME).tap '#:\ProgramFiles\'
 
 
 # A target for removing generated files.
@@ -51,10 +43,15 @@ clean:
 
 $(TAPNAME).tap: RemoteExtender.elf
 	$(OBJCOPY) -O binary $< $@
+	@mips-objdump -D RemoteExtender.elf > RemoteExtender.asm
 	-rm -f *.o *.elf *.map
 
-RemoteExtender.elf::	RemoteExtender.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-RemoteExtender.o:		RemoteExtender.c RemoteMap.h
+RemoteExtender.elf::	Main.o RemoteExtender.o MHEGState.o QuickAspectBlocker.o Settings.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+Main.o:					Main.c Settings.h RemoteExtender.h MHEGState.h QuickAspectBlocker.h
+Settings.o:				Settings.c Settings.h RemoteExtender.h MHEGState.h QuickAspectBlocker.h
+RemoteExtender.o:		RemoteExtender.c RemoteExtender.h
+MHEGState.o:			MHEGState.c MHEGState.h
+QuickAspectBlocker.o:	QuickAspectBlocker.c QuickAspectBlocker.h
 
 CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
 

@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -26,31 +26,8 @@
 #include <model.h>
 #include <OpCodes.h>
 #include <morekeys.h>
+#include "RemoteExtender.h"
 
-//#define MHEG 1
-//#define TOPPY2 1
-//#define DIAGNOSTIC 1
-
-#ifdef MHEG
-#define MHEG_TEXT "MHEG "
-#else
-#define MHEG_TEXT ""
-#endif
-
-#ifdef TOPPY2
-#define TOPPY2_TEXT "Toppy2 " 
-#else
-#define TOPPY2_TEXT ""
-#endif
-
-
-TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT MHEG_TEXT "1.4");
-TAP_AUTHOR_NAME("Simon Capewell");
-TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
-TAP_ETCINFO(__DATE__);
-
-#include <TSRCommander.h>
 
 dword exitCount = 0;
 dword lastKey = 0;
@@ -114,7 +91,7 @@ void ReceiveKeyHook()
 
 
 //-----------------------------------------------------------------------------
-dword remoteReceiveSignature[] =
+static dword remoteReceiveSignature[] =
 {
 	0x27bdffe0,
 	0xafb50014,
@@ -161,12 +138,6 @@ bool HookReceiveKeyFunction()
 	}
 
 	hookFn = (dword*)ReceiveKeyHook;
-	// Validate receive hook function
-	if (hookFn[2] != LUI_T1_CMD || hookFn[3] != OR_T1_CMD)
-	{
-		ShowMessage( "Remote Extender\nTAP receive key hook function has an unexpected structure\n", 200 );
-		return FALSE;
-	}
 
 	// save the original instructions to be executed prior to the hook code
 	hookFn[0] = addr[0x20];
@@ -184,7 +155,7 @@ bool HookReceiveKeyFunction()
 }
 
 
-dword dispatchKeySignature[] =
+static dword dispatchKeySignature[] =
 {
 	0x8eff001c,
 	0x8fff0000,
@@ -219,16 +190,10 @@ bool AdjustDispatchKeyFunction()
 	
 	addr = (dword*)FindFirmwareFunction( dispatchKeySignature, sizeof(dispatchKeySignature), 0x80128000, 0x80148000 );
 	if ( !addr )
-	{
-		ShowMessage( "Remote Extender\nDispatch key function not found\n", 200 );
 		return FALSE;
-	}
 
 	if ( addr[10] != 0x24040100 )
-	{
-		ShowMessage( "Remote Extender\nDispatch key function has an unexpected structure\n", 200 );
 		return FALSE;
-	}
 
 	HackFirmware( addr+10, 0x240400ff );
 
@@ -237,13 +202,13 @@ bool AdjustDispatchKeyFunction()
 
 
 //-----------------------------------------------------------------------------
-dword TAP_EventHandler( word event, dword param1, dword param2 )
+dword RemoteExtender_EventHandler( word event, dword param1, dword param2 )
 {
 #ifdef DEBUG
 	if ( event == EVT_KEY || event == EVT_KEY-1 ) 
 	{
 		TAP_Print("RemoteExtender: key=%X lastKey=%X\n", param1, lastKey);
-		if ( param1 == RKEY_Recall )
+		if ( param1 == RKEY_Sleep )
 		{
 #ifdef DIAGNOSTIC
 			if ( rgn )
@@ -348,189 +313,26 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 }
 
 
-typedef struct {
-	Model	model;
-    int		firmwareVersion;
-	dword	registerGroup;
-} FirmwareDetail;
-
-
-FirmwareDetail firmware[] = 
+bool RemoteExtender_Init()
 {
-	// Model	FW version,	registerGroup
-	456,		0x1339,		0x804d549c,		// 21 Dec 2006
-	456,		0x1326,		0x804cd3a4,		// 19 Sep 2006
-	456,		0x1299,		0x804ccddc,		// 18 Aug 2006
-	456,		0x1288,		0x804cb11c,		// 14 Jul 2006
-	456,		0x1225,		0x80427bfc		// 08 Dec 2005
-};
-
-
-FirmwareDetail* GetFirmwareDetail()
-{
-	__asm__ __volatile__ (
-		"lui	$02,0x0\n"
-		"or		$02,$02,0x0\n"
-		"nop\n"
-		);
-}
-
-void FW_Print(const void *fmt, ...)
-{
-}
-
-
-//see  dtt mheg-5 spec. v1.06, section 3.6
-//if register_group == 0 then no mheg is running
-//if register_group == 3 then mheg is running, has claimed <text><red><green><yellow><blue>
-//if register_group == 5 then mheg is running, has claimed group3 + <arrow keys> + <ok>
-//if register_group == 4 then mheg is running, has claimed group3 + group5 + <number keys>
-int GetMHEGMode()
-{
-	dword v0;
-    int registerGroup = 0;
-
-	v0 = *(dword*)GetFirmwareDetail()->registerGroup;
-    if (v0)
-	{
-        dword v1 = *(dword*)(v0 + 0x8);
-        if (v1)
-		{
-            registerGroup = *(dword*)(v1 + 0x34);
-		}
-	}
-
-	return registerGroup;
-}
-
-
-// Call TAP_GetState
-dword GetState( dword *state, dword *subState )
-{
-	__asm__ __volatile__ (
-		"addiu	$8,0\n"
-		"addiu	$8,0\n"
-		"addiu	$8,0\n"
-		"nop\n");
-}
-
-
-dword GetStateHook( dword *state, dword *subState )
-{
-	dword s, ss;
-	// Call TAP_GetState
-	dword result = GetState( &s, &ss );
-	// If nothing else appears to be active, check for full screen MHEG
-	if ( s == STATE_Normal && ss == SUBSTATE_Normal )
-	{
-		if ( GetMHEGMode() >= 4 )
-		{
-			s = STATE_Ttx;
-			ss = SUBSTATE_Ttx;
-		}
-	}
-	if (state)
-		*state = s;
-	if (subState)
-		*subState = ss;
-	return result;
-}
-
-
-//-----------------------------------------------------------------------------
-void TSRCommanderConfigDialog()
-{
-}
-
-
-bool TSRCommanderExitTAP()
-{
-	UndoFirmwareHacks();
-	TAP_Exit();
-}
-
-
-void ShowUnsupportedMessage()
-{
-	// Try and get some helpful information of users with unsupported firmware
-	char buffer[300];
-	sprintf( buffer, "Remote Extender is not compatible with your firmware\n"
-		"For an update, please contact the author quoting\n"
-		"%d and %04X", *sysID, _appl_version );
-	ShowMessage( buffer, 750 );
-}
-
-
-int TAP_Main()
-{
-	bool supported = FALSE;
-	int index;
-
-	TAP_Print( "Starting Remote Extender TAP\n" );
-
-#ifdef MHEG
-	// Look up the current firmware
-	for ( index=0; index<sizeof(firmware)/sizeof(FirmwareDetail); ++index )
-	{
-		if ( *sysID == firmware[index].model && _appl_version == firmware[index].firmwareVersion )
-		{
-			supported = TRUE;
-			break;
-		}
-	}
-	if ( !supported )
-	{
-		ShowUnsupportedMessage();
-		return 0;
-	}
-	((dword*)FW_Print)[0] = J(TAP_Print);
-	((dword*)FW_Print)[1] = NOP_CMD;
-
-	// We need to know various firmware specific addresses without needing to use $gp
-	((word*)GetFirmwareDetail)[1] = ((dword)(firmware+index) >> 16) & 0xffff;
-	((word*)GetFirmwareDetail)[3] = (dword)(firmware+index) & 0xffff;
-#endif
-
 	if ( !StartTAPExtensions() )
-	{
-		ShowUnsupportedMessage();
-		return 0;
-	}
+		return FALSE;
 
 	if ( !HookReceiveKeyFunction() )
 	{
 		UndoFirmwareHacks();
-		ShowUnsupportedMessage();
-		return 0;
+		return FALSE;
 	}
 
 	if ( !AdjustDispatchKeyFunction() )
 	{
 		UndoFirmwareHacks();
-		ShowUnsupportedMessage();
-		return 0;
+		return FALSE;
 	}
-
-
-	// patch TAP_GetState to return STATE_Ttx and SUBSTATE_Ttx when full screen MHEG is active
-#ifdef MHEG
-	{
-		dword* fn = (dword*)GetState;
-		dword* addr = (dword*)TAP_GetState;
-
-		// save the original instructions to be executed prior to the hook code
-		fn[0] = addr[0];
-		fn[1] = addr[1];
-		fn[2] = J(addr+2);
-		fn[3] = NOP_CMD;
-		HackFirmware( addr, J(GetStateHook) );
-		HackFirmware( addr+1, NOP_CMD );
-	}
-#endif
 
 #ifdef DIAGNOSTIC
 	rgn = TAP_Osd_Create(0, 0, 720, 576, 0, FALSE); // Define a region that covers the whole screen
 #endif
 
-	return 1;
+	return TRUE;
 }
