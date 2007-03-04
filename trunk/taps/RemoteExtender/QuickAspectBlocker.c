@@ -51,8 +51,8 @@ static dword QuickAspectBlockerSignature[] =
 	0x00021600,
 	0x00021603,
 	0x544002FF,
-	0x83999dFF,
-	0x3c1e81b7,
+	0x8399FFFF,
+	0x3c1eFFFF,
 	0x93deFFFF,
 	0x24180002
 };
