@@ -65,13 +65,8 @@ const char* TAPCommander::GetIniName() const
 }
 
 
-extern "C" void TAP_Hdd_GetCurrentDirectory(char* buffer, int bufferSize);
-
 bool TAPCommander::Start()
 {
-	char buffer[1024];
-	TAP_Hdd_GetCurrentDirectory(buffer,1024);
-
 	// Initialise the firmware hack
 	if ( !StartTAPExtensions() )
 		return false;

@@ -34,6 +34,7 @@
 #include "Tapplication.h"
 #include "ListColumn.h"
 #include "FooterListItem.h"
+#include "MessageBox.h"
 #include "ConfigPage.h"
 
 typedef struct
@@ -104,11 +105,11 @@ static bool CanDisable( unsigned int index )
 	TAPProcess* process = &tapProcess[index];
 	if ( !process->header )
 		return false;
-#ifdef DEBUG
+
 	// don't disable Virtual Remote
 	if (process->header->id == 0x810a0013)
 		return false;
-#endif
+
 	return process->header->id != 0x814243a3 ; // Remote Extender mustn't be disabled
 }
 
@@ -206,6 +207,21 @@ dword LoadedTAPPage::TAPListItem::OnKey( dword key, dword extKey )
 		}
 		return 1;
 	}
+	case RKEY_Sat:
+		if ( MessageBox::Show("Stop all TAPs?", "", "Yes\nNo" ) == 1 )
+		{
+			for ( int i = 0; i < TAP_MAX; ++i )
+			{
+				if ( !IsThisTAP( i ) && CanDisable( i ) )
+				{
+					TYPE_TSRCommander* tapBlock = IsTSRCommanderTAP( i );
+					if ( tapBlock )
+						tapBlock->ExitTAP = TRUE;
+				}
+			}
+			m_theList->Close();
+		}
+		return 1;
 	}
 
 	return key;

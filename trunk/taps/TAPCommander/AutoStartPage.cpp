@@ -47,6 +47,15 @@ static const char* messageBoxTitle = "Reorder TAPs";
 #define tempAutoStartName "Temp Auto Start"
 
 
+static bool IsRecording( int slot )
+{
+	TYPE_RecInfo recInfo;
+	memset( &recInfo, 0, sizeof(recInfo) );
+	return TAP_Hdd_GetRecInfo(slot, &recInfo) &&
+		(recInfo.recType == RECTYPE_Normal || recInfo.recType == RECTYPE_Copy);
+}
+
+
 void AutoStartPage::TAPListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
 	AutoStartTAP& tap = ((AutoStartPage*)m_theList)->m_taps[m_index];
@@ -572,7 +581,7 @@ void AutoStartPage::Save()
 	}
 	else
 	{
-		if ( MessageBox::Show("Reorder TAPs", "Finished", "OK\nReboot") == 2 )
+		if ( MessageBox::Show("Reorder TAPs", "Finished", IsRecording(0) || IsRecording(1) ? "OK" : "OK\nReboot" ) == 2 )
 			TAP_Reboot(false);
 	}
 }

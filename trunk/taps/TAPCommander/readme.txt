@@ -9,6 +9,7 @@ This screen shows free memory at the top right corner and a list of all running 
 
 To configure a TAP press OK
 To stop a TAP press Stop or White.
+To stop all compatible TAPs press PIP Swap (next to white). 
 To temporarily disable or enable a TAP press Red. Green will toggle all TAPs. Note that TAPs that hack the firmware directly like the Display TAP may behave strangely when disabled.
 To access the Auto Start reordering screen, press the Archive button.
 
