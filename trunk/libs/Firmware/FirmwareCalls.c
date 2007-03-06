@@ -168,7 +168,7 @@ static dword addTaskSignature[] =
 
 static dword rebootSignature[] =
 {
-	0x27bdffd0,
+	0x27bdFFFF,
 	0xafb20018,
 	0xafb3001c,
 	0xafb40020,
@@ -183,9 +183,6 @@ static dword rebootSignature[] =
 	0x00000000,
 	0x24020090,
 	0x100000ff,
-	0x00000000,
-	0x24120002,
-	0x0c0000ff,
 	0x00000000
 };
 
