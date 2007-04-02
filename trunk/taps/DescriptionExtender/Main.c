@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2006 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -32,7 +32,7 @@
 #define LOGFILE "DescriptionExtenderLog.txt"
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 2.1 beta 3");
+TAP_PROGRAM_NAME("DescriptionExtender 2.11");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);

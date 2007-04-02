@@ -1,4 +1,26 @@
+/*
+	Copyright (C) 2005-2007 Simon Capewell
+
+	This file is part of the TAPs for Topfield PVRs project.
+		http://tap.berlios.de/
+
+	This is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	The software is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this software; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include <tap.h>
+#include <tapconst.h>
 #include <model.h>
 #include "Settings.h"
 
@@ -21,6 +43,7 @@ void OptionsMenu_Show()
 {
 	int i, count;
 	char* p;
+	char buffer[256];
 
 	if ( !rgn )
 		rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, 0 );		// create rgn-handle
@@ -32,7 +55,8 @@ void OptionsMenu_Show()
 
 	TAP_Win_SetDefaultColor( &window );
 	TAP_Win_Create( &window, rgn, 160, 70, 330, 150, FALSE, FALSE );
-	TAP_Win_SetTitle( &window, "Description Extender Options", 0, FNT_Size_1622 );
+	sprintf( buffer, "%s Options", __tap_program_name__ );
+	TAP_Win_SetTitle( &window, buffer, 0, FNT_Size_1622 );
 
 	// allocate memory for option text
 	optionTextBuffer = (char*)malloc(0x40*(optionCount+5));

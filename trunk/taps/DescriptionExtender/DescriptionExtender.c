@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2006 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -20,6 +20,7 @@
 */
 
 #include <tap.h>
+#include <tapconst.h>
 #include <string.h>
 #include <firmware.h>
 #include <OPCodes.h>
@@ -260,9 +261,6 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 							}
 						}
 
-						// Add one more for an additional terminator
-						++outputLength;
-
 						// If there's going to be something worth returning
 						if ( outputLength > 0 )
 						{
@@ -425,6 +423,9 @@ void WriteErrorLog()
 		p = buffer;
 		sprintf( p, "%d, 0x%04x, 0x%x, 0x%x\n\n", *sysID, _appl_version, TAP_GetCurrentEvent, TAP_EPG_GetExtInfo );
 		p += strlen(p);
+		sprintf( p, "eventTable %X\neventTableLength %X\neventLength %X\n\n",
+			firmwareDetail.eventTable, firmwareDetail.eventTableLength, firmwareDetail.eventLength );
+		p += strlen(p);
 		sprintf( p, "TAP_GetCurrentEvent\n" );
 		p += strlen(p);
 		for ( i = 0; i < 0x40; ++i )
@@ -438,7 +439,6 @@ void WriteErrorLog()
 	}
 }
 
-
 bool DescriptionExtender_Init()
 {
 	if ( !AnalyseFirmware() )
@@ -447,12 +447,12 @@ bool DescriptionExtender_Init()
 
 		WriteErrorLog();
 		sprintf( buffer,
-			"Description Extender is not compatible with your firmware\n"
+			"%s is not compatible with your firmware\n"
 			"For an update, please contact the author for an update\n"
 			"quoting your model type, firmware date and the following:\n"
 			"%d, %04X, %X and %X\n"
 			"A log file has been created in ProgramFiles",
-			*sysID, _appl_version, TAP_GetCurrentEvent-0x80000000, TAP_EPG_GetExtInfo-0x80000000 );
+			__tap_program_name__, *sysID, _appl_version, TAP_GetCurrentEvent-0x80000000, TAP_EPG_GetExtInfo-0x80000000 );
 		ShowMessage( buffer, 1000 );
 		return FALSE;
 	}

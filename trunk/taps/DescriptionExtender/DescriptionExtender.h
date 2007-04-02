@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2006 Simon Capewell
+	Copyright (C) 2005-2007 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
