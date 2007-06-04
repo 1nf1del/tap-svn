@@ -57,7 +57,7 @@ struct RecHeader
 						//(* EPG information *)
 	dword ukn6 PACKED;			//46   unk6              : CARD32;              (* Note 15 *)
 	byte duration_hour PACKED;	//4A   Duration_Hour     : CARD8;
-	byte durantion_min PACKED;	//4B   Duration_Min      : CARD8;
+	byte duration_min PACKED;	//4B   Duration_Min      : CARD8;
 	dword event_id PACKED;		//4C   Event_Id          : CARD32;
 	word start_mjd PACKED;		//50   Start_Time_MJD    : CARD16;              (* Note 16 *)
 	byte start_hour PACKED;	//52   Start_Time_Hour   : CARD8;
