@@ -26,6 +26,7 @@
 #ifndef _TAP
 #include <memory.h>
 #endif
+#include <limits.h>
 #include "quicksort.h"
 
 inline void* operator new (size_t s, void* _where)
@@ -70,13 +71,16 @@ public:
 
 	bool empty() const;
 
-	template <class Comparitor> void sort()
+	template <class Comparitor> void sort(unsigned int fromIndex=0, unsigned int length=INT_MAX)
 	{
-		Comparitor comp;
-		QuickSort(m_pArray, m_iLen, comp);
+		if (fromIndex < m_iLen)
+		{
+			Comparitor comp;
+			QuickSort(m_pArray+fromIndex, min(length, m_iLen-fromIndex), comp);
+		}
 	}
 
-	void sort();
+	void sort(unsigned int fromIndex=0, unsigned int length=INT_MAX);
 
 	int find(const T& item) const;
 	int findvalue(const T& pItem) const;
@@ -230,10 +234,13 @@ template<typename T> bool array<T>::empty() const
 }
 
 
-template<typename T> void array<T>::sort()
+template<typename T> void array<T>::sort(unsigned int fromIndex, unsigned int length)
 {
-	default_comparitor comp;
-	QuickSort(m_pArray, m_iLen, comp);
+	if (fromIndex < m_iLen)
+	{
+		default_comparitor comp;
+		QuickSort(m_pArray+fromIndex, min(length, m_iLen-fromIndex), comp);
+	}
 }
 
 template<typename T> int array<T>::find(const T& item) const
