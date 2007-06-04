@@ -49,6 +49,7 @@ public:
 
 protected:
 	array<string> m_choices;
+	string m_description;
 
 private:
 	void ReadValue() const;
@@ -59,7 +60,6 @@ private:
 	mutable string m_value;
 	string m_defaultvalue;
 	string m_name;
-	string m_description;
 	Options* m_pContainer;
 };
 

@@ -77,7 +77,7 @@ void Option::OnUpdate() const
 
 int Option::ValueAsInteger() const
 {
-	if (GetValue().size() && isdigit(GetValue()[0]))
+	if (GetValue().size() && (GetValue()[0]=='-' || isdigit(GetValue()[0])))
 		return atoi(GetValue());
 
 	_ASSERT(false);
