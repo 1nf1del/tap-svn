@@ -44,6 +44,8 @@ public:
 	void WriteValue(const string& sKey, const string& sValue);
 	void SaveValues();
 
+	IniFile* GetIniFile();
+
 private:
 
 	string m_sIniFile;
@@ -51,4 +53,12 @@ private:
 	array<string> m_names;
 	IniFile* m_pIniFile;
 };
+
+
+inline IniFile* Options::GetIniFile()
+{
+	return m_pIniFile;
+}
+
+
 #endif
