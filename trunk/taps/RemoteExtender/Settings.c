@@ -20,6 +20,7 @@
 */
 
 #include <tap.h>
+#include <tapconst.h>
 #include <model.h>
 #include "Settings.h"
 #include "MHEGState.h"
@@ -39,6 +40,9 @@ static int optionCount = 2;
 static void OptionsMenu_UpdateText();
 
 
+// Add an item to the window
+#define AddMenuItem(window, p) window.item[window.itemNum++] = p; p += strlen(p)+1
+
 // Pad with spaces to as near a specific width as possible
 static void PadToWidth( char* buffer, int padTo )
 {
@@ -57,8 +61,7 @@ static void PadToWidth( char* buffer, int padTo )
 
 void OptionsMenu_Show()
 {
-	int i, count;
-	char* p;
+	char buffer[256];
 
 	if ( !rgn )
 		rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, 0 );		// create rgn-handle
@@ -69,21 +72,12 @@ void OptionsMenu_Show()
 
 	TAP_Win_SetDefaultColor( &window );
 	TAP_Win_Create( &window, rgn, 220, 70, 280, 150, FALSE, FALSE );
-	TAP_Win_SetTitle( &window, "Remote Extender Options", 0, FNT_Size_1622 );
+	sprintf( buffer, "%s Options", __tap_program_name__ );
+	TAP_Win_SetTitle( &window, buffer, 0, FNT_Size_1622 );
 
 	// allocate memory for option text
 	optionTextBuffer = (char*)malloc(0x40*(optionCount+5));
-	p = optionTextBuffer;
-	for ( i = 0; i < optionCount+5; ++i )
-	{
-		*p = 0;
-		TAP_Win_AddItem( &window, p );
-		window.item[i] = p;
-		p += 0x40;
-	}
 	OptionsMenu_UpdateText();
-
-	TAP_Win_SetSelection( &window, 0 );
 }
 
 
@@ -183,43 +177,59 @@ void OptionsMenu_UpdateText()
 	char* p;
 
 	p = optionTextBuffer;
+	window.itemNum = 0;
 
 	strcpy( p, "MHEG Detection" );
 	PadToWidth( p, 220 );
 	strcat( p, MHEGState_Available ? settings.mheg ? "On" : "Off" : "N/A" );
-	p += 0x40;
+	window.check[window.itemNum] = GetModel() == TF5800t ? 0 : 2; // only enable on 5800
+	AddMenuItem( window, p );
 
 	strcpy( p, "0 Switches Aspect Ratio" );
 	PadToWidth( p, 220 );
 	strcat( p, QuickAspectBlocker_Available ? settings.quickAspectBlocker ? "No" : "Yes" : "N/A");
-	p += 0x40;
+	window.check[window.itemNum] = QuickAspectBlocker_Available ? 0 : 2; // only enable if available
+	AddMenuItem( window, p );
 
-	strcpy( p, "Reset to defaults" ); p += 0x40;
-	strcpy( p, "Cancel" ); p += 0x40;
+	strcpy( p, "Reset to defaults" );
+	AddMenuItem( window, p );
 
-	p += 0x40;
+	strcpy( p, "Cancel" );
+	AddMenuItem( window, p );
+
+	*p = 0;
+	AddMenuItem( window, p );
 
 	// Display context sensitive help
 	switch (TAP_Win_GetSelection( &window ))
 	{
 	case 0:
-		strcpy( p, "Allows other TAPs to detect when" ); p += 0x40;
-		strcpy( p, "interactive text is active"); p += 0x40;
+		strcpy( p, "Allows other TAPs to detect when" );
+		AddMenuItem( window, p );
+		strcpy( p, "interactive text is active");
+		AddMenuItem( window, p );
 		break;
 	case 1:
-		strcpy( p, "Allows you to turn off TV aspect" ); p += 0x40;
-		strcpy( p, "ratio switching when 0 is pressed" ); p += 0x40;
+		strcpy( p, "Allows you to turn off TV aspect" );
+		AddMenuItem( window, p );
+		strcpy( p, "ratio switching when 0 is pressed" );
+		AddMenuItem( window, p );
 		break;
 	case 2:
-		strcpy( p, "Press Recall to reset options to" ); p += 0x40;
-		strcpy( p, "their defaults" ); p += 0x40;
+		strcpy( p, "Press Recall to reset options to" );
+		AddMenuItem( window, p );
+		strcpy( p, "their defaults" );
+		AddMenuItem( window, p );
 		break;
 	default:
-		strcpy( p, " " ); p += 0x40;
-		strcpy( p, " " ); p += 0x40;
+		strcpy( p, " " );
+		AddMenuItem( window, p );
+		strcpy( p, " " );
+		AddMenuItem( window, p );
 		break;
 	}
 
+	// Force a redraw
 	TAP_Win_SetSelection( &window, TAP_Win_GetSelection( &window ) );
 }
 

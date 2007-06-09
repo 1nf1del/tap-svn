@@ -34,7 +34,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT "1.5");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT "1.51");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -79,9 +79,9 @@ void ShowUnsupportedMessage()
 {
 	// Try and get some helpful information of users with unsupported firmware
 	char buffer[300];
-	sprintf( buffer, "Remote Extender is not compatible with your firmware\n"
+	sprintf( buffer, "%s is not compatible with your firmware\n"
 		"For an update, please contact the author quoting\n"
-		"%d and %04X", *sysID, _appl_version );
+		"%d and %04X", __tap_program_name__, *sysID, _appl_version );
 	ShowMessage( buffer, 750 );
 }
 
