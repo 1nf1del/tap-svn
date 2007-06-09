@@ -41,7 +41,8 @@ Main.o:						Main.c Settings.h
 DescriptionExtender.o:		DescriptionExtender.c DescriptionExtender.h Settings.h
 Settings.o:					Settings.c Settings.h
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../trunk/libs/FireBird
+LDFLAGS+=-l FireBird -L../trunk/libs/FireBird -l c
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -s -C ../../libs/libutils

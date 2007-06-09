@@ -394,7 +394,7 @@ bool AnalyseFirmware()
 	}
 
 	// Do a sanity check on the searched firmware parameters
-	if ( firmwareDetail.eventTable < 0x80280000 || firmwareDetail.eventTable >= 0x80400000 ||
+	if ( firmwareDetail.eventTable < 0x80270000 || firmwareDetail.eventTable >= 0x80400000 ||
 		 firmwareDetail.eventTableLength < 4000 || firmwareDetail.eventTableLength >= 15000 ||
 		 firmwareDetail.eventLength < 0x40 || firmwareDetail.eventLength >= 0x50 )
 		return FALSE;

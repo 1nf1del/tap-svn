@@ -39,6 +39,25 @@ static int optionCount = 2;
 static void OptionsMenu_UpdateText();
 
 
+// Add an item to the window
+#define AddMenuItem(window, p) window.item[window.itemNum++] = p; p += strlen(p)+1
+
+// Pad with spaces to as near a specific width as possible
+static void PadToWidth( char* buffer, int padTo )
+{
+	int width = TAP_Osd_GetW( buffer, 0, FNT_Size_1622 );
+	if ( width < padTo )
+	{
+		int spaceWidth = TAP_Osd_GetW( " ", 0, FNT_Size_1622 );
+		char *end = buffer + strlen(buffer);
+		int padCount = (padTo - width) / spaceWidth;
+		if ( (padTo - width) % spaceWidth >= spaceWidth / 2 - 1 )
+			padCount += 1;
+		memset( end, ' ', padCount );
+		end[padCount] = '\0';
+	}
+}
+
 void OptionsMenu_Show()
 {
 	int i, count;
@@ -60,17 +79,7 @@ void OptionsMenu_Show()
 
 	// allocate memory for option text
 	optionTextBuffer = (char*)malloc(0x40*(optionCount+5));
-	p = optionTextBuffer;
-	for ( i = 0; i < optionCount+5; ++i )
-	{
-		*p = 0;
-		TAP_Win_AddItem( &window, p );
-		window.item[i] = p;
-		p += 0x40;
-	}
 	OptionsMenu_UpdateText();
-
-	TAP_Win_SetSelection( &window, 0 );
 }
 
 
@@ -164,42 +173,58 @@ void OptionsMenu_UpdateText()
 	char* p;
 
 	p = optionTextBuffer;
+	window.itemNum = 0;
 
-	strcpy( p, "Extra space@|" );
+	strcpy( p, "Extra space" );
+	PadToWidth( p, 250 );
 	strcat( p, settings.insertSpace ? "Yes" : "No" );
-	p += 0x40;
+	AddMenuItem( window, p );
 
-	strcpy( p, "Genre@|" );
+	strcpy( p, "Genre" );
+	PadToWidth( p, 250 );
 	strcat( p, settings.addGenre ? "Yes" : "No" );
-	window.check[1] = (GetModel() == TF5800t && _appl_version >= 0x1288) ? 0 : 2;
-	p += 0x40;
+	window.check[window.itemNum] = _appl_version < 0x1288 ? 2 : 0; // disable if firmware before 5.12.88
+	AddMenuItem( window, p );
 
-	strcpy( p, "Reset to defaults" ); p += 0x40;
-	strcpy( p, "Cancel" ); p += 0x40;
+	strcpy( p, "Reset to defaults" );
+	AddMenuItem( window, p );
 
-	p += 0x40;
+	strcpy( p, "Cancel" ); 
+	AddMenuItem( window, p );
+
+	strcpy( p, " " );
+	AddMenuItem( window, p );
 
 	// Display context sensitive help
 	switch (TAP_Win_GetSelection( &window ))
 	{
 	case 0:
-		strcpy( p, "Inserts a space between short description" ); p += 0x40;
-		strcpy( p, "and extended information"); p += 0x40;
+		strcpy( p, "Inserts a space between short description" );
+		AddMenuItem( window, p );
+		strcpy( p, "and extended information");
+		AddMenuItem( window, p );
 		break;
 	case 1:
-		strcpy( p, "Appends the genre to the description" ); p += 0x40;
-		strcpy( p, " " ); p += 0x40;
+		strcpy( p, "Appends the genre to the description" );
+		AddMenuItem( window, p );
+		strcpy( p, " " );
+		AddMenuItem( window, p );
 		break;
 	case 2:
-		strcpy( p, "Press 0 to reset options to their defaults" ); p += 0x40;
-		strcpy( p, " " ); p += 0x40;
+		strcpy( p, "Press 0 to reset options to their defaults" );
+		AddMenuItem( window, p );
+		strcpy( p, " " );
+		AddMenuItem( window, p );
 		break;
 	default:
-		strcpy( p, " " ); p += 0x40;
-		strcpy( p, " " ); p += 0x40;
+		strcpy( p, " " );
+		AddMenuItem( window, p );
+		strcpy( p, " " );
+		AddMenuItem( window, p );
 		break;
 	}
 
+	// Force a redraw
 	TAP_Win_SetSelection( &window, TAP_Win_GetSelection( &window ) );
 }
 
