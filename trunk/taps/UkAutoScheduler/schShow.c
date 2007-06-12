@@ -10,6 +10,7 @@ This module displays the schedules
   v0.4 sl8:	11-10-06	Update icons if modified by conflict handler
   v0.5 sl8:	13-10-06	Duration bug fix.
   v0.6 sl8:	23-10-06	Duration bug fix (proper).
+  v0.7 sl8:	11-06-07	Max number of results increased to 300.
 
 **************************************************************/
 
@@ -22,7 +23,7 @@ void schShowSortResults(int);
 void schShowUpdateIcons(void);
 
 #ifndef WIN32
-	#define SCH_SHOW_MAX_RESULTS		100
+	#define SCH_SHOW_MAX_RESULTS		300
 #else
 	#define SCH_SHOW_MAX_RESULTS		20
 #endif

@@ -30,6 +30,8 @@ v0.20 Harvey    22-11-06	Added Already Recorded feature
 v0.21 Harvey	03-12-06	Added Searching features (and,or,not) and wildcards
 v0.22 sl8	15-12-06	Settings/UkAuto folder
 v0.23 sl8	23-01-07	Cross channel conflict handling
+v0.24 Harvey	31-01-07	Added quoted search and changed the not character from ! to ~
+v0.25 sl8	11-06-07	Term/event sanity check now only performed on 'normal' searches.
 
 **************************************************************/
 
@@ -174,6 +176,7 @@ T_Max,
 
 /* None operators */
 Word,
+Quote,
 
 } Token_val;
 
@@ -1294,6 +1297,19 @@ char *schMainstrstrwc_i(char *text,char *pattern)
 
       switch(*pptr)
       {
+      case '#':
+         if
+         (
+            ( *tptr >= 'a' ) && ( *tptr <= 'z' )
+            ||
+            ( *tptr >= '0' ) && ( *tptr <= '9' )
+         )
+         {
+            return NULL;
+         }
+
+         break;
+
       case '_':
          break;
 
@@ -1378,7 +1394,8 @@ void schMainBufTok(SEARCH *search, char c)
            (inspect == ' ' ) || 
            (inspect == '$' ) || 
            (inspect == '^' ) || 
-           (inspect == '_' ) )
+           (inspect == '_' ) || 
+           (inspect == '#' ) )
    {
       search->token_buf[search->token_ptr++]=inspect;
       schMainGetNextChar(search,&inspect);
@@ -1432,8 +1449,11 @@ int schMainGetNextTok(SEARCH *search)
    case '|':
       return Or;
 
-   case '!':
+   case '~':
       return Not;
+
+   case '\"':
+      return Quote;
 
    case '\0':
       return EndOfLine;
@@ -1449,6 +1469,50 @@ int schMainGetNextTok(SEARCH *search)
 int schMainCompare(char *string,char *what)
 {
    if ( schMainstrstrwc(string,what) )
+      return -1;
+
+   return 0;
+}
+
+int schMainQuoteCompare(char *string,char *what)
+{
+   char word[STRING_LENGTH];
+   int i;
+
+   /* Four compares are required : <non alphanumeric>what<non alphanumeric>
+                                   ^what<non alphanumeric>
+                                   <non alphanumeric>what$
+                                   ^what$
+   */
+
+   i=strlen(what);
+   strcpy(word+1,what);
+   word[0]='#';
+   word[i+1]='#';
+   word[i+2]='\0';
+
+   /* <non alphanumeric>what<non alphanumeric> 
+   */
+   if ( schMainCompare(string,word) == -1 )
+      return -1;
+
+   /* ^what<non alphanumeric> 
+   */
+   word[0]='^';
+   if ( schMainstrstrwc(string,word) )
+      return -1;
+
+   /* <non alphanumeric>what$ 
+   */
+   word[0]='#';
+   word[i+1]='$';
+   if ( schMainstrstrwc(string,word) )
+      return -1;
+
+   /* ^what$
+   */
+   word[0]='^';
+   if ( schMainstrstrwc(string,word) )
       return -1;
 
    return 0;
@@ -1515,7 +1579,7 @@ int schMainSearchReduce(SEARCH *search)
 
 int schMainSearchAdvanced(SEARCH *search)
 {
-   int token,val;
+   int token,oper_token,val;
 
    search->search_len=strlen(search->expr);
    search->search_ptr=-1;
@@ -1526,23 +1590,71 @@ int schMainSearchAdvanced(SEARCH *search)
    schMainSearchPush(&search->operator_stack,EndOfLine);
  
    token=schMainGetNextTok(search);
+   oper_token=token;
 
    for(;;)
    {
-      if ( token == Word )
+      switch(token)
       {
+      case Word:
          val=schMainCompare(search->description, search->token_buf);
 
          if ( schMainSearchPush(&search->value_stack,val) != 0 )
             return -1;
 
          token=schMainGetNextTok(search);
-         continue;
+
+         switch(token)
+         {
+         case Word:
+         case Quote:
+         case Not:
+            oper_token=And;
+            break;
+
+         default:
+            continue;
+         }
+
+         break;
+
+
+      case Quote:
+         if ( schMainGetNextTok(search) != Word )
+            return -1;
+
+         val=schMainQuoteCompare(search->description, search->token_buf);
+
+         if ( schMainSearchPush(&search->value_stack,val) != 0 )
+            return -1;
+
+         if ( schMainGetNextTok(search) != Quote )
+            return -1;
+
+         token=schMainGetNextTok(search);
+
+         switch(token)
+         {
+         case Word:
+         case Quote:
+         case Not:
+            oper_token=And;
+            break;
+
+         default:
+            continue;
+         }
+
+         break;
+
+      default:
+         oper_token=token;
+         break;
       }
 
       // Token is an operator 
       //
-      switch(parseTable[search->operator_stack.value[search->operator_stack.top]][token])
+      switch(parseTable[search->operator_stack.value[search->operator_stack.top]][oper_token])
       {
       case R:
          if ( schMainSearchReduce(search) != 0 )
@@ -1551,10 +1663,12 @@ int schMainSearchAdvanced(SEARCH *search)
          break;
 
       case S:
-         if ( schMainSearchPush(&search->operator_stack,token) != 0 )
+         if ( schMainSearchPush(&search->operator_stack,oper_token) != 0 )
             return -1;
 
-         token=schMainGetNextTok(search);
+         if ( oper_token == token )
+            token=schMainGetNextTok(search);
+
          break;
 
       case A:
@@ -1579,10 +1693,11 @@ int schMainSearchAdvanced(SEARCH *search)
 
       default:
          return -998;
-         return -5;
  
       }
    }
+
+   return 0;
 }
 
 int schMainSearchNormal(SEARCH *search)
@@ -1596,8 +1711,9 @@ int schMainSearchNormal(SEARCH *search)
 int schMainSearch(SEARCH *search,char *expr)
 {
    char *src,*tgt;
-   int advanced=0;
+   int advanced;
 
+   advanced=0;
    src=expr;
    tgt=search->expr;
 
@@ -1607,9 +1723,10 @@ int schMainSearch(SEARCH *search,char *expr)
    {
       if ( *src == '(' || *src == ')' ||
            *src == '^' || *src == '&' ||
-           *src == '+' || *src == '!' ||
+           *src == '+' || *src == '~' ||
            *src == '$' || *src == '|' ||
-           *src == '_' || *src == '*'  )
+           *src == '_' || *src == '*' ||
+           *src == '#' || *src == '\"' )
          advanced=-1;
    
       *tgt++=tolower(*src++);
@@ -1663,9 +1780,6 @@ bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 	if ( (eventNameLength == 0) || (searchTermLength == 0) )
 		return FALSE;
 
-	if(strlen(eventName) < strlen(searchTerm))
-		return FALSE;
-
 	// Are we doing advanced searching ( +, | and ! with wildcards?)
 	//
 	if ( options & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH )
@@ -1692,15 +1806,18 @@ bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 
 	// Default - existing search
 	//
-	for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
+	if(strlen(eventName) >= strlen(searchTerm))
 	{
-//		if(eventName[eventNameIndex] == searchTerm[0])
-//		{
-			if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
-			{
-				foundSearchTerm = TRUE;
+		for( eventNameIndex=0; ((eventNameIndex <= (eventNameLength - searchTermLength)) && (foundSearchTerm == FALSE)); eventNameIndex++ )
+		{
+//			if(eventName[eventNameIndex] == searchTerm[0])
+//			{
+				if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
+				{
+					foundSearchTerm = TRUE;
+				}
+//			}
 		}
-//		}
 	}
 
 	return foundSearchTerm;

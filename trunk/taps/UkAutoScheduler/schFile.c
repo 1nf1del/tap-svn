@@ -15,7 +15,7 @@ v0.8 sl8:	11-10-06	Check AutoStart folder for remote file. Add 512 bytes to remo
 				 if found in ProgramFiles folder. Delete remote file when finished.
 v0.9 sl8:	13-10-06	Default remote file 'Keep' data. Delete remote file when read complete.
 v0.10 sl8	15-12-06	Settings/UkAuto folder
-
+v0.11 sl8	11-06-07	schMainTotalValidRemoteSearches always reset when schFileRetreiveRemoteData() called
 
 **************************************************************/
 
@@ -728,6 +728,8 @@ byte schFileRetreiveRemoteData(void)
 	int	schNewLineCount = 0;
 	byte	fileLocation = 0;
 	
+	schMainTotalValidRemoteSearches = 0;
+
 	maxBufferSize = (((SCH_MAX_SEARCHES * ((sizeof( struct schDataTag )) + 20)) / 512) + 1) * 512;
 
 	GotoProgramFiles();
@@ -775,8 +777,6 @@ byte schFileRetreiveRemoteData(void)
 	TAP_Hdd_Fread( buffer, fileLength, 1, remoteFile );
 
 	TAP_Hdd_Fclose( remoteFile );
-
-	schMainTotalValidRemoteSearches = 0;
 
 	bufferIndex = 0;
 

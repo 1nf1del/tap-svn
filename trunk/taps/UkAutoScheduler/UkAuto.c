@@ -39,6 +39,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 	  v0.11 sl8:	05-08-06	Keep added. Search ahead, date and time format added. Load order changed.
 	  v0.12 sl8:	15-12-06	Message box. Settings/UkAuto folder
 	  v0.13 sl8:	23-01-07	Cross channel conflict handling
+	  v0.14 sl8:	11-06-07	Call schFileRetreiveRemoteData() when UKAS activated.
 
 
 **************************************************************/
@@ -52,8 +53,8 @@ History	: v0.1  sl8:	11-11-05	Initial release
 #include "UkAuto.h"
 
 #define ID_UKAUTO 0x800440EE
-#define TAP_NAME "UK Auto Scheduler - Conflict 2"
-#define VERSION "0.70"
+#define TAP_NAME "UK Auto Scheduler"
+#define VERSION "0.72"
 
 TAP_ID( ID_UKAUTO );
 
@@ -180,6 +181,7 @@ void schObtainCurrentTime(void)
 void ActivationRoutine( void )
 {
 	schFileRetreiveSearchData();
+	schFileRetreiveRemoteData();
 
   	TAP_ExitNormal();
 	rgn = TAP_Osd_Create( 0, 0, 720, 576, 0, FALSE );
@@ -243,7 +245,7 @@ void CheckFlags( void )
 		if ( menuShowing ) { DisplayMenu( &mainMenu ); return; }
 		if ( schEditWindowShowing ) { schEditRefresh(); return; }
 		if ( schShowWindowShowing ) { schShowRefresh(); return; }
-		if ( schDispWindowShowing ) { schDispRefresh(); return; }
+		if ( schDispWindowShowing ) { schDispRefresh(TRUE); return; }
 	}
 }
 

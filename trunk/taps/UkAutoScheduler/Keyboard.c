@@ -20,6 +20,7 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 						 when 'Abc' mode selected.
 	  v0.6 sl8		29-08-06	':' and '1' added to the number one key
 	  v0.7 sl8		15-12-06	Advanced search characters added. 
+	  v0.8 sl8		11-06-07	Quote added. 
 
 **************************************************************/
 
@@ -351,7 +352,7 @@ char KeyboardSelection( int row, int column )
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case 3:
-		strcpy( str, "©®¢¥§µ¶°¹²³¼½¾«»¤·÷±¨¡¦¬­¯´ª¸º¿:" );
+		strcpy( str, "©®¢¥§µ¶°¹²³¼½¾«»¤·÷±¨¡¦¬­¯´ª¸º¿:\"" );
 		
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -622,6 +623,8 @@ void AppendCharacter( char newCharacter, TYPE_EntryType entryType )
 				(currentString[currentIndex - 1] != ')')
 				&&
 				(currentString[currentIndex - 1] != '~')
+				&&
+				(currentString[currentIndex - 1] != '\"')
 			)
 			{
 				bLowerCase = TRUE;

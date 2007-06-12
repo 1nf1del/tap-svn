@@ -17,6 +17,11 @@ v0.9 sl8:	13-08-06	Copy schedule added
 v0.10 sl8:	07-09-06	Schedule wrap around
 v0.11 sl8:	28-09-06	Schedule wrap around fix. Prevent wrap if no schedule selected
 v0.12 sl8:	11-10-06	Manual load of remote file
+v0.13 sl8:	11-06-07	JustEPG compatible. Delete schedule added. Remote schedule pop up added.
+				Reset filter now optional when screen refreshes. Quotes removed from search term.
+				Allow more characters to be displayed for search term
+				Bug fix - Copy now works when schedules filtered.
+
 
 **************************************************************/
 
@@ -36,7 +41,9 @@ v0.12 sl8:	11-10-06	Manual load of remote file
 void schDispDrawLegend(void);
 void schDispDrawColumnText(void);
 void schDispFilterPopulateList(void);
-void schDispRefresh(void);
+void schDispRefresh(bool);
+void schDispReturnFromDeleteYesNo(bool);
+void schDispReturnFromNewSchedulesMessage(bool);
 
 static	bool	schDispWindowShowing = 0;
 static	bool	schDispSaveToFile = 0;
@@ -147,9 +154,6 @@ void schDispDrawText(int line, int dispLine)
 
 	PrintCenter(rgn, SCH_DISP_DIVIDER_X0, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X1, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-	memset(str,0,132);
-	TAP_SPrint(str,"\"%s\"", schUserData[index].searchTerm);
-
 	if(schUserData[index].searchStatus == SCH_USER_DATA_STATUS_DISABLED)
 	{
 		if( schDispChosenLine == line )
@@ -161,7 +165,7 @@ void schDispDrawText(int line, int dispLine)
 			textColour = COLOR_DarkBlue;
 		}
 
-		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, textColour, 0 );
+		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, schUserData[index].searchTerm, textColour, 0 );
 	}
 	else
 	{
@@ -184,7 +188,7 @@ void schDispDrawText(int line, int dispLine)
 		}
 
 	// Search term
-		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, 370, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622( rgn, 130, (dispLine * SYS_Y1_STEP) + SCH_DISP_Y1_OFFSET, SCH_DISP_DIVIDER_X2, schUserData[index].searchTerm, MAIN_TEXT_COLOUR, 0 );
 
 	// Channel
 		if((schUserData[index].searchOptions & SCH_USER_DATA_OPTIONS_ANY_CHANNEL) == SCH_USER_DATA_OPTIONS_ANY_CHANNEL)
@@ -727,11 +731,18 @@ void schDisplayKeyHandler(dword key)
 		{
 			schMainTotalValidSearches++;
 
-			schUserData[schMainTotalValidSearches - 1] = schUserData[schDispChosenLine - 1];
+			if(schDispFilter == SCH_DISP_FILTER_ALL)
+			{
+				schUserData[schMainTotalValidSearches - 1] = schUserData[schDispChosenLine - 1];
+			}
+			else
+			{
+				schUserData[schMainTotalValidSearches - 1] = schUserData[schDispFilterList[schDispChosenLine - 1]];
+			}
 
 			schDispSaveToFile = TRUE;
 
-			schDispRefresh();
+			schDispRefresh(FALSE);
 		}
 
 		break;
@@ -748,8 +759,22 @@ void schDisplayKeyHandler(dword key)
 
 				schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
 
-				schDispRefresh();
+				schDispRefresh(TRUE);
 			}
+		}
+
+		break;
+	/* ---------------------------------------------------------------------------- */
+	case RKEY_White:
+
+		if
+		(
+			(schMainTotalValidSearches > 0)
+			&&
+			(schDispChosenLine > 0)
+		)
+		{
+			DisplayYesNoWindow("Schedule Delete Confirmation", "Do you want to delete this schedule?", "", "Yes", "No", 1, &schDispReturnFromDeleteYesNo );
 		}
 
 		break;
@@ -779,12 +804,29 @@ void schDisplayKeyHandler(dword key)
 //
 void schDispWindowActivate( void )
 {
+	char buffer[128];
+
 	schDispSaveToFile = FALSE;
 
 	schDispWindowCreate();
 	schDispDrawList();
 	schDispDrawLegend();
 	UpdateListClock();
+
+	// To assist other TAPs determine when UKAS is active
+	TAP_Osd_PutPixel( rgn, 0,0,RGB(1,2,3));  // Value = 0x8443
+	TAP_Osd_PutPixel( rgn, 0,1,RGB(1,2,3));  // Value = 0x8443
+	// This basically puts 2 pixels at 0,0 and 0,1 which are normally in the overscan area.
+
+	if(schMainTotalValidRemoteSearches > 0)
+	{
+		sprintf(buffer,"Found %d New Schedule",schMainTotalValidRemoteSearches);
+		if(schMainTotalValidRemoteSearches > 1)
+		{
+			strcat(buffer,"s");
+		}
+		DisplayMessageWindow(buffer, "Press OK to continue", "", &schDispReturnFromNewSchedulesMessage );
+	}
 }
 
 void schDispWindowInitialise( void )
@@ -794,12 +836,15 @@ void schDispWindowInitialise( void )
 	schDispPage = 0;
 }
 
-void schDispRefresh( void )
+void schDispRefresh( bool resetFilter )
 {
 
 	if(schMainTotalValidSearches > schDispLastTotalValidSearches)		// Sched added
 	{
-		schDispFilter = SCH_DISP_FILTER_ALL;
+		if(resetFilter == TRUE)
+		{
+			schDispFilter = SCH_DISP_FILTER_ALL;
+		}
 
 		schDispFilterPopulateList();
 
@@ -900,6 +945,63 @@ void schDispFilterPopulateList(void)
 
 			schDispFilterListTotal++;
 		}
+	}
+}
+
+
+void schDispReturnFromDeleteYesNo(bool result)
+{
+	int i = 0;
+
+	switch (result)
+	{
+	/* ---------------------------------------------------------------------------- */
+	case TRUE:
+		if(schDispChosenLine != schMainTotalValidSearches)
+		{
+			for(i = (schDispChosenLine - 1); i < (schMainTotalValidSearches - 1); i++)
+			{
+				schUserData[i] = schUserData[i + 1];
+			}
+		}
+
+		schMainTotalValidSearches--;
+
+		if(schDispChosenLine > schMainTotalValidSearches)
+		{
+			schDispChosenLine = schMainTotalValidSearches;
+		}
+
+		schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
+		schDispRefresh(FALSE);
+
+		schDispSaveToFile = TRUE;
+
+		break;	// YES
+	/* ---------------------------------------------------------------------------- */
+	default:
+	case FALSE:
+	
+		schDispRefresh(FALSE);
+
+		break;	// NO
+	/* ---------------------------------------------------------------------------- */
+	}   
+}
+
+
+void schDispReturnFromNewSchedulesMessage(bool result)
+{
+	schMainUpdateSearchList();
+
+	if(schMainTotalValidSearches > 0)
+	{
+		schDispChosenLine = schMainTotalValidSearches;
+
+		schDispPage = (schDispChosenLine-1) / SCH_DISP_NUMBER_OF_LINES;
+
+		schDispRefresh(TRUE);
 	}
 }
 

@@ -16,6 +16,7 @@ v0.8: sl8	05-08-06	Keep added, Yes/No Box used.
 v0.9: sl8	28-09-06	Do not allow 'move' and 'keep' if unable to determine 'changeDir' type.
 v0.10: sl8	11-10-06	Copy search term to folder. Allow user to create folder if it doesn't exist.
 v0.11: sl8	15-12-06	Advanced search option. Error messages.
+v0.12: sl8	11-06-07	Search term increased to 40 chars. Quotes removed from search term.
 
 **************************************************************/
 
@@ -87,7 +88,7 @@ static bool schEditModified = FALSE;
 
 #define SCH_EDIT_Y1_OFFSET	36
 
-#define SEARCHTERM_LENGTH	30
+#define SEARCHTERM_LENGTH	40
 #define SEARCHFOLDER_LENGTH	30
 
 #define SCH_EDIT_KEEP_VALUE_DEFAULT	10
@@ -280,9 +281,7 @@ void schEditDrawLine(int option)
 
 		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		TAP_SPrint(str,"\"%s\"", schEdit.searchTerm);
-
-		TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3+40, str, MAIN_TEXT_COLOUR, 0 );
+		TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3+40, schEdit.searchTerm, MAIN_TEXT_COLOUR, 0 );
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -2190,7 +2189,14 @@ void schEditKeyHandler(dword key)
 		{
 			memset(schEdit.searchFolder,0,132);
 
-			strcpy(schEdit.searchFolder, schEdit.searchTerm);
+			if(strlen(schEdit.searchTerm) > SEARCHFOLDER_LENGTH)
+			{
+				strncpy(schEdit.searchFolder, schEdit.searchTerm, SEARCHFOLDER_LENGTH);
+			}
+			else
+			{
+				strcpy(schEdit.searchFolder, schEdit.searchTerm);
+			}
 
 			schEditDrawLine( SCH_EDIT_FOLDER );
 			schEditDrawLine( SCH_EDIT_KEEP );
