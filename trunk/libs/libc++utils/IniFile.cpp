@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tap.h>
-#include <tapapifix.h>
 #include "inifile.h"
 #include "file.h"
 #include "DirectoryUtils.h"
@@ -102,9 +101,9 @@ bool IniFile::Save( const char* filename ) const
 	int length = 0;
 	for ( unsigned int u = 0; u < line.size(); ++u )
 		length += line[u].size() + 2;
-	// pad to 512 bytes to prevent the TAP API writing garbage to the file
-	if (length%512 != 0)
-		length += 512-length%512;
+	// pad to 1024 bytes to prevent the TAP API writing garbage to the file
+	if (length%1024 != 0)
+		length += 1024-length%1024;
 
 	TRACE2("Writing %d lines and %d chars\n", line.size(), length);
 
