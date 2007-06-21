@@ -6,7 +6,7 @@ INC_DIR =  -I ./ -I /usr/local/topfield-gcc/mips/include/ -I /usr/local/topfield
 CFLAGS += $(INC_DIR) 
 
 
-all: tap.tap
+all: fonts.tap
 
 # Copy files to the Toppy using tfcopy
 copy: all
@@ -16,8 +16,8 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-tap.elf::	tapapifix.o RasterFontBrowser.o tap.o
+fonts.elf::	tapapifix.o RasterFontBrowser.o fonts.o
 
-tap.o:			tap.c 
+fonts.o:		fonts.c 
 RasterFontBrowser.o:	RasterFontBrowser.c
 tapapifix.o:		tapapifix.c

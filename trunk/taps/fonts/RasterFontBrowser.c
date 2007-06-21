@@ -12,7 +12,7 @@ v. 0.0.1 - 11.06.2007
 First release
 */
 
-#include "rasterfontbrowser.h"
+#include "RasterFontBrowser.h"
 #include <string.h>
 #include <stdio.h>
 
