@@ -1,6 +1,0 @@
-LIBRARY	testTap
-
-EXPORTS
-TAP_EventHandler 
-TAP_Main 
-SetFramework 
