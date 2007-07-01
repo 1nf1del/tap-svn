@@ -20,10 +20,9 @@ typedef unsigned char  byte;
 #define GETG(rgb)       ((byte)(((word)(rgb))>>5)&0x1F)
 #define GETB(rgb)       ((byte)(rgb&0x1F))
 
-//#define PUTPIXEL(X, Y, COLOR)  image[Y*width+X]|=COLOR
-#define PUTPIXEL(X, Y, COLOR)  image[Y*width+X]=COLOR
-#define GETPIXEL(X, Y, COLOR)  COLOR = image[Y*width+X]
-
+#define PUTPIXEL_OR(IMAGE, X, Y, COLOR)		IMAGE[Y*width+X]|= COLOR
+#define PUTPIXEL_SET(IMAGE, X, Y, COLOR)	IMAGE[Y*width+X] = COLOR
+#define GETPIXEL(IMAGE, X, Y, COLOR)		COLOR = IMAGE[Y*width+X]
 
 typedef struct
 {
@@ -57,8 +56,8 @@ void SetColors(FONT *font, word foreColor, word backColor);
 void FillImage(FONT *font, word *image, int width, int height);
 void ComputeAntialiasingMap(FONT *font, word foreColor, word backColor);
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length);
-int RenderString(FONT *font, unsigned char* text, int text_length, int* width, word** image);
-void draw_bitmap(FONT *font, unsigned char* bitmap, word *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width);
+int RenderString(FONT *font, unsigned char* text, int text_length, int width, word** image);
+void draw_bitmap(FONT *font, unsigned char* bitmap, unsigned char *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width);
 int Draw_Font_String(word region, dword x, dword y, unsigned char *text, unsigned char* fontname,  word foreColor, word backColor);
 
 void InitDirect();

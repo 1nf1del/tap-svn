@@ -25,7 +25,6 @@ void Draw1(FONT *font, unsigned char *msg1, int filelen)
 
 
 	SetColors(font, COLOR_Yellow, COLOR_DarkBlue);
-
 	i=j=0;
 	lines=0;
 	do 
@@ -39,10 +38,10 @@ void Draw1(FONT *font, unsigned char *msg1, int filelen)
 			err1 = CalcSize(font, ptr1, &width, &text_length);
 			if (err1==0)
 			{
-				err1 = RenderString(font, ptr1, text_length, &width, &image);
+				err1 = RenderString(font, ptr1, text_length, width, &image);
 				if (err1==0)
 				{
-					TAP_Osd_DrawPixmap(rgn, 40, 100+22*lines, width, font->m_fontHeight, image, FALSE, OSD_1555);
+					TAP_Osd_DrawPixmap(rgn, 40, 100+42*lines, width, font->m_fontHeight, image, FALSE, OSD_1555);
 					TAP_MemFree(image);
 				}
 			}
@@ -153,7 +152,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			Delete_Font(&font);
 
 			TAP_SPrint(msg, "Duration: %lu ticks", stop-start);
-			Draw_Font_String(rgn, 40, 400, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
+			Draw_Font_String(rgn, 40, 460, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
 
 			return 0;
 		}
@@ -203,7 +202,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 			InitDirect();
 			start = TAP_GetTick();
-			for (i=0; i<100; i++)
+			for (i=0; i<1; i++)
 			{
 				Draw3(&font, msg1, filelen);
 			}
@@ -218,7 +217,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			return 0;
 		}
 	}
-
 	return param1;//event;
 }
 

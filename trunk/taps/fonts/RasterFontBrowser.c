@@ -18,7 +18,9 @@ First release
 
 extern word rgn;
 
-#define htonl(A) (  (((long)(A) & 0xff000000) >> 24) | (((long)(A) & 0x00ff0000) >> 8)  | (((long)(A) & 0x0000ff00) << 8)  | (((long)(A) & 0x000000ff) << 24)    )
+#define htonl(A) ((((long)(A) & 0xff000000) >> 24) | (((long)(A) & 0x00ff0000) >> 8)  | (((long)(A) & 0x0000ff00) << 8)  | (((long)(A) & 0x000000ff) << 24)    )
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b)) 
 
 
 int Draw_Font_String(word region, dword x, dword y, unsigned char *text, unsigned char* fontname,  word foreColor, word backColor)
@@ -35,7 +37,7 @@ int Draw_Font_String(word region, dword x, dword y, unsigned char *text, unsigne
 		err1 = CalcSize(&font, text, &width, &text_length);
 		if (err1==0)
 		{
-			err1 = RenderString(&font, text, text_length, &width, &image);
+			err1 = RenderString(&font, text, text_length, width, &image);
 			if (err1==0)
 			{
 				TAP_Osd_DrawPixmap(rgn, x, y, width, font.m_fontHeight, image, FALSE, OSD_1555);
@@ -185,7 +187,7 @@ void SetColors(FONT *font, word foreColor, word backColor)
 
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 {
-	int pen_x=0, pen_y=0, i, t_height, int_adv, tmp_len;
+	int pen_x=0, pen_y=0, i, t_height, int_adv, tmp_len, tmp_height;
 
 
 	if (font==NULL || font->m_bmpHeaderArray==NULL)
@@ -201,7 +203,7 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 	(*text_length)  = (int)strlen(text);
 	for (i=0; i<(*text_length); i++)
 	{
-		int_adv = font->m_bmpHeaderArray[text[i]].slot_advance_x;
+		int_adv = max(font->m_bmpHeaderArray[text[i]].slot_advance_x, font->m_bmpHeaderArray[text[i]].bitmap_width);
 		if ((*width)>0)
 		{
 			if ((pen_x + int_adv)>(*width))
@@ -211,8 +213,11 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 			}
 		}
 		pen_x += int_adv;
-		font->m_vert_offset = font->m_fontHeight - font->m_bmpHeaderArray[text[i]].slot_bitmap_top < font->m_vert_offset ? 
-		font->m_fontHeight - font->m_bmpHeaderArray[text[i]].slot_bitmap_top : font->m_vert_offset;
+		
+		tmp_height = max(font->m_fontHeight, font->m_bmpHeaderArray[text[i]].bitmap_rows);
+		t_height = max(t_height, tmp_height);
+
+		font->m_vert_offset = min(t_height-(font->m_bmpHeaderArray[text[i]].bitmap_rows-font->m_bmpHeaderArray[text[i]].slot_bitmap_top), font->m_vert_offset);
 	}
 
 	(*width) = pen_x>>6;
@@ -222,12 +227,14 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 	return 0;
 }
 
-int RenderString(FONT *font, unsigned char* text, int text_length, int* width, word** image)
+int RenderString(FONT *font, unsigned char* text, int text_length, int width, word** image)
 {
 	int             pen_x=0, pen_y=0, i;
-	int             y_offset, x_offset;
-	word			*img;
-	unsigned char	*bitmap;
+	int             y_offset, x_offset, x, y;
+	unsigned char	*img;	  // whole string
+	unsigned char	*bitmap;  // character bitmap
+	unsigned char	pixel;
+	word            C, *imagePtr;
 
 
 	if (font==NULL || font->m_bmpHeaderArray==NULL)
@@ -235,39 +242,62 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int* width, w
 		return -1;
 	}	
 
-	// Create bitmap data
-	img = (word*)TAP_MemAlloc((*width) * font->m_fontHeight * sizeof(word));
+	// Create bitmap buffer
+	img = (unsigned char*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(unsigned char));
 	if (img==NULL)
 	{
 		return -2;
 	}
-	FillImage(font, img, (*width), font->m_fontHeight);
+	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
 
+	// Render string to a buffer
 	pen_x = 0; 
-	pen_y = font->m_fontHeight - font->m_vert_offset;
+	pen_y = font->m_vert_offset;
 	for (i=0; i<text_length; i++)
 	{	
+		if (i==0)	  ///TODO: to check
+		{
+			pen_x = -font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
+		}
 		x_offset = pen_x+font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
 		y_offset = pen_y-font->m_bmpHeaderArray[text[i]].slot_bitmap_top;
 
 		LOAD_CHAR(font, text[i], &bitmap);
-		draw_bitmap(font, bitmap, img, (*width), font->m_fontHeight, x_offset, y_offset, font->m_bmpHeaderArray[text[i]].bitmap_rows, font->m_bmpHeaderArray[text[i]].bitmap_width);
+		draw_bitmap(font, bitmap, img, width, font->m_fontHeight, x_offset, y_offset, font->m_bmpHeaderArray[text[i]].bitmap_rows, font->m_bmpHeaderArray[text[i]].bitmap_width);
 
 		pen_x += font->m_bmpHeaderArray[text[i]].slot_advance_x >> 6; // increment pen position
 		pen_y += font->m_bmpHeaderArray[text[i]].slot_advance_y >> 6; // increment pen position
 	}
 
-	(*image) = img;
+	(*image) = (word*)TAP_MemAlloc(width * (font->m_fontHeight) * sizeof(word)); // word
+	imagePtr = (*image);
+	if (imagePtr==NULL)
+	{
+		return -2;
+	}
+	
+	FillImage(font, imagePtr, width, font->m_fontHeight);
+	
+	// Transfer buffer to the image
+	for (y=0; y<font->m_fontHeight; y++)
+	{
+		for (x=0; x<width; x++)
+		{
+			GETPIXEL(img, x, y, pixel); //pixel = img[y*width+x];
+			C = font->m_antialiasmap[pixel/16];
+			PUTPIXEL_SET(imagePtr, x, y, C); //imagePtr[y*width+x] = C; 
+		}
+	}
+	TAP_MemFree(img);
+
 	return 0;
 }
 
-void draw_bitmap(FONT *font, unsigned char* bitmap, word *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width)
+void draw_bitmap(FONT *font, unsigned char* bitmap, unsigned char *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width)
 {
 	int  i, j, q;
 	int  bx, by;
 	unsigned char pixel;
-	word C;
-	//FILE* f = fopen("C:\\Temp\\trace.txt", "wt");
 
 
 	q=0;
@@ -280,23 +310,11 @@ void draw_bitmap(FONT *font, unsigned char* bitmap, word *image, int width, int 
 			if (i>=0 && j>=0 && i<width && j<height)
 			{
 				pixel = bitmap[q];
-				if (font->m_antialiasmap!=NULL)
-				{
-					C = font->m_antialiasmap[pixel/16];
-				}
-				else
-				{
-					C=RGB(pixel, pixel, pixel);
-				}
-				PUTPIXEL(i, j, C);
-				//if (pixel==0) {fprintf(f, ".");}
-				//else {fprintf(f, "0");}
+				PUTPIXEL_OR(image, i, j, pixel); //image[j*width+i] = pixel;
 			}
 			q++;
 		}
-		//fprintf(f, "\n");
 	}
-	//fclose(f);
 }
 
 void FillImage(FONT *font, word *image, int width, int height)
@@ -380,66 +398,62 @@ void FillRectDirect(int x, int y, int width, int height, word color)
 }
 
 
-int RenderStringDirect(FONT *font, unsigned char* text, int text_length, int x, int y, int width)
+int RenderStringDirect(FONT *font, unsigned char* text, int text_length, int aX, int aY, int width)
 {
-	int             pen_x, pen_y, i;
-	int             y_offset, x_offset;
-	unsigned char	*bitmap;
+	int             pen_x=0, pen_y=0, i;
+	int             y_offset, x_offset, x, y;
+	unsigned char	*img;	  // whole string
+	unsigned char	*bitmap;  // character bitmap
+	unsigned char	pixel;
+	word            C;
+
 
 	if (font==NULL || font->m_bmpHeaderArray==NULL)
 	{
 		return -1;
 	}	
 
-	FillRectDirect(x,y, width, font->m_fontHeight, font->m_backColor);
-
-	pen_x = x; 
-	pen_y = y + font->m_fontHeight - font->m_vert_offset;
-	for (i=0; i<text_length; i++)
+	// Create bitmap buffer
+	img = (unsigned char*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(unsigned char));
+	if (img==NULL)
 	{
+		return -2;
+	}
+	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
+
+
+	// Render string to a buffer
+	pen_x = 0; 
+	pen_y = font->m_vert_offset;
+	for (i=0; i<text_length; i++)
+	{	
+		if (i==0)	  ///TODO: to check
+		{
+			pen_x = -font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
+		}
 		x_offset = pen_x+font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
 		y_offset = pen_y-font->m_bmpHeaderArray[text[i]].slot_bitmap_top;
 
-		// Load_Char
 		LOAD_CHAR(font, text[i], &bitmap);
-		draw_bitmap_direct(font, bitmap, width, font->m_fontHeight, x_offset, y_offset, font->m_bmpHeaderArray[text[i]].bitmap_rows, font->m_bmpHeaderArray[text[i]].bitmap_width);
+		draw_bitmap(font, bitmap, img, width, font->m_fontHeight, x_offset, y_offset, font->m_bmpHeaderArray[text[i]].bitmap_rows, font->m_bmpHeaderArray[text[i]].bitmap_width);
 
 		pen_x += font->m_bmpHeaderArray[text[i]].slot_advance_x >> 6; // increment pen position
 		pen_y += font->m_bmpHeaderArray[text[i]].slot_advance_y >> 6; // increment pen position
 	}
 
-	return 0;
-}
+	FillRectDirect(aX, aY, width, font->m_fontHeight, font->m_backColor);
 
-
-void draw_bitmap_direct(FONT *font, unsigned char* bitmap, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width)
-{
-	int  x, y, q;
-	int  bx, by;
-	unsigned char pixel;
-	word c;
-
-	q=0;
-	for (by = 0; by<bitmap_rows; ++by)
+	// Transfer buffer to the image
+	for (y=0; y<font->m_fontHeight; y++)
 	{
-		y = by + y_offset;
-		for (bx = 0; bx<bitmap_width; ++bx)
+		for (x=0; x<width; x++)
 		{
-			x = bx + x_offset;
-			if (x>=0 && y>=0 && x<720 && y<576)
-			{
-				pixel = bitmap[q];
-				if (font->m_antialiasmap!=NULL)
-				{
-					c = font->m_antialiasmap[pixel/16];
-				}
-				else
-				{
-					c = RGB(pixel, pixel, pixel);
-				}
-				*(lineAddr[y]+x) = c;
-			}
-			++q;
+			GETPIXEL(img, x, y, pixel); //pixel = img[y*width+x];
+			C = font->m_antialiasmap[pixel/16];
+			*(lineAddr[aY+y]+aX+x) = C; 
 		}
 	}
+	TAP_MemFree(img);
+
+	return 0;
 }
