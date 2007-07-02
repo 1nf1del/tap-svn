@@ -152,7 +152,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			Delete_Font(&font);
 
 			TAP_SPrint(msg, "Duration: %lu ticks", stop-start);
-			Draw_Font_String(rgn, 40, 460, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
+			Draw_Font_String(rgn, 220, 20, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
 
 			return 0;
 		}
@@ -202,7 +202,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 			InitDirect();
 			start = TAP_GetTick();
-			for (i=0; i<1; i++)
+			for (i=0; i<100; i++)
 			{
 				Draw3(&font, msg1, filelen);
 			}
@@ -212,7 +212,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			Delete_Font(&font);
 
 			TAP_SPrint(msg, "Duration: %lu ticks", stop-start);
-			Draw_Font_String(rgn, 40, 400, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
+			Draw_Font_String(rgn, 220, 20, msg, "calibri_iso8859-5_21.rasterized", COLOR_Yellow, COLOR_DarkBlue);
 
 			return 0;
 		}
