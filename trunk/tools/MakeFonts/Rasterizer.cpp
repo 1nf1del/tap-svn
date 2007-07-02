@@ -100,10 +100,10 @@ int main(int argc, char* argv[])
 		return err;
 	}
 
-#ifdef TEST_LIB_RENDER
+//#ifdef TEST_LIB_RENDER
 	int width = 0;
 	word *image=NULL;
-	unsigned char text[]="Rylankq";
+	unsigned char text[]="DRylakq";
 	int text_length=(int)strlen((char*)text);
 
     fb->CalcSize(text, &width, &height, &text_length);
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 		fprintf(f, "\n");
 	}
 	free(image);
-#endif                
+//#endif                
 
 
 	//////////////////////////////////////////////////////////////////////////

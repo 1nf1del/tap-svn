@@ -162,7 +162,8 @@ void FontBrowser::SetColors(word foreColor, word backColor)
 
 int FontBrowser::CalcSize(unsigned char* text, int* width, int* height, int *text_length)
 {
-	int             pen_x=0, pen_y=0, i, t_height, int_adv, ret, tmp_len, tmp_height;
+	int             pen_x=0, pen_y=0, i, int_adv, ret, tmp_len;
+	int             t_max_bmp_top=0, t_min_bmp_bottom=0;
 	FT_Error		error;
 	FT_GlyphSlot    slot;
 	unsigned int    *c_text=NULL;
@@ -185,15 +186,10 @@ int FontBrowser::CalcSize(unsigned char* text, int* width, int* height, int *tex
 	// First calculating resulting bitmap size & cashing bitmaps
 	slot = m_face->glyph;
 
-	m_vert_offset = (*height);
-	t_height = (*height);
-
 	(*text_length)  = (int)strlen((char*)text);
 	for (i=0; i<(*text_length); i++)
 	{
 		error = FT_Load_Char(m_face, c_text[i], FT_LOAD_RENDER);
-		//int_adv = slot->advance.x;
-		//int_adv = slot->bitmap.width;
 		int_adv = max(slot->advance.x, slot->bitmap.width);
 
 		if ((*width)>0)
@@ -206,16 +202,15 @@ int FontBrowser::CalcSize(unsigned char* text, int* width, int* height, int *tex
 		}
 		bitmap = slot->bitmap;
 		pen_x += int_adv;
-		tmp_height = max((*height), bitmap.rows);
-		t_height = max(t_height, tmp_height);
-
-		m_vert_offset = min(t_height-(bitmap.rows-slot->bitmap_top), m_vert_offset);
+		
+		t_min_bmp_bottom = max(t_min_bmp_bottom, bitmap.rows-slot->bitmap_top);
+		t_max_bmp_top = max(t_max_bmp_top, slot->bitmap_top);
 	}
 	free(c_text);
 
 	(*width) = pen_x>>6;
 	(*width) = ((*width)/2+1)*2;
-	(*height) = t_height;
+	(*height) = t_min_bmp_bottom+t_max_bmp_top;
 
 	return 0;
 }
@@ -273,16 +268,15 @@ int FontBrowser::DisplayString(unsigned char* text, int text_length, int* width,
 	}
 	ret = ConvertString(text, c_text, text_length);
 
-	pen_x=0; 
-	pen_y=m_vert_offset;
 	for (i=0; i<text_length; i++)
 	{	
 		if (m_renderMode==FT_RENDER_MODE_NORMAL)
 		{
 			error = FT_Load_Char(m_face, c_text[i], FT_LOAD_RENDER);
-			if (i==0)	  ///TODO: PROVERIT!!!
+			if (i==0)	  ///TODO: TO CHECK!!!
 			{
-				pen_x=-slot->bitmap_left;
+				pen_x = -slot->bitmap_left;
+				pen_y = slot->bitmap_top;
 			}
 			x_offset = pen_x+slot->bitmap_left;
 			y_offset = pen_y-slot->bitmap_top;
@@ -303,6 +297,11 @@ int FontBrowser::DisplayString(unsigned char* text, int text_length, int* width,
 					if (!error)
 					{
 						bitmap_glyph = (FT_BitmapGlyph)glyph;
+						if (i==0)	  ///TODO: TO CHECK!!!
+						{
+							pen_x = -bitmap_glyph->left;
+							pen_y = bitmap_glyph->top;
+						}
 						x_offset = pen_x+bitmap_glyph->left;  //<0 ? 0 : pen_x+bitmap->left;
 						y_offset = pen_y-bitmap_glyph->top;   //<0 ? 0 : pen_y-bitmap->top;
 						bitmap = bitmap_glyph->bitmap;

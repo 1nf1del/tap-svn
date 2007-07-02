@@ -50,7 +50,6 @@ public:
 	FT_Library     m_library;
 	FT_Face        m_face;
 	FT_Render_Mode m_renderMode;
-	int            m_vert_offset;
 	word           m_foreColor, m_backColor;
 	unsigned int  *m_charmap;
 	word          *m_antialiasmap;
