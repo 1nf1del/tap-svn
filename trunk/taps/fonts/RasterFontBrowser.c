@@ -187,7 +187,8 @@ void SetColors(FONT *font, word foreColor, word backColor)
 
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 {
-	int pen_x=0, pen_y=0, i, t_height, int_adv, tmp_len, tmp_height;
+	int pen_x=0, pen_y=0, i, int_adv, tmp_len;
+	int t_max_bmp_top=0, t_min_bmp_bottom=0;
 
 
 	if (font==NULL || font->m_bmpHeaderArray==NULL)
@@ -197,9 +198,6 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 	tmp_len = (int)strlen(text);
 
 	// First calculating resulting bitmap size & cashing bitmaps
-	font->m_vert_offset = font->m_fontHeight;
-	t_height = font->m_fontHeight;
-
 	(*text_length)  = (int)strlen(text);
 	for (i=0; i<(*text_length); i++)
 	{
@@ -214,15 +212,13 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 		}
 		pen_x += int_adv;
 		
-		tmp_height = max(font->m_fontHeight, font->m_bmpHeaderArray[text[i]].bitmap_rows);
-		t_height = max(t_height, tmp_height);
-
-		font->m_vert_offset = min(t_height-(font->m_bmpHeaderArray[text[i]].bitmap_rows-font->m_bmpHeaderArray[text[i]].slot_bitmap_top), font->m_vert_offset);
+		t_min_bmp_bottom = max(t_min_bmp_bottom, font->m_bmpHeaderArray[text[i]].bitmap_rows-font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
+		t_max_bmp_top = max(t_max_bmp_top, font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
 	}
 
 	(*width) = pen_x>>6;
 	(*width) = ((*width)/2+1)*2;
-	font->m_fontHeight = t_height;
+	font->m_fontHeight = t_min_bmp_bottom+t_max_bmp_top;
 
 	return 0;
 }
@@ -251,13 +247,12 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
 
 	// Render string to a buffer
-	pen_x = 0; 
-	pen_y = font->m_vert_offset;
 	for (i=0; i<text_length; i++)
 	{	
 		if (i==0)	  ///TODO: to check
 		{
 			pen_x = -font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
+			pen_y =  font->m_bmpHeaderArray[text[i]].slot_bitmap_top;
 		}
 		x_offset = pen_x+font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
 		y_offset = pen_y-font->m_bmpHeaderArray[text[i]].slot_bitmap_top;
@@ -423,13 +418,12 @@ int RenderStringDirect(FONT *font, unsigned char* text, int text_length, int aX,
 
 
 	// Render string to a buffer
-	pen_x = 0; 
-	pen_y = font->m_vert_offset;
 	for (i=0; i<text_length; i++)
 	{	
 		if (i==0)	  ///TODO: to check
 		{
 			pen_x = -font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
+			pen_y =  font->m_bmpHeaderArray[text[i]].slot_bitmap_top;
 		}
 		x_offset = pen_x+font->m_bmpHeaderArray[text[i]].slot_bitmap_left;
 		y_offset = pen_y-font->m_bmpHeaderArray[text[i]].slot_bitmap_top;

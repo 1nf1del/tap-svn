@@ -44,7 +44,6 @@ typedef struct
 	word           m_antialiasmap[16];
 	TableItem     *m_bmpHeaderArray;
 	long		   m_fontHeight;
-	int            m_vert_offset;
 } FONT;
 
 int Load_Font(FONT *font, char *fileName);
