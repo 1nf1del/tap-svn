@@ -16,6 +16,7 @@ FontBrowser::FontBrowser()
 
 		m_charmap=NULL;
 		m_antialiasmap=NULL;
+		m_baseline=0;
 	}
 }
 
@@ -194,11 +195,12 @@ int FontBrowser::CalcSize(unsigned char* text, int* width, int* height, int *tex
 
 		if ((*width)>0)
 		{
-		  if ((pen_x + int_adv)>(*width))
-		  {
-			(*text_length) = i;
-			break;
-		  }
+			int l = (pen_x + int_adv)>>6;
+			if (l>(*width))
+			{
+				(*text_length) = i;
+				break;
+			}
 		}
 		bitmap = slot->bitmap;
 		pen_x += int_adv;
@@ -210,10 +212,44 @@ int FontBrowser::CalcSize(unsigned char* text, int* width, int* height, int *tex
 
 	(*width) = pen_x>>6;
 	(*width) = ((*width)/2+1)*2;
-	(*height) = t_min_bmp_bottom+t_max_bmp_top;
+	(*height) = max((*height), t_min_bmp_bottom+t_max_bmp_top);
 
 	return 0;
 }
+
+int FontBrowser::CalculateBaseline(int *baseline, int *height)
+{
+	int             len, i;
+	const char      *text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	int             t_max_bmp_top=0, t_min_bmp_bottom=0, t_baseline=0;
+	FT_Bitmap		bitmap;
+	FT_Error		error;
+	FT_GlyphSlot    slot;
+
+
+	if (m_library==NULL || m_face==NULL)
+	{
+		return -1;
+	}	
+
+	slot = m_face->glyph;
+
+	len = (int)strlen(text);
+	for (i=0; i<len; i++)
+	{
+		error = FT_Load_Char(m_face, text[i], FT_LOAD_RENDER);
+		bitmap = slot->bitmap;
+
+		t_baseline = max(t_baseline, (int)(slot->bitmap_top));
+		t_min_bmp_bottom = max(t_min_bmp_bottom, bitmap.rows-slot->bitmap_top);
+		t_max_bmp_top = max(t_max_bmp_top, slot->bitmap_top);
+	}
+	(*height) = t_min_bmp_bottom+t_max_bmp_top;
+	(*baseline) = t_baseline;
+
+	return 0;
+}
+
 
 int FontBrowser::CalcSizeA(char* fontName, unsigned char* text, int* width, int* height, int* text_length)
 {
@@ -268,15 +304,16 @@ int FontBrowser::DisplayString(unsigned char* text, int text_length, int* width,
 	}
 	ret = ConvertString(text, c_text, text_length);
 
+	if (m_baseline==0) m_baseline = slot->bitmap.rows;
 	for (i=0; i<text_length; i++)
 	{	
 		if (m_renderMode==FT_RENDER_MODE_NORMAL)
 		{
 			error = FT_Load_Char(m_face, c_text[i], FT_LOAD_RENDER);
-			if (i==0)	  ///TODO: TO CHECK!!!
+			if (i==0)
 			{
 				pen_x = -slot->bitmap_left;
-				pen_y = slot->bitmap_top;
+				pen_y = m_baseline;
 			}
 			x_offset = pen_x+slot->bitmap_left;
 			y_offset = pen_y-slot->bitmap_top;
@@ -300,7 +337,7 @@ int FontBrowser::DisplayString(unsigned char* text, int text_length, int* width,
 						if (i==0)	  ///TODO: TO CHECK!!!
 						{
 							pen_x = -bitmap_glyph->left;
-							pen_y = bitmap_glyph->top;
+							pen_y = m_baseline;
 						}
 						x_offset = pen_x+bitmap_glyph->left;  //<0 ? 0 : pen_x+bitmap->left;
 						y_offset = pen_y-bitmap_glyph->top;   //<0 ? 0 : pen_y-bitmap->top;
@@ -346,7 +383,6 @@ void FontBrowser::draw_bitmap(FT_Bitmap* bitmap, word *image, int width, int hei
 	unsigned char pixel;
 	int	bit;
 	word C;
-	//FILE* f = fopen("C:\\Temp\\trace.txt", "wt");
 
 
 	if (bitmap->pixel_mode==FT_PIXEL_MODE_GRAY)
@@ -370,12 +406,12 @@ void FontBrowser::draw_bitmap(FT_Bitmap* bitmap, word *image, int width, int hei
 						C=RGB(pixel, pixel, pixel);
 					}
 					PUTPIXEL(i, j, C);
-					//if (pixel==0) {fprintf(f, ".");}
-                    //else {fprintf(f, "0");}
+					//if (pixel==0) {printf(".");}
+					//else {printf("0");}
 				}
 				q++;
 			}
-			//fprintf(f, "\n");
+			//printf("\n");
 		}
 	}
 	else 
@@ -394,32 +430,31 @@ void FontBrowser::draw_bitmap(FT_Bitmap* bitmap, word *image, int width, int hei
 
 				for (pos=7; pos>=0; pos--)
 				{
-				  mask = 1<<pos;
-				  bit = pixel & mask;
-				  if (bit>0)
-				  {
-					  i = bx+x_offset+(7-pos);
-					  if (i>=0 && j>=0 && i<width && j<height)
-					  {
-						  PUTPIXEL(i, j, m_foreColor);
-					  }
-					  //fprintf(f, "0");
-				  }
-				  else
-				  {
-					  //fprintf(f, ".");
-				  }
+					mask = 1<<pos;
+					bit = pixel & mask;
+					if (bit>0)
+					{
+						i = bx+x_offset+(7-pos);
+						if (i>=0 && j>=0 && i<width && j<height)
+						{
+							PUTPIXEL(i, j, m_foreColor);
+						}
+						//printf("0");
+					}
+					else
+					{
+						//printf(".");
+					}
 				}
 
 				bx+=8;
 				q1++;
 			}
-			//fprintf(f, "\n");
+			//printf("\n");
 			q+=bitmap->pitch;
 			by++;
 		}
 	}
-	//fclose(f);
 }
 
 void FontBrowser::FillImage(word *image, int width, int height)

@@ -53,12 +53,13 @@ public:
 	word           m_foreColor, m_backColor;
 	unsigned int  *m_charmap;
 	word          *m_antialiasmap;
+	int            m_baseline;
 
 	void draw_bitmap(FT_Bitmap*  bitmap, word* image, int width, int height, FT_Int x_offset, FT_Int y_offset);
 	void FillImage(word* image, int width, int height);
 	int ConvertString(unsigned char* src, unsigned int *dest, int text_length);
 	void ComputeAntialiasingMap(word foreColor, word backColor);
-
+	int CalculateBaseline(int *baseline, int *height);
 };
 
 #endif // FONTBROWSER_H
