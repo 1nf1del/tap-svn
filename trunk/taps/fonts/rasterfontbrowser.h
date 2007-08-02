@@ -45,12 +45,17 @@ typedef struct
 	TableItem     *m_bmpHeaderArray;
 	long		   m_fontHeight;
 	long		   m_fontBaseline;
+	int			   m_bShifted;
 } FONT;
 
 int Load_Font(FONT *font, char *fileName);
 void Delete_Font(FONT *font);
 int TAP_Osd_PutS_Font(word rgn, dword x, dword y, dword maxX, char *str, word fcolor, word bcolor, FONT *font, byte align);
+int TAP_Osd_PutS_FontEx(word rgn, dword x, dword y, dword maxX, dword maxY, int baseline_shift, char *str, word fcolor, word bcolor, FONT *font, byte align);
+int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *font, byte align);
 int Draw_Font_String(word rgn, dword x, dword y, char *str, char* fontname,  word foreColor, word backColor);
+
+void SetColors(FONT *font, word foreColor, word backColor);
 
 #define LOAD_CHAR(font, pos, bitmap)	*(bitmap) = (font)->m_data + (font)->m_bmpHeaderArray[(pos)].offset;
 

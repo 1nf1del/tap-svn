@@ -1,11 +1,11 @@
 #include "localtap.h"
-#include "RasterFontBrowser_fast.h"
+#include "RasterFontBrowser.h"
 #include "tapapifix.h"
 #include <string.h>
 #define ID_FREETYPE_TEST			0x07
 
 TAP_ID( ID_FREETYPE_TEST );
-TAP_PROGRAM_NAME("Font test");
+TAP_PROGRAM_NAME("Font test fast");
 TAP_AUTHOR_NAME("Justason");
 TAP_DESCRIPTION("FontTest");
 TAP_ETCINFO(__DATE__);
@@ -16,13 +16,42 @@ word rgn;
 int _appl_version = 0x1200;
 int transparency_orig;
 
+#define DWORD_MAX ( (dword) -1)
+
 
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
 	static int count = 0, err1, filelen;
-	char heading[]="Astalavista baby";
-	char message[]="Humpty Dumpty sat on a wall";
-	FONT font;
+	static byte flip = 0;
+	int i, y;
+	FONT font0, font1, font2;
+	const int LINE_H = 21;
+	const int STR_COUNT = 21;
+	dword t1, t2;
+	char strings[21][40] = {
+		{"Test ajJsjjOjsj"},
+		{"qUIck tESt"},
+		{"ma"},
+		{"ke"},
+		{"<< Nelonen >>"} ,
+		{"03:20 "},
+		{" leading SPACE"},
+		{"Test ajJsjjOjsj"},
+		{"qUIck tESt"},
+		{"ma"},
+		{"ke"},
+		{"<< Nelonen >>"} ,
+		{"03:20 "},
+		{" leading SPACE"},
+		{"Test ajJsjjOjsj"},
+		{"qUIck tESt"},
+		{"ma"},
+		{"ke"},
+		{"<< Nelonen >>"} ,
+		{"03:20 "},
+		{" leading SPACE"}
+	};
+	char msg[64];
 
 
 	if( event == EVT_KEY )
@@ -39,22 +68,115 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		if ( param1 == RKEY_1)
 		{
 			TAP_ExitNormal();
-			TAP_Osd_FillBox(rgn, 50, 20, 620, 300, COLOR_DarkBlue);
-			Draw_Font_String(rgn, 55, 20, heading, "segoeui_iso8859-1_20.rasterized", COLOR_Yellow, COLOR_DarkBlue);
+			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
 
-			err1 = Load_Font(&font, "segoeui_iso8859-1_16.rasterized");
+			err1 = Load_Font(&font0, "calibri_small.rasterized");
 			if (err1!=0) return 0;
-			TAP_Osd_PutS_Font(rgn, 55, 40, 400, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_LEFT);
-			TAP_Osd_PutS_Font(rgn, 55, 70, 400, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_CENTER);
-			TAP_Osd_PutS_Font(rgn, 55, 100, 400, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_RIGHT);
-			Delete_Font(&font);
+			err1 = Load_Font(&font1, "arialn_small.rasterized");
+			if (err1!=0) return 0;
+			err1 = Load_Font(&font2, "tahoma_small.rasterized");
+			if (err1!=0) return 0;
 
-			err1 = Load_Font(&font, "segoeui_iso8859-1_20.rasterized");
+			t1 = TAP_GetTick();
+			y = 20;
+			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
+			{
+				TAP_Osd_PutS_Font(rgn, 50, y,  199, strings[i], COLOR_Red, COLOR_White, &font0, ALIGN_LEFT);
+				TAP_Osd_PutS_Font(rgn, 200, y, 349, strings[i], COLOR_Red, COLOR_White, &font1, ALIGN_LEFT);
+				TAP_Osd_PutS_Font(rgn, 350, y, 499, strings[i], COLOR_Red, COLOR_White, &font2, ALIGN_LEFT);
+			}
+			t2 = TAP_GetTick() - t1;
+			Delete_Font(&font0);
+			Delete_Font(&font1);
+			Delete_Font(&font2);
+
+			TAP_SPrint(msg, "Ticks: %d", t2);
+			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+
+			return 0;
+		}
+		if ( param1 == RKEY_2)
+		{
+			TAP_ExitNormal();
+			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
+
+			err1 = Load_Font(&font0, "calibri_small.rasterized");
 			if (err1!=0) return 0;
-			TAP_Osd_PutS_Font(rgn, 55, 140, 100, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_LEFT);
-			TAP_Osd_PutS_Font(rgn, 55, 170, 100, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_CENTER);
-			TAP_Osd_PutS_Font(rgn, 55, 200, 100, message, COLOR_Yellow, COLOR_Blue, &font, ALIGN_RIGHT);
-			Delete_Font(&font);
+			err1 = Load_Font(&font1, "arialn_small.rasterized");
+			if (err1!=0) return 0;
+			err1 = Load_Font(&font2, "tahoma_small.rasterized");
+			if (err1!=0) return 0;
+
+			SetColors(&font0, COLOR_Red, COLOR_White);
+			SetColors(&font1, COLOR_Red, COLOR_White);
+			SetColors(&font2, COLOR_Red, COLOR_White);
+
+			t1 = TAP_GetTick();
+			y = 20;
+			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
+			{
+				TAP_Osd_PutS_FontL(rgn, 50, y,  199, strings[i], &font0, ALIGN_LEFT);
+				TAP_Osd_PutS_FontL(rgn, 200, y, 349, strings[i], &font1, ALIGN_LEFT);
+				TAP_Osd_PutS_FontL(rgn, 350, y, 499, strings[i], &font2, ALIGN_LEFT);
+			}
+			t2 = TAP_GetTick() - t1;
+			Delete_Font(&font0);
+			Delete_Font(&font1);
+			Delete_Font(&font2);
+
+			TAP_SPrint(msg, "Ticks: %d", t2);
+			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+
+			return 0;
+		}
+		if ( param1 == RKEY_3)
+		{
+			TAP_ExitNormal();
+			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
+
+			err1 = Load_Font(&font0, "calibri_small.rasterized");
+			if (err1!=0) return 0;
+			err1 = Load_Font(&font1, "arialn_small.rasterized");
+			if (err1!=0) return 0;
+			err1 = Load_Font(&font2, "tahoma_small.rasterized");
+			if (err1!=0) return 0;
+
+			t1 = TAP_GetTick();
+			y = 20;
+			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
+			{
+				TAP_Osd_PutS_FontEx(rgn, 50, y,  199, 19, 2, strings[i], COLOR_Red, COLOR_White, &font0, ALIGN_LEFT);
+				TAP_Osd_PutS_FontEx(rgn, 200, y, 349, 19, 2, strings[i], COLOR_Red, COLOR_White, &font1, ALIGN_LEFT);
+				TAP_Osd_PutS_FontEx(rgn, 350, y, 499, 19, 2, strings[i], COLOR_Red, COLOR_White, &font2, ALIGN_LEFT);
+			}
+			t2 = TAP_GetTick() - t1;
+			Delete_Font(&font0);
+			Delete_Font(&font1);
+			Delete_Font(&font2);
+
+			TAP_SPrint(msg, "Ticks: %d", t2);
+			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+
+			return 0;
+		}
+		if ( param1 == RKEY_4)
+		{
+			TAP_ExitNormal();
+			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
+
+			t1 = TAP_GetTick();
+			y = 20;
+			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
+			{
+				TAP_Osd_PutS(rgn, 50, y,  199, strings[i], COLOR_Red, COLOR_White, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+				TAP_Osd_PutS(rgn, 200, y, 349, strings[i], COLOR_Red, COLOR_White, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+				TAP_Osd_PutS(rgn, 350, y, 499, strings[i], COLOR_Red, COLOR_White, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+			}
+			t2 = TAP_GetTick() - t1;
+
+			TAP_SPrint(msg, "Ticks: %d", t2);
+			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
+
 			return 0;
 		}
 	}
