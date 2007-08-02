@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
 
 	for (i=0; i<256; i++)
 	{
-		FT_Load_Char(fb->m_face, dest[i], FT_LOAD_DEFAULT);   	 //FT_LOAD_RENDER
+		FT_Load_Char(fb->m_face, dest[i], FT_LOAD_RENDER);
 		bitmap = slot->bitmap;
 
 		table[i].slot_bitmap_left = slot->bitmap_left;
