@@ -13,8 +13,6 @@ Copyright Pavel Kopylov
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b)) 
 
-//#define SLOW_RENDERING 1
-
 int Load_Font_Height(FONT *font);
 int Load_Font_Baseline(FONT *font);
 int Load_Char_Table(FONT* font);
@@ -65,22 +63,33 @@ int TAP_Osd_PutS_FontEx(word rgn, dword x, dword y, dword maxX, dword maxY, int 
 int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *font, byte align)
 {
 	int new_x;
-	int width = (int)maxX;
+	int width;
 	int strlen_original, strlen_new;
 	int err=0;
-	word *image=NULL;
+	word *image=0;
 
+	width = (maxX == 0) ? 0 : maxX - x;
 
 	strlen_original = (int)strlen(str);
-	err = CalcSize(font, str, &width, &strlen_new);
-	if (err!=0)	return err;
+	err = CalcSize(font, (unsigned char *)str, &width, &strlen_new);
+	if (err != 0)
+		return err;
+
+	// Draw background rectangle
+	if (maxX == 0)
+		TAP_Osd_FillBox(rgn, x, y, width, font->m_fontHeight, font->m_backColor);
+	else
+		TAP_Osd_FillBox(rgn, x, y, maxX-x, font->m_fontHeight, font->m_backColor);
 
 	// Decision of placement
-	if (strlen_new<strlen_original)	// the required area is not enough for "str"
+	if (strlen_new < strlen_original)    // the required area is not enough for "str"
 	{
-		//err = RenderStringDirect(font, str, strlen_new, (int)x, (int)y, width);
-		new_x = (int)x;
-		err = RenderString(font, str, strlen_new, width, &image);
+		err = RenderString(font, (unsigned char*)str, strlen_new, width, &image);
+		if (err==0)
+		{
+			TAP_Osd_DrawPixmap(rgn, (int)x, (int)y, width, font->m_fontHeight, image, FALSE, OSD_1555);
+			free(image);
+		}
 	}
 	else
 	{
@@ -90,27 +99,22 @@ int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *
 			new_x = (int)x;
 			break;
 		case ALIGN_CENTER:
-			new_x = (int)(x + ((maxX-x+1)-width)/2);
+			new_x = (int)( (x + maxX)/2 - width/2);
 			break;
 		case ALIGN_RIGHT:
-			new_x = (int)(x + (maxX-x+1)-width);
+			new_x = (int)(x + maxX - width);
 			break;
 		}
-
-		//err = RenderStringDirect(font, str, strlen_original, new_x, (int)y, width);
-		err = RenderString(font, str, strlen_original, width, &image);
-	}
-
-	if (err==0)
-	{
-		TAP_Osd_FillBox(rgn, x, y, maxX-x, font->m_fontHeight, font->m_backColor);
-		TAP_Osd_DrawPixmap(rgn, new_x, (int)y, width, font->m_fontHeight, image, FALSE, OSD_1555);
-		TAP_MemFree(image);
+		err = RenderString(font, (unsigned char*)str, strlen_original, width, &image);
+		if (err==0)
+		{
+			TAP_Osd_DrawPixmap(rgn, new_x, (int)y, width, font->m_fontHeight, image, FALSE, OSD_1555);
+			free(image);
+		}
 	}
 
 	return err;
-};
-
+}
 
 //////////////////////////////////////////////////////////////////////////
 int Draw_Font_String(word region, dword x, dword y, char *str, char* fontname,  word foreColor, word backColor)
@@ -124,14 +128,14 @@ int Draw_Font_String(word region, dword x, dword y, char *str, char* fontname,  
 	if (err1==0)
 	{
 		SetColors(&font, COLOR_Yellow, COLOR_DarkBlue);
-		err1 = CalcSize(&font, str, &width, &text_length);
+		err1 = CalcSize(&font, (unsigned char *)str, &width, &text_length);
 		if (err1==0)
 		{
-			err1 = RenderString(&font, str, text_length, width, &image);
+			err1 = RenderString(&font, (unsigned char *)str, text_length, width, &image);
 			if (err1==0)
 			{
 				TAP_Osd_DrawPixmap(region, x, y, width, font.m_fontHeight, image, FALSE, OSD_1555);
-				TAP_MemFree(image);
+				free(image);
 			}
 		}
 		Delete_Font(&font);
@@ -156,7 +160,7 @@ int Load_Font(FONT *font, char *fileName)
 		font->m_bmpHeaderArray=NULL;
 
 		flen = TAP_Hdd_Flen(f);
-		font->m_data = (unsigned char*)TAP_MemAlloc(flen);
+		font->m_data = (unsigned char*)malloc(flen);
 		if (font->m_data!=NULL)
 		{
 			read = TAP_Hdd_Fread(font->m_data, flen, 1, f);
@@ -217,7 +221,7 @@ void Delete_Font(FONT *font)
 {
 	if (font != NULL)
 	{
-		TAP_MemFree(font->m_data);
+		free(font->m_data);
 	}
 }
 
@@ -296,16 +300,19 @@ int Load_Char_Table(FONT* font)
 //////////////////////////////////////////////////////////////////////////
 void SetColors(FONT *font, word foreColor, word backColor)
 {
-	font->m_foreColor=foreColor;
-	font->m_backColor=backColor;
-	ComputeAntialiasingMap(font, foreColor, backColor);
+	if (font->m_foreColor != foreColor || font->m_backColor != backColor)
+	{
+		font->m_foreColor=foreColor;
+		font->m_backColor=backColor;
+		ComputeAntialiasingMap(font, foreColor, backColor);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 {
 	int pen_x=0, pen_y=0, i, int_adv, tmp_len;
-	int t_max_bmp_top=0, t_min_bmp_bottom=0;
+	//int t_max_bmp_top=0, t_min_bmp_bottom=0;
 
 
 	if (font==NULL || font->m_bmpHeaderArray==NULL)
@@ -314,7 +321,7 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 	}	
 
 	// First calculating resulting bitmap size & cashing bitmaps
-	tmp_len = (int)strlen(text);
+	tmp_len = (int)strlen((char*)text);
 	(*text_length) = tmp_len;
 
 	for (i=0; i<tmp_len; i++)
@@ -330,13 +337,13 @@ int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length)
 		}
 		pen_x += int_adv;
 
-		t_min_bmp_bottom = max(t_min_bmp_bottom, font->m_bmpHeaderArray[text[i]].bitmap_rows-font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
-		t_max_bmp_top = max(t_max_bmp_top, font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
+		//t_min_bmp_bottom = max(t_min_bmp_bottom, font->m_bmpHeaderArray[text[i]].bitmap_rows-font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
+		//t_max_bmp_top = max(t_max_bmp_top, font->m_bmpHeaderArray[text[i]].slot_bitmap_top);
 	}
 
 	(*width) = pen_x>>6;
 	(*width) = ((*width)/2+1)*2;
-	font->m_fontHeight = max(font->m_fontHeight, t_min_bmp_bottom+t_max_bmp_top);
+	//font->m_fontHeight = max(font->m_fontHeight, t_min_bmp_bottom+t_max_bmp_top);
 
 	return 0;
 }
@@ -364,14 +371,14 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 
 	// Create bitmap buffer
 #ifdef SLOW_RENDERING
-	img = (unsigned char*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(unsigned char));
+	img = (unsigned char*)malloc(width * font->m_fontHeight * sizeof(unsigned char));
 	if (img==NULL)
 	{
 		return -2;
 	}
 	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
 #else
-	img = (word*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(word)); // word
+	img = (word*)malloc(width * font->m_fontHeight * sizeof(word)); // word
 	if (img==NULL)
 	{
 		return -2;
@@ -398,7 +405,7 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 	}
 
 #ifdef SLOW_RENDERING
-	(*image) = (word*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(word)); // word
+	(*image) = (word*)malloc(width * font->m_fontHeight * sizeof(word)); // word
 	imagePtr = (*image);
 	if (imagePtr==NULL)
 	{
@@ -413,7 +420,7 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 		C = font->m_antialiasmap[pixel>>4];
 		imagePtr[x] = C; 
 	}
-	TAP_MemFree(img);
+	free(img);
 #else
 	(*image) = img;
 #endif

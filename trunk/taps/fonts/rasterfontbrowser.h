@@ -24,6 +24,19 @@ typedef unsigned char  byte;
 #define PUTPIXEL_SET(IMAGE, X, Y, COLOR)	IMAGE[Y*width+X] = COLOR
 #define GETPIXEL(IMAGE, X, Y, COLOR)		COLOR = IMAGE[Y*width+X]
 
+#define DLALLOC	1
+#define SLOW_RENDERING 1
+
+#ifdef  DLALLOC
+#include "dlmalloc.h"
+#define malloc   dlmalloc
+#define free     dlfree
+#else
+#define malloc   TAP_MemAlloc
+#define free     TAP_MemFree
+#endif
+
+
 typedef struct
 {
 	long  slot_advance_x;
@@ -55,6 +68,8 @@ int TAP_Osd_PutS_FontEx(word rgn, dword x, dword y, dword maxX, dword maxY, int 
 int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *font, byte align);
 int Draw_Font_String(word rgn, dword x, dword y, char *str, char* fontname,  word foreColor, word backColor);
 
+//////////////////////////////////////////////////////////////////////////
+int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length);
 void SetColors(FONT *font, word foreColor, word backColor);
 
 #define LOAD_CHAR(font, pos, bitmap)	*(bitmap) = (font)->m_data + (font)->m_bmpHeaderArray[(pos)].offset;
