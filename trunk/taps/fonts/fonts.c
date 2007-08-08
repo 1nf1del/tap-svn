@@ -5,7 +5,7 @@
 #define ID_FREETYPE_TEST			0x07
 
 TAP_ID( ID_FREETYPE_TEST );
-TAP_PROGRAM_NAME("Font test fast");
+TAP_PROGRAM_NAME("Font test slow");
 TAP_AUTHOR_NAME("Justason");
 TAP_DESCRIPTION("FontTest");
 TAP_ETCINFO(__DATE__);
@@ -15,6 +15,7 @@ int TAP_Main(void);
 word rgn;
 int _appl_version = 0x1200;
 int transparency_orig;
+FONT font0, font1, font2;
 
 #define DWORD_MAX ( (dword) -1)
 
@@ -24,7 +25,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 	static int count = 0, err1, filelen;
 	static byte flip = 0;
 	int i, y;
-	FONT font0, font1, font2;
 	const int LINE_H = 21;
 	const int STR_COUNT = 21;
 	dword t1, t2;
@@ -32,7 +32,7 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		{"Test ajJsjjOjsj"},
 		{"qUIck tESt"},
 		{"ma"},
-		{"ke"},
+		{"keÿä"},
 		{"<< Nelonen >>"} ,
 		{"03:20 "},
 		{" leading SPACE"},
@@ -60,7 +60,16 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		{
 			TAP_Osd_SetTransparency(rgn, 0xFF - transparency_orig);
 
+			Delete_Font(&font0);
+			Delete_Font(&font1);
+			Delete_Font(&font2);
+
 			TAP_Osd_Delete( rgn );
+
+#ifdef DLALLOC
+			dlmalloc_exit();
+#endif
+
 			TAP_EnterNormal();
 			TAP_Exit();
 			return 0;
@@ -69,13 +78,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		{
 			TAP_ExitNormal();
 			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
-
-			err1 = Load_Font(&font0, "calibri_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font1, "arialn_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font2, "tahoma_small.rasterized");
-			if (err1!=0) return 0;
 
 			t1 = TAP_GetTick();
 			y = 20;
@@ -86,9 +88,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 				TAP_Osd_PutS_Font(rgn, 350, y, 499, strings[i], COLOR_Red, COLOR_White, &font2, ALIGN_LEFT);
 			}
 			t2 = TAP_GetTick() - t1;
-			Delete_Font(&font0);
-			Delete_Font(&font1);
-			Delete_Font(&font2);
 
 			TAP_SPrint(msg, "Ticks: %d", t2);
 			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
@@ -100,17 +99,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			TAP_ExitNormal();
 			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
 
-			err1 = Load_Font(&font0, "calibri_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font1, "arialn_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font2, "tahoma_small.rasterized");
-			if (err1!=0) return 0;
-
-			SetColors(&font0, COLOR_Red, COLOR_White);
-			SetColors(&font1, COLOR_Red, COLOR_White);
-			SetColors(&font2, COLOR_Red, COLOR_White);
-
 			t1 = TAP_GetTick();
 			y = 20;
 			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
@@ -120,9 +108,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 				TAP_Osd_PutS_FontL(rgn, 350, y, 499, strings[i], &font2, ALIGN_LEFT);
 			}
 			t2 = TAP_GetTick() - t1;
-			Delete_Font(&font0);
-			Delete_Font(&font1);
-			Delete_Font(&font2);
 
 			TAP_SPrint(msg, "Ticks: %d", t2);
 			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
@@ -134,13 +119,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 			TAP_ExitNormal();
 			TAP_Osd_FillBox(rgn, 30, 10, 620, 500, COLOR_DarkBlue);
 
-			err1 = Load_Font(&font0, "calibri_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font1, "arialn_small.rasterized");
-			if (err1!=0) return 0;
-			err1 = Load_Font(&font2, "tahoma_small.rasterized");
-			if (err1!=0) return 0;
-
 			t1 = TAP_GetTick();
 			y = 20;
 			for (i = 0; i < STR_COUNT; i++, y+=LINE_H)
@@ -150,9 +128,6 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 				TAP_Osd_PutS_FontEx(rgn, 350, y, 499, 19, 2, strings[i], COLOR_Red, COLOR_White, &font2, ALIGN_LEFT);
 			}
 			t2 = TAP_GetTick() - t1;
-			Delete_Font(&font0);
-			Delete_Font(&font1);
-			Delete_Font(&font2);
 
 			TAP_SPrint(msg, "Ticks: %d", t2);
 			TAP_Osd_PutS(rgn, 500, 500, 650, msg, COLOR_Green, COLOR_Black, 0, FNT_Size_1419, 0, ALIGN_LEFT);
@@ -186,11 +161,25 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 
 int TAP_Main(void)
 {
+	int err1;
+
+
 	InitTAPAPIFix();
 	transparency_orig = TAP_GetSystemVar( SYSVAR_OsdAlpha );
 	rgn = TAP_Osd_Create(0, 0, 720, 576, 0, 0);
 
 	TAP_Osd_SetTransparency( rgn, 150 );
+
+	err1 = Load_Font(&font0, "calibri_small.rasterized");
+	if (err1!=0) return 0;
+	err1 = Load_Font(&font1, "arialn_small.rasterized");
+	if (err1!=0) return 0;
+	err1 = Load_Font(&font2, "tahoma_small.rasterized");
+	if (err1!=0) return 0;
+
+	SetColors(&font0, COLOR_Red, COLOR_White);
+	SetColors(&font1, COLOR_Red, COLOR_White);
+	SetColors(&font2, COLOR_Red, COLOR_White);
 
 	return 1;
 }
