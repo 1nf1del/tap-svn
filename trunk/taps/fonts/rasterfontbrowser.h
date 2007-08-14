@@ -24,18 +24,7 @@ typedef unsigned char  byte;
 #define PUTPIXEL_SET(IMAGE, X, Y, COLOR)	IMAGE[Y*width+X] = COLOR
 #define GETPIXEL(IMAGE, X, Y, COLOR)		COLOR = IMAGE[Y*width+X]
 
-#define DLALLOC	1
-#define SLOW_RENDERING 1
-
-#ifdef  DLALLOC
-#include "dlmalloc.h"
-#define malloc   dlmalloc
-#define free     dlfree
-#else
-#define malloc   TAP_MemAlloc
-#define free     TAP_MemFree
-#endif
-
+//#define NO_ALLOC
 
 typedef struct
 {
@@ -59,6 +48,11 @@ typedef struct
 	long		   m_fontHeight;
 	long		   m_fontBaseline;
 	int			   m_bShifted;
+
+#ifdef NO_ALLOC
+	unsigned char *m_grayBuffer;
+	word          *m_wordBuffer;
+#endif
 } FONT;
 
 int Load_Font(FONT *font, char *fileName);

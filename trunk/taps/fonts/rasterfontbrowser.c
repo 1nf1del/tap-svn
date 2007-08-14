@@ -1,13 +1,15 @@
 /*
 Copyright Pavel Kopylov
-2.08.2007
+
+v. 1.07
+
+14.08.2007
 */
 
 #include "RasterFontBrowser.h"
 #include <string.h>
 #include <stdio.h>
 
-//extern word rgn;
 
 #define htonl(A) ((((long)(A) & 0xff000000) >> 24) | (((long)(A) & 0x00ff0000) >> 8)  | (((long)(A) & 0x0000ff00) << 8)  | (((long)(A) & 0x000000ff) << 24)    )
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -21,11 +23,7 @@ void ComputeAntialiasingMap(FONT *font, word foreColor, word backColor);
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length);
 int RenderString(FONT *font, unsigned char* text, int text_length, int width, word** image);
 
-#ifdef SLOW_RENDERING
 void draw_bitmap(FONT *font, unsigned char* bitmap, unsigned char *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width);
-#else
-void draw_bitmap(FONT *font, unsigned char* bitmap, word *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width);
-#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,7 +86,9 @@ int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *
 		if (err==0)
 		{
 			TAP_Osd_DrawPixmap(rgn, (int)x, (int)y, width, font->m_fontHeight, image, FALSE, OSD_1555);
-			free(image);
+#ifndef NO_ALLOC
+			TAP_MemFree(image);
+#endif			
 		}
 	}
 	else
@@ -109,7 +109,9 @@ int TAP_Osd_PutS_FontL(word rgn, dword x, dword y, dword maxX, char *str, FONT *
 		if (err==0)
 		{
 			TAP_Osd_DrawPixmap(rgn, new_x, (int)y, width, font->m_fontHeight, image, FALSE, OSD_1555);
-			free(image);
+#ifndef NO_ALLOC
+			TAP_MemFree(image);
+#endif			
 		}
 	}
 
@@ -135,7 +137,9 @@ int Draw_Font_String(word region, dword x, dword y, char *str, char* fontname,  
 			if (err1==0)
 			{
 				TAP_Osd_DrawPixmap(region, x, y, width, font.m_fontHeight, image, FALSE, OSD_1555);
-				free(image);
+#ifndef NO_ALLOC
+				TAP_MemFree(image);
+#endif			
 			}
 		}
 		Delete_Font(&font);
@@ -153,6 +157,11 @@ int Load_Font(FONT *font, char *fileName)
 	//char        msg[256];
 
 	
+#ifdef NO_ALLOC
+	font->m_grayBuffer = NULL;
+	font->m_wordBuffer = NULL;
+#endif
+
 	font->m_bShifted = 0;
 	f = TAP_Hdd_Fopen(fileName);
 	if (f!=0)
@@ -160,7 +169,7 @@ int Load_Font(FONT *font, char *fileName)
 		font->m_bmpHeaderArray=NULL;
 
 		flen = TAP_Hdd_Flen(f);
-		font->m_data = (unsigned char*)malloc(flen);
+		font->m_data = (unsigned char*)TAP_MemAlloc(flen);
 		if (font->m_data!=NULL)
 		{
 			read = TAP_Hdd_Fread(font->m_data, flen, 1, f);
@@ -180,6 +189,14 @@ int Load_Font(FONT *font, char *fileName)
 						err = Load_Char_Table(font);
 						if (err==0)
 						{
+#ifdef NO_ALLOC
+							font->m_grayBuffer = (unsigned char*)TAP_MemAlloc(720 * font->m_fontHeight * sizeof(unsigned char));
+							font->m_wordBuffer = (word*)TAP_MemAlloc(720 * font->m_fontHeight * sizeof(word)); // word
+							if (font->m_grayBuffer==NULL || font->m_wordBuffer==NULL)
+							{
+								return 7;
+							}
+#endif
 							ret = 0;
 						} 
 						else //Font table didn't load
@@ -219,9 +236,20 @@ int Load_Font(FONT *font, char *fileName)
 //////////////////////////////////////////////////////////////////////////
 void Delete_Font(FONT *font)
 {
+#ifdef NO_ALLOC
+	if (font->m_grayBuffer != NULL)
+	{
+		TAP_MemFree(font->m_grayBuffer);
+	}
+	if (font->m_wordBuffer != NULL)
+	{
+		TAP_MemFree(font->m_wordBuffer);
+	}
+#endif
+
 	if (font != NULL)
 	{
-		free(font->m_data);
+		TAP_MemFree(font->m_data);
 	}
 }
 
@@ -353,14 +381,10 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 {
 	int             pen_x=0, pen_y=0, i;
 	int             y_offset, x_offset;
-#ifdef SLOW_RENDERING
 	unsigned char	*img;	  // whole string
 	word            C, *imagePtr;
 	int             x, y;
 	unsigned char	pixel;
-#else
-	word	*img;	  // whole string
-#endif
 	unsigned char	*bitmap;  // character bitmap
 
 
@@ -369,22 +393,17 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 		return -1;
 	}	
 
-	// Create bitmap buffer
-#ifdef SLOW_RENDERING
-	img = (unsigned char*)malloc(width * font->m_fontHeight * sizeof(unsigned char));
-	if (img==NULL)
-	{
-		return -2;
-	}
-	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
+#ifdef NO_ALLOC
+	img = font->m_grayBuffer;
 #else
-	img = (word*)malloc(width * font->m_fontHeight * sizeof(word)); // word
+	// Create bitmap buffer
+	img = (unsigned char*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(unsigned char));
 	if (img==NULL)
 	{
 		return -2;
 	}
-	for (i=0; i<width*font->m_fontHeight; i++) img[i] = font->m_backColor;
 #endif
+	for (i=0; i<width*font->m_fontHeight; i++) img[i] = 0;
 
 	// Render string to a buffer
 	for (i=0; i<text_length; i++)
@@ -404,13 +423,17 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 		pen_y += font->m_bmpHeaderArray[text[i]].slot_advance_y >> 6; // increment pen position
 	}
 
-#ifdef SLOW_RENDERING
-	(*image) = (word*)malloc(width * font->m_fontHeight * sizeof(word)); // word
-	imagePtr = (*image);
-	if (imagePtr==NULL)
+
+#ifdef NO_ALLOC
+	(*image) = font->m_wordBuffer;
+#else
+	(*image) = (word*)TAP_MemAlloc(width * font->m_fontHeight * sizeof(word)); // word
+	if ((*image)==NULL)
 	{
 		return -2;
 	}
+#endif
+	imagePtr = (*image);
 
 	// Transfer buffer to the image
 	y = font->m_fontHeight*width;
@@ -420,16 +443,17 @@ int RenderString(FONT *font, unsigned char* text, int text_length, int width, wo
 		C = font->m_antialiasmap[pixel>>4];
 		imagePtr[x] = C; 
 	}
-	free(img);
+
+#ifdef NO_ALLOC
+	;
 #else
-	(*image) = img;
+	TAP_MemFree(img);
 #endif
 
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
-#ifdef SLOW_RENDERING
 void draw_bitmap(FONT *font, unsigned char* bitmap, unsigned char *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width)
 {
 	int  i, j, q;
@@ -453,33 +477,6 @@ void draw_bitmap(FONT *font, unsigned char* bitmap, unsigned char *image, int wi
 		}
 	}
 }
-#else
-void draw_bitmap(FONT *font, unsigned char* bitmap, word *image, int width, int height, int x_offset, int y_offset, int bitmap_rows, int bitmap_width)
-{
-	int  i, j, q;
-	int  bx, by;
-	unsigned char pixel;
-	word            C;
-
-
-	q=0;
-	for (by = 0; by<bitmap_rows; by++)
-	{
-		j = by + y_offset;
-		for (bx = 0; bx<bitmap_width; bx++)
-		{
-			i = bx + x_offset;
-			if (i>=0 && j>=0 && i<width && j<height)
-			{
-				pixel = bitmap[q];
-				C = font->m_antialiasmap[pixel>>4];
-				PUTPIXEL_SET(image, i, j, C); //image[j*width+i] = pixel;
-			}
-			q++;
-		}
-	}
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // computes 16 anti-aliasing steps trough RGB space
