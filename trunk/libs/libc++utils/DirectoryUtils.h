@@ -52,5 +52,7 @@ array<string> GetFilesInFolder(const string& sFolderName, const string& sExt);
 array<string> GetSubFolders(const string& sFolderName);
 void GetDetailFolderContents(string sFolderName, array<TYPE_File>& results, const string& sExt, bool bFolders);
 bool CopyFile(const string& sSource, const string& sDestination, bool bFailIfExists);
+string GetFolderFromPath(const string& path);
+string GetFileFromPath(const string& path);
 
 #endif

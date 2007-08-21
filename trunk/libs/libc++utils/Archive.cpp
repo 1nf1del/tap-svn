@@ -22,10 +22,12 @@
 #include "DirectoryUtils.h"
 #include "ArchiveVisitor.h"
 #include "inifile.h"
-#include "Logger.H"
+#include "Logger.h"
 
 Archive::Archive(const string& sCacheFile, bool bLoadInChunks)
 {
+	m_bLoadingInBackground = bLoadInChunks;
+	m_sInitialFolder = GetCurrentDirectory();
 	m_sCacheFile = sCacheFile;
 	m_pDeletedPrograms = NULL;
 	if (m_sCacheFile == "")
@@ -34,7 +36,7 @@ Archive::Archive(const string& sCacheFile, bool bLoadInChunks)
 	LoadCache();
 	ProcessFolder("/DataFiles");
 
-	if (!bLoadInChunks)
+	if (!m_bLoadingInBackground)
 		Initialize();
 }
 
@@ -47,6 +49,7 @@ void Archive::Initialize()
 	{
 
 	}
+
 
 	return;
 
@@ -112,7 +115,7 @@ void Archive::LoadCache()
 		}
 	}
 
-//	TRACE1("Loaded cache %d items", ini.GetKeyCount());
+	TRACE1("Loaded cache %d items", ini.GetKeyCount());
 }
 
 void Archive::SaveCache()
@@ -126,11 +129,11 @@ void Archive::SaveCache()
 	}
 	if (!ini.Save(m_sCacheFile))
 	{
-//		TRACE("failed to save cache");	
+		TRACE("failed to save cache");	
 		return;
 	}
 
-//	TRACE1("Saved cache %d items", ini.GetKeyCount());
+	TRACE1("Saved cache %d items", ini.GetKeyCount());
 }
 
 bool Archive::DoSomeLoading()
@@ -150,6 +153,8 @@ bool Archive::DoSomeLoading()
 		return true;
 	}
 
+	ChangeDirectory(m_sInitialFolder);
+
 	TRACE("About to save cache file\n");
 
 	SaveCache();
@@ -166,7 +171,9 @@ bool Archive::DoSomeLoading()
 
 void Archive::ProcessFolder(const string& sFolderName)
 {
-	TRACE1("Doing folder %s\n", sFolderName.c_str());
+	TRACE1("Processing folder %s\n", sFolderName.c_str());
+	if (!m_bLoadingInBackground)
+		ChangeDirectory(sFolderName);
 
 	array<TYPE_File> files;
 	GetDetailFolderContents(sFolderName, files, ".rec", false);
@@ -187,6 +194,7 @@ void Archive::ProcessFolder(const string& sFolderName)
 			m_foldersToDo.push_back(sFolderName + "/" + folders[i]);
 		}
 	}
+	TRACE1("Finished processing folder %s\n", sFolderName.c_str());
 }
 
 void Archive::ProcessFile(const string& fileName, dword dwTotalCluster)
@@ -198,13 +206,14 @@ void Archive::ProcessFile(const string& fileName, dword dwTotalCluster)
 	const ArchivedProgram* pProg = FindInCache(sFolderName, file, dwTotalCluster);
 	if (pProg == NULL)
 	{
-//			TRACE("Adding Program from folder");
+		TRACE1("Adding Program from folder (%s)", sFolderName.c_str());
+		if (!m_bLoadingInBackground)
+			ChangeDirectory(sFolderName);
 		pProg = new ArchivedProgram(sFolderName, file, 0, dwTotalCluster);
 	}
 	else
 	{
-//			TRACE("Adding program from cache");
-
+		TRACE("Adding program from cache");
 	}
 
 	if (pProg->IsValid())
@@ -241,6 +250,8 @@ bool Archive::Visit(ArchiveVisitor* pVisitor) const
 
 	return true;
 }
+
+
 
 const array<const ArchivedProgram*>& Archive::GetDeletedPrograms()
 {

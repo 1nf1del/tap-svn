@@ -29,6 +29,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Logger.h"
 #include "JagCSVReader.h"
 
+EPGdata::EPGVisitStatus::EPGVisitStatus()
+{
+	m_iNextChannel = 0;
+}
+
 EPGdata::EPGdata(void)
 {
 	m_pReader = NULL;
@@ -131,12 +136,23 @@ const array<EPGchannel*> EPGdata::GetChannels() const
 
 bool EPGdata::Visit(EPGVisitor* pVisitor) const
 {
-	for (unsigned int i = 0; i< m_channels.size(); i++)
+	EPGVisitStatus status;
+	while (PartVisit(pVisitor, status))
 	{
-		if (!m_channels[i]->Visit(pVisitor))
-			return false;
 	}
 	return true;
+}
+
+bool EPGdata::PartVisit(EPGVisitor* pVisitor, EPGVisitStatus& status) const
+{
+	if (status.m_iNextChannel < m_channels.size())
+	{
+		if (!m_channels[status.m_iNextChannel++]->Visit(pVisitor))
+			return false;
+	}
+
+
+	return status.m_iNextChannel < m_channels.size();
 }
 
 bool EPGdata::HasData() const

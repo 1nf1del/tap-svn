@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "logger.h"
 #include <file.h>
+#include <string.h>
 
 Logger* Logger::m_pTheLogger = NULL;
 bool Logger::m_bLogNoMore = false;
@@ -129,11 +130,19 @@ void Logger::Logv(const char* format, const va_list &arglist)
 
 	if (m_Destination & Screen)
 	{
+		int iLen = strlen(buf);
+		for (int i=iLen; i<128; i++)
+			strcat(buf, " ");
+
 		TAP_Osd_PutString1419(m_OSDRegion, 0, m_yOffs, 520, buf, COLOR_White, COLOR_Blue);
-		TAP_Delay(25);
+		TAP_Delay(50);
 		m_yOffs += 20;
 		if (m_yOffs > 350)
 			m_yOffs = 0;
+
+#ifdef WIN32
+	TAP_SystemProc(); // repaint on emulator so we can see what we have
+#endif
 	}
 
 }

@@ -90,10 +90,10 @@ dword TAP_EventHandler( word event, dword param1, dword param2 )
 		// Check the global application object. If null then we're to exit the TAP
 		if ( tap->IsClosing() )
 		{
+			exiting = 1;
 			Tapplication::DiscardTheApplication();
 			Logger::DoneWithLogger();
 			dlmalloc_exit();
-			exiting = 1;
 			_cached_TAP_Exit();
 			return 0;
 		}

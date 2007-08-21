@@ -195,7 +195,7 @@ string string::operator+(char c) const
 
 string string::substr(int offs , int count ) const
 {
-	return string(getstr() + offs, min(count, size() - offs));
+	return string(getstr() + min(offs,size()), min(count, size() - min(offs,size()) ));
 }
 
 int string::compare(const char* pOther) const

@@ -60,6 +60,15 @@ enum DescriptionMaxLength
 class EPGdata
 {
 public:
+	class EPGVisitStatus
+	{
+		friend class EPGdata;
+		EPGVisitStatus();
+
+	private:
+		unsigned int m_iNextChannel;
+	};
+
 	EPGdata(void);
 	~EPGdata(void);
 
@@ -71,6 +80,8 @@ public:
 	const EPGchannel* GetChannel(int channelNum) const;
 	const array<EPGchannel*> GetChannels() const;
 	bool Visit(EPGVisitor* pVisitor) const;
+	bool PartVisit(EPGVisitor* pVisitor, EPGVisitStatus& status) const;
+
 	bool ReadData(DataSources dataSource, ProgressNotification* pProgress, dword dwFlags);
 	bool HasData() const;	
 

@@ -20,6 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "DirectoryUtils.h"
 #include "Logger.h"
+#ifdef WIN32
+#include <crtdbg.h>
+#else
+#define _ASSERT(x)
+#endif
 
 
 word (*realTAP_Hdd_ChangeDir)( char* dir ) = 0;
@@ -37,6 +42,13 @@ int GetLastSlashPos(const string& path)
 	}
 
 	return iSlashPos;
+}
+
+void RemoveTrailingSlash(string& path)
+{
+	if (path.size()>0 && path[path.size()-1] == '/')
+		path.resize(path.size()-1);
+
 }
 
 string GetFolderFromPath(const string& path)
@@ -131,6 +143,8 @@ string InternalGetCurrentDirectory (void)
 		path = "/";
 	}
 
+	RemoveTrailingSlash(path);
+
 	return (path);
 }
 
@@ -144,10 +158,10 @@ void UpdateCurrentDirectory(const char* dir)
 	if (sChange == "..")
 		sChange = "../";
 
-	while (sChange.substr(0,3) == "../")
+	while (sChange.substr(0,3) == "../" || sChange == "..")
 	{
 		if (sCurrentDirectory == "/")
-			return;
+			break;
 
 		int iTrim = sCurrentDirectory.reverseFind('/');
 		if (iTrim >= 0)
@@ -167,6 +181,8 @@ void UpdateCurrentDirectory(const char* dir)
 		sCurrentDirectory += "/";
 	
 	sCurrentDirectory += sChange;
+
+	RemoveTrailingSlash(sCurrentDirectory);
 //	TRACE1("Current dir is %s", sCurrentDirectory.c_str());
 	return ;
 }
@@ -213,11 +229,85 @@ void MoveToRoot()
 
 string GetCurrentDirectory()
 {
-HookChangeDirFunc();
+	HookChangeDirFunc();
 	return sCurrentDirectory;
 }
 
-bool ChangeDirectoryImpl(const string& newDirectory, bool bTrans)
+bool DirectoriesAreTheSame(string directory1, string directory2)
+{
+	RemoveTrailingSlash(directory1);
+	RemoveTrailingSlash(directory2);
+	return (directory1 == directory2);
+
+}
+
+int MoveToCommonRoot(const string& targetDirectory)
+{
+	int iResult = -1;
+
+	do
+	{
+		if (targetDirectory.find(sCurrentDirectory) == 0)
+		{
+			// the target directory starts with the current directory, so we can move downward from here
+			iResult = sCurrentDirectory.size();
+			if (targetDirectory.size()>iResult && targetDirectory[iResult] == '/')
+				iResult++;
+
+		}
+		else
+		{
+			if (TAP_Hdd_ChangeDir ("..") == 0)
+				iResult = 1; // we failed to move to .. - must already be in root folder
+		}
+
+	} while (iResult == -1);
+
+	return iResult;
+}
+
+string ConvertAbsoluteToRelativePath(const string& targetDirectory)
+{
+	string result;
+	string sMockCurentDirectory = sCurrentDirectory;
+
+
+	int iResult = -1;
+
+	do
+	{
+		if (targetDirectory.find(sMockCurentDirectory) == 0)
+		{
+			// the target directory starts with the current directory, so we can move downward from here
+			iResult = sMockCurentDirectory.size();
+			if (targetDirectory.size()>iResult && targetDirectory[iResult] == '/')
+				iResult++;
+
+		}
+		else
+		{
+			int iTrim = sMockCurentDirectory.reverseFind('/');
+			if (iTrim >= 0)
+			{
+				sMockCurentDirectory = sMockCurentDirectory.substr(0,iTrim);
+				result += "../";
+			}
+			if (sMockCurentDirectory.size() <= 1)
+				iResult = 1; // we failed to move to .. - must already be in root folder
+		}
+
+	} while (iResult == -1);
+
+	result += targetDirectory.substr(iResult);
+
+	RemoveTrailingSlash(result);
+
+	return result;
+
+
+}
+
+bool ChangeDirectoryImpl(string newDirectory, bool bTrans)
 {
 	HookChangeDirFunc();
 	if (newDirectory.size() == 0)
@@ -226,18 +316,29 @@ bool ChangeDirectoryImpl(const string& newDirectory, bool bTrans)
 	// this function is going to be transactional, even if the underlying TAP API isn't
 	string sStartDirectory = sCurrentDirectory;
 
-//	TRACE2("ChangeDirectory, starting in %s, going to %s", sCurrentDirectory.c_str(), newDirectory.c_str());
+	RemoveTrailingSlash(newDirectory);
+
+	if (DirectoriesAreTheSame(newDirectory, sStartDirectory))
+		return true; // optimize out the case of changing to the current directory.
+
+	//TRACE2("ChangeDirectory, starting in %s, going to %s\n", sCurrentDirectory.c_str(), newDirectory.c_str());
 	int iPos = 0;
 
 	if (newDirectory.substr(0,1) == "/")
 	{
-//		TRACE("ChangeDirectory, path started with /, so moved to root\n");
-		MoveToRoot();
-		iPos = 1;
+		//TRACE("ChangeDirectory, path started with /, so converting to relative path\n");
+		newDirectory = ConvertAbsoluteToRelativePath(newDirectory);
+		//TRACE1("Relative path is %s\n", newDirectory.c_str());
 	}
 
-//	TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
-	bool bResult = (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
+	bool bResult = true;
+	if (iPos < newDirectory.size())// we may have just been moving up to a parent folder which can have already been handled above
+	{
+		//TRACE1("ChangeDirectory, changing to %s\n", &newDirectory[iPos]);
+		bResult = (TAP_Hdd_ChangeDir((char*)&newDirectory[iPos])!=0);
+		//_ASSERT(sCurrentDirectory == InternalGetCurrentDirectory());
+		//TRACE2("After change expected %s, got %s\n", sCurrentDirectory.c_str(), InternalGetCurrentDirectory().c_str());
+	}
 	if (!bResult)
 	{
 		// due to the way TAP_Hdd_ChangeDir works when it fails, we are not
@@ -487,18 +588,16 @@ bool FileExists(string file)
 
 bool DeleteFile(const string& file)
 {
-	if (!FileExists(file))
-		return true;
-
 	string baseFolder = GetFolderFromPath(file);
 	string fileName = GetFileFromPath(file);
 
 	DirectoryRestorer dr(baseFolder);
 	if (!dr.WasSuccesful())
 		return true;
+
+	if (!FileExists(file))
+		return true;
 	
 	return TAP_Hdd_Delete((char*) fileName.c_str()) != 0;
-
-
 }
 

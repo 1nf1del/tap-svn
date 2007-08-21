@@ -29,6 +29,9 @@ class ArchiveVisitor;
 class Archive
 {
 public:
+
+
+
 	Archive(const string& sCacheFile, bool bLoadInChunks);
 	~Archive();
 
@@ -61,6 +64,8 @@ private:
 	array<string> m_foldersToDo;
 	array<string> m_filesToDo;
 	array<dword>  m_totalClusters;
+	bool m_bLoadingInBackground;
+	string m_sInitialFolder;
 };
 
 #endif
