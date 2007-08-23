@@ -481,10 +481,23 @@ const string& EPGevent::GetEpisode() const
 
 string EPGevent::GetFileName() const
 {
-	string sResult = m_sTitle;
-	sResult.replace(':', ' ');
-	sResult.replace('*', ' ');
-	return sResult.trim();
+	string temp = m_sTitle;
+	temp.replace(':', '*');
+	string result;
+
+	int iPos = -1;
+
+	while ((iPos = temp.find('*')) > -1)
+	{
+		result += temp.substr(0,iPos);
+		temp = temp.substr(iPos+1);
+
+	}
+
+	result += temp;
+	
+	
+	return result.trim();
 }
 
 void EPGevent::SetGenre()

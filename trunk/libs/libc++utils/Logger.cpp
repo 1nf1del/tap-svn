@@ -134,6 +134,7 @@ void Logger::Logv(const char* format, const va_list &arglist)
 		for (int i=iLen; i<128; i++)
 			strcat(buf, " ");
 
+		TAP_Osd_PutString1419(m_OSDRegion, 0, (m_yOffs+20)>350 ? 0 : m_yOffs + 20 , 520, "________________________________________________________________", COLOR_White, COLOR_Blue);
 		TAP_Osd_PutString1419(m_OSDRegion, 0, m_yOffs, 520, buf, COLOR_White, COLOR_Blue);
 		TAP_Delay(50);
 		m_yOffs += 20;

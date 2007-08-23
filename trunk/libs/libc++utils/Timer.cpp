@@ -270,6 +270,7 @@ bool Timer::Schedule(int iChannelNum, const TimeSlot& timeSlot, const string& sF
 	strcpy(info.fileName, sFileName);
 
 	int iResult = TAP_Timer_Add(&info);
+	TAP_SystemProc(); // apparently this helps with multiple additions to the timer list
 	return iResult == 0;
 }
 
