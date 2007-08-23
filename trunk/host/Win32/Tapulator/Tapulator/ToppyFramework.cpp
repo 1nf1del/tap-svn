@@ -870,8 +870,16 @@ WORD ToppyFramework::Hdd_ChangeDir(char *dir )
 	if (sChange == ".")
 		return 1;
 
-	if (sChange == "..")
-		sChange = "../";
+	if (sChange.ReverseFind(L'/') == sChange.GetLength() -1)
+	{
+		return 0; // toppy doesn't like stuff ending with /
+	}
+	else
+	{
+		if (sChange.ReverseFind(L'.') == sChange.GetLength() - 1)
+			sChange += "/"; // however this routine likes it so we put one on to make the code below simpler
+	}
+
 
 	while (sChange.Left(3) == "../")
 	{
