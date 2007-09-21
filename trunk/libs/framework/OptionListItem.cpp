@@ -56,8 +56,8 @@ void OptionListItem::UpdateOption()
 
 dword OptionListItem::OnKey( dword key, dword extKey )
 {
-	HandleExtKey(RKEY_VolUp, RAWKEY_Right, ChangeValue(1));
-	HandleExtKey(RKEY_VolDown, RAWKEY_Left, ChangeValue(-1));
+	HandleExtKey2(RKEY_VolUp, RKEY_VolUp, RAWKEY_Right, ChangeValue(1));
+	HandleExtKey2(RKEY_VolDown, RKEY_VolDown, RAWKEY_Left, ChangeValue(-1));
 	return key;
 }
 

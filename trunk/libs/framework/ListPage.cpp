@@ -350,6 +350,7 @@ void ListPage::DrawFooterAndScrollBar()
 		DrawFooter();
 }
 
+
 bool ListPage::Draw()
 {
 	TRACE("Drawing page\n");
@@ -434,14 +435,14 @@ dword ListPage::MoveSelection(short int iOffset, bool bWrap)
 
 	CalcFirstInView(iOffset);
 
-	if (abs(iOffset) == 1 && abs(m_selectedItem - iOldSel) == 1)
-	{
-		PartialDraw(iOldSel, iOldFirst);
-	}
-	else
-	{
-		Draw();
-	}
+		if (abs(iOffset) == 1 && abs(m_selectedItem - iOldSel) == 1)
+		{
+			PartialDraw(iOldSel, iOldFirst);
+		}
+		else
+		{
+			Draw();
+		}
 
 	return 0;
 }
@@ -471,8 +472,8 @@ dword ListPage::OnKey( dword key, dword extKey )
 	HandleKey(RKEY_Exit, Close());
 	if ((m_dwFlags & LF_ONE_ITEM_ONLY) == 0)
 	{
-		HandleExtKey(RKEY_ChUp, RAWKEY_Up, MoveSelection(-1));
-		HandleExtKey(RKEY_ChDown, RAWKEY_Down, MoveSelection(1));
+		HandleExtKey2(RKEY_ChUp, RKEY_ChUp, RAWKEY_Up, MoveSelection(-1));
+		HandleExtKey2(RKEY_ChDown, RKEY_ChDown, RAWKEY_Down, MoveSelection(1));
 		HandleKey(RKEY_Forward, MoveSelection(CountItemsInView(), false));
 		HandleKey(RKEY_Rewind, MoveSelection(-CountItemsInView(), false));
 	}
@@ -570,19 +571,20 @@ void ListPage::DrawScrollBar()
 	DrawFrame(r, scrollBarColors);
 
 	short int iItemCount = m_items.size() ? (short int) m_items.size() : 1;
-	short int iBarHeight = r.h;
-	short int iBarSize = (CountItemsInView() * iBarHeight)/iItemCount;
-	iBarSize = max(iBarSize,6);
-	iBarSize = min(iBarSize,iBarHeight);
-	short int iBarPos = (m_firstItemInView * iBarHeight) / iItemCount;
+		short int iBarHeight = r.h;
+		short int iBarSize = (CountItemsInView() * iBarHeight)/iItemCount;
+		iBarSize = max(iBarSize,6);
+		iBarSize = min(iBarSize,iBarHeight);
+		short int iBarPos = (m_firstItemInView * iBarHeight) / iItemCount;
 
-	r.y += FIXINT2SHORTWARNING(iBarPos);
+		r.y += FIXINT2SHORTWARNING(iBarPos);
 	r.h = iBarSize;
-	r.x += 2;
-	r.w = SCROLLBAR_WIDTH - 4;
+		r.x += 2;
+		r.w = SCROLLBAR_WIDTH - 4;
 
 	r.Fill(m_osdRegionIndex, GetColorDef(scrollBarColors).textColor);
 }
+
 
 void ListPage::PartialDraw(short int iOldSel, short int iOldFirstInView)
 {
@@ -605,12 +607,12 @@ void ListPage::PartialDraw(short int iOldSel, short int iOldFirstInView)
 			ySrc += m_itemHeight;
 		else
 			yDst += m_itemHeight;
-		
+
 		TAP_Osd_Copy(m_osdRegionIndex, m_osdRegionIndex, r.x, ySrc, r.w, iH, r.x, yDst, false);
 	}
 
 	DrawItem(r, m_selectedItem);
-	DrawItem(r, iOldSel);
+		DrawItem(r, iOldSel);
 
 	DrawFooterAndScrollBar();
 
