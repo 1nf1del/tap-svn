@@ -31,7 +31,8 @@
 
 // Handle Remote Extender TAP keycodes
 #define HandleExtKey(keyCode, rawKeyCode, action)\
-	if (((extKey == 0) && (key == keyCode)) || (extKey == rawKeyCode)) \
+	if (((extKey & 0xffffff00) != 0x100 && key == keyCode) || \
+		extKey == rawKeyCode) \
 	{\
 		action;\
 		return 0;\
@@ -39,14 +40,16 @@
 
 // Handle Remote Extender TAP and RemExt patch keycodes
 #define HandleExtKey2(keyCode, unmappedKeyCode, rawKeyCode, action)\
-	if (((extKey == 0) && (key == keyCode)) || (extKey == unmappedKeyCode) || (extKey == rawKeyCode)) \
+	if (((extKey & 0xffffff00) != 0x100 && key == keyCode) || \
+		extKey == unmappedKeyCode || extKey == rawKeyCode) \
 	{\
 		action;\
 		return 0;\
 	}
 
 #define HandleExtKeyDef(keyDef, action)\
-	if (((extKey == 0) && (key == keyDef.key)) || (extKey == keyDef.extKey)) \
+	if (((extKey & 0xffffff00) != 0x100 && key == keyDef.key) || \
+		 extKey == keyDef.extKey) \
 	{\
 		action;\
 		return 0;\
