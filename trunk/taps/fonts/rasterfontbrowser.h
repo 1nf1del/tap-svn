@@ -70,7 +70,7 @@ void SetColors(FONT *font, word foreColor, word backColor);
 
 //////////////////////////////////////////////////////////////////////////
 // Hook interface
-#define HOOK
+//#define HOOK
 
 #ifdef HOOK
 
