@@ -20,40 +20,42 @@ typedef unsigned char  byte;
 #define GETG(rgb)       ((byte)(((word)(rgb))>>5)&0x1F)
 #define GETB(rgb)       ((byte)(rgb&0x1F))
 
-#define PUTPIXEL_OR(IMAGE, X, Y, COLOR)		IMAGE[Y*width+X]|= COLOR
-#define PUTPIXEL_SET(IMAGE, X, Y, COLOR)	IMAGE[Y*width+X] = COLOR
-#define GETPIXEL(IMAGE, X, Y, COLOR)		COLOR = IMAGE[Y*width+X]
+#define PUTPIXEL_OR(IMAGE, X, Y, COLOR)     IMAGE[Y*width+X]|= COLOR
+#define PUTPIXEL_SET(IMAGE, X, Y, COLOR)    IMAGE[Y*width+X] = COLOR
+#define GETPIXEL(IMAGE, X, Y, COLOR)        COLOR = IMAGE[Y*width+X]
 
-//#define NO_ALLOC
+#define NO_ALLOC
 
 typedef struct
 {
-	long  slot_advance_x;
-	long  slot_advance_y;
-	long  slot_bitmap_left;
-	long  slot_bitmap_top;
-	long  bitmap_rows;
-	long  bitmap_width;
-	long  offset;
+    long  slot_advance_x;
+    long  slot_advance_y;
+    long  slot_bitmap_left;
+    long  slot_bitmap_top;
+    long  bitmap_rows;
+    long  bitmap_width;
+    long  offset;
 } TableItem;
 
 typedef struct
 {
-	char *m_data;
+    char *m_data;
 
-	word           m_foreColor;
-	word           m_backColor;
-	word           m_antialiasmap[16];
-	TableItem     *m_bmpHeaderArray;
-	long		   m_fontHeight;
-	long		   m_fontBaseline;
-	int			   m_bShifted;
+    word           m_foreColor;
+    word           m_backColor;
+    word           m_antialiasmap[16];
+    TableItem     *m_bmpHeaderArray;
+    long           m_fontHeight;
+    long           m_fontBaseline;
+    int            m_bShifted;
 
 #ifdef NO_ALLOC
-	unsigned char *m_grayBuffer;
-	word          *m_wordBuffer;
+    unsigned char *m_grayBuffer;
+    word          *m_wordBuffer;
 #endif
 } FONT;
+
+#define LOAD_CHAR(font, pos, bitmap)    *(bitmap) = (font)->m_data + (font)->m_bmpHeaderArray[(pos)].offset;
 
 int Load_Font(FONT *font, char *fileName);
 void Delete_Font(FONT *font);
@@ -66,6 +68,17 @@ int Draw_Font_String(word rgn, dword x, dword y, char *str, char* fontname,  wor
 int CalcSize(FONT *font, unsigned char* text, int* width, int *text_length);
 void SetColors(FONT *font, word foreColor, word backColor);
 
-#define LOAD_CHAR(font, pos, bitmap)	*(bitmap) = (font)->m_data + (font)->m_bmpHeaderArray[(pos)].offset;
+//////////////////////////////////////////////////////////////////////////
+// Hook interface
+#define HOOK
+
+#ifdef HOOK
+
+#define FONT_OVERRIDE  100
+
+int TAP_Osd_GetW_HOOK(const char *str, byte fntType, byte fntSize);
+int TAP_Osd_PutS_HOOK(word rgn, dword x, dword y, dword maxX, const char *str, word fcolor, word bcolor, byte fntType, byte fntSize, byte bDot, byte align);
+
+#endif // HOOK
 
 #endif // RASTERFONTBROWSER_H
