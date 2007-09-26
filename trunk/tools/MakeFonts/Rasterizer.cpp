@@ -208,7 +208,11 @@ int main(int argc, char* argv[])
 
 		if (i==0)
 		{
+#ifdef VER1 
+			table[i].offset= 256*sizeof(TableItem) + sizeof(long);
+#else
 			table[i].offset= 256*sizeof(TableItem) + sizeof(long)*2;
+#endif
 		}
 		else
 		{
@@ -232,7 +236,11 @@ int main(int argc, char* argv[])
 	fwrite(&hh, 4, 1, ready);
 
 	hh=htonl(baseline);
+#ifdef VER1 
+	;
+#else
 	fwrite(&hh, 4, 1, ready);
+#endif
 
 	for (i=0; i<256; i++)
 	{
@@ -243,7 +251,6 @@ int main(int argc, char* argv[])
 		table[i].bitmap_rows = htonl(table[i].bitmap_rows);
 		table[i].bitmap_width = htonl(table[i].bitmap_width);
 		table[i].offset	= htonl(table[i].offset);
-
 		fwrite(&(table[i]), sizeof(TableItem), 1, ready);
 	}
 
@@ -251,7 +258,6 @@ int main(int argc, char* argv[])
 	{					   
 		long w = htonl(table[i].bitmap_width);
 		long r = htonl(table[i].bitmap_rows);
-
 		fwrite(bitmap_buffer[i], sizeof(unsigned char), w*r, ready);
 	}
 	fclose(ready);
