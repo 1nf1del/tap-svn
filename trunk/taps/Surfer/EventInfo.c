@@ -109,24 +109,43 @@ void GetDayName(byte weekDay, char* name)
 /******************************************************************************
 Converts the Parental Rating from number to textual Australian Based ratings.
 ******************************************************************************/
-void GetOzParentalRating(int parentalRating,char *rating)
+char* GetOzParentalRating(int parentalRating)
 {
      // FTA: G=9  PG=11 M=13 MA=15 R=18
      // TED: G=10 PG=12 M=13 MA=15 R=18
      switch ( parentalRating )
      {
             case 9: 
-            case 10: strcpy(rating, "G");  rating[1]= '\0'; break;
+            case 10: return "G";
             case 11: 
-            case 12: strcpy(rating, "PG"); rating[2]= '\0'; break;
-            case 13: strcpy(rating, "M");  rating[1]= '\0'; break;
-            case 15: strcpy(rating, "MA"); rating[2]= '\0'; break;
-            case 18: strcpy(rating, "R");  rating[1]= '\0'; break;
-            default: strcpy(rating, "");  rating[0]= '\0'; break;
+            case 12: return "PG";
+            case 13: return "M";
+            case 15: return "MA";
+            case 18: return "R";
      }
+     return "";
 }
-     
+    
 
+char genreNames[11][16] = {
+	"Unclassfied",
+	"Movie/Drama",
+	"News",
+	"Show/Game",
+	"Sports",
+	"Children",
+	"Music/Dance",
+	"Arts/Culture",
+	"Social",
+	"Education",
+	"Leisure"
+};
+
+
+char* GetGenreName( byte genre )
+{
+	return genre < 11 ? genreNames[genre] : "Unknown";
+}
 
 
 void DisplayNoInfoMessage( void )
@@ -145,7 +164,7 @@ void DisplayNoInfoMessage( void )
 
 void ShowEventTitle(TYPE_TapEvent event)
 {
-    char	str[256];
+    char	str[512];
 	TYPE_TapChInfo chInfo;
 	dword startX;     //KH general x co-ordinate variable.
 	int startY;     //KH general y co-ordinate variable.
@@ -572,7 +591,7 @@ void ShowEventDetails(TYPE_TapEvent event)
 	char when[256];
 	
 	byte extInfoRowSize, extInfoFontSize;
-	bool TF5800ExtInfoFlag;
+	bool DescriptionExtenderTAP;
 
     word MemRgn;
 
@@ -680,20 +699,31 @@ void ShowEventDetails(TYPE_TapEvent event)
 
     void PrintEventDescription()
     {
+		char *desc, *ratingText = NULL, *genre = NULL;
+
         //
         // Print event program Rating information if required.
         //
         LastWrapPutStr_Y = startY;      //KH Set Y coord in case there is no event description text printed.
-        GetOzParentalRating(event.parentalRating,ratingText);
-        if (strcmp(ratingText,"") == 0)
+        ratingText = GetOzParentalRating(event.parentalRating);
+
+		// Test for DescExt patch
+		if (event.description[127] != 0)
+		{
+			desc = event.eventName + event.description[127];
+			genre = GetGenreName(event.description[125]);
+		}
+		else
+			desc = event.description;
+        strcpy(str,desc);
+        if (strlen(ratingText) > 0)
         {
-           sprintf(str,"%s",event.description);
+           sprintf(str+strlen(str)," [%s]",ratingText);
         }
-        else
-        {
-           sprintf(str,"%s [%s]",event.description,ratingText);
-        }
-        if (TF5800ExtInfoFlag)  str[0] ='\0';
+		if (genre != NULL)
+		{
+			sprintf(str+strlen(str), " [%s]", genre);
+		}
 
 		WrapPutStr( MemRgn, str, EVENT_X+8, startY, EVENT_W-8, MAIN_TEXT_COLOUR, EVENT_FILL_COLOUR, 5, FNT_Size_1622, 1); //KH
     }		
@@ -845,16 +875,19 @@ void ShowEventDetails(TYPE_TapEvent event)
     // extInfo = "This is the Extended Event Information. I have put more information in here to see what that does to the scrolling.  I was hoping that this could get across multiple pages to see what happens after you do multiple Info key presses. You may find that this goes over multiple lines and wrap around at the word boundary.  The quick brown fox jumps over the lazy dog. You will often find multiple pages particularly when you look at the SBS channel.  The ABC is another channel where you have several pages of extended information.  I still need to look at what happens in the routine if we have a zero length string or a really long string that fills the entire line.";
     extInfoRowSize = 19;
     extInfoFontSize = FNT_Size_1419;
-    TF5800ExtInfoFlag = FALSE;
-    // Test for the circumstances where the TF5800 Description Extender Hack has kicked in.
+    DescriptionExtenderTAP = FALSE;
+    // Test for Description Extender TAP.
     // ie.  we have extended information AND the normal description is 127 characters AND
     // the normal description matches the same as the first 127 extended info characters.
     if ((extInfo) && (strncmp(event.description,extInfo,127)==0)) 
     {
-        TF5800ExtInfoFlag=TRUE;
+        DescriptionExtenderTAP=TRUE;
         extInfoRowSize = 22;
         extInfoFontSize = FNT_Size_1622;
     }    
+	extInfoRowSize = 22;
+    extInfoFontSize = FNT_Size_1622;
+
 
     if (!InfoKeyPressed || (LastWrapPutStr_P == 0 && ExtInfoRows !=0)) //KH If we're here because of an event EXCEPT the Info Key or we're back to the start of the Extended Info
     {
@@ -870,7 +903,8 @@ void ShowEventDetails(TYPE_TapEvent event)
         startY = startY + 23;   // Set starting position for progress info.
         PrintProgressInfo();
 
-        PrintEventDescription();
+		if (!DescriptionExtenderTAP)
+	        PrintEventDescription();
 
     	LastWrapPutStr_Start = 0;  //KH Reset pointer to start for Extended Event information
     	ExtInfoRows = 1; //KH Assume there will be at least 1 line available for extended info.

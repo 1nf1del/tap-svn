@@ -62,10 +62,11 @@ static byte currentProgressBarOption;
 
 //----------------
 //
-void WriteIniFile( TYPE_File *writeFile )
+void WriteIniFile()
 {
-//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-    GotoPath( TAPIniDir );
+	TYPE_File* writeFile;
+
+	GotoSettings();
 	if ( TAP_Hdd_Exist( OPTIONS_FILENAME ) ) TAP_Hdd_Delete( OPTIONS_FILENAME );	// Just delete any old copies
 
 	TAP_Hdd_Create( OPTIONS_FILENAME, ATTR_PROGRAM );						// Create the file
@@ -76,7 +77,6 @@ void WriteIniFile( TYPE_File *writeFile )
 	TAP_Hdd_Fwrite( dataBuffer_ini, DATA_BUFFER_SIZE_ini, 1, writeFile );	// dump the whole buffer in one hit
 
 	TAP_Hdd_Fclose( writeFile );
-//	TAP_Hdd_ChangeDir("..");												// return to original directory
 }
 
 
@@ -98,7 +98,6 @@ void WriteStrToIniBuf( char *str )											// add str to current end of buffer
 
 void SaveConfigurationToFile( void )
 {
-	TYPE_File	*writeFile;
 	int i;
 	char	str[256];
 
@@ -232,7 +231,7 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", progressBarOption );
 	WriteStrToIniBuf( str );
 	
-	WriteIniFile( writeFile );										// write all the data in one pass
+	WriteIniFile();														// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
 
@@ -350,8 +349,7 @@ bool ReadConfigurationFile( void )
 	int i;
 	dword fileLength;
 
-//	TAP_Hdd_ChangeDir( PROJECT_DIRECTORY );
-    GotoPath( TAPIniDir );
+    GotoSettings();
 	if ( ! TAP_Hdd_Exist( OPTIONS_FILENAME ) ) return FALSE;			// check the timer file exits in the current directory
 	
 	readFile = TAP_Hdd_Fopen( OPTIONS_FILENAME );
@@ -367,7 +365,6 @@ bool ReadConfigurationFile( void )
 	TAP_Hdd_Fread( dataBuffer_ini, fileLength, 1, readFile );			// grab all the data from the file
 
 	TAP_Hdd_Fclose( readFile );
-//	TAP_Hdd_ChangeDir("..");											// return to original directory
 
 	SetConfigurationVariables();
 

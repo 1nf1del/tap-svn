@@ -38,9 +38,7 @@ int screenLogY, screenLogLine;
 void openLogfile()
 {
 	logByteCount = 0;
-//	ChangeDirRoot();
-//	TAP_SystemProc();
-//	TAP_Hdd_ChangeDir("ProgramFiles");
+	GotoProgramFiles();
 	
 	logFD = TAP_Hdd_Fopen(LOGFILE_NAME);
 	if (logFD == NULL)

@@ -40,10 +40,8 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 #endif    
                    
 #define TAP_NAME "Surfer"
-#define VERSION "0.12a"       
+#define VERSION "0.13"       
 
-#define DEBUG 0  // 0 = no debug info, 1 = debug written to logfile,  2 = debug written to screen.  
-            
 #include "tap.h"
 #include "morekeys.h"
 
@@ -93,8 +91,7 @@ static int tempSvcNum;
  
 static byte oldMin;
 static char gstr[100];  //General Message string.
-char* TAPIniDir;
-                                 
+                                
                                           
 #include "UkGraphics.c"
 #include "EventInfoConfig.c"
@@ -743,8 +740,7 @@ int TAP_Main (void)
     appendToLogfile("Surfer TAP Started.");
     TSRCommanderInit( 0, TRUE );    // Include the TSR Commander function.  
 
-	TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project SubDirectory.
-    TAPIniDir = GetCurrentDir();           // Store the directory location of the INI file.	
+	GotoSettings();						   // Change to the Settings directory.
     
     // Surfer V0.11a changed the name of the ini file from UKChannels.ini to Surfer.ini, so rename any old INI files if
     // a new one doesn't already exist.

@@ -26,6 +26,9 @@ include ../../tools/build/tap.mk
 # The first target is the default target.
 all: Surfer.tap
 
+copy: all
+	tfcopy.cmd *.tap '#:\ProgramFiles\'
+
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf

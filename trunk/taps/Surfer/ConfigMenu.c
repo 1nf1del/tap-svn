@@ -944,10 +944,7 @@ void ConfigKeyHandler(dword key)
 							RedrawConfigWindow();
 							break;
 							
-		case RKEY_Record :	//  ChangeDirRoot();                      // Change to the root directory.
-                            //  TAP_Hdd_ChangeDir("ProgramFiles");	  // Let's go to the program files directory.
-	                        //  TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project Directory.
-	                        if (TvRatioOption != currentTvRatio) // If we changed the TV Ratio, apply the defaults to save
+		case RKEY_Record :	if (TvRatioOption != currentTvRatio) // If we changed the TV Ratio, apply the defaults to save
 	                        {
                                  if ( currentTvRatio == 1 )  SetWideScreenSizes(); // Change the screen size variables to suit the Widescreen proportions.
                                  else Set43ScreenSizes();

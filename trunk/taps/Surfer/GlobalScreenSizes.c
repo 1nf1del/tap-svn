@@ -475,9 +475,6 @@ void CloseScreenConfigWindow()
 
 void SaveScreenConfig()
 {
-//  ChangeDirRoot();                      // Change to the root directory.
-//  TAP_Hdd_ChangeDir("ProgramFiles");	  // Let's go to the program files directory.
-//  TAP_Hdd_ChangeDir(PROJECT_DIRECTORY);  // Change to the UK TAP Project Directory.
     SaveConfigurationToFile();    
    	SaveNormalScreenSettings();            // Save the Normal screen settings.
 

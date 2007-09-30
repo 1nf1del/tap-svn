@@ -318,11 +318,13 @@ void ReadLogoFile()
 	char		channelName[CHANNEL_NAME_SIZE];
 	int i; 
 
-//  ChangeDirRoot();                      // Change to the root directory.
-//  TAP_Hdd_ChangeDir("ProgramFiles");	  // Let's go to the program files directory.
-//	TAP_Hdd_ChangeDir("UK TAP Project");  // Change to the UK TAP Project Directory.
-	if ( ! TAP_Hdd_Exist( "logo.dat" ) ) return;						// check our logo file exits in the current directory
-	
+	if ( !TAP_Hdd_Exist( "logo.dat" ) )
+	{
+		GotoLogos();
+		if ( !TAP_Hdd_Exist( "logo.dat" ) )
+			return;
+	}
+
 	logoFile = TAP_Hdd_Fopen( "logo.dat" );
 	if ( logoFile == NULL ) return;										// and we can open it ok
 
@@ -343,7 +345,6 @@ void ReadLogoFile()
 	}
 
 	TAP_Hdd_Fclose( logoFile );
-//	TAP_Hdd_ChangeDir("..");											// return to original directory
 	TAP_MemFree( junkBuffer );
 }
 	

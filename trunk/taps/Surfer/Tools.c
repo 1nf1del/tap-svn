@@ -88,9 +88,6 @@ TAP_Osd_FillBox( msgRgn,MSG_SCREEN_X, MSG_SCREEN_Y, MSG_SCREEN_W, MSG_SCREEN_H, 
 char _tapDir[512];
 char *_tapDirPtr = NULL;
 
-char _currentDir[512];
-char *_currentDirPtr = NULL;
-
 //char PROGRAMFILES[] = "ProgramFiles";
 //char AUTOSTART[] = "ProgramFiles\\Auto Start";
 
@@ -114,37 +111,6 @@ void	ChangeDirRoot()
 
 }
 
-//------------------------------ FindTapDir --------------------------------------
-// Run once to locate the TAP's directory and stored it in the global _tapDir
-//--------------------------------------------------------------------------------------
-
-char* FindTapDir()
-{
-	TYPE_File	fp;
-
-	if ( _tapDirPtr != NULL )
-		return _tapDirPtr;
-
-	TAP_Hdd_ChangeDir("..");
-	TAP_Hdd_FindFirst( &fp );
-
-	// TAP_Print("Tapdir: fp.name = %s\r\n", fp.name);
-
-	if ( strcmp( fp.name, "__ROOT__" ) == 0 )
-	{
-		strcpy(_tapDir, "/ProgramFiles");
-		TAP_Hdd_ChangeDir("ProgramFiles");
-	} else {
-		strcpy(_tapDir, "/ProgramFiles/Auto Start");
-		TAP_Hdd_ChangeDir("Auto Start");
-	}
-
-	_tapDirPtr = _tapDir;
-	// TAP_Print("Tapdir: _tapDirPtr = %s\r\n", _tapDirPtr);
-
-	return _tapDirPtr;	
-}
-
 //----------------  DIRECTORY TOOLS        ---------------------------------------------
 // 
 //--------------------------------------------------------------------------------------
@@ -156,7 +122,6 @@ bool GotoPath(char *path){
 
 	// TAP_Print("GotoPath: going to root...\r\n");
 	ChangeDirRoot();
-	//GotoRoot();
 
 	startPos=path;
 	if ((*startPos)!='/'){
@@ -182,29 +147,24 @@ bool GotoPath(char *path){
 			startPos=endPos+1;
 		}
 	}
-	strcpy(_currentDir, path);
 
 	return TRUE;
 }	
 	
-void GotoTapDir(){
-	char *tdir = FindTapDir();
-	GotoPath(tdir);
-	strcpy(_currentDir, tdir);
-}
-
 bool GotoProgramFiles(){
 	return GotoPath("/ProgramFiles");
 }
 
-bool GotoDataFiles(){
-	return GotoPath("/DataFiles");
+bool GotoSettings(){
+	return GotoPath("/ProgramFiles/Settings");
 }
 
-void GotoRoot(){
-	TAP_Hdd_ChangeDir("/");
-	_currentDir[0] = '/';
-	_currentDir[1] = '\0';
+bool GotoLogos(){
+	return GotoPath("/ProgramFiles/Settings/Logos");
+}
+
+bool GotoDataFiles(){
+	return GotoPath("/DataFiles");
 }
 
 
