@@ -885,9 +885,6 @@ void ShowEventDetails(TYPE_TapEvent event)
         extInfoRowSize = 22;
         extInfoFontSize = FNT_Size_1622;
     }    
-	extInfoRowSize = 22;
-    extInfoFontSize = FNT_Size_1622;
-
 
     if (!InfoKeyPressed || (LastWrapPutStr_P == 0 && ExtInfoRows !=0)) //KH If we're here because of an event EXCEPT the Info Key or we're back to the start of the Extended Info
     {
