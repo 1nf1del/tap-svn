@@ -21,19 +21,17 @@
 
 include ../../tools/build/tap.mk
 
-TAPNAME=DescriptionExtender
-
-all: $(TAPNAME).tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
-	tfcopy.cmd $(TAPNAME).tap '#:\ProgramFiles\'
+all: DescriptionExtender.tap ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
+	tfcopy.cmd DescriptionExtender.tap '#:\ProgramFiles\'
 
 
 # A target for removing generated files.
 clean:
 	-rm -f *.tap *.o *.elf *.map
 
-$(TAPNAME).tap: DescriptionExtender.elf
+DescriptionExtender.tap: DescriptionExtender.elf
 	$(OBJCOPY) -O binary $< $@
-	@mips-objdump -D $(TAPNAME).elf > $(TAPNAME).asm
+	@mips-objdump -D DescriptionExtender.elf > DescriptionExtender.asm
 	-rm -f *.o *.elf *.map
 
 DescriptionExtender.elf::	Main.o DescriptionExtender.o Settings.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
@@ -41,8 +39,7 @@ Main.o:						Main.c Settings.h
 DescriptionExtender.o:		DescriptionExtender.c DescriptionExtender.h Settings.h
 Settings.o:					Settings.c Settings.h
 
-CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../trunk/libs/FireBird
-LDFLAGS+=-l FireBird -L../trunk/libs/FireBird -l c
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -s -C ../../libs/libutils

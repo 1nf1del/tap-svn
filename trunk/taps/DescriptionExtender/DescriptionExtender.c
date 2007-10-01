@@ -282,11 +282,22 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 								// Append the existing extended information
 								if ( extendedLength > 0 )
 								{
-									byte* extText = (((byte*)e)+parameters->extendedEventNameOffset);
+									byte* extText = (byte*)*(dword*)(((byte*)e)+parameters->extendedEventNameOffset);
 									// if additional space is enabled and there is some extended info to append
 									if ( settings->insertSpace && addSpace )
 										*p++ = ' ';
-									memcpy( p, (void*)*((dword*)extText), extendedLength );
+									// Skip any encoding characters
+									if ( *extText < 0x20 )
+									{
+										if ( *extText == 0x10 )
+										{
+											extText += 2;
+											extendedLength -= 2;
+										}
+										++extText;
+										--extendedLength;
+									}
+									memcpy( p, (void*)extText, extendedLength );
 									p += extendedLength;
 									addSpace = FALSE;
 								}

@@ -22,9 +22,6 @@
 #include <tap.h>
 #include <string.h>
 #include <firmware.h>
-#include <OPCodes.h>
-#include <messagewin.h>
-#include <model.h>
 #include "DescriptionExtender.h"
 #include "Settings.h"
 
@@ -32,7 +29,7 @@
 #define LOGFILE "DescriptionExtenderLog.txt"
 
 TAP_ID( 0x81243235 );
-TAP_PROGRAM_NAME("DescriptionExtender 2.11");
+TAP_PROGRAM_NAME("DescriptionExtender 2.2");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Provides long TAP EPG descriptions");
 TAP_ETCINFO(__DATE__);

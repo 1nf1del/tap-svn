@@ -1,4 +1,4 @@
-Description Extender 2.1
+Description Extender 2.2
 ------------------------
 Description Extender extends the EPG programme description text that is visible to TAPs by returning a longer programme description (up to 256 characters) in the EPG extended data. No special support for Description Extender is required by other TAPs to see this information. Improbox, Surfer, Jag's EPG 3.0 and EPG Navigator all support Description Extender. 
 
@@ -17,6 +17,9 @@ If your firmware isn't supported, run the TAP and email me the DescriptionExtend
 
 History
 -------
+2.2		Alternate character sets support.
+		Masterpeice compatible options screen.
+		TF5700HDMI genre support.
 2.1		Auto detect new firmware.
 2.0		Support for loads of new firmware. Added an options screen.
 1.6		Support for 5800 19/09/2006 (13.26) firmware. Fixes missing genre information.
