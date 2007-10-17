@@ -32,6 +32,7 @@ v0.22 sl8	15-12-06	Settings/UkAuto folder
 v0.23 sl8	23-01-07	Cross channel conflict handling
 v0.24 Harvey	31-01-07	Added quoted search and changed the not character from ! to ~
 v0.25 sl8	11-06-07	Term/event sanity check now only performed on 'normal' searches.
+v0.26 jpuhakka	12-10-07	Allow 'Advanced' searches to match multiple words across both the event's title and description.
 
 **************************************************************/
 
@@ -721,7 +722,7 @@ void schMainService(void)
 
 bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearch)
 {
-	int eventNameIndex = 0;
+	int eventNameIndex = 0, combinedFieldsCnt = 0;
 	bool foundSearchTerm = FALSE;
 	word eventMjd = 0, eventYear = 0;
 	byte eventHour = 0, eventMin = 0;
@@ -731,6 +732,9 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 	char rec0InfoOverRun[512];
 	TYPE_RecInfo CurrentRecordInfo1;
 	char rec1InfoOverRun[512];
+	char combinedFields[2000];
+
+	memset(combinedFields,0,2000);
 
 	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
 	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
@@ -816,7 +820,9 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 			)
 		)
 		{
-			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].eventName, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
+			strcat(combinedFields," ");
+			strcat(combinedFields,epgData[epgDataIndex].eventName);
+			combinedFieldsCnt++;
 		}
 
 		if
@@ -826,7 +832,9 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION) == SCH_USER_DATA_OPTIONS_DESCRIPTION)
 		)
 		{
-			foundSearchTerm = schMainCompareStrings(epgData[epgDataIndex].description, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
+			strcat(combinedFields," ");
+			strcat(combinedFields,epgData[epgDataIndex].description);
+			combinedFieldsCnt++;
 		}
 
 		if
@@ -845,8 +853,15 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 
 			if(schEpgDataExtendedInfo)
 			{
-				foundSearchTerm = schMainCompareStrings((char*)schEpgDataExtendedInfo, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
+				strcat(combinedFields," ");
+				strcat(combinedFields,(char*)schEpgDataExtendedInfo);
+				combinedFieldsCnt++;
 			}
+		}
+
+		if( combinedFieldsCnt )
+		{
+			foundSearchTerm = schMainCompareStrings(combinedFields, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
 		}
 	}
 
