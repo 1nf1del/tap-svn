@@ -111,7 +111,7 @@ void DisplayConfigLine(char lineNumber)
 								strcpy( str, text );
 								break;
 								
-					case 1 : 	TAP_SPrint( str, "Press new key NOW !" );
+					case 1 : 	TAP_SPrint( str, "Press new key now" );
 								break;
 
 					case 2 : 	TAP_SPrint( str, "Invalid choice" );
@@ -357,7 +357,22 @@ void DisplayConfigLine(char lineNumber)
 				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
 			    break;
 				
-				
+		case 18 :
+				PrintCenter(rgn, CONFIG_E0, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E1,  "Channel Numbers", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				switch ( currentChannelNumberOption )
+				{
+				    case 0 : 	TAP_SPrint( str, "LCN" );
+								break;
+								
+					case 1 : 	sprintf( str, "Topfield" );
+						    	break;
+
+					default : 	TAP_SPrint( str, "[Invalid value]" );
+								break;
+				}
+				TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET), CONFIG_E2, str, MAIN_TEXT_COLOUR, 0 );
+			    break;	
+
 		case 10 :		
 		case 20 :
 				TAP_Osd_PutGd( rgn, 53, lineNumber * CONFIG_Y_STEP + CONFIG_Y_OFFSET - 8, &_rowaGd, FALSE );		// No highlight for us
@@ -416,6 +431,7 @@ void CopyConfiguration( void )
 	currentTvRatio       = TvRatioOption;
 	currentGuideWindowOption = GuideWindowOption;
 	currentProgressBarOption = progressBarOption;
+	currentChannelNumberOption = channelNumberOption;
 }
 
 void SaveConfiguration( void )
@@ -434,6 +450,7 @@ void SaveConfiguration( void )
 	TvRatioOption      = currentTvRatio;
 	GuideWindowOption  = currentGuideWindowOption;
 	progressBarOption  = currentProgressBarOption;
+	channelNumberOption = currentChannelNumberOption;
 
 	SaveConfigurationToFile();
 }
@@ -817,6 +834,17 @@ void ConfigActionHandler(dword key)
 											
 						case RKEY_VolDown:	if (currentProgressBarOption > 0) currentProgressBarOption = currentProgressBarOption - 1;
 		            	                    else currentProgressBarOption = 3;
+											DisplayConfigLine( chosenConfigLine );
+											break;
+
+						default :			break;
+					}
+					break;
+
+		case 18 :	switch ( key )										// Progress Bar colours
+					{
+						case RKEY_VolDown:
+		            	case RKEY_VolUp:	currentChannelNumberOption = !currentChannelNumberOption;
 											DisplayConfigLine( chosenConfigLine );
 											break;
 

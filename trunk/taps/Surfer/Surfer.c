@@ -40,7 +40,7 @@ History	: v0.0 Darkmatter: 02-08-05 	Inception date
 #endif    
                    
 #define TAP_NAME "Surfer"
-#define VERSION "0.13"       
+#define VERSION "0.14"       
 
 #include "tap.h"
 #include "morekeys.h"

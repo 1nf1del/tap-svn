@@ -22,40 +22,44 @@ dword manualChannelTick;
 #define maxDigitsEntered 4   // How many digits to allow.
 #define manualChannelWait 250 // Time to wait between pressing a channel number and automatically selecting that channel.
 
-bool FindMatchingService( int LCN, word *svcNum, byte *svcType)
+bool FindMatchingService( int LCN, word *svcNum )
 {
     int i;
 	TYPE_logoArray	*localPtr;
     int maxTvSvc, maxRadioSvc;
 	
     TAP_Channel_GetTotalNum( &maxTvSvc, &maxRadioSvc );
-
-	for ( i=0; i<maxTvSvc; i++)				// first compare all the TV services
+	if ( channelNumberOption == 0 )
 	{
-//		if (logoArrayTv[i].svcLCN == LCN )	//We have a matching LCN
-        // Special handling for the 5500.
-		if ((LCN ==999) && (logoArrayTv[i].svcLCN == LCN ))//We have a matching service number (for Topfield 5500)
+		if ( currentSvcType == 0 )
 		{
-//			*svcNum  = i;
-			*svcNum  = i;  
-			*svcType = logoArrayTv[i].svcType;
-			return TRUE;
+			for ( i=0; i<maxTvSvc; i++)				// first compare all the TV services
+			{
+				if (logoArrayTv[i].svcLCN == LCN )	//We have a matching LCN
+				{
+					*svcNum  = i;  
+					return TRUE;
+				}
+			}
 		}
-		if (logoArrayTv[i].svcNum == LCN )   //We have a matching service number (for Topfield 5500)
+		else
 		{
-//			*svcNum  = i;
-			*svcNum  = i-1;  // Special handling for the 5500.
-			*svcType = logoArrayTv[i].svcType;
-			return TRUE;
+			for ( i=0; i<maxRadioSvc; i++)										// then compare all the Radio services
+			{
+				if (logoArrayRadio[i].svcLCN == LCN )	//We have a matching LCN
+				{
+					*svcNum  = i;
+					return TRUE;
+				}
+			}
 		}
 	}
-	for ( i=0; i<maxRadioSvc; i++)										// then compare all the Radio services
+	else
 	{
-//		if (logoArrayRadio[i].svcLCN == LCN )	//We have a matching LCN
-		if (logoArrayRadio[i].svcNum == LCN )	//We have a matching service number (for Topfield 5500)
+		if ( (currentSvcType == 0 && LCN < maxTvSvc) ||
+			 (currentSvcType == 1 && LCN < maxRadioSvc) )
 		{
-			*svcNum  = i;
-			*svcType = logoArrayRadio[i].svcType;
+			*svcNum  = LCN;
 			return TRUE;
 		}
 	}
@@ -78,14 +82,13 @@ void ChangeToManualChannel(int channelNumber)
      byte svcType;
 
      ResetManualChannelNumber();
-     if (!FindMatchingService( channelNumber, &svcNum, &svcType) ) // If the LCN entered doesn't match one of our channels.
+     if (!FindMatchingService( channelNumber, &svcNum) ) // If the LCN entered doesn't match one of our channels.
      {
 	    RedrawAllLogos( currentSvcType, currentSvcNum, FALSE );  // Redraw the logos to reprint the channel name text.
         return;   // And return without changing channels.
      }   
-     
+
      currentSvcNum  = svcNum;
-     currentSvcType = svcType;
      selectionChanged = TRUE;  
      Playback_Selected = FALSE;  // We don't allow to manually select Playback channel, so reset it to false.   
 

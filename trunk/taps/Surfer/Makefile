@@ -33,38 +33,9 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf
 
-###################
-#
-# Add your modifications down here
-#
-###################
+Surfer.tap: Surfer.elf
+	$(OBJCOPY) -O binary $< $@
+	-rm -f *.o *.elf *.map
 
-# If the TAP source code is contained in a single file
-# you don't need anything else, as long as the name of
-# the source file and the name of the TAP match.
-#
-# For example, if you are creating my.tap, you need my.c
-
-
-# If your TAP is built from multiple files (highly recommended)
-# you will need to specify the dependencies between the files.
-# This is done by telling make which source files are required
-# to create a particular target file. These dependecy rules are
-# then combined with built in rules and make will figure out what
-# files need to be built and when.
-#
-# For example, lets say we are building my.tap from my.c as well
-# as main_menu.c config_menu.c and menu.h. Let's also assume that
-# all of the .c files #include the menu.h file. Here are the
-# dependencies:
-#
-#my.elf:: my.o main_menu.o config_menu.o
-#my.o: my.c menu.h
-#main_menu.o: main_menu.c menu.h
-#config_menu.o: config_menu.c menu.h
-#
-#######
-# N.B. - The dependencies must start at column 0.
-#        No space allowed at the start of line.
-#######
-
+Surfer.elf::	Surfer.o
+Surfer.o:		Surfer.c

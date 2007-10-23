@@ -41,6 +41,7 @@ static byte GuideStartOption=2;
 //static byte TvRatioOption;  // Moved to Main routine
 static byte  GuideWindowOption=0;
 static byte progressBarOption;
+static byte channelNumberOption;
 
 //  Variables for temporary configuration options.
 static dword CurrentActivationKey;
@@ -57,6 +58,7 @@ static byte currentGuideStart;
 static byte currentTvRatio;
 static byte currentGuideWindowOption;
 static byte currentProgressBarOption;
+static byte currentChannelNumberOption;
 
 
 
@@ -231,6 +233,9 @@ void SaveConfigurationToFile( void )
 	TAP_SPrint(str, "%d\r\n", progressBarOption );
 	WriteStrToIniBuf( str );
 	
+	TAP_SPrint(str, "%d\r\n", channelNumberOption );
+	WriteStrToIniBuf( str );
+
 	WriteIniFile();														// write all the data in one pass
 	TAP_MemFree( dataBuffer_ini );										// must return the memory back to the heap
 }
@@ -339,7 +344,7 @@ void SetConfigurationVariables( void )
     OVERSCAN_W         = ReadIniDecimal();
     OVERSCAN_H         = ReadIniDecimal();
     progressBarOption  = ReadIniDecimal();
-	
+    channelNumberOption= ReadIniDecimal();
 }
 
 
@@ -378,12 +383,9 @@ void LoadConfiguration( void )
 {
 	if ( !ReadConfigurationFile() )
 	{
-//		unitModelType      = TF5800;
 		unitModelType      = TF5000;
-//		mainActivationKey  = RKEY_TvRadio;
 		mainActivationKey  = RKEY_Ok;
 		highlightChoice    = 2;  // Yellow arrows on black.
-//		displayOption      = 0;
 		displayOption      = 1;  // Linear
 		NowNextTagOption   = 1;  // On
 		ProgressInfoOption = 1;  // On
@@ -397,6 +399,7 @@ void LoadConfiguration( void )
 		GuideWindowOption  = 1;  // Shrink
 		Set43ScreenSizes();      // Set default screen size and layout for 4:3
         progressBarOption  = 0;  // Multicoloured
+		channelNumberOption = 0; // LCN
         		
 		SaveConfigurationToFile();
 	}
