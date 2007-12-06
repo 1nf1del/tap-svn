@@ -52,9 +52,15 @@ typedef struct
 	dword		eventTable;
 	word		eventTableLength;
 	word		eventLength;
+	byte		eventNameOffset;
 	byte		extendedLengthOffset;
 	byte		extendedEventNameOffset;
 	byte		genreOffset;
+	byte		subgenreOffset;
+	byte		crid32LengthOffset;
+	byte		crid32Offset;
+	byte		crid31LengthOffset;
+	byte		crid31Offset;
 } FirmwareDetail;
 
 FirmwareDetail firmwareDetail;
@@ -70,121 +76,120 @@ static FirmwareDetail* GetFirmwareDetail()
 }
 
 
-// Map of genre/subgenre to description
+// Map of genre to description
 typedef struct
 {
     byte genre;
-    byte subgenre;
     byte description[0x40];
 } GenreTable;
 
 GenreTable genres[] = {
-    { 0x0,0x00,"Unclassified" },
+    { 0x00,"Unclassified" },
 
-    { 0x1,0x00,"Movie/Drama" },
-    { 0x1,0x01,"detective/thriller" },
-    { 0x1,0x02,"adventure/western/war" },
-    { 0x1,0x03,"science fiction/fantasy/horror" },
-    { 0x1,0x04,"comedy" },
-    { 0x1,0x05,"soap/melodrama/folkloric" },
-    { 0x1,0x06,"romance" },
-    { 0x1,0x07,"serious/classical/religious/historical movie/drama" },
-    { 0x1,0x08,"adult movie/drama" },
+    { 0x10,"Movie/Drama" },
+    { 0x11,"detective/thriller" },
+    { 0x12,"adventure/western/war" },
+    { 0x13,"science fiction/fantasy/horror" },
+    { 0x14,"comedy" },
+    { 0x15,"soap/melodrama/folkloric" },
+    { 0x16,"romance" },
+    { 0x17,"serious/classical/religious/historical movie/drama" },
+    { 0x18,"adult movie/drama" },
 
-    { 0x2,0x00,"News/Current Affairs" },
-    { 0x2,0x01,"news/weather report" },
-    { 0x2,0x02,"news magazine" },
-    { 0x2,0x03,"documentary" },
-    { 0x2,0x04,"discussion/interview/debate" },
+    { 0x20,"News/Current Affairs" },
+    { 0x21,"news/weather report" },
+    { 0x22,"news magazine" },
+    { 0x23,"documentary" },
+    { 0x24,"discussion/interview/debate" },
 
-    { 0x3,0x00,"Show/Game Show" },
-    { 0x3,0x01,"game show/quiz/contest" },
-    { 0x3,0x02,"variety show" },
-    { 0x3,0x03,"talk show" },
+    { 0x30,"Show/Game Show" },
+    { 0x31,"game show/quiz/contest" },
+    { 0x32,"variety show" },
+    { 0x33,"talk show" },
 
-    { 0x4,0x00,"Sports" },
-    { 0x4,0x01,"special sports events" },
-    { 0x4,0x02,"sports magazines" },
-    { 0x4,0x03,"football/soccer" },
-    { 0x4,0x04,"tennis/squash" },
-    { 0x4,0x05,"team sports" },
-    { 0x4,0x06,"athletics" },
-    { 0x4,0x07,"motor sport" },
-    { 0x4,0x08,"water sport" },
-    { 0x4,0x09,"winter sports" },
-    { 0x4,0x0a,"equestrian" },
-    { 0x4,0x0b,"martial sports" },
+    { 0x40,"Sports" },
+    { 0x41,"special sports events" },
+    { 0x42,"sports magazines" },
+    { 0x43,"football/soccer" },
+    { 0x44,"tennis/squash" },
+    { 0x45,"team sports" },
+    { 0x46,"athletics" },
+    { 0x47,"motor sport" },
+    { 0x48,"water sport" },
+    { 0x49,"winter sports" },
+    { 0x4a,"equestrian" },
+    { 0x4b,"martial sports" },
 
-    { 0x5,0x00,"Children's/Youth Programmes" },
-    { 0x5,0x01,"pre-school children's programmes" },
-    { 0x5,0x02,"entertainment programmes for 6 to 14" },
-    { 0x5,0x03,"entertainment programmes for 10 to 16" },
-    { 0x5,0x04,"informational/educational/school programmes" },
-    { 0x5,0x05,"cartoons/puppets" },
+    { 0x50,"Children's/Youth Programmes" },
+    { 0x51,"pre-school children's programmes" },
+    { 0x52,"entertainment programmes for 6 to 14" },
+    { 0x53,"entertainment programmes for 10 to 16" },
+    { 0x54,"informational/educational/school programmes" },
+    { 0x55,"cartoons/puppets" },
 
-    { 0x6,0x00,"Music/Ballet/Dance" },
-    { 0x6,0x01,"rock/pop" },
-    { 0x6,0x02,"serious music/classical music" },
-    { 0x6,0x03,"folk/traditional music" },
-    { 0x6,0x04,"jazz" },
-    { 0x6,0x05,"musical/opera" },
-    { 0x6,0x06,"ballet" },
+    { 0x60,"Music/Dance" },
+    { 0x61,"rock/pop" },
+    { 0x62,"serious music/classical music" },
+    { 0x63,"folk/traditional music" },
+    { 0x64,"jazz" },
+    { 0x65,"musical/opera" },
+    { 0x66,"ballet" },
 
-    { 0x7,0x00,"Arts/Culture (without music)" },
-    { 0x7,0x01,"performing arts" },
-    { 0x7,0x02,"fine arts" },
-    { 0x7,0x03,"religion" },
-    { 0x7,0x04,"popular culture/traditional arts" },
-    { 0x7,0x05,"literature" },
-    { 0x7,0x06,"film/cinema" },
-    { 0x7,0x07,"experimental film/video" },
-    { 0x7,0x08,"broadcasting/press" },
-    { 0x7,0x09,"new media" },
-    { 0x7,0x0a,"arts/culture magazines" },
-    { 0x7,0x0b,"fashion" },
+    { 0x70,"Arts/Culture (without music)" },
+    { 0x71,"performing arts" },
+    { 0x72,"fine arts" },
+    { 0x73,"religion" },
+    { 0x74,"popular culture/traditional arts" },
+    { 0x75,"literature" },
+    { 0x76,"film/cinema" },
+    { 0x77,"experimental film/video" },
+    { 0x78,"broadcasting/press" },
+    { 0x79,"new media" },
+    { 0x7a,"arts/culture magazines" },
+    { 0x7b,"fashion" },
 
-    { 0x8,0x00,"Social/Political Issues/Economics" },
-    { 0x8,0x01,"magazines/reports/documentary" },
-    { 0x8,0x02,"economics/social advisory" },
-    { 0x8,0x03,"remarkable people" },
+    { 0x80,"Social/Political Issues/Economics" },
+    { 0x81,"magazines/reports/documentary" },
+    { 0x82,"economics/social advisory" },
+    { 0x83,"remarkable people" },
 
-    { 0x9,0x00,"Education/Science/Factual Topics" },
-    { 0x9,0x01,"nature/animals/environment" },
-    { 0x9,0x02,"technology/natural sciences" },
-    { 0x9,0x03,"medicine/physiology/psychology" },
-    { 0x9,0x04,"foreign countries/expeditions" },
-    { 0x9,0x05,"social/spiritual sciences" },
-    { 0x9,0x06,"further education" },
-    { 0x9,0x07,"languages" },
+    { 0x90,"Education/Science/Factual Topics" },
+    { 0x91,"nature/animals/environment" },
+    { 0x92,"technology/natural sciences" },
+    { 0x93,"medicine/physiology/psychology" },
+    { 0x94,"foreign countries/expeditions" },
+    { 0x95,"social/spiritual sciences" },
+    { 0x96,"further education" },
+    { 0x97,"languages" },
 
-    { 0xa,0x00,"Leisure Hobbies" },
-    { 0xa,0x01,"tourism/travel" },
-    { 0xa,0x02,"handicraft" },
-    { 0xa,0x03,"motoring" },
-    { 0xa,0x04,"fitness & health" },
-    { 0xa,0x05,"cooking" },
-    { 0xa,0x06,"advertisement/shopping" },
-    { 0xa,0x07,"gardening" },
+    { 0xa0,"Leisure Hobbies" },
+    { 0xa1,"tourism/travel" },
+    { 0xa2,"handicraft" },
+    { 0xa3,"motoring" },
+    { 0xa4,"fitness & health" },
+    { 0xa5,"cooking" },
+    { 0xa6,"advertisement/shopping" },
+    { 0xa7,"gardening" },
 
-    { 0xb,0x00,"Original Language" },
-    { 0xb,0x01,"black and white" },
-    { 0xb,0x02,"unpublished" },
-    { 0xb,0x03,"live broadcast" },
+    { 0xb0,"Original Language" },
+    { 0xb1,"black and white" },
+    { 0xb2,"unpublished" },
+    { 0xb3,"live broadcast" },
 
-	{ 0xff, 0xff, "" }
+	{ 0xff, "" }
 };
 
 
-char* GetGenreName( byte genre, byte subgenre )
+char* GetGenreName( byte genre )
 {
 	int i;
-	if (subgenre>0)
-		FW_Print("%d %d\n", genre,subgenre);
+
     for ( i=0; genres[i].genre != 0xff; ++i )
 	{
-        if ( genres[i].genre == genre && genres[i].subgenre == subgenre )
+        if ( genres[i].genre == genre )
             return genres[i].description;
     }
+
     return genres[0].description;
 }
 
@@ -221,10 +226,12 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 						int genreLength = 0;
 						bool addSpace = FALSE;
 						word extendedLength = *((word*)(((byte*)e)+parameters->extendedLengthOffset));
+						byte crid31Length = 0;
+						byte crid32Length = 0;
 
 						// Calculate how much memory will be needed for the text
 						// Description is in the 250 byte event name block immediately after event name (no zero terminator)
-						byte* description = e->event_name;
+						byte* description = (byte*)*(dword*)(((byte*)e)+parameters->eventNameOffset);
 						if ( description )
 						{
 							description += e->event_name_length;
@@ -250,8 +257,11 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 						if ( settings->addGenre && parameters->genreOffset )
 						{
 							// Add on the genre length, plus space for brackets and a zero terminator
-							genre = GetGenreName( *(((byte*)e)+parameters->genreOffset),
-												  *(((byte*)e)+parameters->genreOffset+1));
+							if ( parameters->subgenreOffset )
+								genre = GetGenreName( (*(((byte*)e)+parameters->genreOffset) << 4) |
+													  (*(((byte*)e)+parameters->subgenreOffset) & 15) );
+							else
+								genre = GetGenreName( *(((byte*)e)+parameters->genreOffset) );
 							if ( genre )
 							{
 								genreLength = strlen(genre);
@@ -259,6 +269,18 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 									++outputLength;
 								outputLength += genreLength + 3;
 							}
+						}
+
+						if ( parameters->crid31Offset && parameters->crid31LengthOffset )
+						{
+							crid31Length = *((byte*)(((byte*)e)+parameters->crid31LengthOffset));
+							outputLength += crid31Length + 9;
+						}
+
+						if ( parameters->crid32Offset && parameters->crid32LengthOffset )
+						{
+							crid32Length = *((byte*)(((byte*)e)+parameters->crid32LengthOffset));
+							outputLength += crid32Length + 9;
 						}
 
 						// If there's going to be something worth returning
@@ -283,23 +305,26 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 								if ( extendedLength > 0 )
 								{
 									byte* extText = (byte*)*(dword*)(((byte*)e)+parameters->extendedEventNameOffset);
-									// if additional space is enabled and there is some extended info to append
-									if ( settings->insertSpace && addSpace )
-										*p++ = ' ';
-									// Skip any encoding characters
-									if ( *extText < 0x20 )
+									if ( extText )
 									{
-										if ( *extText == 0x10 )
+										// if additional space is enabled and there is some extended info to append
+										if ( settings->insertSpace && addSpace )
+											*p++ = ' ';
+										// Skip any encoding characters
+										if ( *extText < 0x20 )
 										{
-											extText += 2;
-											extendedLength -= 2;
+											if ( *extText == 0x10 )
+											{
+												extText += 2;
+												extendedLength -= 2;
+											}
+											++extText;
+											--extendedLength;
 										}
-										++extText;
-										--extendedLength;
+										memcpy( p, (void*)extText, extendedLength );
+										p += extendedLength;
+										addSpace = FALSE;
 									}
-									memcpy( p, (void*)extText, extendedLength );
-									p += extendedLength;
-									addSpace = FALSE;
 								}
 
 								// Append the genre
@@ -312,6 +337,22 @@ byte* GetEventDescription( TYPE_TapEvent* event )
 									memcpy( p, genre, genreLength );
 									p += genreLength;
 									*p++ = ']';
+									*p++ = '\0';
+								}
+
+								if ( crid31Length > 0 )
+								{
+									strcpy( p, "crid=31\0" ); p+=8;
+									memcpy( p, (byte*)*(dword*)(((byte*)e)+parameters->crid31Offset), crid31Length );
+									p += crid31Length;
+									*p++ = '\0';
+								}
+								
+								if ( crid32Length > 0 )
+								{
+									strcpy( p, "crid=32\0" ); p+=8;
+									memcpy( p, (byte*)*(dword*)(((byte*)e)+parameters->crid32Offset), crid32Length );
+									p += crid32Length;
 									*p++ = '\0';
 								}
 
@@ -389,25 +430,55 @@ bool AnalyseFirmware()
 	firmwareDetail.eventTableLength = GetFirmwareVariable( (dword)TAP_GetCurrentEvent, 0x86, 0x86 );
 	firmwareDetail.eventLength = GetFirmwareVariable( (dword)TAP_GetCurrentEvent, 0x9e, 0x9e );
 
+	firmwareDetail.genreOffset = 0;
+	firmwareDetail.subgenreOffset = 0;
+	firmwareDetail.crid31Offset = 0;
+	firmwareDetail.crid32Offset = 0;
+
+	// Firmware 5.13.72 and onwards reorganised the event table
+	// Genre and subgenre bytes were added for TF5800 firmwares
+	if ( _appl_version >= 0x1402 && (firmwareDetail.eventLength == 0x64 || firmwareDetail.eventLength == 0x68) )
+	{
+		// Freeview Playback firmwares for the 5800 have lots of extra information
+		firmwareDetail.eventNameOffset = 0x28;
+		firmwareDetail.extendedLengthOffset = 0x32;
+		firmwareDetail.extendedEventNameOffset = 0x2c;
+		firmwareDetail.genreOffset = 0x44;
+		firmwareDetail.subgenreOffset = 0x45;
+		firmwareDetail.crid32LengthOffset = 0x46;
+		firmwareDetail.crid32Offset = 0x48;
+		firmwareDetail.crid31LengthOffset = 0x4c;
+		firmwareDetail.crid31Offset = 0x50;
+	}
+	else if ( _appl_version >= 0x1372 && firmwareDetail.eventLength == 0x48 )
+	{
+		firmwareDetail.eventNameOffset = 0x2c;
+		firmwareDetail.extendedLengthOffset = 0x36;
+		firmwareDetail.extendedEventNameOffset = 0x30;
+		firmwareDetail.genreOffset = 0x44;
+		// subgenre is part of the genre byte
+	}
 	// Firmware 5.12.88 and onwards reorganised the event table
 	// Genre and subgenre bytes were added for TF5800 firmwares
-	if ( _appl_version >= 0x1288 )
+	else if ( _appl_version >= 0x1288 )
 	{
+		firmwareDetail.eventNameOffset = 0x28;
 		firmwareDetail.extendedLengthOffset = 0x32;
 		firmwareDetail.extendedEventNameOffset = 0x2c;
 		firmwareDetail.genreOffset = 0x40;
+		firmwareDetail.subgenreOffset = 0x41;
 	}
 	else
 	{
+		firmwareDetail.eventNameOffset = 0x28;
 		firmwareDetail.extendedLengthOffset = 0x2e;
 		firmwareDetail.extendedEventNameOffset = 0x30;
-		firmwareDetail.genreOffset = 0;
 	}
 
 	// Do a sanity check on the searched firmware parameters
 	if ( firmwareDetail.eventTable < 0x80270000 || firmwareDetail.eventTable >= 0x80400000 ||
-		 firmwareDetail.eventTableLength < 4000 || firmwareDetail.eventTableLength >= 15000 ||
-		 firmwareDetail.eventLength < 0x40 || firmwareDetail.eventLength >= 0x50 )
+		 firmwareDetail.eventTableLength < 4000 || firmwareDetail.eventTableLength > 16000 ||
+		 firmwareDetail.eventLength < 0x40 || firmwareDetail.eventLength > 0x68 )
 		return FALSE;
 
 	return TRUE;
