@@ -1,4 +1,4 @@
-TAP Commander 1.0
+TAP Commander 1.2
 
 TAP Commander allows you to configure and disable TAPs whilst your Toppy is running. It can also change the load order of TAPs in your Auto Start directory.
 

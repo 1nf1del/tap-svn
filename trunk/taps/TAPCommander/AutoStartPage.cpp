@@ -21,12 +21,10 @@
 
 #include <stdlib.h>
 #include <tap.h>
-#include <tapapifix.h>
 #include <string.h>
 #include <tapmap.h>
 #include <DirectoryUtils.h>
-#include <TAPExtensions.h>
-#include <FirmwareCalls.h>
+#include <libFireBird.h>
 #include <Logger.h>
 #include <ProgressBox.h>
 #include "AutoStartPage.h"
@@ -40,20 +38,14 @@
 #include "ConfigPage.h"
 
 
+extern bool menuActivates;
+
+
 static const char* messageBoxTitle = "Reorder TAPs";
 // using constants causes crashes in TAP_Hdd_ChangeDir
 #define programFilesPath "/ProgramFiles"
 #define autoStartPath "/ProgramFiles/Auto Start"
 #define tempAutoStartName "Temp Auto Start"
-
-
-static bool IsRecording( int slot )
-{
-	TYPE_RecInfo recInfo;
-	memset( &recInfo, 0, sizeof(recInfo) );
-	return TAP_Hdd_GetRecInfo(slot, &recInfo) &&
-		(recInfo.recType == RECTYPE_Normal || recInfo.recType == RECTYPE_Copy);
-}
 
 
 void AutoStartPage::TAPListItem::DrawSubItem(short int iColumn, Rect rcBounds)
@@ -149,12 +141,12 @@ void AutoStartPage::PopulateList()
 					if ( f )
 					{
 						// read the TAP header
-						TAPHeader header;
+						tTAPHeader header;
 						memset( &header, 0, sizeof(header) );
 						TAP_Hdd_Fread( &header, sizeof(header), 1, f );
 						TAP_Hdd_Fclose( f );
 						// ensure that it's actually a TAP format file
-						if ( strncmp( header.signature, "TFAPMIPS", 8 ) == 0 )
+						if ( strncmp( header.Signature, "TFAPMIPS", 8 ) == 0 )
 						{
 							m_taps.push_back(AutoStartTAP());
 							AutoStartTAP& t = m_taps.back();
@@ -163,10 +155,10 @@ void AutoStartPage::PopulateList()
 							t.index = index;
 							t.filename = file.name;
 							t.enabled = enabled;
-							t.id = header.id;
-							t.name = header.name;
+							t.id = header.TAPID;
+							t.name = header.Name;
 							// and generate the text that will be shown in the footer
-							t.footer.format( "%s\n%s\n%s\n", header.description, header.authorName, header.etcStr );
+							t.footer.format( "%s\n%s\n%s\n", header.Description, header.AuthorName, header.EtcStr );
 							++index;
 						}
 					}
@@ -221,6 +213,11 @@ dword AutoStartPage::OnKey( dword key, dword extKey )
 		return key;
 	case RKEY_Menu:
 	{
+		if (menuActivates)
+		{
+			Close();
+			return key;
+		}
 		Page* p = new ConfigPage();
 		if (p)
 			p->Open();
@@ -318,8 +315,8 @@ dword AutoStartPage::Backup( ListPage* page, ListItem* item, dword key, dword ex
 	
 	array<AutoStartTAP>& taps = ((AutoStartPage*)page)->m_taps;
 
-	DialogBox progress( "Please wait", "Backing up...", "" );
-	progress.CreateDialog();
+	DialogBox progress( "Please wait", "Backing up..." );
+	progress.OnOpen();
 
 	string backup;
 	for ( unsigned int i = 0; i < taps.size(); ++i )
@@ -339,7 +336,7 @@ dword AutoStartPage::Backup( ListPage* page, ListItem* item, dword key, dword ex
 		options->SaveValues();
 	}
 
-	progress.DestroyDialog();
+	progress.OnClose();
 
 	return 0;
 }
@@ -354,8 +351,8 @@ dword AutoStartPage::Restore( ListPage* page, ListItem* item, dword key, dword e
 	AutoStartPage* ths = (AutoStartPage*)page;
 	array<AutoStartTAP>& taps = ths->m_taps;
 
-	DialogBox progress( "Please wait", "Restoring...", "" );
-	progress.CreateDialog();
+	DialogBox progress( "Please wait", "Restoring..." );
+	progress.OnOpen();
 
 	IniFile* file = Tapplication::GetTheApplication()->GetOptions()->GetIniFile();
 	if ( file )
@@ -401,7 +398,7 @@ dword AutoStartPage::Restore( ListPage* page, ListItem* item, dword key, dword e
 			}
 		}
 
-		progress.DestroyDialog();
+		progress.OnClose();
 	}
 
 	return 0;
@@ -435,8 +432,8 @@ void AutoStartPage::Save()
 	}
 
 	// display a progress box
-	ProgressBox progress( "Please wait", "Reordering Auto Start TAPs", "Getting list of TAPs" );
-	progress.CreateDialog();
+	ProgressBox progress( "Please wait", "Reordering Auto Start TAPs" );
+	progress.OnOpen();
 
 	string errors;
 	string warnings;
@@ -445,7 +442,7 @@ void AutoStartPage::Save()
 	// Get the current filenames of each of the TAPs
 	if ( !TAP_Hdd_ChangeDir( autoStartPath ) )
 	{
-		progress.DestroyDialog();
+		progress.OnClose();
 		MessageBox::Show("Reorder TAPs", "Failed to find Auto Start folder", "OK");
 		return;
 	}
@@ -470,18 +467,17 @@ void AutoStartPage::Save()
 		TAP_Hdd_Create( tempAutoStartName, ATTR_FOLDER );
 		if ( !TAP_Hdd_ChangeDir( tempAutoStartName ) )
 		{
-			progress.DestroyDialog();
+			progress.OnClose();
 			MessageBox::Show( messageBoxTitle, "Failed to create Temp Auto Start folder", "OK");
 			return;
 		}
 		// Move the TAPs to the Temporary Auto Start directory
-		progress.UpdateLine1("Preparing TAP:");
 		short int stepSize = 50/m_taps.size();
 		for ( unsigned int i = 0; i < m_taps.size(); ++i )
 		{
 			TRACE1("Moving %s\n",(char*)m_taps[i].filename.c_str());
-			progress.StepProgress( stepSize, NULL, m_taps[i].name );
-			TAP_Hdd_Move( "/ProgramFiles/Auto Start", "/ProgramFiles/Temp Auto Start", (char*)m_taps[i].filename.c_str());
+			progress.StepProgress( stepSize, "Preparing " + m_taps[i].name );
+			HDD_Move( (char*)m_taps[i].filename.c_str(), "/ProgramFiles/Auto Start", "/ProgramFiles/Temp Auto Start" );
 			if ( !TAP_Hdd_Exist( (char*)m_taps[i].filename.c_str() ) )
 			{
 				// TAP wasn't moved, flag the failure and
@@ -497,10 +493,9 @@ void AutoStartPage::Save()
 		TRACE("Done moving\n");
 
 		// Now move them back into Auto Start in the order the user has requested
-		progress.UpdateLine1("Reordering TAP:");
 		if ( !TAP_Hdd_ChangeDir( "/ProgramFiles/Auto Start" ) )
 		{
-			progress.DestroyDialog();
+			progress.OnClose();
 			MessageBox::Show("Reorder TAPs", "Failed to find Auto Start folder", "OK");
 			return;
 		}
@@ -510,8 +505,8 @@ void AutoStartPage::Save()
 			if ( m_taps[i].spare )
 			{
 				TRACE1("Moving TAP %s\n",(char*)m_taps[i].filename.c_str());
-				progress.StepProgress( stepSize, NULL, m_taps[i].name );
-				TAP_Hdd_Move( "/ProgramFiles/Temp Auto Start", "/ProgramFiles/Auto Start", (char*)m_taps[i].filename.c_str());
+				progress.StepProgress( stepSize, "Reordering " + m_taps[i].name );
+				HDD_Move((char*)m_taps[i].filename.c_str(), "/ProgramFiles/Temp Auto Start", "/ProgramFiles/Auto Start");
 				if ( !TAP_Hdd_Exist( (char*)m_taps[i].filename.c_str() ) )
 				{
 					if ( errors.size() > 0 )
@@ -569,7 +564,7 @@ void AutoStartPage::Save()
 		}
 	}
 
-	progress.DestroyDialog();
+	progress.OnClose();
 
 	// report any errors
 	if ( errors.size() || warnings.size() )
@@ -581,7 +576,7 @@ void AutoStartPage::Save()
 	}
 	else
 	{
-		if ( MessageBox::Show("Reorder TAPs", "Finished", IsRecording(0) || IsRecording(1) ? "OK" : "OK\nReboot" ) == 2 )
-			TAP_Reboot(false);
+		if ( MessageBox::Show("Reorder TAPs", "Finished", HDD_isAnyRecording() ? "OK" : "OK\nReboot" ) == 2 )
+			Reboot(false);
 	}
 }

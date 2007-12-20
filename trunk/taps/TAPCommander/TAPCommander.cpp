@@ -23,7 +23,7 @@
 #include <tap.h>
 #include <osd.h>
 #include <Tapplication.h>
-#include <TAPExtensions.h>
+#include <libFireBird.h>
 #include <morekeys.h>
 #include "Options.h"
 #include "SkinOption.h"
@@ -32,19 +32,23 @@
 #include "AutoStartPage.h"
 
 
+bool closeOnClose = true;
+bool menuActivates = false;
+bool exitActivates = true;
+
+
 class TAPCommander : public Tapplication
 {
 public:
 	TAPCommander()
 	{
 		m_showStartPage = false;
-		m_exitActivates = true;
 	}
 
 	~TAPCommander()
 	{
 		for ( int i = 0; i < TAP_MAX; ++i )
-			EnableTAP( i, true );
+			HDD_TAP_Disable( HDD_TAP_GetIDByIndex(i), false );
 	}
 
 	virtual bool Start();
@@ -55,7 +59,6 @@ public:
 
 private:
 	bool m_showStartPage;
-	bool m_exitActivates;
 };
 
 
@@ -68,10 +71,12 @@ const char* TAPCommander::GetIniName() const
 bool TAPCommander::Start()
 {
 	// Initialise the firmware hack
-	if ( !StartTAPExtensions() )
+	if ( !InitTAPex() )
 		return false;
 
-	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit Key Activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(m_exitActivates)));
+	m_options->Add(new YesNoOption(m_options, "CloseOnTAPClose", true, "Auto Close Running TAPs Screen", "Closes the Running TAPs screen when closing another TAP", new OptionUpdateValueNotifier_bool(closeOnClose)));
+	m_options->Add(new YesNoOption(m_options, "MenuActivates", false, "Menu Key Activates TAP Commander first", "Allow Menu to activate TAP Commander before the Topfield Main Menu", new OptionUpdateValueNotifier_bool(menuActivates)));
+	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit Key Activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(exitActivates)));
 
 	if (!Tapplication::Start())
 		return false;
@@ -90,7 +95,7 @@ void TAPCommander::OnIdle()
 	if ( m_showStartPage )
 	{
 		m_showStartPage = false;
-		LoadedTAPPage* p = new LoadedTAPPage;
+		Page* p = new LoadedTAPPage();
 		if (p)
 			p->Open();
 	}
@@ -101,20 +106,25 @@ void TAPCommander::OnIdle()
 
 dword TAPCommander::OnKey( dword key, dword extKey )
 {
-	if ( Tapplication::OnKey( key, extKey ) == 0 )
-		return 0;
-
 	if ( pageCount == 0 )
 	{
 		dword state, subState;
-		TAP_GetState( &state, &subState );
-		if ( (state == STATE_Menu && subState == SUBSTATE_MainMenu && key == RKEY_Menu) ||
-			 (state == STATE_Normal && subState == SUBSTATE_Normal && m_exitActivates && key == RKEY_Exit && !OsdActive() ))
+
+		if ( key == RKEY_Menu )
 		{
-			LoadedTAPPage* p = new LoadedTAPPage;
-			if (p)
-                p->Open();
-			return 0;
+			TAP_GetState( &state, &subState );
+			// Allow the firmware to receive the keypress so it hides its menu.
+			if ( state == STATE_Menu && subState == SUBSTATE_MainMenu )
+				m_showStartPage = true;
+		}
+		if ( (key == RKEY_Exit && exitActivates) || (key == RKEY_Menu && menuActivates) )
+		{
+			TAP_GetState( &state, &subState );
+			if ( state == STATE_Normal && subState == SUBSTATE_Normal && !OsdActive() )
+			{
+				m_showStartPage = true;
+				return 0;
+			}
 		}
 	}
 
@@ -125,6 +135,9 @@ dword TAPCommander::OnKey( dword key, dword extKey )
 		return Close();
 	}
 #endif
+
+	if ( Tapplication::OnKey( key, extKey ) == 0 )
+		return 0;
 
 	return key;
 }

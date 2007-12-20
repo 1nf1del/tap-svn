@@ -19,7 +19,11 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-LIBRARIES=../../libs/Framework/libFramework.a ../../libs/libc++utils/libc++utils.a ../../libs/libutils/libutils.a 
+
+INCLUDEDIRS=-I../../libs/libutils -I../../libs/libc++utils -I../../libs/Framework -I../../libs/FireBird
+LIBDIRS=-L../../libs/libutils -L../../libs/libc++utils -L../../libs/Framework -L../../libs/FireBird
+
+LIBRARIES=../../libs/libutils/libutils.a ../../libs/libc++utils/libc++utils.a ../../libs/Framework/libFramework.a
 OBJECTS=tap.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o ConfigPage.o
 
 include ../../tools/build/tap.mk
@@ -35,9 +39,10 @@ copy: all
 clean:
 	-rm -f *.tap *.o *.elf *.map VTableFix.cpp
 
-CXXFLAGS+=-I../../libs/libutils -I../../libs/libc++utils -I../../libs/Firmware -I../../libs/Framework
+CFLAGS+=$(INCLUDEDIRS)
+CXXFLAGS+=$(INCLUDEDIRS)
 
-LDFLAGS:= -u TAP_Main -L../../libs/Framework -L../../libs/libc++utils -L../ -L../../libs/libutils -L../../libs/Firmware -lframework -lc++utils -lutils -lfirmware $(LDFLAGS)
+LDFLAGS:= -u TAP_Main $(LIBDIRS) -lFramework -lc++utils -lutils -lFireBird -lc $(LDFLAGS)
 
 TAPCommander.tap:	TAPCommander.elf
 TAPCommander.elf:	$(OBJECTS) $(VTABLEFIX)
@@ -46,3 +51,5 @@ TAPCommander.o:		TAPCommander.cpp
 LoadedTAPPage.o:	LoadedTAPPage.cpp LoadedTAPPage.h
 AutoStartPage.o:	AutoStartPage.cpp AutoStartPage.h
 ConfigPage.o:		ConfigPage.cpp ConfigPage.h
+
+

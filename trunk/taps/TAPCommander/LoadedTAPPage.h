@@ -25,15 +25,13 @@
 #include "ListPage.h"
 
 
-void EnableTAP( int index, bool enable );
-
-
 class LoadedTAPPage : public ListPage
 {
 public:
 	LoadedTAPPage();
 	~LoadedTAPPage();
 
+	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );
 
 private:
@@ -47,15 +45,22 @@ private:
 	public:
 		TAPListItem(ListPage* pParentList, unsigned int index) :
 			ListItem(pParentList),
-			m_index(index)
+			m_index(index),
+			m_closing(false)
 		{
 		}
+
+		void EnableTAP( bool enable );
+		bool IsEmpty();
+		int GetIndex() { return m_index; }
+
 		virtual dword OnKey( dword key, dword extKey );
 		virtual string GetFooterText();
 		virtual void DrawSubItem(short int iColumn, Rect rcBounds);
 
 	private:
 		unsigned int m_index;
+		bool m_closing;
 	};
 };
 
