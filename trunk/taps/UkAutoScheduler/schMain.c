@@ -33,6 +33,9 @@ v0.23 sl8	23-01-07	Cross channel conflict handling
 v0.24 Harvey	31-01-07	Added quoted search and changed the not character from ! to ~
 v0.25 sl8	11-06-07	Term/event sanity check now only performed on 'normal' searches.
 v0.26 jpuhakka	12-10-07	Allow 'Advanced' searches to match multiple words across both the event's title and description.
+v0.27 jpuhakka	14-12-07	Support for Scandinavian letters added (å, ä and ö).
+v0.28 jpuhakka	18-12-07	Advanced searches: Support for "full stop" added (e.g. c.s.i+~miami). Memory corruption fixed (Occurred when search performed on combined description/extended data).
+
 
 **************************************************************/
 
@@ -46,6 +49,8 @@ v0.26 jpuhakka	12-10-07	Allow 'Advanced' searches to match multiple words across
 
 #define STRING_LENGTH 255
 #define MAX_STACK_VAL  50
+
+#define COMBINED_NAME_DESC_EXT_LEN 2000
 
 #define RECORDED_DB_DIR "UKAuto_db"
 #define REC_TYPE_EMPTY 0
@@ -211,7 +216,7 @@ typedef struct _search_stack
 typedef struct _search
 {
    Token_val T_LookAhead;
-   char description[STRING_LENGTH];
+   char description[COMBINED_NAME_DESC_EXT_LEN];
    char expr[STRING_LENGTH];
    char string_buf[STRING_LENGTH];
 
@@ -226,6 +231,26 @@ typedef struct _search
 
 } SEARCH;
 
+char tolower_with_scands(char c)
+{
+  char ret;
+  switch(c)
+  {
+    case 'Å':
+      ret='å'; 
+      break;
+    case 'Ä':
+      ret='ä';
+      break;
+    case 'Ö':
+      ret='ö';
+      break;
+    default:
+      ret=tolower(c);      
+      break;
+  }
+  return ret;
+}
 
 unsigned long schMainGenerateHash(unsigned char *buf)
 {
@@ -732,9 +757,9 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 	char rec0InfoOverRun[512];
 	TYPE_RecInfo CurrentRecordInfo1;
 	char rec1InfoOverRun[512];
-	char combinedFields[2000];
+	char combinedFields[COMBINED_NAME_DESC_EXT_LEN];
 
-	memset(combinedFields,0,2000);
+	memset(combinedFields,0,COMBINED_NAME_DESC_EXT_LEN);
 
 	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
 	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
@@ -1318,6 +1343,12 @@ char *schMainstrstrwc_i(char *text,char *pattern)
             ( *tptr >= 'a' ) && ( *tptr <= 'z' )
             ||
             ( *tptr >= '0' ) && ( *tptr <= '9' )
+            ||
+            ( *tptr == 'å' )
+            ||
+            ( *tptr == 'ä' )
+            ||
+            ( *tptr == 'ö' )
          )
          {
             return NULL;
@@ -1405,6 +1436,13 @@ void schMainBufTok(SEARCH *search, char c)
    while ( (inspect >= 'a' && inspect <='z' ) ||
            (inspect >= 'A' && inspect <='Z' ) ||
            (inspect >= '0' && inspect <='9' ) ||
+           (inspect == 'å' ) || 
+           (inspect == 'Å' ) || 
+           (inspect == 'ä' ) || 
+           (inspect == 'Ä' ) || 
+           (inspect == 'ö' ) || 
+           (inspect == 'Ö' ) ||
+           (inspect == '.' ) ||  
            (inspect == '*' ) || 
            (inspect == ' ' ) || 
            (inspect == '$' ) || 
@@ -1744,7 +1782,7 @@ int schMainSearch(SEARCH *search,char *expr)
            *src == '#' || *src == '\"' )
          advanced=-1;
    
-      *tgt++=tolower(*src++);
+      *tgt++=tolower_with_scands(*src++);
    }
 
    *tgt='\0';
@@ -1772,7 +1810,7 @@ int schMainSearchInit(SEARCH *search,char *description)
    tgt=search->description;
 
    while (*src != '\0')
-      *tgt++=tolower(*src++);
+      *tgt++=tolower_with_scands(*src++);
 
    *tgt='\0';
 
