@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2007 Simon Capewell
+	Copyright (C) 2005-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -22,10 +22,10 @@
 #include <tap.h>
 #include <tapconst.h>
 #include <string.h>
+#include <libFireBird.h>
 #include <firmware.h>
-#include <OPCodes.h>
-#include <messagewin.h>
 #include <model.h>
+#include <messagewin.h>
 #include "DescriptionExtender.h"
 #include "EPG.h"
 #include "Settings.h"
@@ -450,7 +450,13 @@ bool AnalyseFirmware()
 		firmwareDetail.crid31LengthOffset = 0x4c;
 		firmwareDetail.crid31Offset = 0x50;
 	}
-	else if ( _appl_version >= 0x1372 && firmwareDetail.eventLength == 0x48 )
+	else if ( _appl_version >= 0x1373 && firmwareDetail.eventLength == 0x44 )
+	{
+		firmwareDetail.eventNameOffset = 0x2c;
+		firmwareDetail.extendedLengthOffset = 0x36;
+		firmwareDetail.extendedEventNameOffset = 0x30;
+	}
+	else if ( _appl_version >= 0x1347 && firmwareDetail.eventLength == 0x48 )
 	{
 		firmwareDetail.eventNameOffset = 0x2c;
 		firmwareDetail.extendedLengthOffset = 0x36;
@@ -503,10 +509,12 @@ void WriteErrorLog()
 	{
 		memset( buffer, ' ', sizeof(buffer) );
 		p = buffer;
+		sprintf( p, "%s (%s)\n", __tap_program_name__, __tap_etc_str__ );
+		p += strlen(p);
 		sprintf( p, "%d, 0x%04x, 0x%x, 0x%x\n\n", *sysID, _appl_version, TAP_GetCurrentEvent, TAP_EPG_GetExtInfo );
 		p += strlen(p);
-		sprintf( p, "eventTable %X\neventTableLength %X\neventLength %X\n\n",
-			firmwareDetail.eventTable, firmwareDetail.eventTableLength, firmwareDetail.eventLength );
+		sprintf( p, "eventTable %X\neventTableLength %d (%X)\neventLength %X\n\n",
+			firmwareDetail.eventTable, firmwareDetail.eventTableLength, firmwareDetail.eventTableLength, firmwareDetail.eventLength );
 		p += strlen(p);
 		sprintf( p, "TAP_GetCurrentEvent\n" );
 		p += strlen(p);
@@ -523,6 +531,13 @@ void WriteErrorLog()
 
 bool DescriptionExtender_Init()
 {
+	if ( PatchIsInstalled((dword*)0x80000000, "De") )
+	{
+		ShowMessage( "Description Extender is not required\n"
+					 "when the DescExt patch is installed", 1000 );
+		return FALSE;
+	}
+
 	if ( !AnalyseFirmware() )
 	{
 		char buffer[512];
@@ -547,16 +562,16 @@ bool DescriptionExtender_Init()
 		((word*)GetFirmwareDetail)[3] = (dword)&firmwareDetail & 0xffff;
 
 		// Replace TAP_EPG_GetExtInfo with a jump to our GetEventDescription function
-		HackFirmware( (dword*)TAP_EPG_GetExtInfo, J(GetEventDescription) );
-		HackFirmware( ((dword*)TAP_EPG_GetExtInfo)+1, NOP_CMD ); // MUST insert a nop after the jump
+		HackFirmware( (dword)TAP_EPG_GetExtInfo, JMP_CMD | REL_ADDR(GetEventDescription) );
+		HackFirmware( (dword)TAP_EPG_GetExtInfo+4, NOP_CMD ); // MUST insert a nop after the jump
 
 		// Set up TAP API wrappers that don't require the use of $gp to be called
-		((dword*)FW_MemAlloc)[0] = J(TAP_MemAlloc);
+		((dword*)FW_MemAlloc)[0] = JMP_CMD | REL_ADDR(TAP_MemAlloc);
 		((dword*)FW_MemAlloc)[1] = NOP_CMD;
 		// Useful for debugging
-		((dword*)FW_sprintf)[0] = J(TAP_SPrint);
+		((dword*)FW_sprintf)[0] = JMP_CMD | REL_ADDR(TAP_SPrint);
 		((dword*)FW_sprintf)[1] = NOP_CMD;
-		((dword*)FW_Print)[0] = J(TAP_Print);
+		((dword*)FW_Print)[0] = JMP_CMD | REL_ADDR(TAP_Print);
 		((dword*)FW_Print)[1] = NOP_CMD;
 	}
 }

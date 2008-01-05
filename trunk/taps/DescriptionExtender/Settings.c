@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2007 Simon Capewell
+	Copyright (C) 2005-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -36,6 +36,7 @@ static dword rgn = 0;
 static char* optionTextBuffer = 0;
 static int optionCount = 2;
 
+void WriteErrorLog();
 static void OptionsMenu_UpdateText();
 
 
@@ -73,12 +74,12 @@ void OptionsMenu_Show()
 	TAP_ExitNormal();
 
 	TAP_Win_SetDefaultColor( &window );
-	TAP_Win_Create( &window, rgn, 160, 70, 330, 150, FALSE, FALSE );
+	TAP_Win_Create( &window, rgn, 160, 70, 330, 175, FALSE, FALSE );
 	sprintf( buffer, "%s Options", __tap_program_name__ );
 	TAP_Win_SetTitle( &window, buffer, 0, FNT_Size_1622 );
 
 	// allocate memory for option text
-	optionTextBuffer = (char*)malloc(0x40*(optionCount+5));
+	optionTextBuffer = (char*)malloc(0x40*(optionCount+6));
 	OptionsMenu_UpdateText();
 }
 
@@ -104,7 +105,12 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 		switch ( key )
 		{
 		case RKEY_Ok:
-			if ( selection == optionCount+1 )
+			if ( selection == optionCount )
+			{
+				WriteErrorLog();
+				OptionsMenu_Close();
+			}
+			if ( selection == optionCount+2 )
 			{
 				// Cancel - Reload original settings
 				OptionsMenu_Close();
@@ -113,7 +119,7 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 			return 0;
 
 		case RKEY_0:
-			if ( selection == optionCount )
+			if ( selection == optionCount+1 )
 			{
 				// Reset to defaults
 				Settings_Reset();
@@ -143,7 +149,7 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 			return 0;
 
 		case RKEY_ChDown:
-			if ( selection < optionCount+1 )
+			if ( selection < optionCount+2 )
 			{
 				TAP_Win_Action( &window, key );
 				OptionsMenu_UpdateText();
@@ -186,6 +192,9 @@ void OptionsMenu_UpdateText()
 	window.check[window.itemNum] = _appl_version < 0x1288 ? 2 : 0; // disable if firmware before 5.12.88
 	AddMenuItem( window, p );
 
+	strcpy( p, "Create diagnostics file" );
+	AddMenuItem( window, p );
+
 	strcpy( p, "Reset to defaults" );
 	AddMenuItem( window, p );
 
@@ -211,11 +220,18 @@ void OptionsMenu_UpdateText()
 		AddMenuItem( window, p );
 		break;
 	case 2:
+		strcpy( p, "Press OK to generate diagnositic information" );
+		AddMenuItem( window, p );
+		strcpy( p, "to DescriptionExtenderLog.txt" );
+		AddMenuItem( window, p );
+		break;
+	case 3:
 		strcpy( p, "Press 0 to reset options to their defaults" );
 		AddMenuItem( window, p );
 		strcpy( p, " " );
 		AddMenuItem( window, p );
 		break;
+
 	default:
 		strcpy( p, " " );
 		AddMenuItem( window, p );
