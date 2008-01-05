@@ -31,15 +31,16 @@ clean:
 
 DescriptionExtender.tap: DescriptionExtender.elf
 	$(OBJCOPY) -O binary $< $@
-	@mips-objdump -D DescriptionExtender.elf > DescriptionExtender.asm
-	-rm -f *.o *.elf *.map
+	@mips-objdump -D -S DescriptionExtender.elf > DescriptionExtender.asm
+#	-rm -f *.o *.elf *.map
 
 DescriptionExtender.elf::	Main.o DescriptionExtender.o Settings.o ../../libs/libutils/libutils.a ../../libs/Firmware/libfirmware.a
 Main.o:						Main.c Settings.h
 DescriptionExtender.o:		DescriptionExtender.c DescriptionExtender.h Settings.h
 Settings.o:					Settings.c Settings.h
 
-CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../../libs/FireBird
+LDFLAGS+=-L../../libs/FireBird -l FireBird -l c
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -s -C ../../libs/libutils
