@@ -220,7 +220,7 @@ void OptionsMenu_UpdateText()
 		AddMenuItem( window, p );
 		break;
 	case 2:
-		strcpy( p, "Press OK to generate diagnositic information" );
+		strcpy( p, "Press OK to generate diagnostic information" );
 		AddMenuItem( window, p );
 		strcpy( p, "to DescriptionExtenderLog.txt" );
 		AddMenuItem( window, p );
