@@ -83,6 +83,7 @@ public:
 
 protected:
 	array<ListItem*> m_items;
+	virtual void DrawFooterContent(Rect drawRect);
 
 private:
 	void CalcRealColumnWidths();

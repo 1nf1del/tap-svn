@@ -28,6 +28,8 @@ Option(pContainer, key, "None", name, description, pNotifier)
 	m_choices.push_back("Serial");
 	m_choices.push_back("Screen");
 	m_choices.push_back("Both");
+	m_choices.push_back("File");
+	m_choices.push_back("File+Flush");
 }
 
 LoggingOption::~LoggingOption()
@@ -51,6 +53,12 @@ int LoggingOption::ValueAsInteger() const
 
 	if (value == "Both")
 		return Logger::Serial+Logger::Screen;
+
+	if (value == "File")
+		return Logger::File;
+
+	if (value == "File+Flush")
+		return Logger::File + Logger::FlushFile;
 
 	return Logger::Serial;
 

@@ -110,6 +110,11 @@ void ListPage::DrawFooter()
 	short int iWidth = DrawFooterFrame(drawRect);
 	drawRect.Shrink(iWidth);
 
+	DrawFooterContent(drawRect);
+}
+
+void ListPage::DrawFooterContent(Rect drawRect)
+{
 	string sFooterText = GetFooterText();
 	if (sFooterText.empty())
 		return;

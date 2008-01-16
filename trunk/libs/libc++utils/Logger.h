@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tap.h"
 #include <stdarg.h>
+#include "tapstring.h"
 
 extern "C" 
 {
@@ -39,7 +40,7 @@ extern "C"
 class Logger
 {
 public:
-	Logger(void);
+	Logger();
 	~Logger(void);
 
 	enum LogDests
@@ -47,10 +48,11 @@ public:
 		None=0,
 		Serial=1,
 		Screen=2,
-		File=4
+		File=4,
+		FlushFile=8,
 	};
 
-	static void SetDestination(int destination);
+	static void SetDestination(int destination, string logFileDir);
 	static void Log(const char* format, ...);
 	static void DoneWithLogger();
 	static void LogMemStats();
@@ -59,7 +61,7 @@ private:
 	static Logger* GetLogger();
 
 	void Logv(const char* format, const va_list& arglist);
-	void SetDest(LogDests destination);
+	void SetDest(LogDests destination, string logFileDir);
 
 	static Logger* m_pTheLogger;
 	static bool m_bLogNoMore;
@@ -68,6 +70,7 @@ private:
 	word m_OSDRegion;
 	int m_yOffs;
 	UFILE* m_pFile;
+	string m_logFileDir;
 };
 
 #endif

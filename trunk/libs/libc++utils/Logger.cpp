@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+#include "DirectoryUtils.h"
 #include "logger.h"
 #include <file.h>
 #include <string.h>
@@ -25,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Logger* Logger::m_pTheLogger = NULL;
 bool Logger::m_bLogNoMore = false;
 
-Logger::Logger(void)
+Logger::Logger()
 {
 	m_Destination = Serial;
 	m_pFile = NULL;
@@ -68,13 +70,15 @@ void Logger::DoneWithLogger()
 	m_bLogNoMore = true;
 }
 
-void Logger::SetDestination(int destination)
+void Logger::SetDestination(int destination, string logFileDir)
 {
-	GetLogger()->SetDest((Logger::LogDests)destination);
+	GetLogger()->SetDest((Logger::LogDests)destination, logFileDir);
 }
 
-void Logger::SetDest(Logger::LogDests destination)
+void Logger::SetDest(Logger::LogDests destination, string logFileDir)
 {
+	m_logFileDir = logFileDir;
+
 	if (destination & Screen)
 	{
 		if (m_OSDRegion == 0)
@@ -90,7 +94,7 @@ void Logger::SetDest(Logger::LogDests destination)
 	if (destination & File)
 	{
 		if (m_pFile == NULL)
-			m_pFile = fopen("LogFile", "a");
+			m_pFile = OpenFile(m_logFileDir + "/LogFile", "a");
 	}
 	else
 	{
@@ -119,6 +123,13 @@ void Logger::Logv(const char* format, const va_list &arglist)
 	if (m_Destination & File)
 	{
 		fputs(buf, m_pFile);
+		if (m_Destination & FlushFile)
+		{
+			fclose(m_pFile);
+			m_pFile = OpenFile(m_logFileDir + "/LogFile", "a");
+			TAP_Hdd_Fseek(m_pFile->fd, 0, 2 /*SEEK_END*/);
+
+		}
 //		fflush(m_pFile);
 	}
 
