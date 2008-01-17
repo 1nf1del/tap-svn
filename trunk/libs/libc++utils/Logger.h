@@ -62,6 +62,8 @@ private:
 
 	void Logv(const char* format, const va_list& arglist);
 	void SetDest(LogDests destination, string logFileDir);
+	void OpenFileIfNeeded();
+	void LogToScreen(const char* buf);
 
 	static Logger* m_pTheLogger;
 	static bool m_bLogNoMore;
@@ -69,8 +71,10 @@ private:
 	LogDests m_Destination;
 	word m_OSDRegion;
 	int m_yOffs;
-	UFILE* m_pFile;
+	TYPE_File* m_pFile;
 	string m_logFileDir;
+	int m_iFilePos;
+	bool m_bLogging;
 };
 
 #endif
