@@ -52,8 +52,8 @@ private:
 	void BuildDeletedArchive();
 	void Index();
 	void Initialize();
-	void ProcessFolder(const string& sFolderName);
-	void ProcessFile(const string& sFileName, dword dwStartCluster);
+	void ProcessFolder(string sFolderName);
+	void ProcessFile(string sFileName, dword dwStartCluster);
 
 	array<const ArchivedProgram*> m_theArchive;
 	array<const ArchivedProgram*> m_cachedArchive;

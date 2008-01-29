@@ -108,10 +108,19 @@ dword Tapplication::EventHandler( word event, dword param1, dword param2 )
 		if (m_reshowUIKey != 0)
 			return OnKeyWhenHidden(param1, param2);
 		return OnKey( param1, param2 );
+	default:
+		return OnOtherEvent(event, param1, param2);
 	}
 
+}
+
+dword Tapplication::OnOtherEvent(  word event, dword param1, dword param2 )
+{
+	event;
+	param2;
 	return param1;
 }
+
 
 void Tapplication::OnIdle()
 {

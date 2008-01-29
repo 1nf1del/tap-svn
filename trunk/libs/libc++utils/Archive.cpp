@@ -155,7 +155,7 @@ bool Archive::DoSomeLoading()
 
 	ChangeDirectory(m_sInitialFolder);
 
-	TRACE("About to save cache file\n");
+//	TRACE("About to save cache file\n");
 
 	SaveCache();
 	TRACE("About to update deleted program list\n");
@@ -169,7 +169,7 @@ bool Archive::DoSomeLoading()
 }
 
 
-void Archive::ProcessFolder(const string& sFolderName)
+void Archive::ProcessFolder(string sFolderName)
 {
 	TRACE1("Processing folder %s\n", sFolderName.c_str());
 	if (!m_bLoadingInBackground)
@@ -179,25 +179,32 @@ void Archive::ProcessFolder(const string& sFolderName)
 	GetDetailFolderContents(sFolderName, files, ".rec", false);
 	for (unsigned int i=0; i<files.size(); i++)
 	{
-		TRACE1("Queueing file %s\n", files[i].name);
+//		TRACE1("Queueing file %s\n", files[i].name);
 		m_filesToDo.push_back(sFolderName + "/" + files[i].name);
 		m_totalClusters.push_back(files[i].totalCluster);
 	}
 
 
 	array<string> folders = GetSubFolders(sFolderName);
+//	TRACE1("Found %d folders to deal with \n", folders.size());
 	for (unsigned int i=0; i<folders.size(); i++)
 	{
+//		TRACE2("About to Queue folder %d, string length is %d\n", i, folders[i].size());
 		if (folders[i][0]!='.')
 		{
-			TRACE1("Queueing folder %s\n", folders[i].c_str());
+//			TRACE1("Queueing folder %s\n", folders[i].c_str());
 			m_foldersToDo.push_back(sFolderName + "/" + folders[i]);
+//			TRACE("Queued\n");
+		}
+		else
+		{
+//			TRACE("Ignore folder starting with .\n");
 		}
 	}
-	TRACE1("Finished processing folder %s\n", sFolderName.c_str());
+//	TRACE1("Finished processing folder %s\n", sFolderName.c_str());
 }
 
-void Archive::ProcessFile(const string& fileName, dword dwTotalCluster)
+void Archive::ProcessFile(string fileName, dword dwTotalCluster)
 {
 	TRACE1("Checking file %s...", fileName.c_str());
 	int iSplit = fileName.reverseFind('/');

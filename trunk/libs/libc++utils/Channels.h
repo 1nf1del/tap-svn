@@ -31,8 +31,11 @@ public:
 	~Channels(void);
 
 	int LogicalToToppy(int iLogicalChannelNum);
+	int GetLCNForChannel(unsigned int iChannelNum);
 	const string& NameForChannel(unsigned int iChannelNum);
 	int GetCount();
+
+	int GetCurrentChannel(bool bSubPicture = false);
 
 private:
 

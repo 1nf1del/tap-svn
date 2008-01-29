@@ -40,6 +40,7 @@ public:
 	virtual bool Start();
 	virtual void OnIdle();
 	virtual dword OnKey( dword key, dword extKey );
+	virtual dword OnOtherEvent(  word event, dword param1, dword param2 );
 	dword EventHandler( word event, dword param1, dword param2 );
 	virtual void BeforeExitNormal();
 	virtual void AfterEnterNormal();

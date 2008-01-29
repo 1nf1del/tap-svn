@@ -59,8 +59,36 @@ const string& Channels::NameForChannel(unsigned int iChannelNum)
 	return m_names.nullObject();
 }
 
+int Channels::GetLCNForChannel(unsigned int iChannelNum)
+{
+	if (iChannelNum>=0 && iChannelNum<m_lcns.size())
+		return m_lcns[iChannelNum];
+
+	return -1;
+}
+
+
 int Channels::GetCount()
 {
 	return m_names.size();
 }
 
+int Channels::GetCurrentChannel(bool bSubPicture)
+{
+	int result = -1;
+
+	if (bSubPicture)
+	{
+		TAP_Channel_GetCurrentSubTV(&result);
+	}
+	else
+	{
+		int iTVRadio = -1;
+		TAP_Channel_GetCurrent(&iTVRadio, &result);
+		if (iTVRadio == SVC_TYPE_Radio)
+			result = -1;
+	}
+
+	return result;
+
+}
