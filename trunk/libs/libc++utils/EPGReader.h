@@ -36,6 +36,7 @@ public:
 	virtual bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
 	virtual short int GetPercentDone();
 	virtual bool CanRead() ;
+	virtual bool ReadChannel(EPGdata& epgdata, int channelNum); 
 
 protected:
 	bool IsEventWantedInEPG(EPGevent* pEvent);
@@ -52,6 +53,8 @@ public:
 	bool Read(EPGdata& epgdata, int maxRowsThisChunk = 0x7FFFFFFF);
 	short int GetPercentDone();
 	bool CanRead();
+	bool ReadChannel(EPGdata& epgdata, int channelNum); 
+
 private:
 	EPGevent* BuildEvent(TYPE_TapEvent* pTapEvent, int iChannelNum);
 

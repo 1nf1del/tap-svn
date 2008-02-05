@@ -523,6 +523,12 @@ void EPGevent::SetFlags(dword dwNewFlags)
 	sm_dwFlags = dwNewFlags;
 }
 
+dword EPGevent::GetFlags()
+{
+	return sm_dwFlags;
+}
+
+
 unsigned short EPGevent::GetMaxDescriptionLength()
 {
 	int iVal = (sm_dwFlags & EPGDATA_DESCRIPTION_MAXLEN_MASK) >> 5;

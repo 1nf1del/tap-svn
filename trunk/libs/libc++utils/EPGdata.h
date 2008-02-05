@@ -24,6 +24,7 @@
 #include "tap.h"
 #include "taparray.h"
 #include "tapstring.h"
+#include "tapmap.h"
 
 class IEPGReader;
 class EPGevent;
@@ -44,6 +45,7 @@ enum DataSources
 #define EPGDATA_BUILTIN_GENRESINSQUAREBRACKETS	0x00000001
 #define EPGDATA_DAYSTOLOAD_MASK					0x0000001E // 4 bits gives 0..15, treat 0 as 15 for backward compat
 #define EPGDATA_DESCRIPTION_MAXLEN_MASK			0x000000E0 // 3 bits gives 0..7 1=64, 2=128, 3=256, 4=512, 5=1024, 6=2048, 7=0=4096
+#define EPGDATA_ALLOW_LAZY_LOADING				0x00000100 // for builtin guide (+extended builtin) only load channel info on demand
 
 enum DescriptionMaxLength
 {
@@ -96,10 +98,14 @@ private:
 	bool TryReadingJagsCSV(ProgressNotification* pProgress);
 	bool TryReadingExtendedBuiltin(ProgressNotification* pProgress);
 	bool TryReadingFreeViewMei(ProgressNotification* pProgress);
+	EPGchannel* TryToLoadChannel(int channelNum);
 
 	EPGchannel* FindChannelByNum(word channelNum);
 	array<EPGchannel*> m_channels;
 	array<EPGevent*> m_emptyData;
 	IEPGReader* m_pReader;
+	bool m_bLazyLoading;
+	map<int, bool> m_lazyLoadAttemptedMap;
+	bool m_bDoingDelayedLoad;
 };
 #endif

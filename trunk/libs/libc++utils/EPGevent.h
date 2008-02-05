@@ -87,6 +87,8 @@ public:
 	bool WriteMyStuffControlTimer() const;	
 
 	static void SetFlags(dword dwNewFlags);
+	static dword GetFlags();
+
 	static unsigned short GetDaysToLoad();
 	static string GetControlTimerFolder();
 

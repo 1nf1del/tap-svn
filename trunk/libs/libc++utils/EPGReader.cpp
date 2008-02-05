@@ -50,6 +50,14 @@ bool IEPGReader::CanRead()
 	return false;
 }
 
+bool IEPGReader::ReadChannel(EPGdata& epgdata, int channelNum)
+{
+	epgdata;
+	channelNum;
+	return false;
+
+}
+
 bool IEPGReader::IsEventWantedInEPG(EPGevent* pEvent)
 {
 	if (pEvent->GetEnd().IsInPast())
@@ -96,13 +104,29 @@ EPGevent* EPGReader::BuildEvent(TYPE_TapEvent* pTapEvent, int iChannelNum)
 
 bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 {
-	int iCount = 0;
-	TYPE_TapEvent* pEvents = TAP_GetEvent(SVC_TYPE_Tv, m_iCurrentChan, &iCount);
+	maxRowsThisChunk;
+//	int iCount = 0;
 
+	ReadChannel(epgdata, m_iCurrentChan);
+
+	m_iCurrentChan++;
+
+//	maxRowsThisChunk-=iCount;
+
+	if ((m_iCurrentChan<m_iTotalChan))
+		return true;
+
+	return false;
+}
+
+bool EPGReader::ReadChannel(EPGdata& epgdata, int channelNum)
+{
+	int iCount = 0;
+	TYPE_TapEvent* pEvents = TAP_GetEvent(SVC_TYPE_Tv, channelNum, &iCount);
 
 	for (int i=0; i<iCount; i++)
 	{
-		EPGevent* pNewEvent = BuildEvent(&pEvents[i], m_iCurrentChan);
+		EPGevent* pNewEvent = BuildEvent(&pEvents[i], channelNum);
 		if (!IsEventWantedInEPG(pNewEvent))
 		{
 			delete pNewEvent;
@@ -115,14 +139,7 @@ bool EPGReader::Read(EPGdata& epgdata, int maxRowsThisChunk)
 
 	TAP_MemFree(pEvents);
 
-	m_iCurrentChan++;
-
-	maxRowsThisChunk-=iCount;
-
-	if ((m_iCurrentChan<m_iTotalChan))
-		return true;
-
-	return false;
+	return (iCount>0);
 }
 
 short int EPGReader::GetPercentDone()

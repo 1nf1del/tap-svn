@@ -37,6 +37,8 @@ EPGdata::EPGVisitStatus::EPGVisitStatus()
 EPGdata::EPGdata(void)
 {
 	m_pReader = NULL;
+	m_bLazyLoading = false;
+	m_bDoingDelayedLoad = false;
 }
 
 EPGdata::~EPGdata(void)
@@ -105,6 +107,28 @@ array<string> EPGdata::GetGenres()
 	return results;
 }
 
+EPGchannel* EPGdata::TryToLoadChannel(int channelNum)
+{
+	if (m_bDoingDelayedLoad)
+		return NULL;
+
+
+	if (m_lazyLoadAttemptedMap.Find(channelNum) == NULL)
+	{
+		m_bDoingDelayedLoad = true;
+		m_lazyLoadAttemptedMap[channelNum] = m_pReader->ReadChannel(*this, channelNum);			
+		m_bDoingDelayedLoad= false;
+	}
+
+	for (int i = m_channels.size()-1; i>=0; i--)
+	{
+		if (m_channels[i]->GetChannelNum() == channelNum)
+			return m_channels[i];
+	}
+
+	return NULL;
+}
+
 const EPGchannel* EPGdata::GetChannel(int channelNum) const
 {
 	for (int i = m_channels.size()-1; i>=0; i--)
@@ -113,17 +137,24 @@ const EPGchannel* EPGdata::GetChannel(int channelNum) const
 			return m_channels[i];
 	}
 
+	if(m_bLazyLoading)
+		return ((EPGdata*)this)->TryToLoadChannel(channelNum);
+
 	return 0;
 
 }
 
 EPGchannel* EPGdata::GetChannel(int channelNum)
 {
+
 	for (int i = m_channels.size()-1; i>=0; i--)
 	{
 		if (m_channels[i]->GetChannelNum() == channelNum)
 			return m_channels[i];
 	}
+
+	if(m_bLazyLoading)
+		return TryToLoadChannel(channelNum);
 
 	return 0;
 
@@ -205,14 +236,25 @@ bool EPGdata::TryReadingBuiltin(ProgressNotification* pProgress)
 {
 	delete m_pReader;
 	m_pReader = new EPGReader(false);
-	return ReadSomeData(pProgress,1);
+	if (EPGevent::GetFlags() & EPGDATA_ALLOW_LAZY_LOADING)
+	{
+		m_bLazyLoading = true;
+		return true;
+	}
+	return ReadSomeData(pProgress, 1);
 }
 
 bool EPGdata::TryReadingExtendedBuiltin(ProgressNotification* pProgress)
 {
+	pProgress;
 	delete m_pReader;
 	m_pReader = new EPGReader(true);
-	return ReadSomeData(pProgress,1);
+	if (EPGevent::GetFlags() & EPGDATA_ALLOW_LAZY_LOADING)
+	{
+		m_bLazyLoading = true;
+		return true;
+	}
+	return ReadSomeData(pProgress, 1);
 }
 
 bool EPGdata::TryReadingMei(ProgressNotification* pProgress)
@@ -241,6 +283,9 @@ bool EPGdata::ReadData(DataSources dataSource, ProgressNotification* pProgress, 
 {
 	if (!BeginReading(dataSource, pProgress, dwFlags))
 		return false;
+
+	if (m_bLazyLoading)
+		return true;
 
 	while (ReadSomeData(pProgress, 250))
 	{
