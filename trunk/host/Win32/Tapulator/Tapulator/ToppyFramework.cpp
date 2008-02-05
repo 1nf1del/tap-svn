@@ -803,7 +803,10 @@ DWORD ToppyFramework::Hdd_Flen(TYPE_File *file )
 DWORD ToppyFramework::Hdd_Ftell(TYPE_File *file )
 {
 	FILE* handle = m_mapOpenFiles[file];
-	return ftell(handle); //TODO: correct return value?
+	DWORD result = ftell(handle); 
+	if (IsLengthForFlenFSeekBug(result))
+		result-=512;
+	return result;
 }
 
 DWORD ToppyFramework::Hdd_TotalSize(void )

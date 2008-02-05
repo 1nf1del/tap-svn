@@ -42,6 +42,9 @@ TYPE_TapEvent* MEIFileReader::GetEvent(int svcType, int svcNum, int *eventNum )
 
 	*eventNum = m_AllEPGInfo[iLogicalChan].size();
 
+	if (*eventNum == 0)
+		return NULL;
+
 	void* pData = Heap::GetTheHeap()->Allocate(sizeof(TYPE_TapEvent) * *eventNum);
 
 	memcpy(pData, &m_AllEPGInfo[iLogicalChan][0], sizeof(TYPE_TapEvent) * *eventNum);
