@@ -43,9 +43,10 @@ private:
 		public ListItem
 	{
 	public:
-		TAPListItem(ListPage* pParentList, unsigned int index) :
+		TAPListItem(ListPage* pParentList, unsigned int index, unsigned int memoryUse) :
 			ListItem(pParentList),
 			m_index(index),
+			m_memoryUse(memoryUse),
 			m_closing(false)
 		{
 		}
@@ -60,6 +61,7 @@ private:
 
 	private:
 		unsigned int m_index;
+		unsigned int m_memoryUse;
 		bool m_closing;
 	};
 };

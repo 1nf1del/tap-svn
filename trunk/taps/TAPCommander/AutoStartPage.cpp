@@ -218,9 +218,7 @@ dword AutoStartPage::OnKey( dword key, dword extKey )
 			Close();
 			return key;
 		}
-		Page* p = new ConfigPage();
-		if (p)
-			p->Open();
+		Replace(new ConfigPage());
 		return 0;
 	}
 	case RKEY_PlayList:

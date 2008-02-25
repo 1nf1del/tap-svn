@@ -30,10 +30,12 @@
 #include "YesNoOption.h"
 #include "LoadedTAPPage.h"
 #include "AutoStartPage.h"
+#include "TAPLists.h"
 
 
 bool closeOnClose = true;
 bool menuActivates = false;
+bool showMemoryUse = false;
 bool exitActivates = true;
 
 
@@ -74,9 +76,13 @@ bool TAPCommander::Start()
 	if ( !InitTAPex() )
 		return false;
 
-	m_options->Add(new YesNoOption(m_options, "CloseOnTAPClose", true, "Auto Close Running TAPs Screen", "Closes the Running TAPs screen when closing another TAP", new OptionUpdateValueNotifier_bool(closeOnClose)));
-	m_options->Add(new YesNoOption(m_options, "MenuActivates", false, "Menu Key Activates TAP Commander first", "Allow Menu to activate TAP Commander before the Topfield Main Menu", new OptionUpdateValueNotifier_bool(menuActivates)));
-	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit Key Activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(exitActivates)));
+	if (InitTAPMonitor())
+		m_options->Add(new YesNoOption(m_options, "ShowMemoryUse", true, "Show memory use in Running TAPs screen", "Shows the total memory used by each TAP", new OptionUpdateValueNotifier_bool(showMemoryUse)));
+	else
+		showMemoryUse = false;
+	m_options->Add(new YesNoOption(m_options, "CloseOnTAPClose", true, "Auto close Running TAPs screen", "Closes the Running TAPs screen when closing another TAP", new OptionUpdateValueNotifier_bool(closeOnClose)));
+	m_options->Add(new YesNoOption(m_options, "MenuActivates", false, "Menu key activates TAP Commander first", "Allow Menu to activate TAP Commander before the Topfield Main Menu", new OptionUpdateValueNotifier_bool(menuActivates)));
+	m_options->Add(new YesNoOption(m_options, "ExitActivates", true, "Exit key activates TAP Commander", "Allow Exit as an additional activation key. TAP Commander can always be activated with Menu+Menu", new OptionUpdateValueNotifier_bool(exitActivates)));
 
 	if (!Tapplication::Start())
 		return false;

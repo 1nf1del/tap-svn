@@ -1,4 +1,4 @@
-TAP Commander 1.2
+TAP Commander 1.31
 
 TAP Commander allows you to configure and disable TAPs whilst your Toppy is running. It can also change the load order of TAPs in your Auto Start directory.
 
@@ -23,6 +23,14 @@ If the Auto Start TAPs screen screen isn't available you can reorder from your P
 
 Options Screen
 TAP Commander options can be accessed by pressing Menu from any TAP Commander screen. Skin, screen offset and additional activation key can be adjusted.
+
+History
+1.31	Adds FontManager support.
+1.3		Adds memory usage column if your firmware is compatible
+		Updates to support 3.16 firmware on 5100 range.
+1.2		Various bugfixes and additional configuration options
+1.1		Added support for WSS Killer
+1.0		Initial release
 
 
 Simon Capewell

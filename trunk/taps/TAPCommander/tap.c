@@ -26,7 +26,7 @@
 #endif
 
 TAP_ID( 0x81001021 );
-TAP_PROGRAM_NAME("TAP Commander 1.2");
+TAP_PROGRAM_NAME("TAP Commander 1.31");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Configure and manage TAPs");
 TAP_ETCINFO(__DATE__);

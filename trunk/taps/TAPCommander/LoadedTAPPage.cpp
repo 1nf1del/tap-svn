@@ -35,10 +35,12 @@
 #include "FooterListItem.h"
 #include "MessageBox.h"
 #include "ConfigPage.h"
+#include "TAPLists.h"
 
 
 extern bool menuActivates;
 extern bool closeOnClose;
+extern bool showMemoryUse;
 
 
 typedef struct
@@ -170,9 +172,7 @@ dword LoadedTAPPage::TAPListItem::OnKey( dword key, dword extKey )
 	{
 		if ( IsThisTAP( m_index ) )
 		{
-			Page* p = new ConfigPage();
-			if ( p )
-				p->Open();
+			m_theList->Replace(new ConfigPage());
 		}
 		else
 		{
@@ -248,10 +248,50 @@ dword LoadedTAPPage::TAPListItem::OnKey( dword key, dword extKey )
 }
 
 
+/*
+void CalculateMemoryKB(char* buffer, int size)
+{
+	int i,j;
+	char temp[30];
+	
+	sprintf(temp, "%d", size / 1024);
+	i = strlen(temp) - 1;
+	j = 0;
+	while (i >= 0)
+	{
+		if (j > 0 && (j % 3) == 0)
+			buffer[j++] = ',';
+		buffer[j] = temp[i];
+		--i;
+		++j;
+	}
+	buffer[j] = 0;
+	strcat(buffer, " kB");
+}
+*/
+
+
+void CalculateMemory(char* buffer, int size)
+{
+	if (size < 0x100000)
+	{
+		// format size in kB
+		size /= 102; // approximately 1024/10 - no floating point available
+		sprintf(buffer, "%d.%d kB", size / 10, size % 10);
+	}
+	else
+	{
+		// format size in MB
+		size /= 104858; // approximately 1024*1024/10 - no floating point available
+		sprintf(buffer, "%d.%d MB", size / 10, size % 10);
+	}
+}
+
+
 void LoadedTAPPage::TAPListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 {
 	tTAPTableInfo info;
-	char buffer[15];
+	char buffer[20];
 	const char* text = 0;
 
 	HDD_TAP_GetInfo( m_index, &info );
@@ -274,6 +314,10 @@ void LoadedTAPPage::TAPListItem::DrawSubItem(short int iColumn, Rect rcBounds)
 		else
 			text = "";
 		break;
+	case 3:
+		CalculateMemory(buffer, m_memoryUse);
+		text = buffer;
+		break;
 	}
 	if (text)
 		DrawSubItemString(iColumn, rcBounds, text);
@@ -294,10 +338,11 @@ string LoadedTAPPage::TAPListItem::GetFooterText()
 			s += IsEnabled( m_index ) ? " | Red (Green)=Disable (all)" : " | Red (Green)=Enable (all)";
 		}
 
-		TYPE_TSRCommander* tapBlock = IsTSRCommanderTAP( m_index );
-		if ( tapBlock )
+		bool thisTAP = IsThisTAP( m_index );
+		TYPE_TSRCommander* tapBlock = thisTAP ? NULL : IsTSRCommanderTAP( m_index );
+		if (thisTAP || tapBlock)
 		{
-			if ( tapBlock->HasConfigDialog )
+			if (thisTAP || (tapBlock && tapBlock->HasConfigDialog))
 				s += " | OK=Options";
 			s += " | White=Exit TAP";
 		}
@@ -318,18 +363,23 @@ LoadedTAPPage::LoadedTAPPage() :
 
     AddColumn(new ListColumn(this, 3));
     AddColumn(new ListColumn(this, 45, 0, "Running TAPs"));
+	if (showMemoryUse)
+		AddColumn(new ListColumn(this, 10));
 	dword size, free, available;
 	TAP_MemInfo( &size, &free, &available );
-	available /= 104858; // approximately 1024*1024/10 - no floating point available
 	char buffer[20];
-	sprintf(buffer, "%d.%dMB", available/10, available % 10);
-    AddColumn(new ListColumn(this, 7, 0, buffer));
+	CalculateMemory(buffer, available);
+    AddColumn(new ListColumn(this, 10, 0, buffer));
 
 	tTAPTable* p = (tTAPTable*)TAP_TableAddress;
 	for ( int i = 0; i < TAP_MAX; ++p, ++i )
 	{
 		if ( p->LoadAddress && p->TAPHeader )
-			AddItem(new TAPListItem(this, i));
+		{
+			dword total = 0;
+			GetTAPMemoryUse(i, &total, 0,0,0);
+			AddItem(new TAPListItem(this, i, total));
+		}
 	}
 }
 
@@ -381,9 +431,7 @@ dword LoadedTAPPage::OnKey( dword key, dword extKey )
 			Close();
 			return key;
 		}
-		Page* p = new ConfigPage();
-		if (p)
-			p->Open();
+		Replace(new ConfigPage());
 		return 0;
 	}
 	case RKEY_PlayList:

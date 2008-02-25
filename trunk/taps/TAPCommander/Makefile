@@ -24,7 +24,7 @@ INCLUDEDIRS=-I../../libs/libutils -I../../libs/libc++utils -I../../libs/Framewor
 LIBDIRS=-L../../libs/libutils -L../../libs/libc++utils -L../../libs/Framework -L../../libs/FireBird
 
 LIBRARIES=../../libs/libutils/libutils.a ../../libs/libc++utils/libc++utils.a ../../libs/Framework/libFramework.a
-OBJECTS=tap.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o ConfigPage.o
+OBJECTS=tap.o TAPLists.o TAPCommander.o LoadedTAPPage.o AutoStartPage.o ConfigPage.o
 
 include ../../tools/build/tap.mk
 include ../../libs/libc++utils/tap++.mk
@@ -47,6 +47,7 @@ LDFLAGS:= -u TAP_Main $(LIBDIRS) -lFramework -lc++utils -lutils -lFireBird -lc $
 TAPCommander.tap:	TAPCommander.elf
 TAPCommander.elf:	$(OBJECTS) $(VTABLEFIX)
 tap.o:				tap.c
+TAPLists.o:			TAPLists.c
 TAPCommander.o:		TAPCommander.cpp
 LoadedTAPPage.o:	LoadedTAPPage.cpp LoadedTAPPage.h
 AutoStartPage.o:	AutoStartPage.cpp AutoStartPage.h
