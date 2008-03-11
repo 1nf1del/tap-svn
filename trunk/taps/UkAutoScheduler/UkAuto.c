@@ -40,6 +40,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 	  v0.12 sl8:	15-12-06	Message box. Settings/UkAuto folder
 	  v0.13 sl8:	23-01-07	Cross channel conflict handling
 	  v0.14 sl8:	11-06-07	Call schFileRetreiveRemoteData() when UKAS activated.
+    v0.15 jpuhakka: 18-02-08  Multi language support added.
 
 
 **************************************************************/
@@ -54,7 +55,7 @@ History	: v0.1  sl8:	11-11-05	Initial release
 
 #define ID_UKAUTO 0x800440EE
 #define TAP_NAME "UK Auto Scheduler"
-#define VERSION "0.72.3"
+#define VERSION "0.73"
 
 TAP_ID( ID_UKAUTO );
 
@@ -78,6 +79,7 @@ void ShowMessageWin(char*, char*);
 #endif
 
 #include "Common.c"
+#include "language.c"
 #include "Tools.c"
 #include "logo.c"
 #include "TextTools.c"
@@ -228,6 +230,8 @@ void TerminateRoutine( void )				// Performs the clean-up and terminate TAP
 		TAP_MemFree( schConflictEpgData );
 	}
 
+  freeAllReservedMemoryForLanguage();
+
 	TAP_Exit();															// exit
 }
 
@@ -304,6 +308,7 @@ dword My_IdleHandler(void)
 		schMainDetermineChangeDirType();
 		schFileCreateSettingsFolder();
 		LoadConfiguration();
+		LoadLanguage();
 		CacheLogos();
 		schMainInitLcnToSvcNumMap();
 		schDispWindowInitialise();

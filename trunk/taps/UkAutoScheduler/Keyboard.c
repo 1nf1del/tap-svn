@@ -5,7 +5,7 @@
 
 Name	: Keyboard.c
 Author	: Darkmatter
-Version	: 0.6
+Version	: 0.9
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -21,6 +21,8 @@ History	: v0.0 Darkmatter:	11-08-05	Inception date. Constructed from calendar.c
 	  v0.6 sl8		29-08-06	':' and '1' added to the number one key
 	  v0.7 sl8		15-12-06	Advanced search characters added. 
 	  v0.8 sl8		11-06-07	Quote added. 
+    v0.9 jpuhakka  18-02-08  Star added to Finnish and German keyboard.
+            Multi language support added.
 
 **************************************************************/
 
@@ -133,41 +135,41 @@ void DisplayKeyBoardHelp( void )
 
 	keyboardHelpWindowShowing = TRUE;
     
-    TAP_SPrint( key[1] ,"Up/Down :");
-    TAP_SPrint(help[1] ,"Move highlight Up/Down.");
+    TAP_SPrint( key[1] ,text_UpDown/*see language.c */);
+    TAP_SPrint(help[1] ,text_MoveHighlightUpDown/*see language.c */);
     
-    TAP_SPrint( key[2] ,"Left/Right :");
-    TAP_SPrint(help[2] ,"Move highlight Left/Right.");
+    TAP_SPrint( key[2] ,text_LeftRight/*see language.c */);
+    TAP_SPrint(help[2] ,text_MoveHighlightLeftRight/*see language.c */);
     
     TAP_SPrint( key[3] ,"<<   >> :");
-    TAP_SPrint(help[3] ,"Move text cursor Left/Right.");
+    TAP_SPrint(help[3] ,text_MoveTextCursorLeftRight/*see language.c */);
     
-    TAP_SPrint( key[4] ,"OK :");
-    TAP_SPrint(help[4] ,"Enter selected character.");
+    TAP_SPrint( key[4] ,text_OK/*see language.c */);
+    TAP_SPrint(help[4] ,text_EnterSelectedCharacter/*see language.c */);
     
-    TAP_SPrint( key[5] ,"Stop :");
-    TAP_SPrint(help[5] ,"Change Insert/Overwrite mode.");
+    TAP_SPrint( key[5] ,text_Stop/*see language.c */);
+    TAP_SPrint(help[5] ,text_ChangeInsertOverwriteMode/*see language.c */);
     
-    TAP_SPrint( key[6] ,"Pause :");
-    TAP_SPrint(help[6] ,"Change Upper/Lower Case mode.");
+    TAP_SPrint( key[6] ,text_Pause/*see language.c */);
+    TAP_SPrint(help[6] ,text_ChangeUpperLowerCaseMode/*see language.c */);
     
-    TAP_SPrint( key[7] ,"White :");
-    TAP_SPrint(help[7] ,"Delete a character.");
+    TAP_SPrint( key[7] ,text_White/*see language.c */);
+    TAP_SPrint(help[7] ,text_DeleteACharacter/*see language.c */);
     
-    TAP_SPrint( key[8] ,"Play :");
-    TAP_SPrint(help[8] ,"Insert a space.");
+    TAP_SPrint( key[8] ,text_Play/*see language.c */);
+    TAP_SPrint(help[8] ,text_InsertASpace/*see language.c */);
     
-    TAP_SPrint( key[9] ,"List :");
-    TAP_SPrint(help[9] ,"Shift character set.");
+    TAP_SPrint( key[9] ,text_List/*see language.c */);
+    TAP_SPrint(help[9] ,text_ShiftCharacterSet/*see language.c */);
     
-    TAP_SPrint( key[10],"Record :");
-    TAP_SPrint(help[10],"Save and exit.");
+    TAP_SPrint( key[10],text_Record/*see language.c */);
+    TAP_SPrint(help[10],text_SaveAndExit/*see language.c */);
     
-    TAP_SPrint( key[11],"Exit :");
-    TAP_SPrint(help[11],"Discard and exit.");
+    TAP_SPrint( key[11],text_Exit/*see language.c */);
+    TAP_SPrint(help[11],text_DiscardAndExit/*see language.c */);
     
-    TAP_SPrint( key[12],"Recall :");
-    TAP_SPrint(help[12],"Reload original.");
+    TAP_SPrint( key[12],text_Recall/*see language.c */);
+    TAP_SPrint(help[12],text_ReloadOriginal/*see language.c */);
     
     TAP_SPrint( key[13],"1 :");
     TAP_SPrint(help[13],".,&-?'()[]+=!#:1");
@@ -197,7 +199,7 @@ void DisplayKeyBoardHelp( void )
     TAP_SPrint(help[21],"WXYZ9");
         
     TAP_SPrint( key[22],"0 :");
-    TAP_SPrint(help[22],"[space]0");
+    TAP_SPrint(help[22],text_space_0/*see language.c */);
         
 	// Store the currently displayed screen area where we're about to put our pop-up window on.
     keyboardHelpWindowCopy = TAP_Osd_SaveBox(rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIGHT);
@@ -208,7 +210,7 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
     // Display the pop-up window.
     TAP_Osd_PutGd( rgn, KB_HELP_BASE_X, KB_HELP_BASE_Y, &_popup520x321Gd, TRUE );
 
-    TAP_SPrint(str, "Keyboard Help");
+    TAP_SPrint(str, text_KeyboardHelp/*see language.c */);
 	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_TITLE_Y, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 	 
     i = 1;
@@ -230,10 +232,9 @@ TAP_Osd_FillBox( rgn,KB_HELP_BASE_X, KB_HELP_BASE_Y, KB_HELP_WIDTH, KB_HELP_HEIG
     }
     
     // Print some instructions at the bottom.
-    TAP_SPrint(str, "(Press EXIT or INFO      to close this help window)");
-	PrintCenter( rgn, KB_HELP_TEXT_X1, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35, KB_HELP_BASE_X+KB_HELP_WIDTH, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+    TAP_Osd_PutStringAf1622 ( rgn, KB_HELP_TEXT_X1+207-TAP_Osd_GetW1622(text_PressEXITorINFO)+7, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35, KB_HELP_BASE_X+KB_HELP_WIDTH, text_PressEXITorINFO/*see language.c */, MAIN_TEXT_COLOUR, 0);
+    TAP_Osd_PutStringAf1622 ( rgn, KB_HELP_TEXT_X1+207+38+3, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35, KB_HELP_BASE_X+KB_HELP_WIDTH, text_toCloseThisHelpWindow/*see language.c */, MAIN_TEXT_COLOUR, 0);
     TAP_Osd_PutGd( rgn, KB_HELP_TEXT_X1+207, KB_HELP_BASE_Y + KB_HELP_HEIGHT - 35+2, &_infooval38x19Gd, TRUE );
-
 }
 
      
@@ -298,13 +299,13 @@ char KeyboardSelection( int row, int column )
 		/* ---------------------------------------------------------------------------- */
 		case KEYBOARD_FINNISH:
 
-			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ   /" );
+      strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ*# /" );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case KEYBOARD_GERMAN:
 
-			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖßÜ  /" );
+			strcpy( str, "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖßÜ* /" );
 
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -382,6 +383,8 @@ void HighlightLetter( int row, int column, bool highlight)
 {
 	dword 	x_coord = 0, y_coord = 0;
 	char str[256];
+  strncpy(insertModeStr[0], text_Ins, 6);
+  strncpy(insertModeStr[1], text_Ovr, 6);
 
 	if ( row < 5 )																// normal letter
 	{
@@ -411,21 +414,21 @@ void HighlightLetter( int row, int column, bool highlight)
 		switch ( column )
 		{
 			case 0 :
-			case 1 : TAP_SPrint( str, "Shift" );
+			case 1 : TAP_SPrint( str, text_Shift/*see language.c */ );
 					 CalcKeyboardPosition( &x_coord, &y_coord, KB_Control, row, 0);
 					 break;
 
 			case 2 :
-			case 3 : TAP_SPrint( str, "Save" );
+			case 3 : TAP_SPrint( str, text_Save/*see language.c */ );
 					 CalcKeyboardPosition( &x_coord, &y_coord, KB_Control, row, 1);
 					 break;
 
-			case 4 : TAP_SPrint( str, "Cancel" );
+			case 4 : TAP_SPrint( str, text_Cancel/*see language.c */ );
 					 CalcKeyboardPosition( &x_coord, &y_coord, KB_Control, row, 2);
 					 break;
 
 			case 5 :
-			case 6 : TAP_SPrint( str, "Del" );
+			case 6 : TAP_SPrint( str, text_Del/*see language.c */ );
 					 CalcKeyboardPosition( &x_coord, &y_coord, KB_Control, row, 3);
 					 break;
 
@@ -1051,7 +1054,8 @@ void RedrawKeyboard( void )
 				
 	// Print the basic instructions (in center of screen)
 	CalcKeyboardPosition( &x_coord, &y_coord, KB_Instructions, row, column);
-	PrintCenter( rgn, x_coord, y_coord, x_coord+KB_WIDTH, "(Press INFO         for Help Screen)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+	TAP_Osd_PutStringAf1419( rgn, x_coord+199-TAP_Osd_GetW1419(text_PressINFO)+7, y_coord, x_coord+KB_WIDTH, text_PressINFO/*see language.c */, MAIN_TEXT_COLOUR, 0 );
+  TAP_Osd_PutStringAf1419( rgn, x_coord+199+38+3, y_coord, x_coord+KB_WIDTH, text_forHelpScreen/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 	TAP_Osd_PutGd( rgn, x_coord+199, y_coord, &_infooval38x19Gd, TRUE );
 }
 

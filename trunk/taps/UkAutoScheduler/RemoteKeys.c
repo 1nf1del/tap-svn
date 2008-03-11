@@ -4,7 +4,7 @@
 
 Name	: RemoteKeys.c
 Author	: Darkmatter
-Version	: 0.2
+Version	: 0.3
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -12,12 +12,11 @@ Usage	:
 History	: v0.0 Darkmatter:	31-05-05	Inception date
 	  v0.1 sl8:		20-01-06	All variables initialised
 	  v0.2 sl8:		19-02-06	Bug Fix - Left and right keys swapped
+    v0.3 jpuhakka:  18-02-08  Multi language support added.
 
 **************************************************************/
 
 #include "RemoteKeys.inc"
-
-static char nullText[] = "No Keys defined";
 
 //-----------------------------------------------------------------------
 //
@@ -79,7 +78,7 @@ char *GetButtonText( keyCodes_Struct *keyCodes, dword key )
 	int i = 0;
 	key_Struct *currentItem = NULL;
 
-	if ( keyCodes->count == 0 ) return nullText;						// bounds check
+	if ( keyCodes->count == 0 ) return text_NoKeysDefined;						// bounds check
 	
 	for ( i=1; i<=(keyCodes->count); i++ )
 	{
@@ -88,7 +87,7 @@ char *GetButtonText( keyCodes_Struct *keyCodes, dword key )
 	    if ( key == currentItem->keyCode ) 	return currentItem->ButtonText;
 	}
 
-	return nullText;													// not found
+	return text_NoKeysDefined;													// not found
 }
 
 
@@ -158,10 +157,10 @@ void CreateTF5800Keys( keyCodes_Struct *keyCodes )
 {
 	KeyDestory( keyCodes );												// clear out any old keycodes, and allocated memory
     
-    KeyAdd( keyCodes, 0x1000c, "Mute" );
-    KeyAdd( keyCodes, 0x10018, "TV/Radio or List" );
-    KeyAdd( keyCodes, 0x10022, "TV/Sat" );
-    KeyAdd( keyCodes, 0x10010, "Opt" );
+    KeyAdd( keyCodes, 0x1000c, text_Mute_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10018, text_TV_RadioOrList_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10022, text_TV_Sat_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10010, text_Opt_button/*see language.c */ );
 
     KeyAdd( keyCodes, 0x10001, "1" );
     KeyAdd( keyCodes, 0x10002, "2" );
@@ -173,37 +172,36 @@ void CreateTF5800Keys( keyCodes_Struct *keyCodes )
     KeyAdd( keyCodes, 0x10008, "8" );
     KeyAdd( keyCodes, 0x10009, "9" );
     KeyAdd( keyCodes, 0x10000, "0" );
-    KeyAdd( keyCodes, 0x1000b, "Recall" );
-    KeyAdd( keyCodes, 0x10014, "Info" );
+    KeyAdd( keyCodes, 0x1000b, text_Recall_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10014, text_Info_button/*see language.c */ );
 
-    KeyAdd( keyCodes, 0x10015, "Right Arrow" );
-    KeyAdd( keyCodes, 0x1000f, "Left Arrow" );
-    KeyAdd( keyCodes, 0x10012, "Up Arrow" );
-    KeyAdd( keyCodes, 0x1001d, "Down Arrow" );
-    KeyAdd( keyCodes, 0x1001e, "Ok" );
-    KeyAdd( keyCodes, 0x1001c, "Menu" );
-    KeyAdd( keyCodes, 0x10016, "Guide" );
+    KeyAdd( keyCodes, 0x10015, text_LeftArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10012, text_UpArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1001d, text_DownArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1001e, text_Ok_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1001c, text_Menu_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10016, text_Guide_button/*see language.c */ );
 //    KeyAdd( keyCodes, 0x10018, "List" );								// can't have duplicates
-    KeyAdd( keyCodes, 0x10017, "Exit" );
+    KeyAdd( keyCodes, 0x10017, text_Exit_button/*see language.c */ );
 
-    KeyAdd( keyCodes, 0x1003a, "Fast Forward" );
-    KeyAdd( keyCodes, 0x10038, "Rewind" );
-    KeyAdd( keyCodes, 0x10039, "Play" );
-    KeyAdd( keyCodes, 0x1001a, "Pause" );
-    KeyAdd( keyCodes, 0x1003d, "Record" );
-    KeyAdd( keyCodes, 0x1003c, "Stop" );
-    KeyAdd( keyCodes, 0x1003b, "Slow Motion" );
-    KeyAdd( keyCodes, 0x10041, "PIP" );
-    KeyAdd( keyCodes, 0x10042, "File List" );
-    KeyAdd( keyCodes, 0x10043, "Text" );
+    KeyAdd( keyCodes, 0x1003a, text_FastForward_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10038, text_Rewind_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10039, text_Play_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1001a, text_Pause_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1003d, text_Record_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1003c, text_Stop_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1003b, text_SlowMotion_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10041, text_PIP_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10042, text_FileList_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10043, text_Text_button/*see language.c */ );
 
-    KeyAdd( keyCodes, 0x1003f, "Red" );
-    KeyAdd( keyCodes, 0x10024, "Green" );
-    KeyAdd( keyCodes, 0x10025, "Yellow" );
-    KeyAdd( keyCodes, 0x10026, "Blue" );
+    KeyAdd( keyCodes, 0x1003f, text_Red_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10024, text_Green_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10025, text_Yellow_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x10026, text_Blue_button/*see language.c */ );
 
-    KeyAdd( keyCodes, 0x10040, "PIP Swap" );
-    KeyAdd( keyCodes, 0x1003e, "White" );
+    KeyAdd( keyCodes, 0x10040, text_PIPSwap_button/*see language.c */ );
+    KeyAdd( keyCodes, 0x1003e, text_White_button/*see language.c */ );
 }
 
 
@@ -212,10 +210,10 @@ void CreateTF5000Keys( keyCodes_Struct *keyCodes )
 {
 	KeyDestory( keyCodes );												// clear out any old keycodes, and allocated memory
     
-    KeyAdd( keyCodes, RKEY_Mute, "Mute" );
-    KeyAdd( keyCodes, RKEY_Mute, "UHF" );
-    KeyAdd( keyCodes, RKEY_TvSat, "TV/Sat" );
-    KeyAdd( keyCodes, RKEY_Sleep, "Sleep" );
+    KeyAdd( keyCodes, RKEY_Mute, text_Mute_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Mute, text_UHF_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_TvSat, text_TV_Sat_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Sleep, text_Sleep_button/*see language.c */ );
 
     KeyAdd( keyCodes, RKEY_1, "1" );
     KeyAdd( keyCodes, RKEY_2, "2" );
@@ -227,40 +225,40 @@ void CreateTF5000Keys( keyCodes_Struct *keyCodes )
     KeyAdd( keyCodes, RKEY_8, "8" );
     KeyAdd( keyCodes, RKEY_9, "9" );
     KeyAdd( keyCodes, RKEY_0, "0" );
-    KeyAdd( keyCodes, RKEY_Recall, "Recall" );
-    KeyAdd( keyCodes, RKEY_Info, "Info" );
+    KeyAdd( keyCodes, RKEY_Recall, text_Recall_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Info, text_Info_button/*see language.c */ );
 
-    KeyAdd( keyCodes, RKEY_VolUp, "Right Arrow (volume up)" );
-    KeyAdd( keyCodes, RKEY_VolDown, "Left Arrow (volume down)" );
-    KeyAdd( keyCodes, RKEY_ChUp, "Up Arrow (channel up)" );
-    KeyAdd( keyCodes, RKEY_ChDown, "Down Arrow (channel down)" );
-    KeyAdd( keyCodes, RKEY_Ok, "Ok" );
-    KeyAdd( keyCodes, RKEY_Menu, "Menu" );
-    KeyAdd( keyCodes, RKEY_Guide, "Guide" );
-    KeyAdd( keyCodes, RKEY_TvRadio, "TV/Radio" );
-    KeyAdd( keyCodes, RKEY_AudioTrk, "Audio Track" );
-    KeyAdd( keyCodes, RKEY_Subt, "Subtitle" );
-    KeyAdd( keyCodes, RKEY_Teletext, "Teletext" );
-    KeyAdd( keyCodes, RKEY_Exit, "Exit" );
-    KeyAdd( keyCodes, RKEY_Fav, "Fav" );
+    KeyAdd( keyCodes, RKEY_VolUp, text_RightArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_VolDown, text_LeftArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_ChUp, text_UpArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_ChDown, text_DownArrow_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Ok, text_Ok_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Menu, text_Menu_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Guide, text_Guide_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_TvRadio, text_TV_Radio_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_AudioTrk, text_AudioTrack_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Subt, text_Subtitle_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Teletext, text_Teletext_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Exit, text_Exit_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Fav, text_Fav_button/*see language.c */ );
 
-    KeyAdd( keyCodes, RKEY_Forward, "Fast Forward" );
-    KeyAdd( keyCodes, RKEY_Rewind, "Rewind" );
-    KeyAdd( keyCodes, RKEY_Play, "Play" );
-    KeyAdd( keyCodes, RKEY_Pause, "Pause" );
-    KeyAdd( keyCodes, RKEY_Record, "Record" );
-    KeyAdd( keyCodes, RKEY_Stop, "Stop" );
-    KeyAdd( keyCodes, RKEY_Slow, "Slow Motion" );
-    KeyAdd( keyCodes, RKEY_Prev, "Previous" );
-    KeyAdd( keyCodes, RKEY_PlayList, "File List" );
-    KeyAdd( keyCodes, RKEY_Next, "Next" );
+    KeyAdd( keyCodes, RKEY_Forward, text_FastForward_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Rewind, text_Rewind_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Play, text_Play_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Pause, text_Pause_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Record, text_Record_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Stop, text_Stop_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Slow, text_SlowMotion_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Prev, text_Previous_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_PlayList, text_FileList_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Next, text_Next/*see language.c */ );
 
-    KeyAdd( keyCodes, RKEY_Red, "Red" );
-    KeyAdd( keyCodes, RKEY_Green, "Green" );
-    KeyAdd( keyCodes, RKEY_Yellow, "Yellow" );
-    KeyAdd( keyCodes, RKEY_Blue, "Blue" );
+    KeyAdd( keyCodes, RKEY_Red, text_Red_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Green, text_Green_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Yellow, text_Yellow_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_Blue, text_Blue_button/*see language.c */ );
 
-    KeyAdd( keyCodes, RKEY_Sat, "Sat" );
-    KeyAdd( keyCodes, RKEY_White, "White" );
+    KeyAdd( keyCodes, RKEY_Sat, text_Sat_button/*see language.c */ );
+    KeyAdd( keyCodes, RKEY_White, text_White_button/*see language.c */ );
 }
 

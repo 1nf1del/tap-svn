@@ -17,6 +17,7 @@ v0.9: sl8	28-09-06	Do not allow 'move' and 'keep' if unable to determine 'change
 v0.10: sl8	11-10-06	Copy search term to folder. Allow user to create folder if it doesn't exist.
 v0.11: sl8	15-12-06	Advanced search option. Error messages.
 v0.12: sl8	11-06-07	Search term increased to 40 chars. Quotes removed from search term.
+v0.13: jpuhakka 18-02-08  Search term increased to 120 chars. Multi language support added.
 
 **************************************************************/
 
@@ -88,7 +89,7 @@ static bool schEditModified = FALSE;
 
 #define SCH_EDIT_Y1_OFFSET	36
 
-#define SEARCHTERM_LENGTH	40
+#define SEARCHTERM_LENGTH	120
 #define SEARCHFOLDER_LENGTH	30
 
 #define SCH_EDIT_KEEP_VALUE_DEFAULT	10
@@ -150,7 +151,7 @@ void schEditCreateWindow(void)
 {
 	schEditWindowShowing = TRUE;
 	sysDrawGraphicBorders();
-	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Edit Search", TITLE_COLOUR, COLOR_Black );
+	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, text_EditSearch/*see language.c */, TITLE_COLOUR, COLOR_Black );
 }
 
 
@@ -197,7 +198,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_STATUS:
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Status", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_TimerFunction/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_STATUS )			// highlight the current cursor line
 		{
@@ -209,11 +210,11 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_USER_DATA_STATUS_DISABLED:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + 40, "Search Only", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + 40, text_SearchOnly/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Timers will not be automatically set.");
+				sprintf(str, text_TimersWillNotBeAutomaticallySet/*see language.c */);
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 			}
 
@@ -222,12 +223,12 @@ void schEditDrawLine(int option)
 		case SCH_USER_DATA_STATUS_RECORD_ALL:
 
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Record All", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_Record_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_RecordAll/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Automatically set 'Record' timers for all programmes.");
+				sprintf(str, text_AutomaticallySetRecordTimersForAllProgrammes/*see language.c */);
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 			}
 
@@ -236,17 +237,17 @@ void schEditDrawLine(int option)
 		case SCH_USER_DATA_STATUS_RECORD_NEW:
 
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "R", MAIN_TEXT_COLOUR, 0 );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Record New - Ignore Repeats", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 35, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_Record_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_RecordNewIgnoreRepeats/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Automatically set 'Record' timers for new programmes and");
+				sprintf(str, text_AutomaticallySetRecordTimersForAllProgrammes/*see language.c */);
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 
-				sprintf(str, "ignore repeats.");
-				TAP_Osd_PutStringAf1419( rgn, 70, 523, 666, str, INFO_COLOUR, 0 );
+				sprintf(str, text_AndIgnoreRepeats/*see language.c */);
+				TAP_Osd_PutStringAf1419( rgn, 58, 523, 666, str, INFO_COLOUR, 0 );
 			}
 
 			break;
@@ -254,12 +255,12 @@ void schEditDrawLine(int option)
 		case SCH_USER_DATA_STATUS_WATCH:
 
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + 26, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 33, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "W", MAIN_TEXT_COLOUR, 0 );
-			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Watch", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 33, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_Watch_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, SCH_EDIT_DIVIDER_X2 + 74, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_Watch/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 
 			if( schEditChosenLine == SCH_EDIT_STATUS )
 			{
-				sprintf(str, "Watch: Automatically set 'Watch' timers. ");
+				sprintf(str, text_WatchAutomaticallySetWatchTimers/*see language.c */);
 				TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 			}
 
@@ -277,9 +278,16 @@ void schEditDrawLine(int option)
 		if ( schEditChosenLine == SCH_EDIT_SEARCH )		// highlight the current cursor line
 		{
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_X2_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellbigGd, FALSE );
+      strncpy(str, schEdit.searchTerm, SEARCHTERM_LENGTH/2 );
+      TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
+      if ( strlen(schEdit.searchTerm) > SEARCHTERM_LENGTH/2 )
+      {
+        strcpy(str2, &schEdit.searchTerm[SEARCHTERM_LENGTH/2]);
+        TAP_Osd_PutStringAf1419( rgn, 58, 523, 666, str2, INFO_COLOUR, 0 );
+      }
 		}
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Search/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3+40, schEdit.searchTerm, MAIN_TEXT_COLOUR, 0 );
 
@@ -287,7 +295,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_MATCH:
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Match", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Match2/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_MATCH )		// highlight the current cursor line
 		{
@@ -297,22 +305,22 @@ void schEditDrawLine(int option)
 		// -------------------------------------------------
 		if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH) == SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH)
 		{
-			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Advanced");
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), text_Advanced/*see language.c */);
 		}
 		else if( (schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXACT_MATCH) == SCH_USER_DATA_OPTIONS_EXACT_MATCH)
 		{
-			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Exact");
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), text_Exact/*see language.c */);
 		}
 		else
 		{
-			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Partial");
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH ,0 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), text_Partial/*see language.c */);
 		}
 
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,1 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), "Title");
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,1 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EVENTNAME), text_Title/*see language.c */);
 
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,2 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION), "Description");
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,2 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION), text_Description/*see language.c */);
 
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,3 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXT_INFO), "Extended");
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,3 ,SCH_EDIT_CELL_MEDIUM ,(schEdit.searchOptions & SCH_USER_DATA_OPTIONS_EXT_INFO), text_Extended/*see language.c */);
 
 		// -------------------------------------------------
 
@@ -325,7 +333,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_CHANNEL:														// channel name
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2,  "Channel", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2,  text_Channel/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if(schEditChosenCell == 2)
 		{
@@ -346,11 +354,11 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_RANGE:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_From/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			DisplayLogo( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)) + (SCH_EDIT_CELL_MEDIUM / 2) - 30, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_To/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			DisplayLogo( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)) + (SCH_EDIT_CELL_MEDIUM / 2) - 30, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchEndSvcNum, schEdit.searchTvRadio);
 
@@ -361,7 +369,7 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_ONLY:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Only", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Only/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			DisplayLogo( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)) + (SCH_EDIT_CELL_MEDIUM / 2) - 30, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, schEdit.searchStartSvcNum, schEdit.searchTvRadio );
 
@@ -371,15 +379,15 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_DISPLAY_CHANNEL_ANY:
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Any/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			if(schEdit.searchTvRadio == SCH_TV)
 			{
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "TV", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_TV/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 			}
 			else
 			{
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Radio", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Radio/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 			}
 
 			TAP_Osd_FillBox( rgn, SCH_EDIT_DIVIDER_X2 + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, SCH_EDIT_CELL_BORDER_WIDTH, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
@@ -398,7 +406,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_TIME:														// time
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Time", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Time/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_TIME )		// highlight the current cursor line
 		{
@@ -423,7 +431,7 @@ void schEditDrawLine(int option)
 
 		if(timeMode == SCH_DISPLAY_TIME_RANGE)
 		{
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "From", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_From/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			hour = (schEdit.searchStartTime & 0xff00) >> 8;
 			min = (schEdit.searchStartTime & 0xff);
@@ -443,7 +451,7 @@ void schEditDrawLine(int option)
 			
 			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "To", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_To/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 			hour = (schEdit.searchEndTime & 0xff00) >> 8;
 			min = (schEdit.searchEndTime & 0xff);
@@ -467,7 +475,7 @@ void schEditDrawLine(int option)
 		}
 		else
 		{
-			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Any", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+			PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Any/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 		}
 
 		TAP_Osd_FillBox( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, SCH_EDIT_CELL_BORDER_WIDTH, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
@@ -476,20 +484,20 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_DAYS:														// Days
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Days", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Days2/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_DAYS )		// highlight the current cursor line
 		{
 			TAP_Osd_PutGd( rgn, SCH_EDIT_DIVIDER_X2 + ((SCH_EDIT_CELL_SMALL + SCH_EDIT_CELL_BORDER_WIDTH) * schEditChosenCell) + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, &_highlightcellsmaGd, FALSE );
 		}
 
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,0 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x01), "Mon");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,1 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x02), "Tue");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,2 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x04), "Wed");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,3 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x08), "Thu");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,4 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x10), "Fri");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,5 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x20), "Sat");
-		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,6 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x40), "Sun");
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,0 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x01), text_Mon/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,1 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x02), text_Tue/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,2 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x04), text_Wed/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,3 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x08), text_Thu/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,4 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x10), text_Fri/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,5 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x20), text_Sat/*see language.c */);
+		schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH,6 ,SCH_EDIT_CELL_SMALL ,(schEdit.searchDay & 0x40), text_Sun/*see language.c */);
 
 		for(i = 1; i < 7; i++)
 		{
@@ -498,14 +506,14 @@ void schEditDrawLine(int option)
 
 		if( schEditChosenLine == SCH_EDIT_DAYS )
 		{
-			sprintf(str, "Selected Days:");
-			if((schEdit.searchDay & 0x01) == 0x01) strcat(str," Mon");
-			if((schEdit.searchDay & 0x02) == 0x02) strcat(str," Tue");
-			if((schEdit.searchDay & 0x04) == 0x04) strcat(str," Wed");
-			if((schEdit.searchDay & 0x08) == 0x08) strcat(str," Thu");
-			if((schEdit.searchDay & 0x10) == 0x10) strcat(str," Fri");
-			if((schEdit.searchDay & 0x20) == 0x20) strcat(str," Sat");
-			if((schEdit.searchDay & 0x40) == 0x40) strcat(str," Sun");
+			sprintf(str, text_SelectedDays/*see language.c */);
+			if((schEdit.searchDay & 0x01) == 0x01) strcat(str,text_Mon/*see language.c */);
+			if((schEdit.searchDay & 0x02) == 0x02) strcat(str,text_Tue/*see language.c */);
+			if((schEdit.searchDay & 0x04) == 0x04) strcat(str,text_Wed/*see language.c */);
+			if((schEdit.searchDay & 0x08) == 0x08) strcat(str,text_Thu/*see language.c */);
+			if((schEdit.searchDay & 0x10) == 0x10) strcat(str,text_Fri/*see language.c */);
+			if((schEdit.searchDay & 0x20) == 0x20) strcat(str,text_Sat/*see language.c */);
+			if((schEdit.searchDay & 0x40) == 0x40) strcat(str,text_Sun/*see language.c */);
 
 			TAP_Osd_PutStringAf1419( rgn, 58, 503, 666, str, INFO_COLOUR, 0 );
 		}
@@ -514,7 +522,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_PADDING:
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Padding", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Padding/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_PADDING )		// highlight the current cursor line
 		{
@@ -537,7 +545,7 @@ void schEditDrawLine(int option)
 			}
 		}
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Start", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (0 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Start/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		hour = (schEdit.searchStartPadding & 0xff00) >> 8;
 		min = (schEdit.searchStartPadding & 0xff);
@@ -556,7 +564,7 @@ void schEditDrawLine(int option)
 		}
 		PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (1 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "End", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_End/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		hour = (schEdit.searchEndPadding & 0xff00) >> 8;
 		min = (schEdit.searchEndPadding & 0xff);
@@ -583,7 +591,7 @@ void schEditDrawLine(int option)
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_ATTACH:
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Attach", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Attach/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if( schEditChosenLine == SCH_EDIT_ATTACH )		// highlight the current cursor line
 		{
@@ -595,19 +603,19 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_NONE:
 
-			sprintf(str,"None");
+			sprintf(str,text_None/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_PREFIX:
 
-			sprintf(str,"Prefix");
+			sprintf(str,text_Prefix/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_APPEND:
 
-			sprintf(str,"Append");
+			sprintf(str,text_Append/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -622,19 +630,19 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_NUMBER:
 
-			sprintf(str,"S#");
+			sprintf(str,text_S_hash/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_DATE:
 
-			sprintf(str,"Date");
+			sprintf(str,text_Date/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_TIME:
 
-			sprintf(str,"Time");
+			sprintf(str,text_Time/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -651,19 +659,19 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_NONE:
 
-			sprintf(str,"None");
+			sprintf(str,text_None/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_PREFIX:
 
-			sprintf(str,"Prefix");
+			sprintf(str,text_Prefix/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_POS_APPEND:
 
-			sprintf(str,"Append");
+			sprintf(str,text_Append/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -678,19 +686,19 @@ void schEditDrawLine(int option)
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_NUMBER:
 
-			sprintf(str,"S#");
+			sprintf(str,text_S_hash/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_DATE:
 
-			sprintf(str,"Date");
+			sprintf(str,text_Date/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
 		case SCH_ATTACH_TYPE_TIME:
 
-			sprintf(str,"Time");
+			sprintf(str,text_Time/*see language.c */);
 			
 			break;
 		/* ---------------------------------------------------------------------------- */
@@ -715,7 +723,7 @@ void schEditDrawLine(int option)
 			textColour = COLOR_DarkGreen;
 		}
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Folder", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Folder/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if(FirmwareCallsEnabled == TRUE)
 		{
@@ -736,19 +744,19 @@ void schEditDrawLine(int option)
 			}
 			else
 			{
-				TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Not Available", textColour, 0 );
+				TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_NotAvailable/*see language.c */, textColour, 0 );
 			}
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, "Firmware Calls Disabled", textColour, 0 );
+			TAP_Osd_PutStringAf1622(rgn, SCH_EDIT_DIVIDER_X2 + 27, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X3, text_FirmwareCallsDisabled/*see language.c */, textColour, 0 );
 		}
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_EDIT_KEEP:
 
-		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, "Keep", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, SCH_EDIT_DIVIDER_X1, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2, text_Keep/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if(schEditChosenCell == 2)
 		{
@@ -784,26 +792,26 @@ void schEditDrawLine(int option)
 			/* ---------------------------------------------------------------------------- */
 			case SCH_DISPLAY_KEEP_LAST:
 
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, "Last", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, text_Last/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				break;
 			/* ---------------------------------------------------------------------------- */
 			case SCH_DISPLAY_KEEP_SMALLEST:
 
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, "Smallest", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, text_Smallest/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				break;
 			/* ---------------------------------------------------------------------------- */
 			case SCH_DISPLAY_KEEP_LARGEST:
 
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, "Largest", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, text_Largest/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				break;
 			/* ---------------------------------------------------------------------------- */
 			case SCH_DISPLAY_KEEP_DAYS:
 			default:
 
-				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, "For", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+				PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, text_For/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 				break;
 			/* ---------------------------------------------------------------------------- */
@@ -817,22 +825,22 @@ void schEditDrawLine(int option)
 			{
 				if(schEdit.searchKeepMode == SCH_DISPLAY_KEEP_DAYS)
 				{
-					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Day", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Day/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				}
 				else
 				{
-					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Programme", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Programme/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				}
 			}
 			else
 			{
 				if(schEdit.searchKeepMode == SCH_DISPLAY_KEEP_DAYS)
 				{
-					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Days", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Days/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				}
 				else
 				{
-					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), "Programmes", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+					PrintCenter(rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (2 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_BORDER_WIDTH + (3 * (SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH)), text_Programmes/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 				}
 			}
 
@@ -841,7 +849,7 @@ void schEditDrawLine(int option)
 		}
 		else
 		{
-			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 ,0 ,SCH_EDIT_CELL_MEDIUM, ((strlen(schEdit.searchFolder) > 0) && (schMainChangeDirAvailable == TRUE)), "All");
+			schEditDrawCellText(lineNumber ,SCH_EDIT_DIVIDER_X2 ,0 ,SCH_EDIT_CELL_MEDIUM, ((strlen(schEdit.searchFolder) > 0) && (schMainChangeDirAvailable == TRUE)), text_All/*see language.c */);
 		}
 
 		TAP_Osd_FillBox( rgn, SCH_EDIT_DIVIDER_X2 + SCH_EDIT_CELL_MEDIUM + SCH_EDIT_CELL_BORDER_WIDTH, (lineNumber * SYS_Y1_STEP) + SCH_EDIT_Y1_OFFSET - 8, SCH_EDIT_CELL_BORDER_WIDTH, SYS_Y1_STEP, FILL_COLOUR );		// draw the column seperators
@@ -1748,7 +1756,7 @@ bool schEditValidateSearch(void)
 		(strlen(schEdit.searchTerm) > 128)
 	)
 	{
-		DisplayMessageWindow("Invalid Search String Length!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+		DisplayMessageWindow(text_InvalidSearchStringLength/*see language.c */, text_PressOKToContinue/*see language.c */, "", &schEditReturnFromInvalidSearchMessage );
 
 		return FALSE;
 	}
@@ -1760,7 +1768,7 @@ bool schEditValidateSearch(void)
 
 		if( rc < 0  )
 		{
-			DisplayMessageWindow("Invalid Advanced Search String!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+			DisplayMessageWindow(text_InvalidAdvancedSearchString/*see language.c */, text_PressOKToContinue/*see language.c */, "", &schEditReturnFromInvalidSearchMessage );
 
 			return FALSE;
 		}
@@ -1768,14 +1776,14 @@ bool schEditValidateSearch(void)
 
 	if(schEdit.searchDay == 0)
 	{
-		DisplayMessageWindow("Invalid Number Of Days!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+		DisplayMessageWindow(text_InvalidNumberOfDays/*see language.c */, text_PressOKToContinue/*see language.c */, "", &schEditReturnFromInvalidSearchMessage );
 
 		return FALSE;
 	}
 
 	if((schEdit.searchOptions & (SCH_USER_DATA_OPTIONS_EVENTNAME + SCH_USER_DATA_OPTIONS_DESCRIPTION + SCH_USER_DATA_OPTIONS_EXT_INFO)) == 0)
 	{
-		DisplayMessageWindow("Invalid Match Options!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+		DisplayMessageWindow(text_InvalidMatchOptions/*see language.c */, text_PressOKToContinue/*see language.c */, "", &schEditReturnFromInvalidSearchMessage );
 
 		return FALSE;
 	}
@@ -1787,7 +1795,7 @@ bool schEditValidateSearch(void)
 		(channelMode == SCH_DISPLAY_CHANNEL_RANGE)
 	)
 	{
-		DisplayMessageWindow("Invalid Channel Range!", "Press OK to continue", "", &schEditReturnFromInvalidSearchMessage );
+		DisplayMessageWindow(text_InvalidChannelRange/*see language.c */, text_PressOKToContinue/*see language.c */, "", &schEditReturnFromInvalidSearchMessage );
 
 		return FALSE;
 	}
@@ -2122,7 +2130,7 @@ void schEditKeyHandler(dword key)
 
 		if(schEditModified == TRUE)
 		{
-			DisplayYesNoWindow("Exit without saving", "Schedule has changed", "Do you want to exit without saving?", "Yes", "Cancel", 0, &schEditReturnFromExitYesNo );
+			DisplayYesNoWindow(text_ExitWithoutSaving/*see language.c */, text_ScheduleHasChanged/*see language.c */, text_DoYouWantToExitWithoutSaving/*see language.c */, text_Yes/*see language.c */, text_Cancel/*see language.c */, 0, &schEditReturnFromExitYesNo );
 		}
 		else
 		{
@@ -2136,7 +2144,7 @@ void schEditKeyHandler(dword key)
 
 		if(schEditValidateFolder() == FALSE)
 		{
-			DisplayYesNoWindow("Warning!", "Destination folder does not exist", "Would you like to create the folder?", "Yes", "No", 0, &schEditReturnFromFolderWarningYesNo );
+			DisplayYesNoWindow(text_Warning/*see language.c */, text_DestinationFolderDoesNotExist/*see language.c */, text_WouldYouLikeToCreateTheFolder/*see language.c */, text_Yes/*see language.c */, text_No/*see language.c */, 0, &schEditReturnFromFolderWarningYesNo );
 		}
 		else if( schEditValidateSearch() == TRUE )
 		{
@@ -2157,7 +2165,7 @@ void schEditKeyHandler(dword key)
 			(schEditType == SCH_EXISTING_SEARCH)
 		)
 		{
-			DisplayYesNoWindow("Schedule Delete Confirmation", "Do you want to delete this schedule?", "", "Yes", "No", 1, &schEditReturnFromDeleteYesNo );
+			DisplayYesNoWindow(text_ScheduleDeleteConfirmation/*see language.c */, text_DoYouWantToDeleteThisSchedule/*see language.c */, "", text_Yes/*see language.c */, text_No/*see language.c */, 1, &schEditReturnFromDeleteYesNo );
 		}
 		else
 		{
@@ -2862,13 +2870,13 @@ void schEditDrawLegend(void)
 	TAP_Osd_FillBox( rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
 
 	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 1, &_exitoval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 2, INSTR_AREA_X + INSTR_AREA_W, "Cancel", INFO_COLOUR, INFO_FILL_COLOUR );
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 2, INSTR_AREA_X + INSTR_AREA_W, text_Cancel/*see language.c */, INFO_COLOUR, INFO_FILL_COLOUR );
 
 	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 21, &_recordoval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 22, INSTR_AREA_X + INSTR_AREA_W, "Save", INFO_COLOUR, INFO_FILL_COLOUR );
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 22, INSTR_AREA_X + INSTR_AREA_W, text_Save/*see language.c */, INFO_COLOUR, INFO_FILL_COLOUR );
 
 	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 41, &_whiteoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 42, INSTR_AREA_X + INSTR_AREA_W, "Delete", INFO_COLOUR, INFO_FILL_COLOUR );
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 42, INSTR_AREA_X + INSTR_AREA_W, text_Delete/*see language.c */, INFO_COLOUR, INFO_FILL_COLOUR );
 
 }	
 

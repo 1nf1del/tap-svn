@@ -4,7 +4,7 @@
 
 Name	: ConfigMenu.c
 Author	: Darkmatter
-Version	: 0.12
+Version	: 0.14
 For	: Topfield TF5x00 series PVRs
 Licence	:
 Descr.	:
@@ -24,6 +24,9 @@ History	:
 	  v0.11 sl8:		28-09-06	Conflict handler option.
 	  v0.12 sl8:		23-10-06	Added legend.
 	  v0.13 janilxx:	03-11.06	Added SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING conflict handler option.
+    v0.14 jpuhakka: 18-02-08  Perform search every 30 mins added.
+            Bug fix - Register TF5000 keyboard if TF5000 (international) selected.
+            Multi language support added.
 
 **************************************************************/
 
@@ -97,15 +100,15 @@ void DisplayConfigLine(int option)
 	{
 	/*--------------------------------------------------*/
 	case 1 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Model Type", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, text_ModelType/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if ( currentModelType == TF5800 )
 		{
-			TAP_SPrint(str,"TF5800  (UK)");
+			TAP_SPrint(str,text_TF5800_UK/*see language.c */);
 		}
 		else
 		{
-			TAP_SPrint(str,"TF5000  (International)");
+			TAP_SPrint(str,text_TF5000_International/*see language.c */);
 		}
 
 		TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, str, MAIN_TEXT_COLOUR, 0 );
@@ -113,26 +116,26 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/
 	case 2 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, "Keyboard", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2, text_Keyboard/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( currentKeyboardLanguage )
 		{
 		/*--------------------------------------------------*/
 		case KEYBOARD_ENGLISH:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "English", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_English/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		
 			break;
 		/*--------------------------------------------------*/
 		case KEYBOARD_FINNISH:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Finnish", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_Finnish/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/*--------------------------------------------------*/
 		case KEYBOARD_GERMAN:
 
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "German", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_German/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 
 			break;
 		/*--------------------------------------------------*/
@@ -141,7 +144,7 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/
 	case 3 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Activation Key", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_ActivationKey/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( keyStage )
 		{
@@ -154,12 +157,12 @@ void DisplayConfigLine(int option)
 			break;
 		/*--------------------------------------------------*/
 		case 1 :
-			TAP_SPrint( str, "Press new key NOW !" );
+			TAP_SPrint( str, text_PressNewKeyNow/*see language.c */ );
 
 			break;
 		/*--------------------------------------------------*/
 		case 2 :
-			TAP_SPrint( str, "Invalid choice" );
+			TAP_SPrint( str, text_InvalidChoice/*see language.c */ );
 		
 			break;
 		/*--------------------------------------------------*/
@@ -175,20 +178,26 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/
 	case 4 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Perform Search", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_PerformSearch/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch ( currentPerformSearchMode )
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_SEARCH_PERIOD_TEN_MINS:
 
-			TAP_SPrint( str, "Every 10 Minutes" );
+			TAP_SPrint( str, text_Every10Minutes/*see language.c */ );
+
+			break;
+      /*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_THIRTY_MINS:
+
+			TAP_SPrint( str, text_Every30Minutes/*see language.c */ );
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
 
-			TAP_SPrint( str, "Once Every Hour" );
+			TAP_SPrint( str, text_OnceEveryHour/*see language.c */ );
 
 			break;
 		/*--------------------------------------------------*/
@@ -196,13 +205,13 @@ void DisplayConfigLine(int option)
 
 			if (configEnableEditTime == FALSE)
 			{
-				TAP_SPrint( str, "Once Every Day at " );
+				TAP_SPrint( str, text_OnceEveryDayAt/*see language.c */ );
 				TAP_SPrint( str2,"%02d:%02d", ((schMainPerformSearchTime & 0xff00) >> 8), (schMainPerformSearchTime & 0xff));
 				strcat(str, str2);
 			}
 			else
 			{
-				TAP_SPrint( str, "Enter Time - " );
+				TAP_SPrint( str, text_EnterTime/*see language.c */ );
 				schEditDrawDirect(schDirectTimePos, ((schMainPerformSearchTime & 0xff00) >> 8), (schMainPerformSearchTime & 0xff), str2);
 				strcat(str, str2);
 			}
@@ -221,51 +230,51 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/
 	case 5 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Firmware Calls", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_FirmwareCalls/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (currentFirmwareCallsEnabled == FALSE)
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_Disabled/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_Enabled/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 
 		break;
 	/*--------------------------------------------------*/
 	case 6 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "TRC", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_TRC/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		if (currentTRCEnabled == FALSE)
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Disabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_Disabled/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
-			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, "Enabled", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622(rgn, CONFIG_X2, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E3, text_Enabled/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 
 		break;
 	/*--------------------------------------------------*/
 	case 7 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Search Ahead", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_SearchAhead/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentPerformSearchDays)
 		{
 		/*--------------------------------------------------*/
 		case 1:
-			TAP_SPrint( str,"%d Day", currentPerformSearchDays);
+			TAP_SPrint( str,"%d %s", currentPerformSearchDays, text_Day/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case 14:
-			TAP_SPrint( str,"Unlimited");
+			TAP_SPrint( str,text_Unlimited/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		default:
-			TAP_SPrint( str,"%d Days", currentPerformSearchDays);
+			TAP_SPrint( str,"%d %s", currentPerformSearchDays, text_Days/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
@@ -276,117 +285,117 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/
 	case 8 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Date Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_DateFormat/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentDateFormat)
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YY:
 
-			TAP_SPrint( str,"DD.MM.YY");
+			TAP_SPrint( str,text_DDMMYY_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM_DOT_YYYY:
 
-			TAP_SPrint( str,"DD.MM.YYYY");
+			TAP_SPrint( str,text_DDMMYYYY_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YY_DOT_MM_DOT_DD:
 
-			TAP_SPrint( str,"YY.MM.DD");
+			TAP_SPrint( str,text_YYMMDD_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YYYY_DOT_MM_DOT_DD:
 
-			TAP_SPrint( str,"YYYY.MM.DD");
+			TAP_SPrint( str,text_YYYYMMDD_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DDMMYY:
 
-			TAP_SPrint( str,"DDMMYY");
+			TAP_SPrint( str,text_DDMMYY/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DDMMYYYY:
 
-			TAP_SPrint( str,"DDMMYYYY");
+			TAP_SPrint( str,text_DDMMYYYY/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YYMMDD:
 
-			TAP_SPrint( str,"YYMMDD");
+			TAP_SPrint( str,text_YYMMDD/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YYYYMMDD:
 
-			TAP_SPrint( str,"YYYYMMDD");
+			TAP_SPrint( str,text_YYYYMMDD/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YY:
 
-			TAP_SPrint( str,"DD/MM/YY");
+			TAP_SPrint( str,text_DDMMYY_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM_SLASH_YYYY:
 
-			TAP_SPrint( str,"DD/MM/YYYY");
+			TAP_SPrint( str,text_DDMMYYYY_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YY_SLASH_MM_SLASH_DD:
 
-			TAP_SPrint( str,"YY/MM/DD");
+			TAP_SPrint( str,text_YYMMDD_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_YYYY_SLASH_MM_SLASH_DD:
 
-			TAP_SPrint( str,"YYYY/MM/DD");
+			TAP_SPrint( str,text_YYYYMMDD_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/			
 		case SCH_CONFIG_DATE_FORMAT_DD_DOT_MM:
 
-			TAP_SPrint( str,"DD.MM");
+			TAP_SPrint( str,text_DDMM_dot/*see language.c */);
 
 			break;
 
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_MM_DOT_DD:
 
-			TAP_SPrint( str,"MM.DD");
+			TAP_SPrint( str,text_MMDD_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DDMM:
 
-			TAP_SPrint( str,"DDMM");
+			TAP_SPrint( str,text_DDMM/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_MMDD:
 
-			TAP_SPrint( str,"MMDD");
+			TAP_SPrint( str,text_MMDD/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_DD_SLASH_MM:
 
-			TAP_SPrint( str,"DD/MM");
+			TAP_SPrint( str,text_DDMM_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_DATE_FORMAT_MM_SLASH_DD:
 			
-			TAP_SPrint( str,"MM/DD");
+			TAP_SPrint( str,text_MMDD_slash/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
@@ -401,26 +410,26 @@ void DisplayConfigLine(int option)
 		break;
 	/*--------------------------------------------------*/		
 	case 9 :
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Time Format", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_TimeFormat/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentTimeFormat)
 		{
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_TIME_FORMAT_HH_COLON_MM:
 
-			TAP_SPrint( str,"HH:MM");
+			TAP_SPrint( str,text_HHMM_colon/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_TIME_FORMAT_HH_DOT_MM:
 
-			TAP_SPrint( str,"HH.MM");
+			TAP_SPrint( str,text_HHMM_dot/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_TIME_FORMAT_HHMM:
 
-			TAP_SPrint( str,"HHMM");
+			TAP_SPrint( str,text_HHMM/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
@@ -436,32 +445,32 @@ void DisplayConfigLine(int option)
 	/*--------------------------------------------------*/
 	case 10 :
 
-		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  "Conflict Handling", MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
+		PrintCenter(rgn, CONFIG_E1, (lineNumber * SYS_Y1_STEP + Y1_OFFSET), CONFIG_E2,  text_ConflictHandling/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );
 
 		switch(currentConflictOption)
 		{
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_DISABLED:
 
-			TAP_SPrint( str,"Disabled");
+			TAP_SPrint( str,text_Disabled/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_COMBINE:
 
-			TAP_SPrint( str,"Combine Timers");
+			TAP_SPrint( str,text_CombineTimers/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_SEPARATE:
 
-			TAP_SPrint( str,"Separate Timers");
+			TAP_SPrint( str,text_SeparateTimers/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
 		case SCH_MAIN_CONFLICT_SEPARATE_KEEP_END_PADDING:
 
-			TAP_SPrint( str,"Separate Timers - Keep End Padding");
+			TAP_SPrint( str,text_SeparateTimersKeepEndPadding/*see language.c */);
 
 			break;
 		/*--------------------------------------------------*/
@@ -526,7 +535,7 @@ void CreateConfigWindow(void)
 {
 	configWindowShowing = TRUE;
 	sysDrawGraphicBorders();
-	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, "Configuration", TITLE_COLOUR, COLOR_Black );
+	TAP_Osd_PutStringAf1926( rgn, 58, 40, 390, text_Configuration/*see language.c */, TITLE_COLOUR, COLOR_Black );
 }
 
 
@@ -730,7 +739,7 @@ void ConfigActionHandler(dword key)
 		/*--------------------------------------------------*/
 		case RKEY_VolUp:
 
-			if(currentPerformSearchMode < 2)
+			if(currentPerformSearchMode < 3)
 			{
 				currentPerformSearchMode++;
 			}
@@ -751,7 +760,7 @@ void ConfigActionHandler(dword key)
 			}
 			else
 			{
-				currentPerformSearchMode = 2;
+				currentPerformSearchMode = 3;
 			}
 
 			DisplayConfigLine( chosenConfigLine );
@@ -1377,7 +1386,10 @@ void InitialiseConfigRoutines(void)
 	configOption = 0;
 	keyStage = 0;
 
-	CreateTF5800Keys( &localKeyCodes );
+  if ( unitModelType == TF5800 )
+	  CreateTF5800Keys( &localKeyCodes );
+  else
+    CreateTF5000Keys( &localKeyCodes );
 }
 
 
@@ -1406,9 +1418,9 @@ void configDrawLegend(void)
 	TAP_Osd_FillBox( rgn, INFO_AREA_X, INFO_AREA_Y, INFO_AREA_W, INFO_AREA_H, INFO_FILL_COLOUR );		// clear the bottom portion
 
 	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 1, &_exitoval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 2, INSTR_AREA_X + INSTR_AREA_W, "Cancel", INFO_COLOUR, INFO_FILL_COLOUR );
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 2, INSTR_AREA_X + INSTR_AREA_W, text_Cancel/*see language.c */, INFO_COLOUR, INFO_FILL_COLOUR );
 
 	TAP_Osd_PutGd( rgn, INSTR_AREA_X, INSTR_AREA_Y + 21, &_recordoval38x19Gd, TRUE );	
-	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 22, INSTR_AREA_X + INSTR_AREA_W, "Save", INFO_COLOUR, INFO_FILL_COLOUR );
+	TAP_Osd_PutStringAf1419( rgn, INSTR_AREA_X + 50, INSTR_AREA_Y + 22, INSTR_AREA_X + INSTR_AREA_W, text_Save/*see language.c */, INFO_COLOUR, INFO_FILL_COLOUR );
 }	
 

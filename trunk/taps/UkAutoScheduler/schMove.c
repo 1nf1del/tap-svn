@@ -7,6 +7,7 @@ v0.1 sl8:	11-04-06	Tidy up.
 v0.2 sl8:	08-05-06	API move added.
 v0.3 sl8:	05-08-06	Renames file if file name already exists in target folder.
 v0.4 sl8:	28-08-06	Process the move list in reverse order.
+v0.5 sl8:	13-09-09	Allow for the removal of start padding.
 
 **************************************************************/
 
@@ -44,6 +45,7 @@ void schMoveService(void)
 	static	bool	moveFailed = FALSE;
 	int	result = 0;
 	bool	schMoveResult = FALSE;
+	dword	moveStartTimeInMins = 0, fileStartTimeInMins = 0;
 
 	char	buffer1[256];
 
@@ -111,14 +113,18 @@ void schMoveService(void)
 
 		if(GotoDataFiles() == TRUE)
 		{
+			moveStartTimeInMins = schMainConvertTimeToMins(schMoveData[schMoveIndex].moveStartTime);
+
 			totalFileCount = TAP_Hdd_FindFirst(&tempFile); 
 
 			schFileFound = FALSE;
 			for ( i=1; ((i <= totalFileCount) && (schFileFound == FALSE)) ; i++ )
 			{
+				fileStartTimeInMins = (tempFile.mjd * 24 * 60) + (tempFile.hour * 60) + tempFile.min;
+
 				if
 				(
-					(schMoveData[schMoveIndex].moveStartTime == ((tempFile.mjd << 16) + (tempFile.hour << 8) + tempFile.min))
+					((moveStartTimeInMins - 1) <= fileStartTimeInMins)
 					&&
 					(tempFile.attr == ATTR_TS)
 					&&

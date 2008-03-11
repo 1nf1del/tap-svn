@@ -11,6 +11,8 @@ This module displays the schedules
   v0.5 sl8:	13-10-06	Duration bug fix.
   v0.6 sl8:	23-10-06	Duration bug fix (proper).
   v0.7 sl8:	11-06-07	Max number of results increased to 300.
+  v0.8 jpuhakka: 18-02-08  Multi language support added.
+
 
 **************************************************************/
 
@@ -95,12 +97,12 @@ void schShowWindowCreate(void)
 {
 	sysDrawGraphicBorders();
 
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X0, 71, SCH_SHOW_DIVIDER_X1, "No.", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X1, 71, SCH_SHOW_DIVIDER_X2, "Set", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X2, 71, SCH_SHOW_DIVIDER_X3, "Programme Name", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X3, 71, SCH_SHOW_DIVIDER_X4, "Time", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X4, 71, SCH_SHOW_DIVIDER_X5, "Day", TITLE_COLOUR, 0, FNT_Size_1419 );
-	PrintCenter(rgn, SCH_SHOW_DIVIDER_X5, 71, SCH_SHOW_DIVIDER_X6, "Channel", TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X0, 71, SCH_SHOW_DIVIDER_X1, text_No_dot/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X1, 71, SCH_SHOW_DIVIDER_X2, text_Status/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X2, 71, SCH_SHOW_DIVIDER_X3, text_ProgrammeName/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X3, 71, SCH_SHOW_DIVIDER_X4, text_Time/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X4, 71, SCH_SHOW_DIVIDER_X5, text_Day/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
+	PrintCenter(rgn, SCH_SHOW_DIVIDER_X5, 71, SCH_SHOW_DIVIDER_X6, text_Channel/*see language.c */, TITLE_COLOUR, 0, FNT_Size_1419 );
 	
 	schShowChosenLine = 0;														// default: highlight the 1st timer
 	schShowPage = 0;
@@ -121,26 +123,26 @@ void schShowDrawBackground(void)
 {
 	char	str[128];
 
-	strcpy(str, "Search Results");
+	strcpy(str, text_SearchResults/*see language.c */);
 
 	switch(schShowSortOrder)
 	{
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_TIME:
 
-		strcat(str, " [Time]");
+		strcat(str, text_Time_brackets/*see language.c */);
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_CHANNEL:
 
-		strcat(str, " [Channel]");
+		strcat(str, text_Channel_brackets/*see language.c */);
 
 		break;
 	/* ---------------------------------------------------------------------------- */
 	case SCH_SHOW_SORT_ORDER_NAME:
 	default:
-		strcat(str, " [Name]");
+		strcat(str, text_Name_brackets/*see language.c */);
 
 		break;
 	/* ---------------------------------------------------------------------------- */
@@ -183,12 +185,12 @@ void schShowDrawText(int line, int dispLine)
 		if(schShowResultsPtr[line-1]->isRec == 1)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, 102, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, text_Record_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, text_Watch_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 	}
 	else if(schShowResultsPtr[line-1]->modifiedTimerSet == TRUE)
@@ -196,12 +198,12 @@ void schShowDrawText(int line, int dispLine)
 		if(schShowResultsPtr[line-1]->isRec == 1)
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_redcircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 99, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "R-", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, 99, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, text_RecordMinus_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 		else
 		{
 			TAP_Osd_PutGd( rgn, 93, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET - 8, &_greencircleGd, TRUE );
-			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, "W", MAIN_TEXT_COLOUR, 0 );
+			TAP_Osd_PutStringAf1622( rgn, 100, (dispLine * SYS_Y1_STEP) + SCH_SHOW_Y1_OFFSET, SCH_SHOW_DIVIDER_X2, text_Watch_char/*see language.c */, MAIN_TEXT_COLOUR, 0 );
 		}
 	}
 	else
@@ -226,13 +228,13 @@ void schShowDrawText(int line, int dispLine)
 	
 	switch ( weekDay )
 	{
-		case 0:	TAP_SPrint(str2,"Mon"); break;
-		case 1:	TAP_SPrint(str2,"Tue"); break;
-		case 2:	TAP_SPrint(str2,"Wed"); break;
-		case 3:	TAP_SPrint(str2,"Thu"); break;
-		case 4:	TAP_SPrint(str2,"Fri"); break;
-		case 5:	TAP_SPrint(str2,"Sat"); break;
-		case 6:	TAP_SPrint(str2,"Sun"); break;
+		case 0:	TAP_SPrint(str2,text_Mon/*see language.c */); break;
+		case 1:	TAP_SPrint(str2,text_Tue/*see language.c */); break;
+		case 2:	TAP_SPrint(str2,text_Wed/*see language.c */); break;
+		case 3:	TAP_SPrint(str2,text_Thu/*see language.c */); break;
+		case 4:	TAP_SPrint(str2,text_Fri/*see language.c */); break;
+		case 5:	TAP_SPrint(str2,text_Sat/*see language.c */); break;
+		case 6:	TAP_SPrint(str2,text_Sun/*see language.c */); break;
 		default : TAP_SPrint(str2,"OT BAD"); break;
 	}
 
@@ -327,13 +329,15 @@ void schShowDrawInfo(int line)
 	
 	if (durHour > 0)
 	{	
-		sprintf( str2, "%d hr", durHour);
-		strcat(str, str2);
-
 		if (durHour > 1)
 		{
-			strcat(str, "s");
+		  sprintf( str2, "%d %s", durHour, text_hrs/*see language.c */);
 		}
+		else
+		{
+		  sprintf( str2, "%d %s", durHour, text_hr/*see language.c */);
+		}
+		strcat(str, str2);
 	}
 
 	if (durMin > 0)
@@ -343,13 +347,15 @@ void schShowDrawInfo(int line)
 			strcat(str, " ");
 		}
 
-		sprintf( str2, "%d min", durMin);
-		strcat(str, str2);
-
 		if (durMin > 1)
 		{
-			strcat(str, "s");
+			sprintf( str2, "%d %s", durMin, text_mins/*see language.c */);  
 		}
+		else
+		{
+		  sprintf( str2, "%d %s", durMin, text_min/*see language.c */);  
+		}
+		strcat(str, str2);
 	}
 
 	strcat(str, ")");
@@ -815,10 +821,10 @@ void schShowDrawLegend( void )
 //	TAP_Osd_PutStringAf1419( rgn, LEG_START + (1 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Spare", INFO_COLOUR, 0 );
 
 	TAP_Osd_PutGd( rgn, LEG_START + (2 * LEG_SPACING), 523, &_yellowoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Select All", INFO_COLOUR, 0 );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (2 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, text_SelectAll/*see language.c */, INFO_COLOUR, 0 );
 
 	TAP_Osd_PutGd( rgn, LEG_START + (3 * LEG_SPACING), 523, &_blueoval38x19Gd, TRUE );
-	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, "Sort", INFO_COLOUR, 0 );
+	TAP_Osd_PutStringAf1419( rgn, LEG_START + (3 * LEG_SPACING) + LEG_TEXT_OFFSET, 523, 666, text_Sort/*see language.c */, INFO_COLOUR, 0 );
 }
 
 
@@ -845,9 +851,9 @@ void schShowService( void )
 	case SCH_SHOW_SERVICE_INITIALISE:
 
 		TAP_Osd_PutGd( rgn, SCH_SHOW_PROGRESS_WINDOW_X, SCH_SHOW_PROGRESS_WINDOW_Y, &_popup360x130Gd, TRUE );
-		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  13, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, "Searching...", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
+		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  13, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, text_Searching/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
 		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  58, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, "0 %", MAIN_TEXT_COLOUR, 0, FNT_Size_1926 );
-		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  104, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, "(Press EXIT to cancel search)", MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
+		PrintCenter( rgn, SCH_SHOW_PROGRESS_WINDOW_X + 5, SCH_SHOW_PROGRESS_WINDOW_Y +  104, SCH_SHOW_PROGRESS_WINDOW_X + SCH_SHOW_PROGRESS_WINDOW_W - 5, text_PressEXITtoCancelSearch/*see language.c */, MAIN_TEXT_COLOUR, 0, FNT_Size_1419 );
 
 		schShowProgress = 0;
 		schShowDrawProgress(schShowProgress);
@@ -1123,10 +1129,13 @@ void schShowService( void )
 		schShowDrawList();
 		schShowDrawLegend();
 
-		sprintf(str, "Found %d Match", schShowNumberOfResults);
 		if(schShowNumberOfResults != 1)
 		{
-			strcat(str, "es");
+			sprintf(str, "%s %d %s", text_Found/*see language.c */, schShowNumberOfResults, text_Matches/*see language.c */); 
+		}
+		else
+		{
+		  sprintf(str, "%s %d %s", text_Found/*see language.c */, schShowNumberOfResults, text_Match/*see language.c */); 
 		}
 
 		PrintCenter( rgn, SCH_SHOW_DIVIDER_X1, 450, SCH_SHOW_DIVIDER_X6, str, MAIN_TEXT_COLOUR, 0, FNT_Size_1622 );

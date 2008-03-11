@@ -35,7 +35,11 @@ v0.25 sl8	11-06-07	Term/event sanity check now only performed on 'normal' search
 v0.26 jpuhakka	12-10-07	Allow 'Advanced' searches to match multiple words across both the event's title and description.
 v0.27 jpuhakka	14-12-07	Support for Scandinavian letters added (å, ä and ö).
 v0.28 jpuhakka	18-12-07	Advanced searches: Support for "full stop" added (e.g. c.s.i+~miami). Memory corruption fixed (Occurred when search performed on combined description/extended data).
-
+v0.29 jpuhakka  18-02-08  Ignore repeats: database will be updated only if timer was succesfully set.
+        Perform search every 30 mins added.
+        Character table codes removed from event name and description.
+        ^ -operator fixed.
+        Multi language support added.
 
 **************************************************************/
 
@@ -287,6 +291,89 @@ bool schMainAlreadyRecorded(TYPE_TapEvent *event)
 
    // Open up the database for this program
    //
+   file=TAP_Hdd_Fopen(event->eventName);
+   if ( file == NULL )
+     return FALSE;
+
+   blocks=(TAP_Hdd_Flen(file)/512);// do I need +1?
+
+   //TAP_Print("   there are %d blocks in this file\n",blocks);
+
+   current=0;
+
+   while (current < blocks)
+   {
+      //TAP_Print("   Reading block %d\n",current);
+	  
+      TAP_Hdd_Fread(buf,512,1,file);
+
+      hash_record=(TYPE_Hash_Record *)buf;
+
+      for(i=0;i<HASH_RECORDS_PER_BLOCK;i++)
+      {
+         // Have we gone beyond the entry in this block?
+         //
+         if ( hash_record->type == REC_TYPE_EMPTY )
+            break;
+
+         //TAP_Print("   Checking against Hash %d\n",hash_record->hash);
+
+         if ( hash == hash_record->hash )
+         {
+            //TAP_Print("   match found\n");
+
+            // Close the file - and return match
+            //
+            TAP_Hdd_Fclose(file);
+            return TRUE;
+         }
+
+         // Move on to the next record
+         //
+         hash_record++;
+      }
+
+      // We have fell out the loop - why?
+      //
+      if ( i != HASH_RECORDS_PER_BLOCK )
+         break;
+
+      current++;
+   }
+
+   //TAP_Print("   No Match Found\n");
+ 
+   // Close the file - and return no match
+   //
+   TAP_Hdd_Fclose(file);
+   return FALSE;
+}
+
+bool schMainSetAlreadyRecorded(TYPE_TapEvent *event)
+{
+   TYPE_File *file;
+   unsigned long hash;
+   TYPE_Hash_Record *hash_record;
+   bool found=FALSE;
+   char buf[512];
+   int blocks,current,i;
+
+   //TAP_Print("schMainSetAlreadyRecorded(%s)\n",event->description);
+
+   // Given the eventName and the description, does this exist in the recorded database?
+   //
+
+   GotoPath(SETTINGS_FOLDER);
+   TAP_Hdd_ChangeDir(RECORDED_DB_DIR);
+
+   // Generate a hash for the description
+   //
+   hash=schMainGenerateHash(event->description);
+
+   //TAP_Print("   Hash generated %d\n",hash);
+
+   // Open up the database for this program
+   //
    if ( (file=TAP_Hdd_Fopen(event->eventName)) == 0 )
    {
       //TAP_Print("   Creating New file %s\n",event->eventName);
@@ -395,7 +482,7 @@ void schMainService(void)
 	static int schEpgTotalEvents = 0;
 	dword schMainCurrentTime = 0;
 
-	char buffer1[128];
+	//char buffer1[128];
 
 	switch(schServiceSV)
 	{
@@ -412,7 +499,6 @@ void schMainService(void)
 //			ShowMessageWin("Error loading","SearchList.txt");
 //			TAP_Exit();
 		}
-
 		schServiceSV = SCH_SERVICE_RESET_SEARCH;
 
 		break;
@@ -431,6 +517,15 @@ void schMainService(void)
 		case SCH_CONFIG_SEARCH_PERIOD_ONE_HOUR:
 
 			if(schTimeMin == 0)
+			{
+				schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
+			}
+
+			break;
+		/*--------------------------------------------------*/
+		case SCH_CONFIG_SEARCH_PERIOD_THIRTY_MINS:
+
+			if(schTimeMin == 0 || schTimeMin == 30)
 			{
 				schServiceSV = SCH_SERVICE_CHECK_FOR_REMOTE_SEARCHES;
 			}
@@ -590,7 +685,8 @@ void schMainService(void)
 					{
 						if( schMainAlreadyRecorded(&schEpgData[schEpgIndex]) == FALSE )
 						{
-							schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW));
+							if ( schMainSetTimer(schEpgData[schEpgIndex].eventName, schEpgData[schEpgIndex].startTime, schEpgData[schEpgIndex].endTime, schUserSearchIndex, schChannel, 	(schUserData[schUserSearchIndex].searchStatus == SCH_USER_DATA_STATUS_RECORD_NEW)) == SCH_MAIN_TIMER_SUCCESS )
+                schMainSetAlreadyRecorded(&schEpgData[schEpgIndex]);
 						}
 					}
 				}
@@ -713,6 +809,17 @@ void schMainService(void)
 			}
 
 			break;
+    /*--------------------------------------------------*/
+    case SCH_CONFIG_SEARCH_PERIOD_THIRTY_MINS:
+
+			if(schTimeMin != 0 && schTimeMin != 30)
+			{
+//				logStoreEvent("Search Finished");
+
+				schServiceSV = SCH_SERVICE_RESET_SEARCH;
+			}
+
+			break;
 		/*--------------------------------------------------*/
 		case SCH_CONFIG_SEARCH_PERIOD_SPECIFIED:
 
@@ -754,13 +861,13 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 	byte eventMonth = 0, eventDay = 0, eventWeekDay = 0, eventWeekDayBit = 0;
 	dword eventStartInMins = 0, currentTimeInMins = 0, startPaddingInMins = 0;
 	TYPE_RecInfo CurrentRecordInfo0;
-	char rec0InfoOverRun[512];
+	//char rec0InfoOverRun[512];
 	TYPE_RecInfo CurrentRecordInfo1;
-	char rec1InfoOverRun[512];
-	char combinedFields[COMBINED_NAME_DESC_EXT_LEN];
+	//char rec1InfoOverRun[512];
 
-	memset(combinedFields,0,COMBINED_NAME_DESC_EXT_LEN);
-
+  char combinedFields[COMBINED_NAME_DESC_EXT_LEN];
+  memset(combinedFields,'\0',COMBINED_NAME_DESC_EXT_LEN);
+  
 	eventMjd = ((epgData[epgDataIndex].startTime >> 16) & 0xFFFF);
 	eventHour = ((epgData[epgDataIndex].startTime >> 8) & 0xFF);
 	eventMin = (epgData[epgDataIndex].startTime & 0xFF);
@@ -838,16 +945,15 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 				(strlen(epgData[epgDataIndex].eventName) == strlen(schUserData[schSearch].searchTerm))
 				||
 				(
-					(epgData[epgDataIndex].eventName[0] <= 0x1F)	// Ignore character table code
+					(epgData[epgDataIndex].eventName[0] >= 0 && epgData[epgDataIndex].eventName[0] <= 0x1F)	// Ignore character table code, not scandinavian letters
 					&&
 					((strlen(epgData[epgDataIndex].eventName) - 1) == strlen(schUserData[schSearch].searchTerm))
 				)
 			)
 		)
 		{
-			strcat(combinedFields," ");
-			strcat(combinedFields,epgData[epgDataIndex].eventName);
-			combinedFieldsCnt++;
+      strcat(combinedFields,epgData[epgDataIndex].eventName);
+      combinedFieldsCnt++;
 		}
 
 		if
@@ -857,9 +963,10 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 			((schUserData[schSearch].searchOptions & SCH_USER_DATA_OPTIONS_DESCRIPTION) == SCH_USER_DATA_OPTIONS_DESCRIPTION)
 		)
 		{
-			strcat(combinedFields," ");
-			strcat(combinedFields,epgData[epgDataIndex].description);
-			combinedFieldsCnt++;
+      if ( combinedFieldsCnt )
+        strcat(combinedFields," ");
+      strcat(combinedFields,epgData[epgDataIndex].description);
+      combinedFieldsCnt++;
 		}
 
 		if
@@ -878,15 +985,15 @@ bool schMainPerformSearch(TYPE_TapEvent *epgData, int epgDataIndex, int schSearc
 
 			if(schEpgDataExtendedInfo)
 			{
-				strcat(combinedFields," ");
-				strcat(combinedFields,(char*)schEpgDataExtendedInfo);
-				combinedFieldsCnt++;
+        if ( combinedFieldsCnt )
+          strcat(combinedFields," ");
+        strcat(combinedFields,(char*)schEpgDataExtendedInfo);
+        combinedFieldsCnt++;
 			}
 		}
-
 		if( combinedFieldsCnt )
 		{
-			foundSearchTerm = schMainCompareStrings(combinedFields, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
+      foundSearchTerm = schMainCompareStrings(combinedFields, schUserData[schSearch].searchTerm,schUserData[schSearch].searchOptions);
 		}
 	}
 
@@ -925,6 +1032,9 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	dword temp = 0;
 	bool schMoveListModified = FALSE;
 	char buffer1[256];
+
+  if (eventName[0] >= 0 && eventName[0] <= 0x1F)	// Ignore character table code, not scandinavian letters
+    eventName++;
 
 	// ------------- Attachments ----------------
 
@@ -1088,7 +1198,7 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	}
 
 	memset(numbStr,0,64);
-	sprintf(numbStr,"S#%d", (searchIndex + 1));
+	sprintf(numbStr,"%s%d",text_S_hash/*see language.c */ , (searchIndex + 1));
 
 	memset(prefixStr,0,64);
 	memset(appendStr,0,64);
@@ -1233,7 +1343,7 @@ byte schMainSetTimer(char *eventName, dword eventStartTime, dword eventEndTime, 
 	strcpy(schTimerInfo.fileName, fileNameStr);
 
 	timerError = TAP_Timer_Add(&schTimerInfo);
-
+	
 	if(timerError == 0)
 	{
 		result = SCH_MAIN_TIMER_SUCCESS;
@@ -1797,7 +1907,7 @@ int schMainSearch(SEARCH *search,char *expr)
 
 int schMainSearchInit(SEARCH *search,char *description)
 {
-   char *src,*tgt;
+   unsigned char *src,*tgt; // Needs to be unsigned because of scandinavian letters
 
    if ( search == NULL || description == NULL )
       return -1;
@@ -1810,13 +1920,17 @@ int schMainSearchInit(SEARCH *search,char *description)
    tgt=search->description;
 
    while (*src != '\0')
-      *tgt++=tolower_with_scands(*src++);
+   {
+     if ( *src > 0x1F ) // Ignore character table code, not scandinavian letters
+       *tgt++=tolower_with_scands(*src++);
+     else
+       *src++;
+   }
 
    *tgt='\0';
 
    return 0;
 }
-
 
 bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 {
@@ -1824,7 +1938,7 @@ bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 	bool foundSearchTerm = FALSE;
 	int eventNameLength = 0;
 	int searchTermLength = 0;
-
+  
 	eventNameLength = strlen(eventName);
 	searchTermLength = strlen(searchTerm);
 
@@ -1833,7 +1947,7 @@ bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 	if ( (eventNameLength == 0) || (searchTermLength == 0) )
 		return FALSE;
 
-	// Are we doing advanced searching ( +, | and ! with wildcards?)
+  // Are we doing advanced searching ( +, | and ! with wildcards?)
 	//
 	if ( options & SCH_USER_DATA_OPTIONS_ADVANCED_SEARCH )
 	{
@@ -1865,10 +1979,12 @@ bool schMainCompareStrings(char *eventName, char *searchTerm,int options)
 		{
 //			if(eventName[eventNameIndex] == searchTerm[0])
 //			{
+#ifndef WIN32
 				if(strncasecmp(&eventName[eventNameIndex],searchTerm,searchTermLength) == 0)
 				{
 					foundSearchTerm = TRUE;
 				}
+#endif
 //			}
 		}
 	}
