@@ -1,0 +1,12 @@
+Jim's Guide - To Do
+
+Implement configurable keys for all key parts
+Implement compatibility with UK 58XX range
+Implement skinning support and ability
+Clean up code and release under GPLV2
+Create more interfaces for creation of PerlTGD favourites
+Fully test timerlist with all the types of timers i.e. weekly, weekday, weekend etc..
+Implement insert ability to keyboard module and clean up
+Create proper manual to explain all the features and usages
+Just EPG view
+Option to have Extended information added to bottom of GridEPG to have display more full

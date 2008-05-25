@@ -1,0 +1,330 @@
+void Guide_NewDisplayTemplate( void ){
+	Guide_CreateRegions();
+	if( !Guide_BackgroundDrawn ){
+		Guide_DrawBackground();
+	}
+
+	// Lets draw the page title
+	TAP_Osd_PutStringAf( Guide_RGN, GUIDE_X+GUIDE_BORDER, GUIDE_Y+GUIDE_BORDER+7, GUIDE_X+GUIDE_BORDER+330, "Program Guide", COLOR_White, COLOR_None, FNT_Size_1926, 0, 0 );
+	
+
+	// Dummy region for the event information of the selected show
+	TAP_Osd_FillBox(Guide_RGN, GUIDE_X+GUIDE_BORDER+330+GUIDE_BORDER, GUIDE_Y+GUIDE_BORDER+GUIDE_HEADER+180, (GUIDE_X+GUIDE_W+(GUIDE_CORNER/2))-(GUIDE_X+GUIDE_BORDER+330+GUIDE_BORDER)-GUIDE_BORDER, (GUIDE_Y+GUIDE_H+(GUIDE_CORNER/2))-(GUIDE_Y+GUIDE_BORDER+GUIDE_HEADER+180)-GUIDE_BORDER, COLOR_Yellow);
+	
+	templateShown = TRUE;
+	templateRender = FALSE;
+}
+
+void TemplateIdle( void ){
+	if( templateRender ){
+		setupGraphics();
+		Guide_NewDisplayTemplate();
+	}
+}
+
+void TemplateHide( void ){
+	TAP_Osd_Delete(Guide_RGN);
+	Guide_RGN = 0;
+	TAP_Osd_Delete(Guide_MemRGN);
+	Guide_MemRGN = 0;
+	TAP_Osd_FillBox( 0, 0, 0, 720, 576, COLOR_None );
+	TAP_EnterNormal();
+	templateShown = FALSE;
+}
+
+dword TemplateKeyHandler( dword param1 ){
+	if( param1 == RKEY_Exit ){
+		TemplateHide();
+		return 0;
+	}
+	if( param1 == RKEY_Sleep ){
+   		TAP_MemFree( _evtInfo );
+		TemplateHide();
+		TSRCommanderExitTAP();
+		TAP_Exit();
+		return 0;
+	}
+	return param1;
+}
+
+void Guide_RenderDisplay( void ){
+	static int i;
+	Menu_CreateRegions();
+	if( !Menu_IsBackgroundDrawn() ){
+		Menu_DrawBackground();
+		// Render the template
+		for( i = 0; i < GUIDE_ITEMS; i++ ){
+			Guide_RowTemp(i);
+		}
+		// Only get and sort if we haven't already done so
+		if( dataCollected != DATA_COLLECTED ){
+			Guide_NewGetEvents(); // Populate the static events array
+		}
+		if( sortOrder == SORT_UNSORTED ){
+			Guide_SortName();
+		}
+		switch( sortOrder ){
+			case SORT_UNSORTED:
+				Menu_DrawTitle("Guide [ Unsorted ]");
+				break;
+			case SORT_NAME:
+				Menu_DrawTitle("Guide [ A-Z ]");
+				break;
+			case SORT_REVERSENAME:
+				Menu_DrawTitle("Guide [ Z-A ]");
+				break;
+			case SORT_RATING:
+				Menu_DrawTitle("Guide [ Rating ]");
+				break;
+			case SORT_RATINGREVERSE:
+				Menu_DrawTitle("Guide [ Rating Reverse ]");
+				break;
+			case SORT_CATEGORY:
+				Menu_DrawTitle("Guide [ Category ]");
+				break;
+			case SORT_CATEGORYREVERSE:
+				Menu_DrawTitle("Guide [ Category Reverse ]");
+				break;
+			case SORT_CHANNEL:
+				Menu_DrawTitle("Guide [ Channel ]");
+				break;
+			case SORT_CHANNELREVERSE:
+				Menu_DrawTitle("Guide [ Channel Reverse ]");
+				break;
+		}
+		Guide_RowTemp(0);
+		for( i = minRow; i < maxRow; i++ ){
+			// Render the highlight
+			if( i == selectedRow ){
+				Guide_ItemSelected(i);
+			} else {
+				Guide_Item(i);
+			}
+		}
+		Guide_FlagTimers();
+	} else {
+		// Background is rendered so lets check the range and determine what to do
+		if( Guide_Redraw ){
+			switch( sortOrder ){
+				case SORT_UNSORTED:
+					Menu_DrawTitle("Guide [ Unsorted ]");
+					break;
+				case SORT_NAME:
+					Menu_DrawTitle("Guide [ A-Z ]");
+					break;
+				case SORT_REVERSENAME:
+					Menu_DrawTitle("Guide [ Z-A ]");
+					break;
+				case SORT_RATING:
+					Menu_DrawTitle("Guide [ Rating ]");
+					break;
+				case SORT_RATINGREVERSE:
+					Menu_DrawTitle("Guide [ Rating Reverse ]");
+					break;
+				case SORT_CATEGORY:
+					Menu_DrawTitle("Guide [ Category ]");
+					break;
+				case SORT_CATEGORYREVERSE:
+					Menu_DrawTitle("Guide [ Category Reverse ]");
+					break;
+				case SORT_CHANNEL:
+					Menu_DrawTitle("Guide [ Channel ]");
+					break;
+				case SORT_CHANNELREVERSE:
+					Menu_DrawTitle("Guide [ Channel Reverse ]");
+					break;
+			}
+			for( i = minRow; i < maxRow; i++ ){
+				// Render the highlight
+				if( i == selectedRow ){
+					Guide_ItemSelected(i);
+				} else {
+					Guide_Item(i);
+				}
+			}
+			Guide_FlagTimers();
+			Guide_Redraw = FALSE;
+		} else {
+			// Only render previous item again and current item
+			Guide_Item(selectedPrevRow);
+			Guide_ItemSelected(selectedRow);
+			Guide_FlagTimer(selectedPrevRow);
+			Guide_FlagTimer(selectedRow);
+		}
+	}
+	Guide_Render = FALSE;
+	Guide_Rendered = TRUE;
+}
+
+void Guide_ItemSelected( int row ){
+	int x_pos = 0;
+	int y_pos = 0;
+	dword fc = COLOR_White;
+	static char text[270];
+	// Sort out the X position
+	x_pos = X_Offset + ( GAP_X/2);
+	// Sort out the row for the item
+	y_pos = Y_Offset + (( _fileexplorerhighGd.height + GAP_Y ) * (row-minRow) )+5;
+	// Sanity Check
+	if( y_pos > 575 ) return;
+	if( x_pos > 719 ) return;
+	if( y_pos < 0 ) return;
+	if( x_pos < 0 ) return;
+	// Render the start time to the display
+	// This item is the selected one in the display
+	TAP_Osd_PutGd( Menu_RGN, X_Offset, y_pos-5, &_fileexplorerhighGd, FALSE );
+	if( events[row].runningStatus == 4 ){
+		fc = COLOR_Yellow;	// Set the current events to yellow text to identify
+	}
+	if( events[row].endTime <= Now(0) ){
+		fc = COLOR_Black;	// Set the current events to yellow text to identify
+	}
+	x_pos += 30;
+	TAP_Osd_FillBox( Menu_RGN, x_pos, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	// List the channle name here for 80 pixels
+	// Setup render the channel name in the first column
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos+3, y_pos, x_pos+80, Channel_Name( SVC_TYPE_Tv, Guide_GetSvcNum(events[row].svcId) ), fc, COLOR_None, FNT_Size_1419, 0, 0 );
+	TAP_Osd_FillBox( Menu_RGN, x_pos+80, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	x_pos += 80;
+	TAP_SPrint( _strBuf, "%s @ %02d:%02d", Guide_ItemDate( events[row].startTime,FALSE), (events[row].startTime>>8)&0xff,events[row].startTime&0xff);
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos + 3, y_pos, x_pos + 100, _strBuf, fc, COLOR_None, FNT_Size_1419, 0, 0 );
+	TAP_Osd_FillBox( Menu_RGN, x_pos+100, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	// name of the show
+	TAP_SPrint( text, "%s %s %s\0", events[row].eventName, Guide_Parental(events[row].parentalRating), events[row].description);
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos + 100 + 6, y_pos, 720 - X_Offset, text, fc, COLOR_None, FNT_Size_1419, 0, 0 );
+}
+
+void Guide_Item( int row ){
+	int x_pos = 0;
+	int y_pos = 0;
+	dword fc = COLOR_White;
+	static char text[270];
+	// Sort out the X position
+	x_pos = X_Offset + ( GAP_X/2);
+	// Sort out the row for the item
+	y_pos = Y_Offset + (( _fileexplorerhighGd.height + GAP_Y ) * (row-minRow) )+5;
+	// Sanity Check
+	if( y_pos > 575 ) return;
+	if( x_pos > 719 ) return;
+	if( y_pos < 0 ) return;
+	if( x_pos < 0 ) return;
+	// Render the start time to the display
+	// This item is the selected one in the display
+	TAP_Osd_PutGd( Menu_RGN, X_Offset, y_pos-5, &_fileexplorerGd, FALSE );
+	if( events[row].runningStatus == 4 ){
+		fc = COLOR_Yellow;	// Set the current events to yellow text to identify
+	}
+	if( events[row].endTime <= Now(0) ){
+		fc = COLOR_Black;	// Set the current events to yellow text to identify
+	}
+	x_pos += 30;
+	TAP_Osd_FillBox( Menu_RGN, x_pos, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	
+	// List the channle name here for 80 pixels
+	// Setup render the channel name in the first column
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos+3, y_pos, x_pos+80, Channel_Name( SVC_TYPE_Tv, Guide_GetSvcNum(events[row].svcId) ), fc, COLOR_None, FNT_Size_1419, 0, 0 );
+	TAP_Osd_FillBox( Menu_RGN, x_pos+80, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	x_pos += 80;
+	
+	TAP_SPrint( _strBuf, "%s @ %02d:%02d", Guide_ItemDate( events[row].startTime,FALSE), (events[row].startTime>>8)&0xff,events[row].startTime&0xff);
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos + 3, y_pos, x_pos + 100, _strBuf, fc, COLOR_None, FNT_Size_1419, 0, 0 );
+	TAP_Osd_FillBox( Menu_RGN, x_pos + 100, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+	// name of the show
+	TAP_SPrint( text, "%s %s %s\0", events[row].eventName, Guide_Parental(events[row].parentalRating), events[row].description);
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos + 100 + 6, y_pos, 720 - X_Offset, text, fc, COLOR_None, FNT_Size_1419, 0, 0 );
+}
+
+void Guide_RowTemp( int row ){
+	static int y_pos;
+	y_pos = Y_Offset + (( _fileexplorerhighGd.height + GAP_Y ) * row );
+	if( y_pos > 575 ) return;
+	// Image
+	TAP_Osd_PutGd( Menu_RGN, X_Offset, y_pos, &_fileexplorerGd, FALSE );
+}
+
+void Guide_FlagTimer( int row ){
+	static TYPE_TimerInfo	currentTimer;
+	static int totalTimers = 0;
+	static int i;
+	static word year;
+	static byte month, day, weekDay;
+	static 	TYPE_TapChInfo	currentChInfo;
+	totalTimers = TAP_Timer_GetTotalNum();
+	for ( i = 0; i < totalTimers; i++ ){
+		TAP_Timer_GetInfo(i, &currentTimer); // Sequentially get timer details and compare with those in the display range
+		TAP_ExtractMjd( currentTimer.startTime>>16, &year, &month, &day, &weekDay);
+		TAP_Channel_GetInfo( currentTimer.svcType, currentTimer.svcNum, &currentChInfo );
+		if( currentChInfo.svcId == events[row].svcId ){
+			// Check whether the timer completely covers the event
+			if( events[row].startTime >= currentTimer.startTime && events[row].endTime <= AddTime(currentTimer.startTime, currentTimer.duration) ){
+				// Print R in first column as timer records the event
+				Guide_PrintStatus(row,"Rec");
+			} else {
+				if( Guide_ShowPartial ){
+					if( events[row].startTime >= currentTimer.startTime && events[row].endTime >= currentTimer.startTime && events[row].endTime <= AddTime(currentTimer.startTime, currentTimer.duration) ){
+						Guide_PrintStatus(row,"Rp");
+					} else {
+						if( events[row].startTime <= currentTimer.startTime && events[row].endTime >= currentTimer.startTime ){
+							Guide_PrintStatus(row,"Rp");
+						}
+					}
+				}
+			}
+		}
+	}
+	// Now lets check the currently recording if there is any to see if we overlap
+	if( HDD_isRecording(0) ){
+		if( Guide_GetSvcId(Recording_GetRecInfo(0).svcNum) == events[row].svcId ){
+			if( events[row].startTime >= Recording_GetRecInfo(0).startTime && events[row].endTime <= AddTime(Recording_GetRecInfo(0).startTime, Recording_GetRecInfo(0).duration) ){
+				Guide_PrintStatus(row,"Rec");
+			} else {
+				if( Guide_ShowPartial ){
+					if( events[row].startTime >= Recording_GetRecInfo(0).startTime && events[row].endTime >= Recording_GetRecInfo(0).startTime && events[row].endTime <= AddTime(Recording_GetRecInfo(0).startTime, Recording_GetRecInfo(0).duration) ){
+						Guide_PrintStatus(row,"Rp");
+					} else {
+						if( events[row].startTime <= Recording_GetRecInfo(0).startTime && events[row].endTime >= Recording_GetRecInfo(0).startTime ){
+							Guide_PrintStatus(row,"Rp");
+						}
+					}
+				}
+			}
+		}
+	}
+	if( HDD_isRecording(1) ){
+		if( Guide_GetSvcId(Recording_GetRecInfo(1).svcNum) == events[row].svcId ){
+			if( events[row].startTime >= Recording_GetRecInfo(1).startTime && events[row].endTime <= AddTime(Recording_GetRecInfo(1).startTime, Recording_GetRecInfo(1).duration) ){
+				Guide_PrintStatus(row,"Rec");
+			} else {
+				if( Guide_ShowPartial ){
+					if( events[row].startTime >= Recording_GetRecInfo(1).startTime && events[row].endTime >= Recording_GetRecInfo(1).startTime && events[row].endTime <= AddTime(Recording_GetRecInfo(1).startTime, Recording_GetRecInfo(1).duration) ){
+						Guide_PrintStatus(row,"Rp");
+					} else {
+						if( events[row].startTime <= Recording_GetRecInfo(1).startTime && events[row].endTime >= Recording_GetRecInfo(1).startTime ){
+							Guide_PrintStatus(row,"Rp");
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void Guide_PrintStatus( int row, char * text ){
+	int x_pos = 0;
+	int y_pos = 0;
+	dword fc = COLOR_White;
+	// Sort out the X position
+	x_pos = X_Offset;
+	// Sort out the row for the item
+	y_pos = Y_Offset + (( _fileexplorerhighGd.height + GAP_Y ) * (row-minRow) )+5;
+	// Sanity Check
+	if( y_pos > 575 ) return;
+	if( x_pos > 719 ) return;
+	if( y_pos < 0 ) return;
+	if( x_pos < 0 ) return;
+	TAP_Osd_FillBox( Menu_RGN, x_pos, y_pos-5, 30, _fileexplorerhighGd.height, COLOR_Red );
+	TAP_Osd_PutStringAf( Menu_RGN, x_pos+1, y_pos, x_pos+30, text, fc, COLOR_None, FNT_Size_1419, 0, 0 );	
+	x_pos += 30;
+	TAP_Osd_FillBox( Menu_RGN, x_pos, y_pos-5, GAP_X, _fileexplorerhighGd.height, COLOR_Black );
+}
+

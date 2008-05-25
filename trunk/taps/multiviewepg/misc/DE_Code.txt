@@ -1,0 +1,51 @@
+typedef struct
+{
+  word  evtId;
+  dword startTime;
+  dword   endTime;
+  word  duration;
+  byte  runningStatus;
+  char  eventNameDesc[253];  // Replaces eventName and description
+  byte  genre;       // New element
+  byte  genreSub;    // New element
+  byte  descOffset;  // New element - usually zero without patch
+  byte  parentalRating;
+  byte  satIdx;
+  word  svcId;
+  word  orgNetId;
+  word  tsId;
+} TYPE_TapEventDE;
+#define TAP_GetEventDE(t,n,e) ((TYPE_TapEventDE*)TAP_GetEvent(t,n,e))
+#define TAP_GetCurrentEventDE(t,n) ((TYPE_TapEventDE*)TAP_GetCurrentEvent(t,n))
+
+
+TYPE_TapEventDE *de_event; TYPE_TapEvent *event;
+char event_name[128];
+char description[256];
+char *extended_info = NULL;
+
+de_event = TAP_GetCurrentEventDE(service_type, service_number);
+event = TAP_GetCurrentEvent(service_type, service_number);
+
+if (de_event && event) {
+   char *desc; byte offset;
+
+   offset = de_event->descOffset;
+
+   if (!PatchIsInstalled((dword*) 0x80000000, "De")
+      offset = 128;
+
+   desc = de_event->eventNameDesc+offset;
+
+   strcpy(event_name, de_event->eventNameDesc);
+   strcpy(description, desc);
+
+   extended_info = TAP_EPG_GetExtInfo(event);
+   if (extended_info) {
+      if (strncmp(desc, extended_info, 127) == 0 || strlen(desc) == 0) {
+         strcpy(description, extended_info);
+      }
+   }
+}
+
+if (extended_info) TAP_MemFree(extended_info); s

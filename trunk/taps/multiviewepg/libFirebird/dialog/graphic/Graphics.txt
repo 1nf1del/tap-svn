@@ -1,0 +1,20 @@
+Border_NW = Title_W           = 40 x 49
+Border_N = Title_C            = 10 x 49
+Border_NE = Title_E           = 40 x 49
+
+Border_Items_W                = 14 x 22
+Items_IconButton              = 32 x 22
+Items_Line_C                  = 10 x 22
+Items_Line_E = Border_Items_E = 24 x 22
+
+Border_InfoN_W = InfoN_W      = 20 x  6
+InfoN_C                       = 10 x  6
+InfoN_E = Border_InfoN_E      = 20 x  6
+
+Border_Info_W = Info_W        = 16 x 20
+Info_C                        = 10 x 20
+Border_Info_E                 = 14 x 20
+
+Border_SW = InfoS_W           = 18 x 19
+InfoS_C = Border_S            = 10 x 19
+InfoS_E = Border_SE           = 42 x 19

@@ -1,0 +1,99 @@
+# To add a new language, copy a block and translate it
+# the following codes are supported:
+#
+# LAN_Arab          ar
+# LAN_Bulgarian     bg
+# LAN_Czech         cs
+# LAN_Danish        da
+# LAN_Dutch         nl
+# LAN_English       en
+# LAN_French        fr
+# LAN_German        de
+# LAN_Greek         el
+# LAN_Italy         it
+# LAN_Norwegian     no
+# LAN_Persian       fa
+# LAN_Polish        pl
+# LAN_Russian       ru
+# LAN_Slovak        sk
+# LAN_Spain         es
+# LAN_Suomi         fi
+# LAN_Swedish       sv
+# LAN_Thai          th
+# LAN_Turk          tr
+
+
+#English
+en_000=allowed
+en_001=avoid
+en_002=Exit
+en_003=Exit editor / color
+en_004=Yes
+en_005=No
+en_006=small
+en_007=medium
+en_008=BorderColor
+en_009=ButtonIn
+en_010=ButtonOut
+en_011=ColorEditor
+en_012=Do you want to save the changes?
+en_013=Fade
+en_014=FontSize
+en_015=HDDAccess
+en_016=InfoBackgroundColor
+en_017=ItemsGridColor
+en_018=ItemsIconBackgroundColor
+en_019=ItemsIconBackgroundSelectedColor
+en_020=ItemsLineBackgroundColor
+en_021=ItemsLineBackgroundSelectedColor
+en_022=ItemsTextColor
+en_023=ItemsTextDisabledColor
+en_024=ItemsTextSelectedColor
+en_025=ProgressBarColor
+en_026=Scroll / Edit color
+en_027=Scroll page
+en_028=ScrollBarColor
+en_029=ScrollScreen
+en_030=ScrollWrapAround
+en_031=Select color
+en_032=system
+en_033=TitleBackgroundColor
+en_034=TitleTextColor
+
+
+#Deutsch
+de_000=erlaubt
+de_001=vermeiden
+de_002=Beenden
+de_003=Editor beenden
+de_004=Ja
+de_005=Nein
+de_006=klein
+de_007=mittel
+de_008=Randfarbe
+de_009=Knopf (gedrückt)
+de_010=Knopf
+de_011=ColorEditor
+de_012=Möchten Sie die Änderungen speichern?
+de_013=Ein-/Ausblendgeschwindigkeit
+de_014=Schriftgrösse
+de_015=HDD-Zugriff
+de_016=Info-Hintergrundfarbe
+de_017=Items-Gitterfarbe
+de_018=Items-Icon-Hintergrund
+de_019=Items-Icon-Hintergrund (ausgewählt)
+de_020=Items-Zeilenfarbe
+de_021=Items-Zeilenfarbe (ausgewählt)
+de_022=Items-Textfarbe
+de_023=Items-Textfarbe (deaktiviert)
+de_024=Items-Textfarbe (ausgewählt)
+de_025=Farbe des Fortschrittsbalkens
+de_026=Scrollen / Farbe ändern
+de_027=Seite scrollen
+de_028=Farbe des Scrollbalkens
+de_029=Seitenweise springen
+de_030=Am Ende der Liste fortsetzen
+de_031=Farbe auswählen
+de_032=System
+de_033=Titel-Hintergrundfarbe
+de_034=Titel-Textfarbe

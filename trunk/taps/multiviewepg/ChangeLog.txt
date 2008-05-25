@@ -1,0 +1,109 @@
+ChangeLog - 
+
+MultiViewEPG 1.0
+
+Feature - Deleting of timer now prompts to remove event, remove timer or cancel
+
+MultiViewEPG 1.0 RC3
+
+Feature - Logos now available in the 10 channel grid view. Requires smlogo.dat in the Logo folder
+Feature - Logos can now be display in the timerlist after the timer name.
+Bug Fix - Introduced annoy bug where linear EPG would reload events on first load.
+
+MultiViewEPG 1.0 RC2
+
+Bug Fix - Fixed bug where unit would freeze when the Linear View is called and no events have been loaded.
+Change  - The 7 channel mode has change to 8. This means that all the aus channels that are important can be displayed
+          e.g. 2,3,10,7,9,22,1,70. This will be as large as the display can get when displaying the logos.
+          When using this display mode only 1 line of information can be viewed. If wanting more please use the 10 channel
+          display.
+Bug Fix - Update the code behind the launch an close with the same key. Should work properly in most cases now but
+          still needs some testing.
+
+
+MultiViewEPG 1.0 RC1
+
+Feature - TAP has change names and moved to Release Canidate status.
+Feature - All interfaces can now call the main menu. Press menu when any screen is activated and the menu will be displayed
+Feature - Where possible the same key which activates a screen will close that screen.
+Feature - New option to list all timers by default has been added.
+Feature - Linear EPG now had Tv and Radio modes rather than the previous listing of all channels.
+Feature - Improved the logic that will now call the conflict handler if merging causes a conflict.
+Feature - Both Linear and Grid EPG modes will update the display every minute if no button has been pressed.
+Feature - Grid EPG can now display 7 or 10 Channels. Default is 10.
+Feature - Grid EPG can now display UK Project Logos when grid set to view 7 channels.
+Bug Fix - Some screens had a small graphical glitch that has now been resolved
+Extra   - Source code has been cleaned and will be released with final release.
+Extra   - Just EPG style of view has been added to the To Do list.
+
+ChangeLog - Jim's Guide 1.0
+
+Beta K
+
+Feature - Linear EPG now has Tv and Radio modes
+Feature - GridEPG is redrawn every 2 minutes if no key has been pressed in that period.
+
+Beta J
+
+Feature - Fully implemented the saving of excluded channels. 
+Feature - Implemented option to load epg in background at startup after a defined delay
+Feature - Implemented hour for reload of epg data.
+Feature - TAP now supports bellissimo's Font Manager.
+Feature - Grid EPG now has rewind ( << ) and forward ( >> ) as paging keys.
+Feature - Timer List can now add timers. Press red to create new timer. 
+          If a conflict occurs with your new timer it will call the conflict module to help solve the problems.
+Feature - Timer List interface for editing timers has been updated and now matches the newly created new timer dialog.
+Feature - Both Grid and Linear guides can now alter the duration of active recordings. Press record ( On events that the active recording covers )
+          or teletext and a simple dialog will allow you to adjust the ending time of that recording.
+Feature - Help text has been added to the timerlist.
+Feature - Radio channels now supported. Press Tv/Radio when in Grid EPG View to switch between the modes.
+Bug Fix - Fixed several bugs in the favourite manager.
+Bug Fix - Fixed bugs in Grid EPG that caused rendering outside of grid.
+Bug Fix - Fixed bug where if event starts before grid and ends after only the start arrow was displayed.
+Extra   - Graphics across all of the TAP have had some work done in preparation for the skinning feature. Have
+          improved the speed and rendering in some areas.
+
+Beta I
+
+Feature - Grid EPG now contains legend for colour keys.
+Feature - Events now use dynamic memory allocation lowering the RAM usage to as little as possible. Uses IMEM in libFirebird
+Feature - RSS News items now use dynamic memory allocation. Uses TAP_MemAlloc despite bug but when display is closed now the memory is freed
+Feature - Favourites Manager is now using dynamic memory allocation. Uses TAP_MemAlloc despite bug but when display is closed now the memory is freed
+Feature - Grid view can now exclude channels. Need to implement saving of excluded channels but users can now remove unwanted channels
+          from being displayed in the grid view until unit reboots or TAP is restarted. To exclude a channel users can 
+          press the Sleep key when in grid mode and on the channel to hide/remove. To reset the excludes press the UHF key.
+          Saving of these excludes will be included in the next release.
+Feature - Linear EPG now has the option to display the event time before the Event name.
+Feature - Description extender support is now avaliable. It will auto detect if the patch or tap is installed so no configuration is needed.
+Feature - Linear EPG has had a small makeover on the OSD.
+Feature - Linear and Grid EPG now support displaying 2 lines of event decription.
+Bug Fix - Various OSD bugs have be fixed.
+Backport- Fixed OSD so is only goes to the selected transparency of the system reverted back to version G as it had complications on the MP model.
+          Needs further investigation.
+
+Beta H
+
+Feature - Added gradients to OSD. Kudo to bellisimo for the gradient code which I took from Media Managers source. 
+Feature - Menu contains option to adjust the gradient factor of the displays.
+Bug Fix - Calculation for the widths of the columns were incorrect. This is now fixed.
+Bug fix - Fixed OSD so is only goes to the selected transparency of the system.
+
+Beta G
+
+Feature - When 2 channels are recording the channels that are unable to be viewed/recording are now displayed in a different colour in Grid view.
+Feature - Implement conflict handling when modifying timer to append event.
+Feature - Implemented ability to remove events from current recording if they are in the future.
+Feature - Implement ability to extend current recordings to record the following event.
+Bug Fix - Timer editing could be incorrectly launched for current recordings rather the only timers. Usually just say unable to find timer but shouldn't be able to be launched
+
+Beta F
+
+Included all bug fixes and featrues from internal releases. Most fixes were related to the Favourites Manager.
+
+Beta C, D, E
+
+Internal releases
+
+Beta B
+
+Beta A
