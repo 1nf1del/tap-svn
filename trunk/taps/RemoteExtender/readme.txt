@@ -1,11 +1,12 @@
-Remote Extender 1.5
+Remote Extender 1.6
 -------------------
 
 Remote Extender is a TAP that, whilst running, patches the firmware to allow TAPs to interpret extra remote codes from programmable remotes. On the TF5800 it also allows TAPs to distinguish between TV/Radio and List, and the arrow keys and volume and channel keys. The most common use of Remote Extender is to allow the MyStuff Info Box to behave more intuitively.
 
 At any time, you can shut down Remote Extender by pressing the front panel OK button 5 times in succession. This is a good way to revert to the standard remote if you're running the Toppy2 version of Remote Extender.
 
-There is now an options screen for configuring Remote Extender. This can only be accessed using TAP Commander or TSR Commander. The 2 available options are:
+The options screen can only be accessed using TAP Commander or TSR Commander. The 3 available options are:
+Remote Extender - Turns additional remote key detection on and off.
 MHEG Detection - This setting is for the TF5800 only and fixes a bug in the firmware that prevents TAPs from detecting Teletext. This is particularly useful for Jag's EPG as it will allow OK to be used to activate the Channel List view without blocking entry of Teletext page numbers.
 0 Switches aspect ratio - This setting allows you to disable the quick TV aspect ratio change that happens when 0 is pressed during viewing.
 
@@ -93,6 +94,7 @@ On all models, for providing extra functions for users of programmable remotes.
 
 History
 -------
+1.6		Degrades gracefully if the equivalent patches are installed.
 1.5		Auto detect new firmware.
 		Zero key aspect ratio switching disable mode.
 		Options screen.
