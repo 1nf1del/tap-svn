@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2007 Simon Capewell
+	Copyright (C) 2007-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -19,6 +19,6 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
+extern bool RemoteExtender_Available;
 bool RemoteExtender_Init();
 dword RemoteExtender_EventHandler( word event, dword param1, dword param2 );

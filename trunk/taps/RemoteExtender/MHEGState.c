@@ -21,10 +21,9 @@
 */
 
 #include <tap.h>
-#include <messagewin.h>
+#include <libFireBird.h>
 #include <Firmware.h>
 #include <model.h>
-#include <OpCodes.h>
 #include "MHEGState.h"
 #include "TAPExtensions.h"
 #include "Settings.h"
@@ -127,7 +126,8 @@ int MHEGState_Init()
 {
 	dword addr;
 
-	MHEGState_Available = GetModel() == TF5800t;
+	MHEGState_Available = (GetModel() == TF5800 && GetModel() == TF5810t || GetModel() == TF5800t) &&
+		!PatchIsInstalled((dword*)0x80000000, "Mh");
 	if ( !MHEGState_Available )
 		return FALSE;
 	// Look event table details up from the TAP_GetCurrentEvent code
@@ -164,8 +164,8 @@ void MHEGState_Enable()
 	// save the original instructions to be executed prior to the hook code
 	fn[0] = addr[0];
 	fn[1] = addr[1];
-	fn[2] = J(addr+2);
+	fn[2] = JMP_CMD | REL_ADDR(addr+2);
 	fn[3] = NOP_CMD;
-	HackFirmware( addr, J(GetStateHook) );
-	HackFirmware( addr+1, NOP_CMD );
+	HackFirmware( (dword)(addr), JMP_CMD | REL_ADDR(GetStateHook) );
+	HackFirmware( (dword)(addr+1), NOP_CMD );
 }

@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2007 Simon Capewell
+	Copyright (C) 2007-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -23,6 +23,7 @@
 #include <tapconst.h>
 #include <model.h>
 #include "Settings.h"
+#include "RemoteExtender.h"
 #include "MHEGState.h"
 #include "QuickAspectBlocker.h"
 
@@ -35,7 +36,7 @@ Settings settings;
 static TYPE_Window window;
 static dword rgn = 0;
 static char* optionTextBuffer = 0;
-static int optionCount = 2;
+static int optionCount = 3;
 
 static void OptionsMenu_UpdateText();
 
@@ -71,7 +72,7 @@ void OptionsMenu_Show()
 	TAP_ExitNormal();
 
 	TAP_Win_SetDefaultColor( &window );
-	TAP_Win_Create( &window, rgn, 220, 70, 280, 150, FALSE, FALSE );
+	TAP_Win_Create( &window, rgn, 220, 70, 280, 175, FALSE, FALSE );
 	sprintf( buffer, "%s Options", __tap_program_name__ );
 	TAP_Win_SetTitle( &window, buffer, 0, FNT_Size_1622 );
 
@@ -128,9 +129,11 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 		return 0;
 
 	case RKEY_VolUp:
-		if ( selection == 0 && MHEGState_Available )
+		if ( selection == 0 && RemoteExtender_Available )
+			settings.remoteExtendingDisabled = !settings.remoteExtendingDisabled;
+		else if ( selection == 1 && MHEGState_Available )
 			settings.mheg = !settings.mheg;
-		else if ( selection == 1 && QuickAspectBlocker_Available )
+		else if ( selection == 2 && QuickAspectBlocker_Available )
 			settings.quickAspectBlocker = !settings.quickAspectBlocker;
 		else
 			return 0;
@@ -140,7 +143,9 @@ dword OptionsMenu_HandleKey( dword key, dword keyHW )
 	case RKEY_VolDown:
 		if ( selection == 0 && MHEGState_Available )
 			settings.mheg = !settings.mheg;
-		else if ( selection == 1 && QuickAspectBlocker_Available )
+		else if ( selection == 1 && MHEGState_Available )
+			settings.mheg = !settings.mheg;
+		else if ( selection == 2 && QuickAspectBlocker_Available )
 			settings.quickAspectBlocker = !settings.quickAspectBlocker;
 		else
 			return 0;
@@ -179,16 +184,19 @@ void OptionsMenu_UpdateText()
 	p = optionTextBuffer;
 	window.itemNum = 0;
 
+	strcpy( p, "Remote Extender" );
+	PadToWidth( p, 220 );
+	strcat( p, RemoteExtender_Available ? settings.remoteExtendingDisabled ? "Off" : "On" : "N/A" );
+	AddMenuItem( window, p );
+
 	strcpy( p, "MHEG Detection" );
 	PadToWidth( p, 220 );
 	strcat( p, MHEGState_Available ? settings.mheg ? "On" : "Off" : "N/A" );
-	window.check[window.itemNum] = GetModel() == TF5800t ? 0 : 2; // only enable on 5800
 	AddMenuItem( window, p );
 
 	strcpy( p, "0 Switches Aspect Ratio" );
 	PadToWidth( p, 220 );
 	strcat( p, QuickAspectBlocker_Available ? settings.quickAspectBlocker ? "No" : "Yes" : "N/A");
-	window.check[window.itemNum] = QuickAspectBlocker_Available ? 0 : 2; // only enable if available
 	AddMenuItem( window, p );
 
 	strcpy( p, "Reset to defaults" );
@@ -204,18 +212,24 @@ void OptionsMenu_UpdateText()
 	switch (TAP_Win_GetSelection( &window ))
 	{
 	case 0:
+		strcpy( p, "Allows other TAPs to detect" );
+		AddMenuItem( window, p );
+		strcpy( p, "additional remote keys");
+		AddMenuItem( window, p );
+		break;
+	case 1:
 		strcpy( p, "Allows other TAPs to detect when" );
 		AddMenuItem( window, p );
 		strcpy( p, "interactive text is active");
 		AddMenuItem( window, p );
 		break;
-	case 1:
+	case 2:
 		strcpy( p, "Allows you to turn off TV aspect" );
 		AddMenuItem( window, p );
 		strcpy( p, "ratio switching when 0 is pressed" );
 		AddMenuItem( window, p );
 		break;
-	case 2:
+	case 3:
 		strcpy( p, "Press Recall to reset options to" );
 		AddMenuItem( window, p );
 		strcpy( p, "their defaults" );
@@ -299,7 +313,8 @@ void Settings_Load()
 
 void Settings_Reset()
 {
-	if ( GetModel() == TF5800t )
+	settings.remoteExtendingDisabled = FALSE;
+	if ( GetModel() == TF5800 && GetModel() == TF5810t || GetModel() == TF5800t )
 	{
 		settings.mheg = TRUE;
 	}

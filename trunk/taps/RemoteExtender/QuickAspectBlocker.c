@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2007 Simon Capewell
+	Copyright (C) 2007-2008 Simon Capewell
 	Portions copyright bdb
 
 	This file is part of the TAPs for Topfield PVRs project.
@@ -21,10 +21,9 @@
 */
 
 #include <tap.h>
-#include <messagewin.h>
+#include <libFireBird.h>
 #include <Firmware.h>
 #include <model.h>
-#include <OpCodes.h>
 #include "QuickAspectBlocker.h"
 #include "TAPExtensions.h"
 #include "Settings.h"
@@ -59,11 +58,15 @@ static dword QuickAspectBlockerSignature[] =
 
 
 //-----------------------------------------------------------------------------
-int QuickAspectBlocker_Init()
+bool QuickAspectBlocker_Init()
 {
-	// Look event table details up from the TAP_GetCurrentEvent code
-	aspectSwitchAddr = FindFirmwareFunction( QuickAspectBlockerSignature, sizeof(QuickAspectBlockerSignature), 0x80140000, 0x80200000 );
-	QuickAspectBlocker_Available = aspectSwitchAddr != 0;
+	QuickAspectBlocker_Available = !PatchIsInstalled((dword*)0x80000000, "Z");
+	if (QuickAspectBlocker_Available)
+	{
+		// Look event table details up from the TAP_GetCurrentEvent code
+		aspectSwitchAddr = FindFirmwareFunction( QuickAspectBlockerSignature, sizeof(QuickAspectBlockerSignature), 0x80140000, 0x80200000 );
+		QuickAspectBlocker_Available = aspectSwitchAddr != 0;
+	}
 
 	return QuickAspectBlocker_Available;
 }
@@ -74,5 +77,5 @@ void QuickAspectBlocker_Enable()
 	if ( !QuickAspectBlocker_Available || aspectSwitchAddr <= 0x80000000 )
 		return;
 
-	HackFirmware( (dword*)aspectSwitchAddr, NOP_CMD );
+	HackFirmware( aspectSwitchAddr, NOP_CMD );
 }

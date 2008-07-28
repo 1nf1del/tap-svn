@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2007 Simon Capewell
+	Copyright (C) 2007-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -34,7 +34,7 @@
 
 
 TAP_ID(0x814243a3);
-TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT "1.51");
+TAP_PROGRAM_NAME("Remote Extender " TOPPY2_TEXT "1.6");
 TAP_AUTHOR_NAME("Simon Capewell");
 TAP_DESCRIPTION("Makes extra remote keys accessible to other TAPs");
 TAP_ETCINFO(__DATE__);
@@ -65,7 +65,7 @@ void TSRCommanderConfigDialog()
 
 dword TAP_EventHandler( word event, dword param1, dword param2 )
 {
-	if ( event == EVT_KEY-1 )
+	if ( event == EVT_KEY || event == EVT_KEY-1 )
 	{
 		if ( OptionsMenu_IsActive() )
 			return OptionsMenu_HandleKey( param1, param2 );
@@ -89,6 +89,12 @@ void ShowUnsupportedMessage()
 int TAP_Main(void)
 {
 	TAP_Print( "Starting Remote Extender TAP\n" );
+
+	if ( !StartTAPExtensions() )
+	{
+		ShowUnsupportedMessage();
+		return 0;
+	}
 
 	Settings_Load();
 

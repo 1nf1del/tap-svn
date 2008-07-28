@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2005-2007 Simon Capewell
+	Copyright (C) 2005-2008 Simon Capewell
 
 	This file is part of the TAPs for Topfield PVRs project.
 		http://tap.berlios.de/
@@ -20,14 +20,16 @@
 */
 
 #include <tap.h>
+#include <libFireBird.h>
 #include <messagewin.h>
 #include <Firmware.h>
 #include <TAPExtensions.h>
 #include <model.h>
-#include <OpCodes.h>
 #include <morekeys.h>
 #include "RemoteExtender.h"
 
+
+bool RemoteExtender_Available = FALSE;
 
 dword exitCount = 0;
 dword lastKey = 0;
@@ -145,11 +147,11 @@ bool HookReceiveKeyFunction()
 
 	// initialize memory address
 	hookFn[2] = LUI_T1_CMD | (((dword)&lastKey >> 16) & 0xffff);
-	hookFn[3] = OR_T1_CMD | ((dword)&lastKey & 0xffff);
+	hookFn[3] = ORI_T1_CMD | ((dword)&lastKey & 0xffff);
 
 	// install the hook
-	HackFirmware( addr+0x20, JAL(ReceiveKeyHook) );
-	HackFirmware( addr+0x21, NOP_CMD );
+	HackFirmware( (dword)(addr+0x20), JAL_CMD | REL_ADDR(ReceiveKeyHook) );
+	HackFirmware( (dword)(addr+0x21), NOP_CMD );
 
 	return TRUE;
 }
@@ -195,7 +197,7 @@ bool AdjustDispatchKeyFunction()
 	if ( addr[10] != 0x24040100 )
 		return FALSE;
 
-	HackFirmware( addr+10, 0x240400ff );
+	HackFirmware( (dword)(addr+10), 0x240400ff );
 
 	return TRUE;
 }
@@ -315,8 +317,13 @@ dword RemoteExtender_EventHandler( word event, dword param1, dword param2 )
 
 bool RemoteExtender_Init()
 {
-	if ( !StartTAPExtensions() )
-		return FALSE;
+	RemoteExtender_Available = FALSE;
+
+	if ( PatchIsInstalled((dword*)0x80000000, "Re") )
+	{
+		// indicate that the TAP can continue to run - user might just want 0 key or MHEG detect
+		return TRUE;
+	}
 
 	if ( !HookReceiveKeyFunction() )
 	{
@@ -333,6 +340,8 @@ bool RemoteExtender_Init()
 #ifdef DIAGNOSTIC
 	rgn = TAP_Osd_Create(0, 0, 720, 576, 0, FALSE); // Define a region that covers the whole screen
 #endif
+
+	RemoteExtender_Available = TRUE;
 
 	return TRUE;
 }

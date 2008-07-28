@@ -53,7 +53,8 @@ RemoteExtender.o:		RemoteExtender.c RemoteExtender.h
 MHEGState.o:			MHEGState.c MHEGState.h
 QuickAspectBlocker.o:	QuickAspectBlocker.c QuickAspectBlocker.h
 
-CFLAGS+=-I../../libs/libutils -I../../libs/Firmware -I../../libs/TSRCommander
+CFLAGS+=-I../../libs/TSRCommander -I../../libs/libutils -I../../libs/Firmware -I../../libs/FireBird
+LDFLAGS+=-L../../libs/FireBird -l FireBird -l c
 
 ../../libs/libutils/libutils.a::
 	$(MAKE) -s -C ../../libs/libutils

@@ -27,6 +27,7 @@ typedef struct
 {
 	bool mheg;
 	bool quickAspectBlocker;
+	bool remoteExtendingDisabled;
 } Settings;
 
 extern Settings settings;
